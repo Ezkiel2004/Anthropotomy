@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Scores & Assessment History API
+ * Anthropotomy – Scores & Assessment History API
  * GET /api/scores.php
  *
  * Provides student score records, performance summaries, and detailed submission reviews.

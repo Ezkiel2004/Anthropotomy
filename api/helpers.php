@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Shared API Helpers
+ * Anthropotomy – Shared API Helpers
  * Common utilities for all API endpoints: response formatting,
  * CORS headers, session management, authentication middleware.
  */

@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Reset Student Progress & Recalculate Dynamic Summaries
+ * Anthropotomy – Reset Student Progress & Recalculate Dynamic Summaries
  *
  * This script:
  * 1. Resets all progress data: student_lesson_progress, assessment_submissions,
@@ -31,7 +31,7 @@ if (!$isCli) {
         th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #334155; }
         th { background: #0f172a; color: #94a3b8; }
     </style></head><body>';
-    echo '<h1>AnatomIQ – Student Progress Reset</h1>';
+    echo '<h1>Anthropotomy – Student Progress Reset</h1>';
 }
 
 function out(string $msg, string $type = 'info'): void {

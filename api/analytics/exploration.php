@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – 3D Anatomy Explorer Analytics API
+ * Anthropotomy – 3D Anatomy Explorer Analytics API
  *
  * POST /api/analytics/exploration.php  → Log a 3D exploration session (Student)
  * GET  /api/analytics/exploration.php  → Retrieve exploration logs (Teacher / Student)

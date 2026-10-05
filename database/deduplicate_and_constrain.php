@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Database Deduplication & Schema Constraint Migration
+ * Anthropotomy – Database Deduplication & Schema Constraint Migration
  * Cleans up duplicated modules, lessons, and announcements,
  * applies UNIQUE integrity constraints, and recalculates progress summaries.
  */

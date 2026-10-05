@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Management – AnatomIQ</title>
+  <title>Student Management – Anthropotomy</title>
+  <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20260914-icons1"/>
-  <link rel="stylesheet" href="../assets/css/sidebar.css?v=20260914-bg1"/>
+  <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20260914-icons1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
@@ -17,7 +18,7 @@
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20260914-icons1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261005-brand1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -233,7 +234,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20260914-icons1"></script>
+<script src="../assets/js/app.js?v=20261005-brand1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -594,7 +595,7 @@ function exportStudentCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `AnatomIQ_Students_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `Anthropotomy_Students_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
   showToast('Student directory exported to CSV.', 'success');

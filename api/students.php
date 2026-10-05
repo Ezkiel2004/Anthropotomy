@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Students Management API
+ * Anthropotomy – Students Management API
  *
  * GET    /api/students.php           → List students with progress summary & section filters
  * GET    /api/students.php?id=1      → Single student profile with detailed progress & history

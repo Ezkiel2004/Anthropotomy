@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Reports & Academic Analytics API
+ * Anthropotomy – Reports & Academic Analytics API
  *
  * GET /api/reports.php              → JSON metrics, score distribution, section averages, student roster
  * GET /api/reports.php?format=csv   → Direct CSV stream of full academic report from database
@@ -76,7 +76,7 @@ unset($s);
 
 // ── CSV Export Mode ─────────────────────────────────────────────────
 if (isset($_GET['format']) && strtolower($_GET['format']) === 'csv') {
-    $filename = 'AnatomIQ_Class_Report_' . date('Ymd_His') . '.csv';
+    $filename = 'Anthropotomy_Class_Report_' . date('Ymd_His') . '.csv';
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Pragma: no-cache');

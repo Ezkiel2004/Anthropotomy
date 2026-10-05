@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Questions API
+ * Anthropotomy – Questions API
  *
  * GET    /api/questions.php?assessment_id=1  → List all questions & options for an assessment
  * POST   /api/questions.php                  → Create question with options or hotspot data

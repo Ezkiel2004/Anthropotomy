@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Submit Quiz API
+ * Anthropotomy – Submit Quiz API
  * POST /api/quiz/submit.php
  *
  * Grades submissions for Multiple Choice, Hotspot (Click-to-Identify),

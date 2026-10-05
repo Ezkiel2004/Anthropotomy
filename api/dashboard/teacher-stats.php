@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Teacher Dashboard Statistics API
+ * Anthropotomy – Teacher Dashboard Statistics API
  * GET /api/dashboard/teacher-stats.php
  *
  * Provides overview metrics for the teacher dashboard:

@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Session Check API Endpoint
+ * Anthropotomy – Session Check API Endpoint
  * GET /api/auth/session.php
  *
  * Validates the current session and returns the logged-in user's data.

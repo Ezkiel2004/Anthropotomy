@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Logout API Endpoint
+ * Anthropotomy – Logout API Endpoint
  * POST /api/auth/logout.php
  *
  * Destroys the current server-side session.

@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Assessments API
+ * Anthropotomy – Assessments API
  *
  * GET    /api/assessments.php          → List assessments with question counts & stats
  * GET    /api/assessments.php?id=1     → Single assessment with full question bank
