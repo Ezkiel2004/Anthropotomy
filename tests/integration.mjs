@@ -53,7 +53,7 @@ const duplicate=await student('quiz/submit.php','POST',{submission_id:subid,answ
 check((await student('quiz/result.php?submission_id='+subid)).data.responses.length===3,'Historical responses preserved');
 const second=await student('quiz/start.php','POST',{assessment_id:aid});check(second.success,'Second attempt');
 check((await student('quiz/save.php','POST',{submission_id:second.data.submission_id,answers:[answers[0]]})).success,'Save partial attempt');
-execFileSync('C:/xampp/php/php.exe',['tests/database.php','expire'],{stdio:'pipe'});
+execFileSync(process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php'),['tests/database.php','expire'],{stdio:'pipe'});
 check((await student('quiz/save.php','POST',{submission_id:second.data.submission_id,answers})).status===409,'Expired attempts cannot save new answers');
 const expired=await student('quiz/submit.php','POST',{submission_id:second.data.submission_id,answers});check(expired.success && expired.data.score===33.33,'Late submission grades only pre-deadline answers');
 check((await student('quiz/start.php','POST',{assessment_id:aid})).status===403,'Attempt limit enforced');

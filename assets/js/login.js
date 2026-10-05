@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 const APP_BASE = new URL('../../', document.currentScript.src).pathname.replace(/\/$/, '');
 const API_BASE = APP_BASE + '/api';
 const byId = id => document.getElementById(id);
@@ -10,6 +10,13 @@ function togglePassword(id, button) {
     button.innerHTML = eye(!visible);
     button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
     button.setAttribute('aria-pressed', String(visible));
+}
+// Buttons keep their markup (label and icon) so it can be restored after a request.
+const buttonLabels = new Map();
+document.querySelectorAll('#loginBtn, #registerBtn, #resetBtn').forEach(button => buttonLabels.set(button, button.innerHTML));
+function restoreLabel(button) {
+    button.disabled = false;
+    button.innerHTML = buttonLabels.get(button);
 }
 function notice(id, message, error = false) {
     const el = byId(id);
@@ -75,7 +82,7 @@ async function handleLogin(event) {
         location.assign(destination(result.data.role));
     } catch (error) {
         notice('loginError', error instanceof TypeError || error instanceof SyntaxError ? 'We couldn’t connect. Please try again in a moment.' : error.message, true);
-        button.disabled = false; button.innerHTML = 'Login <span aria-hidden="true">↗</span>';
+        restoreLabel(button);
     }
 }
 async function handleRegister(event) {
@@ -99,7 +106,7 @@ async function handleRegister(event) {
     } catch (error) {
         notice('registerError', error instanceof TypeError || error instanceof SyntaxError ? 'We couldn’t connect. Please try again in a moment.' : error.message, true);
     } finally {
-        button.disabled = false; button.innerHTML = 'Register Account <span aria-hidden="true">↗</span>';
+        restoreLabel(button);
     }
 }
 function updateStrength() {
@@ -119,8 +126,13 @@ function switchView(focus = true) {
     document.body.classList.toggle('register-mode', register);
     for (const id of ['loginTab', 'registerTab']) byId(id).removeAttribute('aria-current');
     byId(register ? 'registerTab' : 'loginTab').setAttribute('aria-current','page');
-    document.title = register ? 'AnatomIQ | Create Your Student Account' : 'AnatomIQ | Student Login';
-    if (focus) byId(register ? 'registerView' : 'loginView').querySelector('h2').focus({preventScroll:true});
+    document.title = register ? 'Create your student account – Anthropotomy' : 'Sign in – Anthropotomy';
+    if (location.hash === '#terms') {
+        // Deep link from the landing page footer: show the terms over the sign-in view.
+        if (!byId('termsModal').open) byId('termsModal').showModal();
+        return;
+    }
+    if (focus) byId(register ? 'registerView' : 'loginView').querySelector('h1').focus({preventScroll:true});
 }
 byId('loginForm').addEventListener('submit', handleLogin);
 byId('registerForm').addEventListener('submit', handleRegister);
@@ -136,6 +148,10 @@ for (const [trigger, modal] of [['forgotLink','forgotModal'],['termsLink','terms
     byId(trigger).addEventListener('click', () => byId(modal).showModal());
     byId(modal).querySelectorAll('.dialog-close').forEach(button => button.addEventListener('click', () => byId(modal).close()));
 }
+// Closing the deep-linked terms leaves the sign-in view, so a reload does not reopen them.
+byId('termsModal').addEventListener('close', () => {
+    if (location.hash === '#terms') history.replaceState(null, '', '#login');
+});
 byId('forgotPasswordForm').addEventListener('submit', async event => {
     event.preventDefault();
     const button = byId('resetBtn');
@@ -146,7 +162,7 @@ byId('forgotPasswordForm').addEventListener('submit', async event => {
         notice('resetResult', result.message);
     } catch (error) {
         notice('resetResult', error instanceof TypeError || error instanceof SyntaxError ? 'We couldn’t connect. Please try again shortly.' : error.message, true);
-    } finally { button.disabled = false; button.textContent = 'View Recovery Instructions'; }
+    } finally { restoreLabel(button); }
 });
 window.addEventListener('hashchange', () => switchView());
 switchView(false);
@@ -156,6 +172,8 @@ try {
 } catch (_) { /* Remembering a username is optional. */ }
 // Reuse the school's configured grade when it differs from the standard options.
 document.addEventListener('siteconfigloaded', event => {
+    // Show the school name only when one is configured; never a placeholder.
+    if (event.detail.school_name && byId('schoolLine')) byId('schoolLine').hidden = false;
     const grade = event.detail.grade_level;
     if (grade && ![...byId('gradeLevel').options].some(option => option.value === grade)) byId('gradeLevel').add(new Option(grade, grade));
 });

@@ -1,10 +1,12 @@
-# AnatomIQ
+# Anthropotomy
+
+*Explore. Learn. Understand.*
 
 An interactive anatomy learning system with teacher and student portals. Application data is read from PHP APIs backed by MySQL/MariaDB. Student records, lessons, assessment results, school settings, anatomy descriptions, model URLs, achievement goals, and report grading thresholds are stored in the database.
 
 ## Start using this installation
 
-1. Start Apache and MySQL in XAMPP, then open http://localhost/Prototype2/.
+1. Start Apache and MySQL in XAMPP, then open http://localhost/Prototype2/. That is the public landing page; choose **Sign in**, or go straight to http://localhost/Prototype2/login.html.
 2. Sign in with your existing teacher account. Teacher accounts and their passwords were preserved.
 3. Open **School & Anatomy Content**. Set the school name, school year, subject, default grade, recovery contact, and report grading thresholds. Blank settings are shown as unconfigured, not replaced by sample school details.
 4. Use **Students → Add Student** to enter real student information. Each student needs an explicit password, grade level and school year. No shared default student password is supplied.
@@ -27,7 +29,7 @@ The explorer loads the configured real model. Systems without models still displ
 - Existing database-managed body systems, modules, assessments, announcements and media were preserved. They are editable content, not frontend fixtures. Review and publish only the content intended for the new students.
 - The installer SQL now contains structure only. It creates no demo teachers, students, lessons, scores, announcements or default school identity.
 - The live database migration added app_settings, anatomy_content, achievement_rules, notification_receipts and quiz deadline/draft fields without replacing the existing teacher accounts. Announcement audiences now support actual student section names rather than a fixed section list.
-- A complete pre-cleanup backup and the original supplied SQL export are preserved outside the web directory in C:/Users/ezeki/Documents/AnatomIQ-backups/. The live backup is before-cleanup-20260912-183309.sql; the original export is original-export-1789230304747.sql.
+- A complete pre-cleanup backup and the original supplied SQL export are kept outside the web directory, in a private backups folder on the development machine (never in this repository). The live backup is before-cleanup-20260912-183309.sql; the original export is original-export-1789230304747.sql.
 - To restore, import a backup into a separate recovery database using phpMyAdmin, verify it, then deliberately switch the application database if needed. The backup contains account hashes and school records and should not be served publicly.
 
 ## Quiz and reporting rules
@@ -59,11 +61,34 @@ Maintenance scripts are CLI-only and database/, tests/ and .runtime/ are denied 
 
 Password recovery is teacher-managed. The public recovery form shows the configured contact, and a signed-in teacher can reset a student's password from the student profile. No email delivery is claimed and reset tokens are never exposed. Password changes invalidate existing sessions; HTTPS enables the secure cookie flag automatically.
 
+## Public pages
+
+`index.html` is the public landing page and `login.html` holds sign-in, registration, the teacher-managed password recovery dialog and the terms (`login.html#login`, `#register` and `#terms` link straight to each). Signing out from either portal returns to `login.html`. Both pages use `assets/css/public.css`; the portals keep their own styles.
+
+The landing page shows only real information. The school name and the number of active body systems come from `api/config.php` and stay hidden when the API returns nothing or is unreachable. The feature figures are simplified drawings of the real student pages with generic labels.
+
+On tablets and larger screens the hero loads the vendored Three.js build and the skeleton model from `system_model/` after the static poster is visible, unless the visitor prefers reduced motion or has Save-Data on. If WebGL, the scripts or the model are unavailable, the poster simply stays. The model is credited in the footer (CC BY 4.0, Ruslan Gadzhiev).
+
+### Building the public pages
+
+Nothing here is needed to run the site: the compiled CSS, fonts and images are committed, so XAMPP serves the files as they are. To change the public pages' styles or regenerate their images, install Node.js 20 or newer and run, from `landing-src/`:
+
+~~~powershell
+npm install
+npm run build:css        # Tailwind CLI: src/public.css -> assets/css/public.css (minified)
+npm run watch:css        # rebuild on save while editing index.html or login.html
+npm run check:contrast   # checks every colour pair in the design tokens
+npm run build:assets     # hero poster (AVIF/WebP/PNG), brand mark and favicons from uploads/images/
+npm run build:og         # assets/brand/og-image.jpg, rendered in Chromium
+~~~
+
+Design tokens live in the `@theme` block of `landing-src/src/public.css`; Tailwind's default palette, radii, shadows and type sizes are cleared so only those tokens exist. Fonts (Instrument Serif, Plus Jakarta Sans, JetBrains Mono) are self-hosted in `assets/fonts/` under the SIL Open Font License. `landing-src/node_modules/` is ignored by Git. Advance the `?v=20261005-landing1` query on the public pages' assets when you change them.
+
 ## Shared navigation
 
 All teacher and student pages load their portal sidebar from assets/js/sidebar.js. Update navigation there so links, labels, icons and section headings stay consistent across pages. The shared toggle supports desktop collapse, mobile drawers, overlay dismissal and Escape.
 
-Apache revalidates HTML and shared navigation assets through the root .htaccess. Sidebar page links and asset URLs carry a release version so old cached page copies do not reappear when changing sections. After this update, open http://localhost/Prototype2/teacher/dashboard.html?nav=20260914-icons1 once to load the current navigation. Advance the navigation version in sidebar.js and the shared asset versions in portal pages when releasing future navigation changes.
+Apache revalidates HTML and shared navigation assets through the root .htaccess. Sidebar page links and asset URLs carry a release version so old cached page copies do not reappear when changing sections. After this update, open http://localhost/Prototype2/teacher/dashboard.html?nav=20261005-brand1 once to load the current navigation. Advance the navigation version in sidebar.js and the shared asset versions in portal pages when releasing future navigation changes.
 
 ## Verification
 
@@ -73,15 +98,17 @@ The completed validation passed 72 integration checks and browser checks across 
 node tests/check-syntax.mjs
 ~~~
 
-The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile and debugging port 9225 and runs after the integration suite. It checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
+The syntax check also compiles the public pages' ES modules. Outside XAMPP on Windows, set PHP_BINARY (or have `php` on PATH); the integration suite uses the same setting.
 
-The focused sidebar regression suite, node tests/navigation.mjs, passed on all 19 portal pages. It verifies complete and consistent menus, active links, icons, profile links, desktop collapse and mobile controls. Run it against a fresh isolated test database and the same server/browser setup; it creates its own student fixture and does not require the integration suite.
+The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
+
+The focused sidebar regression suite, node tests/navigation.mjs, covers the 11 teacher pages and 7 student pages (scores.html redirects to My Progress & Scores). It verifies complete and consistent menus, active links, icons, profile links, desktop collapse and mobile controls. The student sidebar has five links; notifications and settings open from the top bar. Run it against a fresh isolated test database and the same server/browser setup; it creates its own student fixture and does not require the integration suite.
 
 Finish by stopping the temporary server/browser and running tests/database.php cleanup with the same test database name. Test credentials and screenshots are stored only under .runtime/, excluded from source control and denied web access.
 
 ## Interface icons
 
-Teacher and student portals use a shared, locally served Phosphor SVG icon set selected through Supericons. Navigation, dashboard cards, notifications, media types, modal controls, and common actions share the same family. See assets/icons/README.md for usage and assets/icons/LICENSE for attribution. Branding and database-configured anatomy symbols remain separate.
+Teacher and student portals use a shared, locally served Phosphor SVG icon set selected through Supericons. The public pages use the same sprite; their additional regular-weight icons (x, pause, play, hand-grabbing, file-pdf, textbox, list-checks, toggle-left, crosshair) come from the same Phosphor set (`@phosphor-icons/core`). Navigation, dashboard cards, notifications, media types, modal controls, and common actions share the same family. See assets/icons/README.md for usage and assets/icons/LICENSE for attribution. Branding and database-configured anatomy symbols remain separate.
 
 ## Supplied skeletal model
 

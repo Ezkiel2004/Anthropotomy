@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in – Anthropotomy</title>
+  <meta name="description" content="Sign in to Anthropotomy or create your student account with your school-issued student ID. Teachers and administrators sign in here too.">
+  <meta name="theme-color" content="#07110E">
+  <link rel="canonical" href="login.html">
+  <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="assets/brand/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/public.css?v=20261005-landing1">
+</head>
+<body class="on-paper">
+  <a class="skip-link" href="#main">Skip to the sign-in form</a>
+
+  <header class="site-header on-dark">
+    <div class="page site-header-inner">
+      <a class="brand" href="index.html" aria-label="Anthropotomy home"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt=""><span class="brand-name">Anthropotomy</span></a>
+      <a class="nav-link" href="index.html"><svg class="icon-inline" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-left"/></svg><span class="ml-2">Back to home</span></a>
+    </div>
+  </header>
+
+  <main id="main" class="auth" tabindex="-1">
+    <aside class="auth-plate on-dark" aria-label="About Anthropotomy">
+      <figure class="plate">
+        <div class="plate-media">
+          <picture>
+            <source type="image/avif" srcset="assets/img/hero-skeleton-480.avif 480w, assets/img/hero-skeleton-720.avif 720w" sizes="20rem">
+            <source type="image/webp" srcset="assets/img/hero-skeleton-480.webp 480w, assets/img/hero-skeleton-720.webp 720w" sizes="20rem">
+            <img src="assets/img/hero-skeleton-720.png" width="957" height="1333" loading="lazy" decoding="async" alt="A glowing green X-ray style illustration of a human skeleton, seen from the side with one arm raised.">
+          </picture>
+        </div>
+        <figcaption class="plate-caption"><span class="caption">Plate I — <strong>Skeletal system</strong></span></figcaption>
+      </figure>
+      <div>
+        <p class="font-display text-32">Explore. Learn. Understand.</p>
+        <ul class="check-list mt-6 text-muted">
+          <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Turn 3D anatomy models in the explorer.</span></li>
+          <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Work through the lessons your teacher publishes.</span></li>
+          <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Take quizzes that save your answers as you go.</span></li>
+        </ul>
+        <p class="caption mt-8" id="schoolLine" hidden><svg class="icon-inline" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#building-apartment"/></svg><span data-setting="school_name"></span></p>
+      </div>
+    </aside>
+
+    <section class="auth-panel" aria-label="Account access">
+      <div class="auth-card">
+        <nav class="auth-tabs" aria-label="Account options"><a href="#login" id="loginTab" aria-current="page">Sign in</a><a href="#register" id="registerTab">Create account</a></nav>
+
+        <div id="loginView">
+          <div class="form-heading"><span class="caption caption--lead">Students, teachers and administrators</span><h1 tabindex="-1">Welcome back</h1><p>Sign in with your student ID or username.</p></div>
+          <form id="loginForm" novalidate>
+            <div class="field"><label for="username">Student ID or username</label><input id="username" name="username" autocomplete="username" required maxlength="50"><span class="field-error" id="usernameError"></span></div>
+            <div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" class="password-toggle" data-password="password" aria-label="Show password" aria-pressed="false"></button></div><span class="field-error" id="passwordError"></span></div>
+            <div class="form-options"><label class="check-label"><input type="checkbox" id="rememberMe" aria-describedby="rememberHint"> Remember me</label><button class="text-button" type="button" id="forgotLink">Forgot your password?</button></div>
+            <p class="field-hint" id="rememberHint">Remembers your username on this device. Your password is never stored.</p>
+            <div class="notice error" id="loginError" role="alert" hidden></div>
+            <div class="notice success" id="loginSuccess" role="status" hidden></div>
+            <button class="btn btn-primary w-full" id="loginBtn" type="submit">Sign in <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></button>
+          </form>
+          <p class="switch-copy">New here? <a class="text-link" href="#register">Create an account</a></p>
+          <div class="teacher-note"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#lock-key"/></svg><p><strong>Teachers and administrators sign in here too.</strong> Use your existing username and password; you'll go straight to the teacher portal.</p></div>
+        </div>
+
+        <div id="registerView" hidden>
+          <div class="form-heading"><span class="caption caption--lead">For students</span><h1 tabindex="-1">Create your student account</h1><p>You'll need the student ID your school gave you.</p></div>
+          <form id="registerForm" novalidate>
+            <p class="required-note">All fields are required.</p>
+            <div class="fields-grid">
+              <div class="field full"><label for="fullName">Full name</label><input id="fullName" name="full_name" autocomplete="name" required maxlength="120"></div>
+              <div class="field"><label for="studentId">Student ID</label><input id="studentId" name="school_id" required maxlength="20" aria-describedby="studentIdHint"><small id="studentIdHint">The ID your school issued you.</small></div>
+              <div class="field"><label for="contactNo">Contact number</label><input id="contactNo" name="contact_no" type="tel" autocomplete="tel" required maxlength="20" aria-describedby="contactHint"><small id="contactHint">At least 7 digits.</small></div>
+              <div class="field full"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="150"></div>
+              <div class="field"><label for="gradeLevel">Grade or year level</label><select id="gradeLevel" name="grade_level" required><option value="">Select your level</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option><option>5th Year</option><option>Graduate</option></select></div>
+              <div class="field"><label for="section">Section or course</label><input id="section" name="section" required maxlength="60"></div>
+              <div class="field full"><label for="regUsername">Username</label><input id="regUsername" name="username" autocomplete="username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.\-]{3,50}" aria-describedby="usernameHint"><small id="usernameHint">3–50 letters, numbers, periods, underscores or hyphens.</small></div>
+              <div class="field"><label for="regPassword">Password</label><div class="password-wrap"><input id="regPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72" aria-describedby="passwordHint strengthText"><button type="button" class="password-toggle" data-password="regPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+              <div class="field"><label for="confirmPassword">Confirm password</label><div class="password-wrap"><input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password" required><button type="button" class="password-toggle" data-password="confirmPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+            </div>
+            <div class="strength"><meter id="passwordStrength" min="0" max="4" value="0" aria-label="Password strength"></meter><span id="strengthText" aria-live="polite">Password strength</span></div>
+            <p class="field-hint" id="passwordHint">Use at least 8 characters. Mixing letters, numbers and symbols makes it stronger (72 bytes at most).</p>
+            <div class="terms-field field"><label class="check-label"><input type="checkbox" id="terms" name="terms" required><span>I agree to the <button type="button" class="text-button" id="termsLink">Terms and Conditions</button>.</span></label></div>
+            <div class="notice error" id="registerError" role="alert" hidden></div>
+            <button class="btn btn-primary w-full" id="registerBtn" type="submit">Create account <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></button>
+          </form>
+          <p class="switch-copy">Already have an account? <a class="text-link" href="#login">Sign in</a></p>
+        </div>
+
+        <p class="footer-small mt-8">© <span data-current-year></span> Anthropotomy. Explore. Learn. Understand.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="forgotModal" aria-labelledby="recoveryTitle">
+    <div class="dialog-heading"><h2 id="recoveryTitle">Let’s get you back in</h2><button type="button" class="icon-button dialog-close" aria-label="Close recovery dialog"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#x"/></svg></button></div>
+    <p>Your teacher resets passwords; there is no email reset. Enter your email or student ID to see who to contact.</p>
+    <form id="forgotPasswordForm">
+      <div class="field"><label for="resetIdentifier">Email or student ID</label><input id="resetIdentifier" required maxlength="150"></div>
+      <div id="resetResult" class="notice" role="status" hidden></div>
+      <button class="btn btn-primary w-full" type="submit" id="resetBtn">Show recovery instructions</button>
+    </form>
+  </dialog>
+  <dialog id="termsModal" aria-labelledby="termsTitle">
+    <div class="dialog-heading"><h2 id="termsTitle">Terms and Conditions</h2><button type="button" class="icon-button dialog-close" aria-label="Close terms dialog"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#x"/></svg></button></div>
+    <p>By creating an Anthropotomy student account, you agree to:</p>
+    <ul><li>Provide accurate information and use your own school-issued student ID.</li><li>Keep your password private and use this account for your own learning.</li><li>Use lessons, models, and assessments responsibly and follow your school’s academic integrity rules.</li></ul>
+    <p>Your account details and learning activity are stored in this system so your teachers can manage your profile and monitor academic progress. Contact your teacher to request corrections or help with your account.</p>
+    <button type="button" class="btn btn-primary dialog-close mt-4">Close</button>
+  </dialog>
+  <script src="assets/js/login.js?v=20261005-landing1"></script>
+  <script src="assets/js/site-config.js"></script>
+</body>
+</html>
