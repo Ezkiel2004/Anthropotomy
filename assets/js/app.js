@@ -1,5 +1,5 @@
 /* ============================================================
-   AnatomIQ – Shared App Utilities  (v1.1)
+   Anthropotomy – Shared App Utilities  (v1.1)
    ============================================================ */
 
 'use strict';
@@ -60,7 +60,7 @@ const Auth = {
 
         } catch (err) {
             // Server unreachable — fall back to cached session for development
-            console.warn('[AnatomIQ] Server session check failed, using cached session:', err.message);
+            console.warn('[Anthropotomy] Server session check failed, using cached session:', err.message);
             if (cached && role && cached.role !== role && cached.role !== 'admin') {
                 this._redirectToLogin();
                 return null;
@@ -103,7 +103,7 @@ const Auth = {
 
     _redirectToLogin() {
         // Determine correct path depth
-        window.location.href = API_BASE.replace(/\/api$/, '') + '/index.html';
+        window.location.href = API_BASE.replace(/\/api$/, '') + '/login.html';
     },
 
     _populateUserUI(user) {

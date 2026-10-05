@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Announcements API Endpoint
+ * Anthropotomy – Announcements API Endpoint
  *
  * GET    /api/announcements.php          → List announcements (with audience filtering & read stats)
  * POST   /api/announcements.php          → Create new announcement (Teacher only)

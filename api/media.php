@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Media Library API
+ * Anthropotomy – Media Library API
  *
  * GET    /api/media.php              → list media files (teacher)
  * GET    /api/media.php?id=1         → single media file info

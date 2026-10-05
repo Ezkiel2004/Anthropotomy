@@ -1,76 +1,336 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Sign in to AnatomIQ to explore anatomy, access lessons and assessments, and track your learning.">
-  <title>AnatomIQ | Student Login</title>
-  <link rel="stylesheet" href="assets/css/login.css?v=20260915-auth1">
+  <title>Anthropotomy – See inside the human body</title>
+  <meta name="description" content="Anthropotomy is an interactive anatomy learning system for students: explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
+  <meta name="theme-color" content="#07110E">
+  <link rel="canonical" href="./">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Anthropotomy">
+  <meta property="og:title" content="Anthropotomy – See inside the human body">
+  <meta property="og:description" content="Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
+  <meta property="og:image" content="assets/brand/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Anthropotomy wordmark and the line “See inside the human body” beside a glowing green X-ray style skeleton.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Anthropotomy – See inside the human body">
+  <meta name="twitter:description" content="Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
+  <meta name="twitter:image" content="assets/brand/og-image.jpg">
+  <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" href="assets/brand/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/public.css?v=20261005-landing1">
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="module" src="assets/js/landing.js?v=20261005-landing1"></script>
 </head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="#login" aria-label="AnatomIQ home"><img src="uploads/images/logo.png" alt="" width="46" height="46"><span>Anatom<span class="brand-iq">IQ</span><small>LEARN. EXPLORE. UNDERSTAND.</small></span></a>
-    <span class="header-label"><span class="status-dot"></span> Your academic learning space</span>
+<body class="on-paper">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header on-dark">
+    <div class="page site-header-inner">
+      <a class="brand" href="./" aria-label="Anthropotomy home"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt=""><span class="brand-name">Anthropotomy</span></a>
+      <button class="nav-toggle btn btn-secondary btn-small" type="button" aria-expanded="false" aria-controls="siteNav"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#list"/></svg><span>Menu</span></button>
+      <nav class="nav-panel" id="siteNav" aria-label="Main">
+        <ul class="nav-list">
+          <li><a class="nav-link" href="#features">Features</a></li>
+          <li><a class="nav-link" href="#how-it-works">How it works</a></li>
+          <li class="nav-divider"><a class="nav-link" href="login.html#login">Sign in</a></li>
+          <li><a class="btn btn-quiet btn-small" href="login.html#register" data-header-cta>Create account</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
-  <main class="auth-shell">
-    <aside class="story-panel" aria-label="About AnatomIQ">
-      <div class="eyebrow"><span class="status-dot"></span> DISCOVER THE SCIENCE OF YOU</div>
-      <h1>A little curiosity.<br>A world of<br><em>understanding.</em></h1>
-      <p class="story-intro">Your anatomy learning journey starts here. Explore the human body, build your knowledge, and see how far you can go.</p>
-      <div class="anatomy-art" aria-hidden="true">
-        <div class="art-grid"></div><span class="art-caption">THE HUMAN BODY, CONNECTED.</span>
-        <svg viewBox="0 0 400 260" fill="none"><circle cx="205" cy="130" r="104" stroke="#9dd1b7" stroke-opacity=".24"/><circle cx="205" cy="130" r="78" stroke="#9dd1b7" stroke-opacity=".15" stroke-dasharray="3 7"/><g stroke="#c3e7ce" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M188 48c0-26 35-26 35 0 0 13-6 22-17 22s-18-9-18-22Z"/><path d="M197 69v14l-35 14-18 51-10 47m82-126v14l33 14 18 51 10 47M175 99l-5 52 11 31-7 59m61-142 5 52-11 31 7 59M205 84v101m-25-1q25 19 49 0M193 88q-20 2-19 14 10 14 29 10m14-24q21 2 18 14-10 14-28 10M176 113q10 13 27 8m31-8q-10 13-27 8m-29 4q8 12 25 7m28-7q-8 12-24 7m-27 6q8 9 23 5m26-5q-8 9-22 5"/></g><path d="M210 110c-14-15-25 4-12 16l12 10 12-14c11-14-4-24-12-12Z" fill="#d6e6a5"/><g stroke="#9dd1b7" stroke-opacity=".7"><path d="M222 120h64l17-23h45M175 147h-55l-20 22H59"/><circle cx="222" cy="120" r="4" fill="#d6e6a5"/><circle cx="175" cy="147" r="4" fill="#d6e6a5"/></g></svg>
-        <span class="art-tag tag-one">Explore in 3D <span>↗</span></span><span class="art-tag tag-two">Made for curious minds</span>
-      </div>
-      <div class="feature-list"><div><span class="feature-number">01</span><span><strong>Explore &amp; discover</strong><small>Interactive anatomy models and lessons</small></span></div><div><span class="feature-number">02</span><span><strong>Learn &amp; grow</strong><small>Assessments and personal progress tracking</small></span></div></div>
-      <div class="school-line"><span class="school-icon">⌂</span><span data-setting="school_name">AnatomIQ Learning Portal</span></div>
-    </aside>
-    <section class="form-panel" aria-label="Account access">
-      <div class="system-label">STUDENT ACADEMIC MANAGEMENT SYSTEM</div>
-      <nav class="auth-tabs" aria-label="Account options"><a href="#login" id="loginTab" aria-current="page">Login</a><a href="#register" id="registerTab">Create an account</a></nav>
-      <div id="loginView">
-        <div class="form-heading"><span class="mini-label">YOUR NEXT CHAPTER STARTS HERE</span><h2 tabindex="-1">Welcome Back!</h2><p>Sign in to access your student account.</p></div>
-        <form id="loginForm" novalidate>
-          <div class="field"><label for="username">Student ID or Username</label><input id="username" name="username" autocomplete="username" placeholder="Enter your student ID or username" required maxlength="50"><span class="field-error" id="usernameError"></span></div>
-          <div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button type="button" class="password-toggle" data-password="password" aria-label="Show password" aria-pressed="false"></button></div><span class="field-error" id="passwordError"></span></div>
-          <div class="form-options"><label class="check-label"><input type="checkbox" id="rememberMe" aria-describedby="rememberHint"> Remember Me</label><button class="text-button" type="button" id="forgotLink">Forgot Password?</button></div>
-          <p class="field-hint" id="rememberHint">Remembers your username on this device.</p>
-          <div class="notice error" id="loginError" role="alert" hidden></div>
-          <div class="notice success" id="loginSuccess" role="status" hidden></div>
-          <button class="primary-button" id="loginBtn" type="submit">Login <span aria-hidden="true">↗</span></button>
-        </form>
-        <p class="switch-copy">Don’t have an account? <a href="#register">Create an Account</a></p>
-        <div class="teacher-note"><svg viewBox="0 0 256 256" aria-hidden="true"><use href="assets/icons/interface.svg#lock-key"/></svg><p><strong>One portal. A connected classroom.</strong><br>Teachers and administrators can sign in here using their existing credentials.</p></div>
-      </div>
-      <div id="registerView" hidden>
-        <div class="form-heading"><span class="mini-label">LET’S GET YOU STARTED</span><h2 tabindex="-1">Create Your Student Account</h2><p>Register to access your academic information and student services.</p></div>
-        <form id="registerForm" novalidate>
-          <p class="required-note">All fields are required.</p>
-          <div class="fields-grid">
-            <div class="field full"><label for="fullName">Full Name</label><input id="fullName" name="full_name" autocomplete="name" placeholder="Enter your full name" required maxlength="120"></div>
-            <div class="field"><label for="studentId">Student ID</label><input id="studentId" name="school_id" placeholder="Your school-issued ID" required maxlength="20"></div>
-            <div class="field"><label for="contactNo">Contact Number</label><input id="contactNo" name="contact_no" type="tel" autocomplete="tel" placeholder="e.g. 0917 123 4567" required maxlength="20"></div>
-            <div class="field full"><label for="email">Email Address</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="150"></div>
-            <div class="field"><label for="gradeLevel">Grade/Year Level</label><select id="gradeLevel" name="grade_level" required><option value="">Select your level</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option><option>5th Year</option><option>Graduate</option></select></div>
-            <div class="field"><label for="section">Section/Course</label><input id="section" name="section" placeholder="Your section or course" required maxlength="60"></div>
-            <div class="field full"><label for="regUsername">Username</label><input id="regUsername" name="username" autocomplete="username" placeholder="Choose a unique username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]{3,50}" aria-describedby="usernameHint"><small id="usernameHint">3–50 letters, numbers, periods, underscores or hyphens.</small></div>
-            <div class="field"><label for="regPassword">Password</label><div class="password-wrap"><input id="regPassword" name="password" type="password" autocomplete="new-password" placeholder="Create a password" required minlength="8" maxlength="72" aria-describedby="passwordHint strengthText"><button type="button" class="password-toggle" data-password="regPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
-            <div class="field"><label for="confirmPassword">Confirm Password</label><div class="password-wrap"><input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password" placeholder="Repeat your password" required><button type="button" class="password-toggle" data-password="confirmPassword" aria-label="Show password" aria-pressed="false"></button></div></div>
+
+  <main id="main" tabindex="-1">
+    <!-- Hero: the plate, lit from within -->
+    <section class="hero on-dark" aria-labelledby="heroTitle">
+      <div class="page hero-grid">
+        <div>
+          <p class="caption caption--leader">Explore. Learn. Understand.</p>
+          <h1 id="heroTitle" class="hero-title mt-6">See <em>inside</em> the human body.</h1>
+          <p class="lead mt-6 prose-measure">Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track how far you’ve come.</p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a class="btn btn-primary" href="login.html#register" data-primary-cta>Create account <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></a>
+            <a class="btn btn-secondary" href="login.html#login">Sign in</a>
           </div>
-          <div class="strength"><meter id="passwordStrength" min="0" max="4" value="0" aria-label="Password strength"></meter><span id="strengthText" aria-live="polite">Password strength</span></div><p class="field-hint" id="passwordHint">Use at least 8 characters. Mix letters, numbers, and symbols for a stronger password (maximum 72 bytes).</p>
-          <div class="terms-field field"><label class="check-label"><input type="checkbox" id="terms" name="terms" required><span>I agree to the <button type="button" class="text-button" id="termsLink">Terms and Conditions</button>.</span></label></div>
-          <div class="notice error" id="registerError" role="alert" hidden></div>
-          <button class="primary-button" id="registerBtn" type="submit">Register Account <span aria-hidden="true">↗</span></button>
-        </form>
-        <p class="switch-copy">Already have an account? <a href="#login">Login Here</a></p>
+          <p class="mt-4 text-14 text-muted">You’ll need the student ID your school gave you.</p>
+        </div>
+
+        <figure class="plate" data-hero-3d>
+          <div class="plate-media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/hero-skeleton-480.avif 480w, assets/img/hero-skeleton-720.avif 720w, assets/img/hero-skeleton-957.avif 957w" sizes="(min-width: 48rem) min(40vw, 33rem), min(calc(100vw - 2rem), 26rem)">
+              <source type="image/webp" srcset="assets/img/hero-skeleton-480.webp 480w, assets/img/hero-skeleton-720.webp 720w, assets/img/hero-skeleton-957.webp 957w" sizes="(min-width: 48rem) min(40vw, 33rem), min(calc(100vw - 2rem), 26rem)">
+              <img src="assets/img/hero-skeleton-720.png" width="957" height="1333" fetchpriority="high" decoding="async" alt="A glowing green X-ray style illustration of a human skeleton, seen from the side with one arm raised.">
+            </picture>
+            <span class="chip plate-hint" id="heroHint" data-hero-hint hidden><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#hand-grabbing"/></svg>Drag to rotate</span>
+            <div class="plate-controls" data-hero-controls hidden>
+              <span class="chip" data-hero-loading role="status" hidden><span class="chip-pulse" aria-hidden="true"></span>Loading 3D model…</span>
+              <button class="chip" type="button" data-hero-pause aria-pressed="false" hidden><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#pause"/></svg><span>Pause rotation</span></button>
+            </div>
+          </div>
+          <figcaption class="plate-caption"><span class="caption">Plate I — <strong>Skeletal system</strong></span><span class="caption">Rotate · Zoom · Explore</span></figcaption>
+        </figure>
       </div>
-      <div class="panel-footer"><span class="status-dot"></span> A space to learn. A place to grow.</div>
+    </section>
+    <div class="seam" aria-hidden="true"></div>
+
+    <!-- Feature walkthrough -->
+    <section class="section on-paper" id="features" aria-labelledby="featuresTitle">
+      <div class="page">
+        <div class="prose-measure">
+          <p class="caption caption--leader">What you can do</p>
+          <h2 id="featuresTitle" class="section-title mt-4">Four ways to get to know the body</h2>
+          <p class="lead mt-4">Your teacher sets up the lessons, quizzes and models. You reach all of them from one student account.</p>
+        </div>
+
+        <!-- FIG. 01 · text left, annotated explorer right -->
+        <article class="feature mt-8" aria-labelledby="featureExplore">
+          <div class="feature-text">
+            <p class="caption">Fig. 01</p>
+            <h3 id="featureExplore" class="feature-title mt-3">Explore in 3D</h3>
+            <p class="body-copy mt-4 prose-measure">Open the 3D anatomy explorer and turn the model any way you like. Drag to rotate, scroll or pinch to zoom, and reset the view when you lose your place. Your teacher’s notes on each body system sit right beside the model.</p>
+            <ul class="check-list mt-6">
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Zoom in and out, or let the model turn on its own.</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Save an image of the view you’re studying.</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Practise with your teacher’s structure descriptions. It’s ungraded.</span></li>
+            </ul>
+            <p class="caption mt-6" data-system-count-line hidden>Body systems set up at your school: <strong data-system-count></strong></p>
+          </div>
+          <figure class="feature-media m-0" data-reveal>
+            <div class="mock" role="img" aria-label="Simplified drawing of the 3D anatomy explorer: a body system menu above the model viewer, with zoom, reset view, auto rotate and save image buttons below it.">
+              <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Student Portal / <b>3D Anatomy Explorer</b></span></div>
+              <div class="mock-body" aria-hidden="true">
+                <span class="mock-label">Body system</span>
+                <div class="mock-field"><span>Skeletal system</span><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#caret-right"/></svg></div>
+                <div class="mock-stage">
+                  <picture>
+                    <source type="image/avif" srcset="assets/img/hero-skeleton-480.avif">
+                    <source type="image/webp" srcset="assets/img/hero-skeleton-480.webp">
+                    <img src="assets/img/hero-skeleton-720.png" width="480" height="669" loading="lazy" decoding="async" alt="">
+                  </picture>
+                  <span class="callout callout--right callout-drag"><span>Drag · rotate</span></span>
+                  <span class="callout callout-zoom"><span>Scroll or pinch · zoom</span></span>
+                </div>
+                <div class="mock-tools">
+                  <span class="mock-tool">Zoom in</span><span class="mock-tool">Zoom out</span><span class="mock-tool">Reset view</span><span class="mock-tool">Auto rotate</span><span class="mock-tool"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#floppy-disk"/></svg>Save image</span>
+                </div>
+              </div>
+            </div>
+            <figcaption class="caption mt-4">Fig. 01 — The 3D anatomy explorer, simplified</figcaption>
+          </figure>
+        </article>
+
+        <!-- FIG. 02 · line-art lesson sheet left, text right -->
+        <article class="feature feature--flip" aria-labelledby="featureLessons">
+          <div class="feature-text">
+            <p class="caption">Fig. 02</p>
+            <h3 id="featureLessons" class="feature-title mt-3">Learn in lessons</h3>
+            <p class="body-copy mt-4 prose-measure">Your teacher groups lessons into modules. Each lesson keeps its reading, images, PDFs, videos and 3D models together on one page, so you’re not hunting through folders. Finish it, mark it complete, and the next one is waiting.</p>
+          </div>
+          <figure class="feature-media m-0" data-reveal>
+            <div class="mock" role="img" aria-label="Simplified drawing of a lesson page: reading text, an image, a PDF, a video and a 3D model on one page, with a mark lesson as complete button.">
+              <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">My Lessons / <b>Lesson</b></span></div>
+              <div class="mock-body sheet" aria-hidden="true">
+                <span class="caption">Module · Lesson</span>
+                <span class="mock-skeleton-line h-4 w-2/3"></span>
+                <span class="mock-skeleton-line w-full"></span>
+                <span class="mock-skeleton-line w-11/12"></span>
+                <span class="mock-skeleton-line w-3/4"></span>
+                <div class="grid gap-2 mt-2">
+                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#book-open"/></svg></span><b>Reading</b><small>Text</small></div>
+                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#image"/></svg></span><b>Image</b><small>Img</small></div>
+                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#file-pdf"/></svg></span><b>Document</b><small>PDF</small></div>
+                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#video-camera"/></svg></span><b>Video</b><small>Video</small></div>
+                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#cube"/></svg></span><b>3D model</b><small>GLB</small></div>
+                </div>
+                <span class="mock-tool mt-2 justify-self-start"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check-circle"/></svg>Mark Lesson as Complete</span>
+              </div>
+            </div>
+            <figcaption class="caption mt-4">Fig. 02 — A lesson page, simplified</figcaption>
+          </figure>
+        </article>
+
+        <!-- FIG. 03 · the one interactive demo -->
+        <article class="feature feature--wide" aria-labelledby="featureQuiz">
+          <div class="feature-text">
+            <p class="caption">Fig. 03</p>
+            <h3 id="featureQuiz" class="feature-title mt-3">Test yourself</h3>
+            <p class="body-copy mt-4 prose-measure">Quizzes mix four kinds of question: identification, multiple choice, true or false, and image hotspots, where you click the right spot on a picture. <strong>Your answers save as you go.</strong> Refresh the page and you’re back in the same attempt, with your saved answers and the time you have left. Grading happens on the server when you submit.</p>
+          </div>
+          <div class="feature-media">
+            <div class="demo" data-quiz-demo>
+              <div class="demo-tabs" role="tablist" aria-label="Question types">
+                <button class="demo-tab" type="button" role="tab" id="tabIdentification" aria-controls="panelIdentification" aria-selected="true"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#textbox"/></svg>Identification</button>
+                <button class="demo-tab" type="button" role="tab" id="tabChoice" aria-controls="panelChoice" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#list-checks"/></svg>Multiple choice</button>
+                <button class="demo-tab" type="button" role="tab" id="tabTrueFalse" aria-controls="panelTrueFalse" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#toggle-left"/></svg>True or false</button>
+                <button class="demo-tab" type="button" role="tab" id="tabHotspot" aria-controls="panelHotspot" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#crosshair"/></svg>Image hotspot</button>
+              </div>
+              <div class="mock">
+                <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Quizzes and Activities / <b>Practice question</b></span></div>
+                <div class="mock-body">
+                  <div role="tabpanel" id="panelIdentification" aria-labelledby="tabIdentification" tabindex="0">
+                    <div class="question-head"><span class="question-num">Question 1</span><span class="badge">Identification</span></div>
+                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-2/3"></span></div>
+                    <p class="sr-only">Your teacher’s question appears here.</p>
+                    <label class="mock-label" for="demoIdentification">Your answer</label>
+                    <input class="text-input" id="demoIdentification" type="text" placeholder="Type the term" autocomplete="off" spellcheck="false" data-demo-answer>
+                  </div>
+                  <div role="tabpanel" id="panelChoice" aria-labelledby="tabChoice" tabindex="0" hidden>
+                    <div class="question-head"><span class="question-num">Question 2</span><span class="badge">Multiple choice</span></div>
+                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-1/2"></span></div>
+                    <fieldset>
+                      <legend class="sr-only">Your teacher’s question appears here. Choose one answer.</legend>
+                      <div class="answer-list">
+                        <label class="answer"><input type="radio" name="demoChoice" value="a" data-demo-answer><span class="answer-key" aria-hidden="true">A</span><span>Option A</span></label>
+                        <label class="answer"><input type="radio" name="demoChoice" value="b" data-demo-answer><span class="answer-key" aria-hidden="true">B</span><span>Option B</span></label>
+                        <label class="answer"><input type="radio" name="demoChoice" value="c" data-demo-answer><span class="answer-key" aria-hidden="true">C</span><span>Option C</span></label>
+                        <label class="answer"><input type="radio" name="demoChoice" value="d" data-demo-answer><span class="answer-key" aria-hidden="true">D</span><span>Option D</span></label>
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div role="tabpanel" id="panelTrueFalse" aria-labelledby="tabTrueFalse" tabindex="0" hidden>
+                    <div class="question-head"><span class="question-num">Question 3</span><span class="badge">True or false</span></div>
+                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-3/4"></span></div>
+                    <fieldset>
+                      <legend class="sr-only">Your teacher’s statement appears here. Is it true or false?</legend>
+                      <div class="answer-list sm:grid-cols-2">
+                        <label class="answer"><input type="radio" name="demoTrueFalse" value="true" data-demo-answer><span class="answer-key" aria-hidden="true">T</span><span>True</span></label>
+                        <label class="answer"><input type="radio" name="demoTrueFalse" value="false" data-demo-answer><span class="answer-key" aria-hidden="true">F</span><span>False</span></label>
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div role="tabpanel" id="panelHotspot" aria-labelledby="tabHotspot" tabindex="0" hidden>
+                    <div class="question-head"><span class="question-num">Question 4</span><span class="badge">Image hotspot</span></div>
+                    <p class="mt-4 mb-3 text-14 text-muted-on-paper">Click the spot on your teacher’s image that the question asks about.</p>
+                    <button class="hotspot" type="button" data-demo-hotspot aria-describedby="hotspotHelp">
+                      <svg class="hotspot-art" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+                        <rect x="24" y="16" width="272" height="148" rx="8" stroke-dasharray="4 6"/>
+                        <circle cx="160" cy="90" r="44"/><circle cx="160" cy="90" r="22" stroke-dasharray="3 5"/>
+                        <path d="M160 34v-12M160 158v-12M104 90H92M228 90h-12"/>
+                        <text x="160" y="172" text-anchor="middle" font-size="10" fill="currentColor" stroke="none" font-family="JetBrains Mono, monospace" letter-spacing="1">YOUR TEACHER’S IMAGE</text>
+                      </svg>
+                      <span class="hotspot-pin" hidden></span>
+                      <span class="sr-only">Place a pin on the image</span>
+                    </button>
+                    <p class="sr-only" id="hotspotHelp">With a keyboard, press Enter to place the pin in the centre, then move it with the arrow keys.</p>
+                  </div>
+                  <p class="save-status" role="status" data-demo-status><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#clock"/></svg><span>Answer a question to see it save.</span></p>
+                </div>
+              </div>
+            </div>
+            <p class="caption mt-4">Fig. 03 — Practice only: nothing here is graded or sent anywhere</p>
+          </div>
+        </article>
+
+        <!-- FIG. 04 · annotated progress plate -->
+        <article class="feature feature--wide" aria-labelledby="featureProgress">
+          <div class="feature-text">
+            <p class="caption">Fig. 04</p>
+            <h3 id="featureProgress" class="feature-title mt-3">See your progress</h3>
+            <p class="body-copy mt-4 prose-measure">Your progress page lists every assessment result next to your average quiz score, the lessons you’ve completed and your study time. Your dashboard charts your recent scores and shows the achievements you unlock by reaching goals your teacher sets.</p>
+          </div>
+          <div class="feature-media" data-reveal>
+            <div class="progress-plate">
+              <div class="mock" role="img" aria-label="Simplified drawing of the progress page before any results: a lesson completion ring, four empty score tiles, a 21-day activity strip and three empty achievement slots.">
+                <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Student Portal / <b>My Progress &amp; Scores</b></span></div>
+                <div class="mock-body" aria-hidden="true">
+                  <div class="flex items-center gap-2"><span class="marker">1</span><span class="mock-label m-0">Scores and lessons</span></div>
+                  <div class="progress-row progress-row--overview">
+                    <div class="donut">
+                      <svg viewBox="0 0 36 36" focusable="false"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--color-rule-on-paper)" stroke-width="3"/></svg>
+                      <div class="donut-value"><div>—<small>Overall progress</small></div></div>
+                    </div>
+                    <div class="tiles">
+                      <div class="tile"><b>—</b><span>Average quiz score</span></div>
+                      <div class="tile"><b>—</b><span>Quizzes completed</span></div>
+                      <div class="tile"><b>—</b><span>Lessons completed</span></div>
+                      <div class="tile"><b>—</b><span>Total study time</span></div>
+                    </div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="flex items-center gap-2"><span class="marker">2</span><span class="mock-label m-0">Learning activity, last 21 days</span></div>
+                    <div class="activity"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="flex items-center gap-2"><span class="marker">3</span><span class="mock-label m-0">Achievements</span></div>
+                    <div class="badges">
+                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#trophy"/></svg>Goal</div>
+                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#medal"/></svg>Goal</div>
+                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#target"/></svg>Goal</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ol class="notes">
+                <li class="note"><span class="marker" aria-hidden="true">1</span><p><strong>Scores come from graded attempts</strong>Your average quiz score is the mean of your graded attempts.</p></li>
+                <li class="note"><span class="marker" aria-hidden="true">2</span><p><strong>Lesson completion is yours to mark</strong>It shows where you are. Assessments show what you understand.</p></li>
+                <li class="note"><span class="marker" aria-hidden="true">3</span><p><strong>Goals come from your teacher</strong>Achievements unlock when you reach them. Until your teacher adds goals, this stays empty.</p></li>
+              </ol>
+            </div>
+            <p class="caption mt-4">Fig. 04 — The progress page before your first result</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section on-paper" id="how-it-works" aria-labelledby="howTitle">
+      <div class="page">
+        <p class="caption caption--leader">How it works</p>
+        <h2 id="howTitle" class="section-title mt-4">Three steps to your first lesson</h2>
+        <ol class="steps mt-12">
+          <li class="step"><span class="step-num" aria-hidden="true">01</span><h3>Create your account</h3><p>Sign up with the student ID your school issued, your section and a password of your own.</p></li>
+          <li class="step"><span class="step-num" aria-hidden="true">02</span><h3>Learn with lessons and the 3D explorer</h3><p>Open the modules your teacher has published. Read, watch, and turn the models until it clicks.</p></li>
+          <li class="step"><span class="step-num" aria-hidden="true">03</span><h3>Take assessments and track your progress</h3><p>Answer the quizzes your teacher assigns, then check your scores and progress whenever you like.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Closing CTA -->
+    <section class="cta-band on-dark" aria-labelledby="ctaTitle">
+      <div class="page grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div>
+          <p class="caption caption--leader">Your account</p>
+          <h2 id="ctaTitle" class="section-title mt-4 prose-measure">Bring your student ID and take a closer look.</h2>
+          <p class="mt-6 text-14 text-muted prose-measure">Forgot your password? Your teacher resets it for you; there’s no email reset. The sign-in page shows who to contact.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a class="btn btn-primary btn-halo" href="login.html#register" data-primary-cta>Create account <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></a>
+          <a class="btn btn-secondary" href="login.html#login">Sign in</a>
+        </div>
+      </div>
     </section>
   </main>
-  <footer class="site-footer"><span>© <span data-current-year></span> AnatomIQ. Built for learning.</span><span>Interactive Human Anatomy Learning System</span></footer>
-  <dialog id="forgotModal" aria-labelledby="recoveryTitle"><div class="dialog-heading"><h2 id="recoveryTitle">Let’s get you back in.</h2><button type="button" class="dialog-close" aria-label="Close recovery dialog">×</button></div><p>Password recovery is handled by your teacher. Enter your account details to view recovery instructions.</p><form id="forgotPasswordForm"><div class="field"><label for="resetIdentifier">Email or Student ID</label><input id="resetIdentifier" required maxlength="150" placeholder="Enter your email or student ID"></div><div id="resetResult" class="notice" role="status" hidden></div><button class="primary-button" type="submit" id="resetBtn">View Recovery Instructions</button></form></dialog>
-  <dialog id="termsModal" aria-labelledby="termsTitle"><div class="dialog-heading"><h2 id="termsTitle">Terms and Conditions</h2><button type="button" class="dialog-close" aria-label="Close terms dialog">×</button></div><p>By creating an AnatomIQ student account, you agree to:</p><ul><li>Provide accurate information and use your own school-issued student ID.</li><li>Keep your password private and use this account for your own learning.</li><li>Use lessons, models, and assessments responsibly and follow your school’s academic integrity rules.</li></ul><p>Your account details and learning activity are stored in this system so your teachers can manage your profile and monitor academic progress. Contact your teacher to request corrections or help with your account.</p><button type="button" class="primary-button dialog-close">Close</button></dialog>
-  <script src="assets/js/login.js?v=20260915-auth1"></script>
+
+  <footer class="footer on-dark">
+    <div class="page footer-grid">
+      <div>
+        <a class="brand" href="#main" aria-label="Anthropotomy, back to top"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt="" loading="lazy"><span class="brand-name">Anthropotomy</span></a>
+        <p class="caption mt-4">Explore. Learn. Understand.</p>
+        <p class="footer-small mt-4 flex items-center gap-2" data-school-line hidden><svg class="icon-inline" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#building-apartment"/></svg><span data-setting="school_name"></span></p>
+      </div>
+      <nav aria-label="Footer">
+        <ul class="footer-links">
+          <li><a href="login.html#register">Create account</a></li>
+          <li><a href="login.html#login">Sign in</a></li>
+          <li><a href="login.html#terms">Terms and Conditions</a></li>
+        </ul>
+      </nav>
+      <div class="footer-small grid gap-4 content-start">
+        <p><a href="login.html">Teachers and administrators sign in here too.</a></p>
+        <p>3D model in the preview above: <a href="https://sketchfab.com/3d-models/male-human-skeleton-zbrush-anatomy-study-665890c542be433fb18ef235cf987cef" rel="noopener">“Male Human Skeleton – ZBrush – Anatomy Study”</a> by <a href="https://sketchfab.com/ruslangadzhiev" rel="noopener">Ruslan Gadzhiev</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener">CC BY 4.0</a>.</p>
+      </div>
+    </div>
+    <div class="page footer-small footer-base">© <span data-current-year></span> Anthropotomy. Interactive human anatomy learning.</div>
+  </footer>
+
   <script src="assets/js/site-config.js"></script>
 </body>
 </html>

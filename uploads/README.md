@@ -1,4 +1,4 @@
-# AnatomIQ – Uploads Directory
+# Anthropotomy – Uploads Directory
 
 This directory stores all user-uploaded files.
 

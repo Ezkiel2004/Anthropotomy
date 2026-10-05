@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Student Dashboard Statistics API
+ * Anthropotomy – Student Dashboard Statistics API
  * GET /api/dashboard/student-stats.php
  *
  * Provides real-time dashboard data for the authenticated student:

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!-- Template for assets/brand/og-image.jpg (1200 × 630). Rendered by scripts/build-og.mjs. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face { font-family: "Instrument Serif"; src: url("../../assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Instrument Serif"; font-style: italic; src: url("../../assets/fonts/instrument-serif-latin-400-italic.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("../../assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+  :root { --ink: #07110E; --glow: #3DDC97; --text: #E8F3EC; --muted: #9DB8AA; --rule: #1F3A30; --line: #6A897B; }
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--text); font-family: "Instrument Serif", serif; }
+  .frame { position: absolute; inset: 40px; border: 1px solid var(--rule); }
+  .grid { position: absolute; inset: 40px; background-image: linear-gradient(to right, var(--rule) 1px, transparent 1px), linear-gradient(to bottom, var(--rule) 1px, transparent 1px); background-size: 50px 50px; opacity: .55; }
+  .figure { position: absolute; right: 40px; bottom: 40px; height: 550px; width: auto; }
+  .copy { position: absolute; left: 96px; top: 96px; width: 640px; }
+  .brand { display: flex; align-items: center; gap: 18px; font-size: 44px; }
+  .brand img { width: 64px; height: 64px; }
+  .caption { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 18px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 16px; }
+  .caption::after { content: ""; width: 64px; height: 1px; background: currentColor; opacity: .6; }
+  h1 { margin-top: 56px; font-weight: 400; font-size: 104px; line-height: .98; letter-spacing: -.01em; }
+  h1 em { color: var(--glow); }
+  .foot { position: absolute; left: 96px; bottom: 88px; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <img class="figure" src="../../assets/img/hero-skeleton-957.webp" alt="">
+  <div class="frame"></div>
+  <div class="copy">
+    <div class="brand"><img src="../../assets/brand/mark-192.png" alt="">Anthropotomy</div>
+    <h1>See <em>inside</em><br>the human body.</h1>
+  </div>
+  <div class="foot caption">Explore. Learn. Understand.</div>
+</body>
+</html>

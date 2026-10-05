@@ -1,0 +1,24 @@
+# Credentials and session files must never be committed.
+demo users account.txt
+cookies.txt
+scratch_cookie.txt
+*cookie*.txt
+*.cookies
+.env
+.env.*
+
+# Test runtime: generated credentials and screenshots (see README, Verification).
+.runtime/
+
+# Build tooling for the public pages; only its compiled output is committed.
+node_modules/
+
+# Database dumps and backups belong outside the repository.
+*.sql.bak
+*.sql.gz
+backups/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini

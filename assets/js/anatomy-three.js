@@ -1,5 +1,5 @@
 /**
- * AnatomIQ – Production Three.js 3D Anatomy Explorer Engine
+ * Anthropotomy – Production Three.js 3D Anatomy Explorer Engine
  * 
  * Architecture:
  * - Three.js WebGLRenderer with soft shadows, ToneMapping, and pixelRatio capping
@@ -80,13 +80,13 @@ const AnatomyViewer = {
   init(canvasId) {
     this.canvas = document.getElementById(canvasId);
     if (!this.canvas) {
-      console.error('[AnatomIQ 3D] Canvas element not found:', canvasId);
+      console.error('[Anthropotomy 3D] Canvas element not found:', canvasId);
       return;
     }
 
     // Verify Three.js availability
     if (typeof THREE === 'undefined') {
-      console.error('[AnatomIQ 3D] Three.js is not loaded.');
+      console.error('[Anthropotomy 3D] Three.js is not loaded.');
       this.displayWebGLError('Three.js 3D library failed to load. Please check your network connection or local vendor files.');
       return;
     }
@@ -101,9 +101,9 @@ const AnatomyViewer = {
       this.bindWindowEvents();
       this.startRenderLoop();
 
-      console.log('[AnatomIQ 3D] Three.js WebGL Engine initialized successfully.');
+      console.log('[Anthropotomy 3D] Three.js WebGL Engine initialized successfully.');
     } catch (err) {
-      console.error('[AnatomIQ 3D] WebGL Initialization Error:', err);
+      console.error('[Anthropotomy 3D] WebGL Initialization Error:', err);
       this.displayWebGLError('WebGL is not supported or encountered an initialization error in your browser.');
     }
   },
@@ -182,7 +182,7 @@ const AnatomyViewer = {
   // ── OrbitControls Setup ──
   setupControls() {
     if (typeof THREE.OrbitControls === 'undefined') {
-      console.warn('[AnatomIQ 3D] OrbitControls not available. Standard rotation controls disabled.');
+      console.warn('[Anthropotomy 3D] OrbitControls not available. Standard rotation controls disabled.');
       return;
     }
 
@@ -645,7 +645,7 @@ const AnatomyViewer = {
         },
         undefined,
         (err) => {
-          console.warn(`[AnatomIQ 3D] Failed to load GLB from ${url}:`, err);
+          console.warn(`[Anthropotomy 3D] Failed to load GLB from ${url}:`, err);
           resolve(null);
         }
       );

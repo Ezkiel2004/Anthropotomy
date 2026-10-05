@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Database Connection Configuration
+ * Anthropotomy – Database Connection Configuration
  */
 
 define('DB_HOST', getenv('ANATOMIQ_DB_HOST') ?: '127.0.0.1');
@@ -126,7 +126,7 @@ class Auth {
     public static function requireRole(string $role): void {
         self::startSecureSession();
         if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== $role) {
-            header('Location: ../index.html');
+            header('Location: ../login.html');
             exit;
         }
     }
@@ -134,7 +134,7 @@ class Auth {
     public static function logout(): void {
         self::startSecureSession();
         session_destroy();
-        header('Location: ../index.html');
+        header('Location: ../login.html');
         exit;
     }
 

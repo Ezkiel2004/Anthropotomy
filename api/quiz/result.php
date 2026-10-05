@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Quiz Result Review API
+ * Anthropotomy – Quiz Result Review API
  * GET /api/quiz/result.php?submission_id=1
  *
  * Fetches graded results with full question breakdown and correct answer keys.

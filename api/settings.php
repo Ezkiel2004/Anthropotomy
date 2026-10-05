@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – User Profile & System Settings API
+ * Anthropotomy – User Profile & System Settings API
  *
  * GET  /api/settings.php         → Get current user profile details & system health
  * PUT  /api/settings.php         → Update profile (name, email, password)

@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Lessons API
+ * Anthropotomy – Lessons API
  *
  * GET    /api/lessons.php?module_id=1  → lessons in a module
  * GET    /api/lessons.php?id=1         → single lesson with full content

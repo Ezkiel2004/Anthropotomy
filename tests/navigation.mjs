@@ -21,15 +21,18 @@ async function navigate(path){
     }
     await new Promise(resolve=>setTimeout(resolve,450));
 }
-await navigate('/index.html');
+await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
 await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
  teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','media','settings','content','anatomy'],
- student:['dashboard','anatomy','lessons','quiz','progress','scores','notifications','settings']
+ student:['dashboard','anatomy','lessons','quiz','progress']
 };
+// Pages checked per portal. Student notifications and settings are reached from the top bar
+// (bell and account menu), not the sidebar; scores.html redirects to "My Progress & Scores".
+const pages={teacher:expected.teacher,student:[...expected.student,'notifications','settings']};
 // Follow the reported navigation path with normal browser caching enabled.
 for(const page of ['assessments','monitoring','dashboard','assessments','monitoring']){
  await evaluate(`document.querySelector('.sidebar-nav a[href*="${page}.html"]').click()`);
@@ -48,21 +51,24 @@ for(const role of ['teacher','student']){
  if(role==='student'){
    const created=await evaluate(`(async()=>{const response=await fetch('/api/students.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'navigation-student',full_name:'Navigation Student',school_id:'NAV-TEST',section:'Test',password:'navigation-test-password',grade_level:'Test',school_year:'Test'})});return response.json();})()`);
    assert.ok(created.success,'Create isolated student fixture');
-   await evaluate('Auth.logout()');await navigate('/index.html');
+   await evaluate('Auth.logout()');await navigate('/login.html');
    await evaluate(`document.getElementById('username').value='navigation-student';document.getElementById('password').value='navigation-test-password';handleLogin();`);
    await new Promise(resolve=>setTimeout(resolve,1000));
  }
  let baseline;
- for(const page of expected[role]){
+ for(const page of pages[role]){
    await navigate('/'+role+'/'+page+'.html');
    assert.equal(await evaluate('location.pathname'),'/'+role+'/'+page+'.html');
    const navigation=await evaluate(`[...document.querySelectorAll('.sidebar-nav .nav-item')].map(a=>({href:new URL(a.href).pathname.split('/').pop(),label:a.querySelector('.nav-label').textContent.trim(),icon:!!a.querySelector('.nav-icon svg')}))`);
    assert.deepEqual(navigation.map(a=>a.href),expected[role].map(p=>p+'.html'),role+'/'+page+' has every navigation link in the same order');
    assert.ok(navigation.every(a=>a.icon),'Every link has an icon when collapsed');
    baseline??=navigation;assert.deepEqual(navigation,baseline,'Labels and icons are consistent');
-   assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav [aria-current="page"]')].map(a=>new URL(a.href).pathname.split('/').pop())`),[page+'.html'],'Correct page is selected');
-   assert.equal(await evaluate(`document.querySelectorAll('.sidebar-nav .active').length`),1,'Only one active navigation item');
-   assert.equal(await evaluate(`document.querySelector('.sidebar-profile').getAttribute('href')`),'settings.html');
+   const inMenu=expected[role].includes(page);
+   assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav [aria-current="page"]')].map(a=>new URL(a.href).pathname.split('/').pop())`),inMenu?[page+'.html']:[],'Correct page is selected');
+   assert.equal(await evaluate(`document.querySelectorAll('.sidebar-nav .active').length`),inMenu?1:0,'At most one active navigation item');
+   // Teachers open their profile from the sidebar footer; students from the top bar account menu.
+   if(role==='teacher')assert.equal(await evaluate(`document.querySelector('.sidebar-profile').getAttribute('href')`),'settings.html');
+   else assert.equal(await evaluate(`document.querySelector('#accountDropdown a')?.getAttribute('href')`),'settings.html#profile','Account menu opens the profile');
    await evaluate(`document.getElementById('sidebarToggle').click()`);
    assert.equal(await evaluate(`document.getElementById('sidebar').classList.contains('collapsed')`),true,'Desktop collapse works');
    await evaluate(`document.getElementById('sidebarToggle').click()`);

@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Body Systems API
+ * Anthropotomy – Body Systems API
  * GET /api/body-systems.php  → list all active body systems
  *
  * Optional query params:

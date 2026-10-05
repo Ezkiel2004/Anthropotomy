@@ -1,4 +1,0 @@
-| Account | Username | Password |
-|---|---|---|
-| Admin | `admin` | `3ded64e4f26fA!` |
-| Student | `student` | `5146fa44cadfA!` |

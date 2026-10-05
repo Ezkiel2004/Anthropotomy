@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Student Progress API
+ * Anthropotomy – Student Progress API
  *
  * GET  /api/progress.php              → student's full progress summary
  * POST /api/progress.php              → update lesson progress

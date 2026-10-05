@@ -1,0 +1,14 @@
+{
+  "name": "Anthropotomy",
+  "short_name": "Anthropotomy",
+  "description": "Interactive human anatomy learning for students and teachers. Explore. Learn. Understand.",
+  "start_url": "./",
+  "display": "browser",
+  "background_color": "#07110E",
+  "theme_color": "#07110E",
+  "icons": [
+    { "src": "assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

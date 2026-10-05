@@ -1,6 +1,6 @@
 <?php
 /**
- * AnatomIQ – Login API Endpoint
+ * Anthropotomy – Login API Endpoint
  * POST /api/auth/login.php
  *
  * Authenticates a user against the database using bcrypt password verification.

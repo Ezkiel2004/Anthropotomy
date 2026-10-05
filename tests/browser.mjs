@@ -17,18 +17,29 @@ async function navigate(path){
     await call('Page.navigate',{url:base+path});
     for(let i=0;i<60;i++){
         await new Promise(resolve=>setTimeout(resolve,200));
-        if(await evaluate(`location.pathname===${JSON.stringify(path.split('?')[0])} && document.readyState==='complete'`))break;
+        if(await evaluate(`location.pathname===${JSON.stringify(path.split(/[?#]/)[0])} && document.readyState==='complete'`))break;
     }
     await new Promise(resolve=>setTimeout(resolve,450));
 }
+// Public landing page: one h1, sequential headings, real routes and the current name only.
 await navigate('/index.html');
+assert.ok((await evaluate('document.title')).includes('Anthropotomy'),'Landing page title uses the product name');
+assert.equal(await evaluate(`document.querySelectorAll('h1').length`),1,'Landing page has one h1');
+assert.ok(await evaluate(`(()=>{let last=0;for(const h of document.querySelectorAll('h1,h2,h3,h4,h5,h6')){const level=+h.tagName[1];if(level>last+1)return false;last=level;}return true;})()`),'Landing headings are sequential');
+assert.ok(await evaluate(`!/AnatomIQ/i.test(document.body.innerText+[...document.querySelectorAll('[alt],[aria-label],title')].map(e=>(e.getAttribute('alt')||'')+(e.getAttribute('aria-label')||'')+e.textContent).join(' '))`),'No outdated product name on the landing page');
+assert.ok(await evaluate(`[...document.querySelectorAll('img')].every(img=>img.hasAttribute('alt'))`),'Every landing image has alt text');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]')].map(a=>a.getAttribute('href'))`),['login.html#register','login.html#register'],'Primary CTAs open registration');
+assert.ok(await evaluate(`[...document.querySelectorAll('a[href]')].filter(a=>a.textContent.trim()==='Sign in').every(a=>a.getAttribute('href')==='login.html#login')`),'Sign in links open the login view');
+await navigate('/login.html#register');
+assert.ok(await evaluate(`!document.getElementById('registerView').hidden && document.getElementById('loginView').hidden`),'Register deep link opens the registration form');
+await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
 await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 let checked=0;
 for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','media','settings','content','anatomy']){
     await navigate('/teacher/'+page+'.html');
-    assert.ok(!(await evaluate('location.pathname')).includes('index.html'),'Teacher stays authenticated: '+page);
+    assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Teacher stays authenticated: '+page);
     if(page==='dashboard')assert.equal(await evaluate(`document.querySelector('#anatomyShortcutTitle').parentElement.parentElement.querySelector('a').getAttribute('href')`),'anatomy.html','Dashboard links to teacher explorer');
     if(page==='anatomy'){
         assert.ok((await evaluate('document.body.innerText')).includes('No 3D model has been added'),'Missing model has an honest empty state');
@@ -102,7 +113,7 @@ await evaluate(`document.getElementById('username').value='fixture-student';docu
 await new Promise(resolve=>setTimeout(resolve,1200));
 for(const page of ['dashboard','lessons','quiz','progress','scores','notifications','settings','anatomy']){
     await navigate('/student/'+page+'.html');
-    assert.ok(!(await evaluate('location.pathname')).includes('index.html'),'Student stays authenticated: '+page);
+    assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Student stays authenticated: '+page);
     if(page==='quiz'){
         await evaluate(`initiateQuiz(${browserQuiz})`);
         assert.equal(await evaluate('questions.length'),1,'Quiz questions loaded');
