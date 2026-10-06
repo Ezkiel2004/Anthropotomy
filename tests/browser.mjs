@@ -51,9 +51,10 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
             await request('anatomy-content.php','POST',{system_name:'Hidden anatomy',system_code:'hidden-anatomy',is_active:false,color_hex:'#123456',structures:[],key_facts:{}});
         })()`);
         await navigate('/teacher/anatomy.html');
-        for(let i=0;i<25;i++){if(await evaluate('Boolean(AnatomyViewer.root)'))break;await new Promise(resolve=>setTimeout(resolve,400));}
-        assert.ok(await evaluate('Boolean(AnatomyViewer.root)'),'Teacher loads the real GLB');
-        assert.equal(await evaluate(`document.querySelectorAll('#systemSelect option').length`),2,'Teacher sees hidden systems');
+        for(let i=0;i<25;i++){if(await evaluate('AnatomyViewer.hasVisibleLayer()'))break;await new Promise(resolve=>setTimeout(resolve,400));}
+        assert.ok(await evaluate('AnatomyViewer.hasVisibleLayer()'),'Teacher loads the real GLB');
+        assert.equal(await evaluate(`document.querySelectorAll('#systemToggles .system-toggle').length`),2,'Teacher sees hidden systems');
+        assert.equal(await evaluate(`document.querySelector('#systemToggles .system-toggle[aria-checked="true"]').dataset.system`),'test-system','The system with a model starts switched on');
         await evaluate(`document.querySelector('.structure-button').click();activeSeconds=10;flushExploration()`);
         assert.equal(await evaluate(`document.getElementById('structureDescription').textContent`),'Database structure');
         assert.deepEqual(explorationPosts,[],'Teacher viewing never posts student exploration progress');
@@ -69,7 +70,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await call('Emulation.clearDeviceMetricsOverride');
         const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('.runtime/teacher-anatomy.png',Buffer.from(shot.data,'base64'));
         await navigate('/teacher/anatomy.html?preview=student&system=hidden-anatomy');
-        assert.equal(await evaluate(`document.querySelectorAll('#systemSelect option').length`),1,'Student preview excludes hidden systems');
+        assert.equal(await evaluate(`document.querySelectorAll('#systemToggles .system-toggle').length`),1,'Student preview excludes hidden systems');
         assert.equal(await evaluate('selectedSystem.id'),'test-system','Hidden requested system falls back to visible content');
         assert.equal(await evaluate(`getComputedStyle(document.getElementById('editAnatomy')).display`),'none');
         assert.equal(await evaluate(`Auth.getUser().role`),'teacher','Preview preserves teacher session');
@@ -126,9 +127,9 @@ for(const page of ['dashboard','lessons','quiz','progress','scores','notificatio
         assert.equal(await evaluate(`document.getElementById('resultScore').textContent`),'100%','Quiz submission displays correct result');
     }
     if(page==='anatomy'){
-        for(let i=0;i<25;i++){if(await evaluate('Boolean(AnatomyViewer.root)'))break;await new Promise(resolve=>setTimeout(resolve,400));}
+        for(let i=0;i<25;i++){if(await evaluate('AnatomyViewer.hasVisibleLayer()'))break;await new Promise(resolve=>setTimeout(resolve,400));}
         assert.equal(await evaluate('AnatomyData.systems[0].description'),'Database description');
-        assert.ok(await evaluate('Boolean(AnatomyViewer.root)'),'Real GLB model loaded');
+        assert.ok(await evaluate('AnatomyViewer.hasVisibleLayer()'),'Real GLB model loaded');
         await evaluate(`document.querySelector('.structure-button').click()`);
         assert.equal(await evaluate(`document.getElementById('structureDescription').textContent`),'Database structure');
         const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('.runtime/student-anatomy.png',Buffer.from(shot.data,'base64'));

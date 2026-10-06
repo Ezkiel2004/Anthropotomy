@@ -17,6 +17,7 @@
   <script src="../assets/vendor/three/three.min.js"></script>
   <script src="../assets/vendor/three/OrbitControls.js"></script>
   <script src="../assets/vendor/three/GLTFLoader.js"></script>
+  <script src="../assets/vendor/three/DRACOLoader.js"></script>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20260915-account4"/>
 </head>
 <body class="teacher-dashboard student-dashboard" data-anatomy-role="student">
@@ -65,8 +66,9 @@
       </div>
 
       <section class="content-panel" style="margin-bottom:14px;">
-        <label for="systemSelect" style="font-weight:600;font-size:0.82rem;color:var(--text-secondary);display:block;margin-bottom:6px;">Body system</label>
-        <select id="systemSelect" style="width:100%;max-width:400px;padding:8px 12px;border:1px solid var(--border);border-radius:7px;background:#fff;font-family:var(--font-body);"><option>Loading...</option></select>
+        <p id="systemTogglesLabel" class="system-toggles-label">Body systems</p>
+        <div id="systemToggles" class="system-toggles" role="group" aria-labelledby="systemTogglesLabel">Loading...</div>
+        <p id="layerNote" class="layer-note" role="status" hidden>This model isn't part of the layered body, so it's shown on its own.</p>
       </section>
 
       <div class="anatomy-workspace">
@@ -85,9 +87,17 @@
               Save image
             </button>
           </div>
-          <section class="content-panel" style="margin-top:14px;">
-            <h2 id="structureTitle" style="font-size:1.05rem;font-weight:700;margin-bottom:6px;">Choose a structure</h2>
+          <section class="content-panel part-info" style="margin-top:14px;" aria-live="polite">
+            <div class="part-info-head">
+              <h2 id="structureTitle" style="font-size:1.05rem;font-weight:700;margin-bottom:6px;">Choose a structure</h2>
+              <button type="button" class="btn btn-secondary btn-sm" id="exitFocus" hidden>Back to full body</button>
+            </div>
+            <p id="structureSystem" class="part-info-system"></p>
+            <span id="structureBadge" class="part-info-badge" hidden>Awaiting identification</span>
             <p id="structureDescription" style="font-size:0.82rem;color:var(--text-secondary);margin:0;">Structure descriptions will appear here.</p>
+            <p id="structureFunctionRow" class="part-info-function" hidden><strong>Function: </strong><span id="structureFunction"></span></p>
+            <p id="structureAlso" class="part-info-also" hidden></p>
+            <a id="structureReference" class="part-info-reference" href="#" target="_blank" rel="noopener" hidden>Reference</a>
           </section>
         </section>
 
@@ -117,8 +127,9 @@
 <script src="../assets/js/app.js?v=20261005-brand1"></script>
 <script src="../assets/js/student-portal.js?v=20260915-account3"></script>
 <script src="../assets/js/anatomy.js"></script>
-<script src="../assets/js/model-viewer.js?v=20260915-pointerzoom1"></script>
-<script src="../assets/js/anatomy-page.js"></script>
+<script src="../assets/js/anatomy-layers-core.js?v=20261006-layers1"></script>
+<script src="../assets/js/model-viewer.js?v=20261006-layers1"></script>
+<script src="../assets/js/anatomy-page.js?v=20261006-layers1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>

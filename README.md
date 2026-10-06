@@ -17,9 +17,11 @@ An interactive anatomy learning system with teacher and student portals. Applica
 
 Teachers can open **Explore 3D Anatomy** from the dashboard or **3D Anatomy Explorer** in the sidebar. Teacher view includes hidden systems and links to edit the selected system or open its related module lessons. **Student preview** shows only systems visible to students, using the same viewer and descriptions. Neither teacher mode records student exploration progress. **Presentation mode** hides portal navigation and enlarges the viewer; use its exit button or Escape to return.
 
-Use the Media Library to upload a GLB model, then choose its URL in School & Anatomy Content. Add the system description, key facts, structure descriptions and source/attribution information. A structure's optional model part name maps its description to a named mesh or parent group in the GLB file.
+The explorer shows a layered whole body. Each body system is a toggle; any combination can be switched on, and a system downloads the first time it is switched on. Selecting a part glides the camera to it, fades everything else and shows the part's name, system, description and function. Esc, **Back to full body** or a click on empty space returns to the full view. Most parts of the supplied model have not been identified yet. These show an **Awaiting identification** badge, and no description is invented for them.
 
-The existing skeleton asset is in system_model/. To use it, enter its project-relative web URL in the appropriate system's model field. Its filename is intentionally not embedded in the application code. A model must contain separately named parts for individual part selection; a single combined mesh cannot provide independent bone selection without editing the model.
+The layered models are in `system_model/layers/`, one GLB per system. They are exported from the prepared Blender file with `tools/blender/export_layers.py`, which welds each part's duplicate vertices (the source meshes are unwelded), reduces it to about 30% of its triangles, compresses with Draco and embeds each part's ID, name, description and function. The Blender window must show the **Anatomy - Layered** scene before the script runs. `node tests/layers-asset.mjs` checks the exported files against `system_model/layers/manifest.json`. After exporting, run `C:/xampp/php/php.exe database/integrate_layers.php` to connect every exported system (pass system codes to connect only some). The Nervous System has no layer because the supplied model contains no nervous-system geometry. The source model is Z-Anatomy (CC BY-SA 4.0); the reduced files are shared under the same licence and credited in each system's sources.
+
+A teacher can still upload a GLB in the Media Library and choose its URL in School & Anatomy Content, along with the system description, key facts, structure descriptions and source/attribution information. A model that was not made by the layered export is shown on its own. A structure's optional model part name maps its description to a named mesh or parent group in the GLB file, or to a part ID such as `anatomy_00848` in the layered models.
 
 The explorer loads the configured real model. Systems without models still display their database content with an explicit model-unavailable state. No procedural substitute or fabricated anatomical facts are displayed. Quick practice uses the structure descriptions configured by the teacher and does not award assessment grades.
 
@@ -98,6 +100,8 @@ The completed validation passed 72 integration checks and browser checks across 
 node tests/check-syntax.mjs
 ~~~
 
+Unit tests for the layered viewer's helpers run with `node --test "tests/unit/*.test.mjs"`. `node tests/layers-asset.mjs` validates the exported layer files.
+
 The syntax check also compiles the public pages' ES modules. Outside XAMPP on Windows, set PHP_BINARY (or have `php` on PATH); the integration suite uses the same setting.
 
 The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
@@ -112,6 +116,4 @@ Teacher and student portals use a shared, locally served Phosphor SVG icon set s
 
 ## Supplied skeletal model
 
-The bundled `system_model/male_human_skeleton_-_zbrush_-_anatomy_study.glb` is connected to the active Skeletal System in this installation. Both teacher and student anatomy explorers load it through the database-managed model URL.
-
-For another installation, run `C:/xampp/php/php.exe database/integrate_skeleton.php` after installing the schema. The command validates the GLB, creates the skeletal system if absent, connects the file, enables student visibility, and preserves existing facts and structures. Attribution is read from the asset metadata. This model is one combined mesh; separate bone selection requires an asset with separately named parts.
+The bundled `system_model/male_human_skeleton_-_zbrush_-_anatomy_study.glb` is used by the landing page hero. The anatomy explorers use the layered models in `system_model/layers/` instead (see Anatomy content). `database/integrate_skeleton.php` remains for installations that want the single-mesh skeleton connected to the Skeletal System.

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Layer Viewer Harness</title>
+  <link rel="stylesheet" href="../assets/css/content.css"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css"/>
+  <script src="../assets/vendor/three/three.min.js"></script>
+  <script src="../assets/vendor/three/OrbitControls.js"></script>
+  <script src="../assets/vendor/three/GLTFLoader.js"></script>
+  <script src="../assets/vendor/three/DRACOLoader.js"></script>
+  <style>body{margin:0;padding:16px;font-family:system-ui,sans-serif;background:#f8fafc}#bar{display:flex;gap:8px;align-items:center;margin-bottom:8px}#log{white-space:pre-wrap;font-size:12px;max-height:30vh;overflow:auto}</style>
+</head>
+<body class="teacher-dashboard">
+  <div id="bar"><span id="fps">– fps</span></div>
+  <div class="model-stage"><canvas id="anatomyCanvas"></canvas></div>
+  <pre id="log">Switch a layer on.</pre>
+  <script src="../assets/js/anatomy-layers-core.js"></script>
+  <script src="../assets/js/model-viewer.js"></script>
+  <script>
+  'use strict';
+  // Dev-only page: exercises AnatomyViewer against the exported layers without PHP or sign-in.
+  const harnessSystems=[{id:'skeletal',name:'Skeletal System',modelUrl:'../system_model/layers/skeletal.glb',structures:[]},{id:'muscular',name:'Muscular System',modelUrl:'../system_model/layers/muscular.glb',structures:[]}];
+  const harnessNames=Object.fromEntries(harnessSystems.map(s=>[s.id,s.name]));
+  const harnessLog=document.getElementById('log'), harnessOn=new Set();
+  AnatomyViewer.init(document.getElementById('anatomyCanvas'));
+  AnatomyViewer.onPartClick=part=>{
+    if(!part){AnatomyViewer.clearFocus();harnessLog.textContent='(full body)';return;}
+    AnatomyViewer.focusPart(part);harnessLog.textContent=JSON.stringify(AnatomyLayersCore.partInfo(part.userData,harnessNames),null,2);
+  };
+  addEventListener('keydown',e=>{if(e.key==='Escape')AnatomyViewer.clearFocus();});
+  for(const system of harnessSystems){
+    const button=document.createElement('button');button.textContent=system.name;
+    button.onclick=async()=>{
+      const on=!harnessOn.has(system.id);on?harnessOn.add(system.id):harnessOn.delete(system.id);
+      button.textContent=system.name+(on?' ✓':'');
+      const layer=await AnatomyViewer.setLayerVisible(system,on,l=>{harnessLog.textContent=`${system.id}: ${l.status} ${l.progress??''}`;});
+      harnessLog.textContent=`${system.id}: ${layer.status}, layered=${layer.layered}, parts=${layer.parts.size}`;
+    };
+    document.getElementById('bar').append(button);
+  }
+  let frames=0,since=performance.now();
+  (function count(){frames++;const now=performance.now();if(now-since>=1000){window.harnessFps=Math.round(frames*1000/(now-since));document.getElementById('fps').textContent=window.harnessFps+' fps';frames=0;since=now;}requestAnimationFrame(count);})();
+  </script>
+</body>
+</html>

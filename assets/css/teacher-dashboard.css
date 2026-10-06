@@ -603,3 +603,25 @@
 }
 
 
+
+/* ── Layered anatomy explorer ── */
+.teacher-dashboard .system-toggles-label { font-weight: 600; font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 6px; }
+.teacher-dashboard .system-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.teacher-dashboard .system-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; background: #ffffff; color: var(--text-primary); font: inherit; font-size: 0.82rem; cursor: pointer; transition: all 0.15s ease; }
+.teacher-dashboard .system-toggle:hover { border-color: #0da474; }
+.teacher-dashboard .system-toggle[aria-checked="true"] { border-color: #0da474; background: #e5f6ef; color: #056044; font-weight: 600; }
+.teacher-dashboard .system-toggle:focus-visible { outline: 2px solid #0da474; outline-offset: 2px; }
+.teacher-dashboard .system-toggle-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--system-color); opacity: 0.35; }
+.teacher-dashboard .system-toggle[aria-checked="true"] .system-toggle-dot { opacity: 1; }
+.teacher-dashboard .system-toggle-status { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; }
+.teacher-dashboard .system-toggle-status:empty { display: none; }
+.teacher-dashboard .layer-note { margin: 8px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+.teacher-dashboard .part-hover-label { position: absolute; z-index: 2; max-width: 240px; padding: 4px 8px; border-radius: 6px; background: rgba(15, 23, 42, 0.88); color: #ffffff; font-size: 0.75rem; pointer-events: none; }
+.teacher-dashboard .part-info-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.teacher-dashboard .part-info-system,
+.teacher-dashboard .part-info-also { margin: 0 0 6px; font-size: 0.78rem; color: var(--text-muted); }
+.teacher-dashboard .part-info-badge { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 0.72rem; font-weight: 600; }
+.teacher-dashboard .part-info-function { margin: 8px 0 0; font-size: 0.82rem; color: var(--text-secondary); }
+.teacher-dashboard .part-info-reference { display: inline-block; margin-top: 8px; font-size: 0.78rem; }
+.teacher-dashboard .part-info [hidden],
+.teacher-dashboard .part-hover-label[hidden] { display: none; }

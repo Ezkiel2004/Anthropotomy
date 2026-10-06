@@ -1,0 +1,65 @@
+{
+  "circulatory": {
+    "bytes": 6740968,
+    "file": "circulatory.glb",
+    "parts": 1851,
+    "source_triangles": 4048561,
+    "triangles": 1238348
+  },
+  "digestive": {
+    "bytes": 888480,
+    "file": "digestive.glb",
+    "parts": 168,
+    "source_triangles": 686645,
+    "triangles": 206990
+  },
+  "endocrine": {
+    "bytes": 12084,
+    "file": "endocrine.glb",
+    "parts": 2,
+    "source_triangles": 6290,
+    "triangles": 1886
+  },
+  "lymphatic": {
+    "bytes": 24636,
+    "file": "lymphatic.glb",
+    "parts": 3,
+    "source_triangles": 16970,
+    "triangles": 5088
+  },
+  "muscular": {
+    "bytes": 6547788,
+    "file": "muscular.glb",
+    "parts": 1154,
+    "source_triangles": 3737778,
+    "triangles": 1166265
+  },
+  "reproductive": {
+    "bytes": 44056,
+    "file": "reproductive.glb",
+    "parts": 14,
+    "source_triangles": 17091,
+    "triangles": 6351
+  },
+  "respiratory": {
+    "bytes": 145460,
+    "file": "respiratory.glb",
+    "parts": 19,
+    "source_triangles": 110032,
+    "triangles": 33621
+  },
+  "skeletal": {
+    "bytes": 4383432,
+    "file": "skeletal.glb",
+    "parts": 1599,
+    "source_triangles": 1784218,
+    "triangles": 641268
+  },
+  "urinary": {
+    "bytes": 25544,
+    "file": "urinary.glb",
+    "parts": 6,
+    "source_triangles": 12364,
+    "triangles": 3850
+  }
+}
