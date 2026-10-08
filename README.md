@@ -29,7 +29,7 @@ The explorer loads the configured real model. Systems without models still displ
 
 `student/anatomy.html` and `teacher/anatomy.html` share one explorer. The navy viewer fills the content area below the top bar:
 
-- **System chips** along the top switch body-system layers on and off; each chip shows loading progress, "No 3D model yet" or a retry state.
+- **Body systems panel** (top-left, beside the toolbar): one card listing every system with an on/off switch; each row shows loading progress, "No 3D model yet" or a retry state. Its header shows how many systems are on and collapses or expands the list; the choice is remembered (open by default on desktop, closed on phones).
 - **Toolbar** (left edge; a bottom bar on phones): zoom in, zoom out, reset view, auto rotate, save image, fullscreen and the info panel toggle. Every button has a tooltip.
 - **Info panel** (right overlay; a bottom sheet on phones): the system's summary, the selected part or structure, description, functions, structures, "Did you know?" facts, quick practice, related lessons (teachers) and sources. Its open or closed state is remembered in the browser (`anatomy.panelOpen`).
 

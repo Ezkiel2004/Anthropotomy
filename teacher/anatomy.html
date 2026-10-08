@@ -19,7 +19,7 @@
   <script src="../assets/vendor/three/GLTFLoader.js"></script>
   <script src="../assets/vendor/three/DRACOLoader.js"></script>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
-  <link rel="stylesheet" href="../assets/css/explorer.css?v=20261008-explorer1"/>
+  <link rel="stylesheet" href="../assets/css/explorer.css?v=20261008-collapse1"/>
 </head>
 <body class="explorer-page teacher-dashboard" data-anatomy-role="teacher">
 <div class="app-layout">
@@ -60,7 +60,14 @@
       <h1 id="explorerTitle" class="visually-hidden">3D Anatomy Explorer</h1>
       <canvas id="anatomyCanvas" class="viewer__canvas" tabindex="0" aria-label="Interactive anatomy model. Scroll to zoom at the pointer. Drag to rotate; right-drag or use arrow keys to pan. On touch screens, pinch and move two fingers to zoom and pan."></canvas>
 
-      <div class="system-chips" id="systemChips" role="group" aria-label="Body systems">Loading…</div>
+      <div class="systems-menu" id="systemsMenu">
+        <button type="button" class="systems-menu__toggle" id="systemsToggle" aria-expanded="true" aria-controls="systemChips">
+          <span>Body systems</span><span class="systems-menu__count" id="systemsCount"></span><span class="systems-menu__chevron" aria-hidden="true"></span>
+        </button>
+        <div class="systems-menu__body">
+          <div class="systems-menu__list" id="systemChips" role="group" aria-label="Body systems">Loading…</div>
+        </div>
+      </div>
 
       <div class="viewer__state" id="viewerState" role="status"></div>
 
@@ -90,9 +97,9 @@
 
 <script src="../assets/js/app.js?v=20261005-brand1"></script>
 <script src="../assets/js/anatomy.js"></script>
-<script src="../assets/js/anatomy-layers-core.js?v=20261008-explorer1"></script>
-<script src="../assets/js/model-viewer.js?v=20261008-explorer1"></script>
-<script type="module" src="../assets/js/explorer/main.js?v=20261008-explorer1"></script>
+<script src="../assets/js/anatomy-layers-core.js?v=20261008-glow1"></script>
+<script src="../assets/js/model-viewer.js?v=20261008-glow1"></script>
+<script type="module" src="../assets/js/explorer/main.js?v=20261008-collapse1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>

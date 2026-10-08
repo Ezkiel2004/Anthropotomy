@@ -43,6 +43,20 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
     if(page==='dashboard')assert.equal(await evaluate(`document.querySelector('#anatomyShortcutTitle').parentElement.parentElement.querySelector('a').getAttribute('href')`),'anatomy.html','Dashboard links to teacher explorer');
     if(page==='anatomy'){
         assert.ok((await evaluate('document.body.innerText')).includes('No 3D model has been added'),'Missing model has an honest empty state');
+        await evaluate(`localStorage.removeItem('anatomy.systemsOpen')`);
+        await navigate('/teacher/anatomy.html');
+        assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'true','Systems panel starts open on desktop');
+        assert.ok(await evaluate(`document.getElementById('systemsMenu').contains(document.getElementById('systemChips'))&&getComputedStyle(document.getElementById('systemChips')).position!=='absolute'`),'The list sits inside the same panel as its header, not in a dropdown');
+        await evaluate(`document.getElementById('anatomyCanvas').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}))`);
+        assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'true','Clicking the model does not collapse the systems panel');
+        await evaluate(`document.getElementById('systemsToggle').click()`);
+        await new Promise(resolve=>setTimeout(resolve,400));
+        assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'false','The header collapses the systems panel');
+        assert.equal(await evaluate(`document.getElementById('systemChips').inert`),true,'A collapsed list leaves the tab order');
+        await navigate('/teacher/anatomy.html');
+        assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'false','The collapsed state is remembered');
+        await evaluate(`document.getElementById('systemsToggle').click()`);
+        assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'true','The header expands it again');
         assert.equal(await evaluate(`document.querySelector('[data-action="zoom-in"]').disabled`),true,'Tools disabled without a model');
         const model=fs.readdirSync('system_model').find(name=>name.endsWith('.glb'));
         await evaluate(`(async()=>{
@@ -56,6 +70,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         assert.ok(await evaluate('AnatomyViewer.hasVisibleLayer()'),'Teacher loads the real GLB');
         assert.equal(await evaluate(`document.querySelectorAll('#systemChips .system-chip').length`),2,'Teacher sees hidden systems');
         assert.equal(await evaluate(`document.querySelector('#systemChips .system-chip[aria-checked="true"]').dataset.system`),'test-system','The system with a model starts switched on');
+        assert.match(await evaluate(`document.getElementById('systemsToggle').textContent`),/1 on/,'The systems button counts the systems switched on');
         await evaluate(`document.querySelector('.structure-chip').click();AnatomyExplorer.activeSeconds=10;AnatomyExplorer.flushExploration()`);
         assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'Database structure');
         assert.deepEqual(explorationPosts,[],'Teacher viewing never posts student exploration progress');
@@ -112,7 +127,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         assert.ok(phone.y<phone.sheetTop,'On phones the selected part stays above the open sheet: '+JSON.stringify(phone));
         await call('Emulation.setDeviceMetricsOverride',{width:812,height:375,deviceScaleFactor:1,mobile:true});
         await sleep(600);
-        assert.ok(await evaluate(`(()=>{const e=document.getElementById('explorer').getBoundingClientRect(),c=document.getElementById('systemChips').getBoundingClientRect();return [...document.querySelectorAll('.toolbar .tool-btn')].every(b=>{const r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;return r.top>=e.top&&r.bottom<=e.bottom&&!(x>=c.left&&x<=c.right&&y>=c.top&&y<=c.bottom)&&b.contains(document.elementFromPoint(x,y));});})()`),'Every toolbar button is reachable on a landscape phone');
+        assert.ok(await evaluate(`(()=>{const e=document.getElementById('explorer').getBoundingClientRect(),c=document.getElementById('systemsToggle').getBoundingClientRect();return [...document.querySelectorAll('.toolbar .tool-btn')].every(b=>{const r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;return r.top>=e.top&&r.bottom<=e.bottom&&!(x>=c.left&&x<=c.right&&y>=c.top&&y<=c.bottom)&&b.contains(document.elementFromPoint(x,y));});})()`),'Every toolbar button is reachable on a landscape phone');
         await call('Emulation.clearDeviceMetricsOverride');
         await sleep(500);
         await setModel('hidden-anatomy','/system_model/layers/urinary.glb');

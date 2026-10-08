@@ -7,12 +7,13 @@ import * as viewer from './viewer.js';
 import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection, setPressedStructure} from './panel.js';
 import {icon} from './icons.js';
 import {mergeSystem} from './data.js';
-import {shortcutAction, stageState} from './format.js';
+import {shortcutAction, stageState, panelDefault} from './format.js';
 
 const $ = id => document.getElementById(id);
 const teacherExplorer = document.body.dataset.anatomyRole === 'teacher';
 const studentPreview = teacherExplorer && new URLSearchParams(location.search).get('preview') === 'student';
 const explorer = $('explorer'), chipBox = $('systemChips'), stateBox = $('viewerState'), live = $('explorerLive');
+const systemsMenu = $('systemsMenu'), systemsToggle = $('systemsToggle'), systemsCount = $('systemsCount');
 const toolbar = explorer.querySelector('.toolbar');
 const toolButtons = [...toolbar.querySelectorAll('.tool-btn')];
 const tool = action => toolbar.querySelector(`[data-action="${action}"]`);
@@ -213,16 +214,32 @@ async function setContext(raw) {
     updateStage();
 }
 
-// ── System chips ──
+// ── Body systems panel: its header collapses or expands the list in place; the choice is remembered ──
+const SYSTEMS_KEY = 'anatomy.systemsOpen';
+function setSystemsOpen(open, {persist = true} = {}) {
+    systemsMenu.classList.toggle('is-collapsed', !open);
+    chipBox.inert = !open; // out of the tab order and accessibility tree at once, not after the slide
+    systemsToggle.setAttribute('aria-expanded', String(open));
+    if (persist) { try { localStorage.setItem(SYSTEMS_KEY, open ? '1' : '0'); } catch { /* storage blocked: keep the in-memory state */ } }
+}
+systemsToggle.addEventListener('click', () => setSystemsOpen(systemsMenu.classList.contains('is-collapsed')));
+let storedSystemsOpen = null;
+try { storedSystemsOpen = localStorage.getItem(SYSTEMS_KEY); } catch { /* storage blocked */ }
+setSystemsOpen(panelDefault(storedSystemsOpen, !narrow.matches), {persist: false});
+
 function createChip(system) {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'system-chip'; button.dataset.system = system.id;
+    if (!system.modelUrl) button.dataset.model = 'none';
     button.setAttribute('role', 'switch'); button.setAttribute('aria-checked', 'false');
     const dot = document.createElement('span'); dot.className = 'system-chip__dot'; dot.style.setProperty('--system-color', system.color || '#64748b');
+    const text = document.createElement('span'); text.className = 'system-chip__text';
     const name = document.createElement('span'); name.className = 'system-chip__name';
     name.textContent = system.name + (teacherExplorer && !studentPreview && !system.isActive ? ' (hidden)' : '');
     const status = document.createElement('span'); status.className = 'system-chip__status';
-    button.append(dot, name, status);
+    text.append(name, status);
+    const toggle = document.createElement('span'); toggle.className = 'system-chip__switch'; toggle.setAttribute('aria-hidden', 'true');
+    button.append(dot, text, toggle);
     button.addEventListener('click', () => toggleSystem(system));
     return button;
 }
@@ -232,7 +249,11 @@ function renderChip(system) {
     button.setAttribute('aria-checked', String(enabledOrder.includes(system.id)));
     button.querySelector('.system-chip__status').textContent = AnatomyLayersCore.toggleStatus(system, viewer.layerState(system.id));
 }
-function renderAll() { AnatomyData.systems.forEach(renderChip); updateStage(); }
+function renderAll() {
+    AnatomyData.systems.forEach(renderChip);
+    systemsCount.textContent = enabledOrder.length ? ` · ${enabledOrder.length} on` : ' · none on';
+    updateStage();
+}
 
 function disableSystem(id) {
     const index = enabledOrder.indexOf(id);
