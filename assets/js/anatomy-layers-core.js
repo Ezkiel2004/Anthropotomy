@@ -71,6 +71,20 @@ const AnatomyLayersCore = (() => {
         return kind === 'hover' ? {color: 0x1d6f6a, intensity: 1} : null;
     }
 
+    // Surface finish per body system for the layered models: matte bone, slightly glossy and deeper
+    // red muscle, wet-looking vessels and organs. colorScale darkens the base colour.
+    const ORGAN_LOOK = {roughness: 0.4, metalness: 0, colorScale: 1};
+    const LOOKS = {
+        skeletal: {roughness: 0.8, metalness: 0, colorScale: 1},
+        muscular: {roughness: 0.5, metalness: 0, colorScale: 0.65},
+        circulatory: {roughness: 0.35, metalness: 0, colorScale: 1},
+        digestive: ORGAN_LOOK, respiratory: ORGAN_LOOK, urinary: ORGAN_LOOK,
+        reproductive: ORGAN_LOOK, endocrine: ORGAN_LOOK, lymphatic: ORGAN_LOOK
+    };
+    function materialLook(systemId) {
+        return {...(LOOKS[systemId] || {roughness: 0.6, metalness: 0, colorScale: 1})};
+    }
+
     const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     function contextAfterDisable(enabledOrder, disabledId, current) {
@@ -79,6 +93,6 @@ const AnatomyLayersCore = (() => {
         return remaining.length ? remaining[remaining.length - 1] : current;
     }
 
-    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, easeInOutCubic, contextAfterDisable};
+    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, materialLook, easeInOutCubic, contextAfterDisable};
 })();
 if (typeof module === 'object' && module.exports) module.exports = AnatomyLayersCore;

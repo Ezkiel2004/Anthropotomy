@@ -105,6 +105,8 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await evaluate(`localStorage.setItem('anatomy.panelOpen','1')`);
         await navigate('/teacher/anatomy.html');
         await waitFor(`AnatomyViewer.layerState('test-system')?.status==='ready'`);
+        assert.ok(await evaluate(`AnatomyViewer.renderer.outputEncoding===THREE.sRGBEncoding&&AnatomyViewer.renderer.toneMapping===THREE.ACESFilmicToneMapping&&!!AnatomyViewer.scene.environment`),'Realistic renderer: sRGB output, filmic tone mapping and environment lighting');
+        assert.equal(await evaluate(`(()=>{let mesh;AnatomyViewer.layerState('test-system').root.traverse(o=>{if(!mesh&&o.isMesh)mesh=o;});return mesh.userData.baseMaterial.roughness;})()`),0.8,'Bone gets a matte finish');
         await evaluate(`[...document.querySelectorAll('.structure-chip')].find(b=>b.textContent==='Mapped bone').click()`);
         await new Promise(resolve=>setTimeout(resolve,300));
         assert.equal(await evaluate('AnatomyViewer.focusedPart?.userData.part_id'),'anatomy_00053','Structure chip highlights its part');

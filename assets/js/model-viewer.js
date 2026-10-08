@@ -10,10 +10,15 @@ const AnatomyViewer = {
         this.canvas = canvas;
         this.renderer = new THREE.WebGLRenderer({canvas, antialias: true, preserveDrawingBuffer: true});
         this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        // Realistic colour: sRGB output with filmic tone mapping, lit mainly by a soft studio environment.
+        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 0.6;
         this.scene = new THREE.Scene(); this.scene.background = new THREE.Color('#101c2e');
+        this.scene.environment = this.studioEnvironment();
         this.camera = new THREE.PerspectiveCamera(40, 1, .01, 10000);
-        this.scene.add(new THREE.HemisphereLight(0xffffff, 0x536077, 1.6));
-        const light = new THREE.DirectionalLight(0xffffff, 1.4); light.position.set(4, 8, 6); this.scene.add(light);
+        this.scene.add(new THREE.HemisphereLight(0xffffff, 0x536077, 0.4));
+        const light = new THREE.DirectionalLight(0xffffff, 1.0); light.position.set(4, 8, 6); this.scene.add(light);
         this.world = new THREE.Group(); this.scene.add(this.world);
         this.controls = new THREE.OrbitControls(this.camera, canvas); this.controls.enableDamping = true;
         this.controls.enablePan = true;
@@ -68,6 +73,25 @@ const AnatomyViewer = {
             else if (this.frame == null) this.animate();
         });
         this.animate();
+    },
+    // A small studio room (soft overhead panel, side fill, rim) pre-filtered into an environment map.
+    // Built in code, like Three.js's RoomEnvironment, so no extra file is needed.
+    studioEnvironment() {
+        const room = new THREE.Scene(), box = new THREE.BoxGeometry(), materials = [];
+        const add = (material, position, scale) => {
+            const mesh = new THREE.Mesh(box, material); mesh.position.set(...position); mesh.scale.set(...scale);
+            room.add(mesh); materials.push(material);
+        };
+        add(new THREE.MeshBasicMaterial({color: 0x15181d, side: THREE.BackSide}), [0, 0, 0], [12, 9, 12]);
+        const panel = intensity => new THREE.MeshBasicMaterial({color: new THREE.Color().setScalar(intensity)});
+        add(panel(2), [0, 4.3, 0], [7, 0.1, 7]);      // key: soft light from above
+        add(panel(0.8), [-5.9, 1, 2], [0.1, 4, 5]);   // fill from the left
+        add(panel(1.1), [5.9, 2, -3], [0.1, 3, 3]);   // rim from the right and behind
+        add(panel(0.4), [0, 1, 5.9], [5, 3, 0.1]);    // gentle front fill
+        const generator = new THREE.PMREMGenerator(this.renderer);
+        const texture = generator.fromScene(room, 0.04).texture;
+        generator.dispose(); box.dispose(); materials.forEach(material => material.dispose());
+        return texture;
     },
     resize() { const rect = this.canvas.parentElement.getBoundingClientRect(); this.renderer.setSize(rect.width, rect.height, false); this.camera.aspect = rect.width / Math.max(rect.height, 1); this.viewSize = {width: rect.width, height: rect.height}; this.applyViewInset(); },
 
@@ -133,6 +157,7 @@ const AnatomyViewer = {
         let layered = false;
         root.traverse(node => { if (node.userData && node.userData.anatomy_schema) layered = true; });
         layer.layered = layered;
+        if (layered) this.applySystemLooks(root, system.id); // uploaded models keep their authored materials
         root.traverse(node => {
             if (node.isMesh) node.userData.baseMaterial = node.material;
             if (!layered && node.isMesh) {
@@ -148,6 +173,21 @@ const AnatomyViewer = {
         layer.root = root;
         if (root.visible && this.focusedPart) this.applyMaterials(root);
         if (root.visible && this.visibleRoots().length === 1) this.resetView();
+    },
+    // Gives each part's materials its body system's finish (AnatomyLayersCore.materialLook), once per material.
+    applySystemLooks(root, fallbackSystem) {
+        const done = new Set();
+        root.traverse(node => {
+            if (!node.isMesh) return;
+            const look = AnatomyLayersCore.materialLook(AnatomyLayersCore.resolvePart(node)?.userData.system_id || fallbackSystem);
+            [].concat(node.material).forEach(material => {
+                if (!material || !material.isMeshStandardMaterial || done.has(material)) return;
+                done.add(material);
+                material.roughness = look.roughness; material.metalness = look.metalness;
+                if (look.colorScale !== 1) material.color.multiplyScalar(look.colorScale);
+                material.needsUpdate = true;
+            });
+        });
     },
     // Frees a layer's GPU resources. Switching the system on again reloads it (the browser cache serves the file).
     disposeLayer(id) {

@@ -98,3 +98,11 @@ test('only hovering adds a glow; a selected part keeps its own colour', () => {
     assert.equal(core.glowFor('ghost'), null);
     assert.equal(core.glowFor(null), null);
 });
+
+test('materialLook gives each layered system its surface finish', () => {
+    assert.deepEqual(core.materialLook('skeletal'), {roughness: 0.8, metalness: 0, colorScale: 1});
+    assert.deepEqual(core.materialLook('muscular'), {roughness: 0.5, metalness: 0, colorScale: 0.65});
+    assert.equal(core.materialLook('circulatory').roughness, 0.35);
+    for (const id of ['digestive', 'respiratory', 'urinary', 'reproductive', 'endocrine', 'lymphatic']) assert.equal(core.materialLook(id).roughness, 0.4, id);
+    assert.deepEqual(core.materialLook('unknown-system'), {roughness: 0.6, metalness: 0, colorScale: 1});
+});
