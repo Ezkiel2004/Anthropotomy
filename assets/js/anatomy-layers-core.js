@@ -65,6 +65,12 @@ const AnatomyLayersCore = (() => {
         return {min: size * 0.02, max: size * 4};
     }
 
+    // Emissive glow per material state. Only hovering glows; a selected (focused) part keeps its own
+    // colour and stands out because everything else fades.
+    function glowFor(kind) {
+        return kind === 'hover' ? {color: 0x1d6f6a, intensity: 1} : null;
+    }
+
     const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     function contextAfterDisable(enabledOrder, disabledId, current) {
@@ -73,6 +79,6 @@ const AnatomyLayersCore = (() => {
         return remaining.length ? remaining[remaining.length - 1] : current;
     }
 
-    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, easeInOutCubic, contextAfterDisable};
+    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, easeInOutCubic, contextAfterDisable};
 })();
 if (typeof module === 'object' && module.exports) module.exports = AnatomyLayersCore;

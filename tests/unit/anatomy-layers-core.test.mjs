@@ -91,3 +91,10 @@ test('distanceLimits scales with the model diagonal', () => {
     assert.deepEqual(core.distanceLimits(0), {min: 0.02, max: 4});
     assert.deepEqual(core.distanceLimits(NaN), {min: 0.02, max: 4});
 });
+
+test('only hovering adds a glow; a selected part keeps its own colour', () => {
+    assert.deepEqual(core.glowFor('hover'), {color: 0x1d6f6a, intensity: 1});
+    assert.equal(core.glowFor('focus'), null);
+    assert.equal(core.glowFor('ghost'), null);
+    assert.equal(core.glowFor(null), null);
+});

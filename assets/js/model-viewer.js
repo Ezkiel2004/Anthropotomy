@@ -208,14 +208,15 @@ const AnatomyViewer = {
         } else if (!part) this.label.hidden = true;
     },
 
-    // ── Materials: base, hover glow, focus glow, faded ghost ──
+    // ── Materials: base, hover glow, faded ghost (a focused part keeps its base material) ──
     variant(material, kind) {
         let entry = this.materialCache.get(material.uuid);
         if (!entry) { entry = {}; this.materialCache.set(material.uuid, entry); }
         if (!entry[kind]) {
             const copy = material.clone();
+            const glow = AnatomyLayersCore.glowFor(kind);
             if (kind === 'ghost') { copy.transparent = true; copy.opacity = 0.12; copy.depthWrite = false; }
-            else if (copy.emissive) { copy.emissive.setHex(kind === 'focus' ? 0xa86f12 : 0x1d6f6a); copy.emissiveIntensity = 1; }
+            else if (glow && copy.emissive) { copy.emissive.setHex(glow.color); copy.emissiveIntensity = glow.intensity; }
             entry[kind] = copy;
         }
         return entry[kind];
@@ -223,7 +224,7 @@ const AnatomyViewer = {
     materialFor(mesh, part) {
         const base = mesh.userData.baseMaterial;
         const kind = part && part === this.focusedPart ? 'focus' : this.focusedPart ? 'ghost' : part && part === this.hoveredPart ? 'hover' : null;
-        if (!kind) return base;
+        if (!kind || (kind === 'focus' && !AnatomyLayersCore.glowFor(kind))) return base;
         return Array.isArray(base) ? base.map(m => this.variant(m, kind)) : this.variant(base, kind);
     },
     applyMaterials(scope) {
