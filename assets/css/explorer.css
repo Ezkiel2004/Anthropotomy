@@ -1,0 +1,237 @@
+/* 3D Anatomy Explorer — full-bleed navy viewer with in-viewer overlays (student and teacher portals).
+   Every overlay is absolutely positioned, so opening or closing the panel never resizes the canvas. */
+
+body.explorer-page { overflow: hidden; }
+
+.explorer {
+  --topbar-h: var(--topbar-height, 56px);
+  --navy: #101c2e;
+  --accent: var(--brand, #1a6b4a);
+  --accent-ring: #4fd197;            /* lighter brand green: focus rings and active outlines need 3:1 on navy */
+  --glass: rgba(15, 27, 45, .7);
+  --glass-strong: rgba(15, 27, 45, .88); /* panel surface: keeps muted text above 4.5:1 over bright models */
+  --text: #e6edf5;
+  --text-muted: #a9b6c7;
+  --radius: 14px;
+  --gutter: 16px;
+  --panel-w: 360px;
+  --sheet-h: 55dvh;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: calc(100dvh - var(--topbar-h));
+  margin-top: var(--topbar-h);
+  overflow: hidden;
+  background: var(--navy);
+  color: var(--text);
+  font-family: var(--font-body, system-ui, sans-serif);
+}
+.explorer [hidden] { display: none !important; }
+.explorer :where(h2, h3, p) { color: inherit; } /* beats the global heading color; later class rules still win */
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Canvas ── */
+.viewer__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.viewer__canvas:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: -4px; }
+
+/* ── State overlay: empty / loading / error / unavailable ── */
+.viewer__state {
+  position: absolute; inset: 0; z-index: 5;
+  display: grid; place-content: center; justify-items: center; gap: 14px;
+  padding: 2rem 2rem 2rem 80px; text-align: center; pointer-events: none;
+}
+.viewer__message { max-width: 42ch; font-size: .95rem; line-height: 1.55; color: var(--text); }
+.viewer__spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, .18); border-top-color: var(--accent-ring);
+  animation: explorer-spin .9s linear infinite;
+}
+@keyframes explorer-spin { to { transform: rotate(360deg); } }
+.viewer__retry, .panel-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, .2); border-radius: 8px;
+  background: rgba(255, 255, 255, .08); color: var(--text);
+  font: 600 .8rem/1.2 var(--font-body, system-ui, sans-serif); cursor: pointer;
+}
+.viewer__retry { pointer-events: auto; }
+.viewer__retry:hover, .panel-btn:hover { background: rgba(255, 255, 255, .16); }
+.viewer__retry:focus-visible, .panel-btn:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.explorer.is-panel-open .viewer__state { padding-right: calc(var(--panel-w) + 2 * var(--gutter)); }
+
+/* ── Toolbar ── */
+.toolbar {
+  position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px;
+  background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .08); border-radius: 14px;
+}
+.toolbar__divider { width: 24px; height: 1px; background: rgba(255, 255, 255, .18); }
+.tool-btn {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+  border: 0; border-radius: 10px; background: transparent; color: var(--text); cursor: pointer;
+  transition: background-color .15s ease;
+}
+.tool-btn svg { pointer-events: none; }
+.tool-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .12); }
+.tool-btn[aria-expanded="true"] { background: rgba(255, 255, 255, .1); }
+.tool-btn[aria-pressed="true"] { background: var(--accent); color: #fff; box-shadow: inset 0 0 0 2px var(--accent-ring); }
+.tool-btn:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.tool-btn:disabled { opacity: .4; cursor: not-allowed; }
+.tool-btn--sm { width: 32px; height: 32px; flex: none; }
+
+/* CSS-only tooltips, shown on hover and keyboard focus */
+.tool-btn[data-tip]::after {
+  content: attr(data-tip); position: absolute; left: calc(100% + 12px); top: 50%; z-index: 1;
+  transform: translate(-4px, -50%); padding: 5px 9px; border-radius: 6px;
+  background: #0b1422; color: var(--text); box-shadow: 0 4px 12px rgba(0, 0, 0, .35);
+  font-size: .75rem; font-weight: 600; white-space: nowrap; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
+}
+.tool-btn[data-tip]:hover::after, .tool-btn[data-tip]:focus-visible::after {
+  opacity: 1; visibility: visible; transform: translate(0, -50%); transition: opacity .15s ease, transform .15s ease, visibility 0s;
+}
+.tool-btn[data-tip]:disabled:hover::after { opacity: 0; visibility: hidden; }
+
+/* ── System chips ── */
+.system-chips {
+  position: absolute; top: calc(var(--gutter) - 4px); left: calc(var(--gutter) - 4px); right: calc(var(--gutter) - 4px); z-index: 10;
+  display: flex; gap: 8px; padding: 4px; overflow-x: auto; scrollbar-width: none;
+  color: var(--text-muted); font-size: .8rem; transition: right .25s ease;
+}
+.system-chips::-webkit-scrollbar { display: none; }
+.explorer.is-panel-open .system-chips { right: calc(var(--panel-w) + 2 * var(--gutter)); }
+.system-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px;
+  background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  color: var(--text); font: 600 .8rem/1.2 var(--font-body, system-ui, sans-serif); cursor: pointer;
+}
+.system-chip:hover { border-color: rgba(255, 255, 255, .32); }
+.system-chip[aria-checked="true"] { border-color: var(--accent-ring); box-shadow: inset 0 0 0 1px var(--accent-ring); }
+.system-chip:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.system-chip__dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--system-color); }
+.system-chip[aria-checked="true"] .system-chip__dot { background: var(--system-color); }
+.system-chip__status { color: var(--text-muted); font-size: .72rem; font-weight: 500; }
+.system-chip__status:empty { display: none; }
+
+/* ── Info panel ── */
+.info-panel {
+  position: absolute; top: var(--gutter); right: var(--gutter); bottom: var(--gutter); z-index: 20;
+  width: var(--panel-w); max-width: calc(100% - 32px);
+  display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, .1); border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .35); color: var(--text);
+  transform: translateX(calc(100% + 24px)); visibility: hidden;
+  transition: transform 250ms ease, visibility 0s linear 250ms;
+}
+.info-panel.is-open { transform: translateX(0); visibility: visible; transition: transform 250ms ease, visibility 0s; }
+.info-panel__header {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 18px 16px 14px 18px; background: #132137; border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+.info-panel__header h2 { font-size: 1.15rem; font-weight: 700; line-height: 1.3; }
+.info-panel__header h2:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; border-radius: 4px; }
+.info-panel__header p { margin-top: 4px; color: var(--text-muted); font-size: .84rem; line-height: 1.45; }
+.info-panel__body { display: flex; flex-direction: column; gap: 20px; padding: 16px 18px 20px; font-size: .86rem; line-height: 1.55; }
+.info-section__title { margin-bottom: 8px; color: var(--text-muted); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.info-hint { color: var(--text-muted); font-size: .8rem; }
+.info-section > p + p { margin-top: 8px; }
+.info-list { margin: 0; padding-left: 1.1rem; }
+.info-list li + li { margin-top: 4px; }
+.info-list li::marker { color: var(--accent-ring); }
+.info-panel a { color: var(--accent-ring); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.info-panel a:hover { color: #7fe3b6; }
+.info-panel a:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; border-radius: 2px; }
+.source-note { margin-top: 10px; color: var(--text-muted); font-size: .78rem; }
+
+/* Selected part or structure */
+.selected-card { padding: 14px; border: 1px solid rgba(79, 209, 151, .35); border-radius: 12px; background: rgba(79, 209, 151, .08); }
+.selected-card__title { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+.selected-card__system { color: var(--text-muted); font-size: .78rem; margin-bottom: 8px; }
+.selected-card__badge {
+  display: inline-block; margin-bottom: 8px; padding: 2px 8px; border-radius: 999px;
+  background: rgba(245, 158, 11, .16); border: 1px solid rgba(245, 158, 11, .5); color: #fcd34d; font-size: .72rem; font-weight: 700;
+}
+.selected-card > p + p, .selected-card > a { margin-top: 6px; display: block; }
+.selected-card__also { color: var(--text-muted); font-size: .8rem; }
+.selected-card #exitFocus { margin-top: 12px; }
+
+/* Structure chips: pressed state shows a check mark as well as the outline */
+.structure-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.structure-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; background: rgba(255, 255, 255, .06);
+  color: var(--text); font: 600 .8rem/1.2 var(--font-body, system-ui, sans-serif); cursor: pointer; text-align: left;
+}
+.structure-chip:hover { background: rgba(255, 255, 255, .14); }
+.structure-chip:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.structure-chip__check { display: none; }
+.structure-chip__check svg { width: 14px; height: 14px; }
+.structure-chip[aria-pressed="true"] { border-color: var(--accent-ring); background: rgba(79, 209, 151, .16); }
+.structure-chip[aria-pressed="true"] .structure-chip__check { display: inline-flex; color: var(--accent-ring); }
+
+/* Did you know? */
+.trivia-card { padding: 14px; border-radius: 12px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); }
+.trivia-card #triviaText { margin-bottom: 10px; font-size: .9rem; }
+
+/* Quick practice and related lessons */
+#practicePrompt:not(:empty) { margin-top: 10px; }
+.practice-choices, .related-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.info-panel a.panel-btn { color: var(--text); text-decoration: none; }
+
+/* Teacher tools strip */
+.teacher-tools__links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.practice-result { margin-top: 8px; font-weight: 600; }
+
+/* Engine hover label sits above the canvas but below the overlays */
+.explorer .part-hover-label { z-index: 6; }
+
+/* ── Fullscreen (native and the fixed-position fallback) ── */
+.explorer:fullscreen { margin-top: 0; width: 100%; height: 100dvh; }
+.explorer:-webkit-full-screen { margin-top: 0; width: 100%; height: 100dvh; }
+.explorer.is-pseudo-fullscreen { position: fixed; inset: 0; z-index: 1100; margin-top: 0; width: 100%; height: 100dvh; }
+
+/* ── Breakpoints ── */
+@media (max-width: 1023.98px) {
+  .explorer { --panel-w: 300px; }
+}
+@media (max-width: 767.98px) {
+  .info-panel {
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; max-width: none; height: var(--sheet-h);
+    border-radius: 16px 16px 0 0; transform: translateY(calc(100% + 24px));
+  }
+  .info-panel.is-open { transform: translateY(0); }
+  .info-panel__header { border-radius: 16px 16px 0 0; }
+  .toolbar {
+    top: auto; left: 50%; bottom: var(--gutter); transform: translateX(-50%);
+    flex-direction: row; gap: 4px; padding: 6px; transition: bottom 250ms ease;
+  }
+  .explorer.is-panel-open .toolbar { bottom: calc(var(--sheet-h) + 12px); }
+  .toolbar__divider { width: 1px; height: 24px; }
+  .tool-btn[data-tip]::after { left: 50%; top: auto; bottom: calc(100% + 10px); transform: translate(-50%, 4px); }
+  .tool-btn[data-tip]:hover::after, .tool-btn[data-tip]:focus-visible::after { transform: translate(-50%, 0); }
+  .explorer.is-panel-open .system-chips { right: calc(var(--gutter) - 4px); }
+  .viewer__state { padding: 4.5rem 1.5rem 5.5rem; }
+  .explorer.is-panel-open .viewer__state { padding-right: 1.5rem; padding-bottom: calc(var(--sheet-h) + 5rem); }
+}
+
+/* Short windows (phones in landscape): a compact vertical toolbar that fits, with the chips moved beside it */
+@media (max-height: 480px) and (min-width: 768px) {
+  .toolbar { left: 12px; gap: 2px; padding: 4px; }
+  .toolbar .tool-btn:not(.tool-btn--sm) { width: 32px; height: 32px; }
+  .toolbar .tool-btn svg { width: 18px; height: 18px; }
+  .toolbar__divider { width: 20px; margin: 2px 0; }
+  .system-chips { left: 60px; }
+  .system-chip { min-height: 32px; padding: 4px 10px; }
+  .viewer__state { padding-top: 3.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explorer *, .explorer *::before, .explorer *::after { transition-duration: 0ms !important; transition-delay: 0ms !important; }
+  .viewer__spinner { animation-duration: 2.4s; }
+}

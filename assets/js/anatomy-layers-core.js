@@ -59,6 +59,12 @@ const AnatomyLayersCore = (() => {
         return Math.max(radius, 1e-6) / Math.sin(Math.min(vfov, hfov) / 2) * margin;
     }
 
+    // Orbit distance limits for a model: close enough for small parts, never lost in space.
+    function distanceLimits(diagonal) {
+        const size = Number.isFinite(diagonal) && diagonal > 0 ? diagonal : 1;
+        return {min: size * 0.02, max: size * 4};
+    }
+
     const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     function contextAfterDisable(enabledOrder, disabledId, current) {
@@ -67,6 +73,6 @@ const AnatomyLayersCore = (() => {
         return remaining.length ? remaining[remaining.length - 1] : current;
     }
 
-    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, easeInOutCubic, contextAfterDisable};
+    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, easeInOutCubic, contextAfterDisable};
 })();
 if (typeof module === 'object' && module.exports) module.exports = AnatomyLayersCore;

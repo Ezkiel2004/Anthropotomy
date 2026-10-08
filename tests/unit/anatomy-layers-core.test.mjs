@@ -85,3 +85,9 @@ test('easeInOutCubic starts at 0, ends at 1 and is symmetric', () => {
     assert.equal(core.easeInOutCubic(1), 1);
     assert.ok(Math.abs(core.easeInOutCubic(0.5) - 0.5) < 1e-12);
 });
+
+test('distanceLimits scales with the model diagonal', () => {
+    assert.deepEqual(core.distanceLimits(2), {min: 0.04, max: 8});
+    assert.deepEqual(core.distanceLimits(0), {min: 0.02, max: 4});
+    assert.deepEqual(core.distanceLimits(NaN), {min: 0.02, max: 4});
+});

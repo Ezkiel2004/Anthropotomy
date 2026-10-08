@@ -10,7 +10,7 @@ function checkModule(code,file){
     catch(error){throw new Error(`Syntax error in module ${file}:\n${error.stderr}`);}
     modules++;
 }
-for(const dir of ['assets/js','student','teacher','.']){
+for(const dir of ['assets/js','assets/js/explorer','student','teacher','.']){
     for(const name of fs.readdirSync(dir)){
         if(!/\.(js|html)$/.test(name)) continue;
         const file=path.join(dir,name),source=fs.readFileSync(file,'utf8');

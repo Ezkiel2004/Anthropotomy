@@ -1,13 +1,5 @@
 .content-layout{display:grid;gap:1.5rem;padding:1.5rem;max-width:1200px;margin:auto}
 [hidden]{display:none!important}
-.anatomy-presenting .sidebar,.anatomy-presenting .sidebar-overlay,.anatomy-presenting #sidebarToggle,.anatomy-presenting #previewToggle,.anatomy-presenting #editAnatomy,.anatomy-presenting #previewStatus,.anatomy-presenting #relatedContent{display:none!important}
-.anatomy-presenting .sidebar,.anatomy-presenting .sidebar-overlay,.anatomy-presenting .topbar,.anatomy-presenting #sidebarToggle,.anatomy-presenting #previewToggle,.anatomy-presenting #editAnatomy,.anatomy-presenting #previewStatus,.anatomy-presenting #relatedContent{display:none!important}
-.anatomy-presenting .main-content{margin-left:0!important;width:100%}
-.anatomy-presenting .content-layout{max-width:none}
-.anatomy-presenting .page-content,.anatomy-presenting .content-layout{max-width:none;padding:1rem!important}
-.anatomy-presenting .teacher-explorer-tools{position:sticky;top:0;z-index:30;padding:.25rem 1rem}
-.anatomy-presenting .teacher-explorer-tools .model-tools{margin:.5rem 0}
-.anatomy-presenting .model-stage,.anatomy-presenting .model-stage canvas{height:65vh;min-height:340px}
 .content-panel{padding:1.5rem;background:var(--bg-surface,#fff);border:1px solid var(--border,#ddd);border-radius:12px}
 .content-panel h2{margin-bottom:1rem}.content-panel p{margin-bottom:1rem;color:var(--text-secondary)}
 .content-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}

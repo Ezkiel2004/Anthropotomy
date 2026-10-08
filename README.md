@@ -15,7 +15,7 @@ An interactive anatomy learning system with teacher and student portals. Applica
 
 ## Anatomy content
 
-Teachers can open **Explore 3D Anatomy** from the dashboard or **3D Anatomy Explorer** in the sidebar. Teacher view includes hidden systems and links to edit the selected system or open its related module lessons. **Student preview** shows only systems visible to students, using the same viewer and descriptions. Neither teacher mode records student exploration progress. **Presentation mode** hides portal navigation and enlarges the viewer; use its exit button or Escape to return.
+Teachers can open **Explore 3D Anatomy** from the dashboard or **3D Anatomy Explorer** in the sidebar. Teacher view includes hidden systems and links to edit the selected system or open its related module lessons. **Student preview** shows only systems visible to students, using the same viewer and descriptions. Neither teacher mode records student exploration progress. For class demonstrations, use the viewer's **Fullscreen** button: it hides portal navigation while keeping the controls and info panel; press Escape or the button again to return.
 
 The explorer shows a layered whole body. Each body system is a toggle; any combination can be switched on, and a system downloads the first time it is switched on. Selecting a part glides the camera to it, fades everything else and shows the part's name, system, description and function. Esc, **Back to full body** or a click on empty space returns to the full view. Most parts of the supplied model have not been identified yet. These show an **Awaiting identification** badge, and no description is invented for them.
 
@@ -23,7 +23,40 @@ The layered models are in `system_model/layers/`, one GLB per system. They are e
 
 A teacher can still upload a GLB in the Media Library and choose its URL in School & Anatomy Content, along with the system description, key facts, structure descriptions and source/attribution information. A model that was not made by the layered export is shown on its own. A structure's optional model part name maps its description to a named mesh or parent group in the GLB file, or to a part ID such as `anatomy_00848` in the layered models.
 
-The explorer loads the configured real model. Systems without models still display their database content with an explicit model-unavailable state. No procedural substitute or fabricated anatomical facts are displayed. Quick practice uses the structure descriptions configured by the teacher and does not award assessment grades.
+The explorer loads the configured real model. Systems without models still display their database content with an explicit model-unavailable state. No procedural substitute model is displayed, and the static panel content described below cites its sources. Quick practice uses the structure descriptions configured by the teacher and does not award assessment grades.
+
+## 3D Anatomy Explorer
+
+`student/anatomy.html` and `teacher/anatomy.html` share one explorer. The navy viewer fills the content area below the top bar:
+
+- **System chips** along the top switch body-system layers on and off; each chip shows loading progress, "No 3D model yet" or a retry state.
+- **Toolbar** (left edge; a bottom bar on phones): zoom in, zoom out, reset view, auto rotate, save image, fullscreen and the info panel toggle. Every button has a tooltip.
+- **Info panel** (right overlay; a bottom sheet on phones): the system's summary, the selected part or structure, description, functions, structures, "Did you know?" facts, quick practice, related lessons (teachers) and sources. Its open or closed state is remembered in the browser (`anatomy.panelOpen`).
+
+| Key | Action |
+|---|---|
+| `+` / `=` | Zoom in |
+| `-` | Zoom out |
+| `R` | Reset view |
+| `A` | Auto rotate |
+| `F` | Fullscreen |
+| `I` | Info panel |
+| `S` | Save image (`anatomy-<system>-<YYYYMMDD>.png`) |
+| `Esc` | Leave the selected part, then fullscreen |
+
+Shortcuts are ignored while typing in a form field or when Ctrl, Alt or Cmd is held. The toolbar is one Tab stop; the arrow keys move between its buttons.
+
+**Running it locally.** Start Apache and MySQL in XAMPP and open `http://localhost/Anthropotomy/login.html`. The pages must be served over HTTP: opening them as `file://` blocks the GLB model downloads. Three.js r128 is vendored in `assets/vendor/three/`, so no build step or internet access is needed for the viewer.
+
+**Code layout.** `assets/js/model-viewer.js` is the layered Three.js engine (global `AnatomyViewer`). The explorer page itself is ES modules in `assets/js/explorer/`: `main.js` (start-up, chips, toolbar, shortcuts, analytics), `viewer.js` (engine wrapper: zoom, reset, rotate, save, fullscreen, highlight), `panel.js` (info panel), `data.js` (static panel content), `format.js` (pure helpers, unit tested), `icons.js` (inline SVG icons) and `teacher.js` (teacher-only tools). Styles are in `assets/css/explorer.css`.
+
+**Adding a system and model.**
+
+1. Put the GLB in place: export a layer with `tools/blender/export_layers.py` into `system_model/layers/`, or upload a GLB in the Media Library.
+2. Connect it: run `C:/xampp/php/php.exe database/integrate_layers.php <system_code>` for an exported layer, or create or edit the system in **School & Anatomy Content** and choose the model URL. A system without a model still appears, with its content and an empty-state message in the viewer.
+3. Add the panel content: add an entry to `systems` in `assets/js/explorer/data.js` whose `id` is the system's `system_code`, with `summary`, `description`, `functions`, `trivia` and `sources` (links to the pages the facts come from).
+
+Teachers edit the description, key facts (shown as extra "Did you know?" facts), structures, model and source note in **School & Anatomy Content**; the database description replaces the `data.js` one when it is filled in. The summary, functions, trivia and source links live only in `data.js`.
 
 ## Database behavior
 
@@ -94,7 +127,7 @@ Apache revalidates HTML and shared navigation assets through the root .htaccess.
 
 ## Verification
 
-The completed validation passed 72 integration checks and browser checks across 19 portal pages, including student registration, quiz refresh/resume, real GLB rendering, teacher/student anatomy layouts, hidden-system preview filtering, and presentation controls. Syntax checks passed for 27 JavaScript files/blocks and 39 PHP files, with static local file references also checked. Teacher exploration was verified to send no student progress records. The temporary test database and credentials were removed afterward.
+The completed validation passed 72 integration checks and browser checks across 19 portal pages, including student registration, quiz refresh/resume, real GLB rendering, teacher/student anatomy layouts, hidden-system preview filtering, the explorer's full-bleed layout, panel persistence, fullscreen fallback and layer disposal. Syntax checks passed for 30 JavaScript files/blocks, 8 ES modules and 42 PHP files, with static local file references also checked; 23 unit tests passed. Teacher exploration was verified to send no student progress records. The temporary test database and credentials were removed afterward.
 
 ~~~powershell
 node tests/check-syntax.mjs
@@ -104,7 +137,7 @@ Unit tests for the layered viewer's helpers run with `node --test "tests/unit/*.
 
 The syntax check also compiles the public pages' ES modules. Outside XAMPP on Windows, set PHP_BINARY (or have `php` on PATH); the integration suite uses the same setting.
 
-The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
+The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile with a desktop-sized window (for example --window-size=1366,900; the default 764×485 window triggers the mobile layouts) and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
 
 The focused sidebar regression suite, node tests/navigation.mjs, covers the 11 teacher pages and 7 student pages (scores.html redirects to My Progress & Scores). It verifies complete and consistent menus, active links, icons, profile links, desktop collapse and mobile controls. The student sidebar has five links; notifications and settings open from the top bar. Run it against a fresh isolated test database and the same server/browser setup; it creates its own student fixture and does not require the integration suite.
 

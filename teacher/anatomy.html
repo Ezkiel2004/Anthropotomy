@@ -19,8 +19,9 @@
   <script src="../assets/vendor/three/GLTFLoader.js"></script>
   <script src="../assets/vendor/three/DRACOLoader.js"></script>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/explorer.css?v=20261008-explorer1"/>
 </head>
-<body class="teacher-dashboard" data-anatomy-role="teacher">
+<body class="explorer-page teacher-dashboard" data-anatomy-role="teacher">
 <div class="app-layout">
 
   <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261005-brand1"></script></aside>
@@ -55,97 +56,43 @@
       </div>
     </header>
 
-    <div class="page-content">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>3D Anatomy Explorer</h1>
-          <p>Preview your anatomy content or use presentation mode for class demonstrations.</p>
-        </div>
-        <div class="page-header-right">
-          <a class="btn btn-secondary btn-sm" id="previewToggle" href="anatomy.html?preview=student">Student preview</a>
-          <a class="btn btn-secondary btn-sm" id="editAnatomy" href="content.html">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#pencil-simple"/></svg>
-            Edit anatomy content
-          </a>
-          <button class="btn btn-primary btn-sm" id="presentationToggle" aria-pressed="false">Presentation mode</button>
-        </div>
+    <section class="explorer" id="explorer" aria-labelledby="explorerTitle">
+      <h1 id="explorerTitle" class="visually-hidden">3D Anatomy Explorer</h1>
+      <canvas id="anatomyCanvas" class="viewer__canvas" tabindex="0" aria-label="Interactive anatomy model. Scroll to zoom at the pointer. Drag to rotate; right-drag or use arrow keys to pan. On touch screens, pinch and move two fingers to zoom and pan."></canvas>
+
+      <div class="system-chips" id="systemChips" role="group" aria-label="Body systems">Loading…</div>
+
+      <div class="viewer__state" id="viewerState" role="status"></div>
+
+      <div class="toolbar" role="toolbar" aria-label="3D viewer controls" aria-orientation="vertical">
+        <button type="button" class="tool-btn" data-action="zoom-in" aria-label="Zoom in" data-tip="Zoom in (+)"></button>
+        <button type="button" class="tool-btn" data-action="zoom-out" aria-label="Zoom out" data-tip="Zoom out (-)"></button>
+        <button type="button" class="tool-btn" data-action="reset" aria-label="Reset view" data-tip="Reset view (R)"></button>
+        <button type="button" class="tool-btn" data-action="rotate" aria-label="Auto rotate" aria-pressed="false" data-tip="Auto rotate (A)"></button>
+        <button type="button" class="tool-btn" data-action="save" aria-label="Save image" data-tip="Save image (S)"></button>
+        <span class="toolbar__divider" aria-hidden="true"></span>
+        <button type="button" class="tool-btn" data-action="fullscreen" aria-label="Fullscreen" data-tip="Fullscreen (F)"></button>
+        <button type="button" class="tool-btn" data-action="info" aria-label="Toggle info panel" aria-expanded="true" aria-controls="infoPanel" data-tip="Info (I)"></button>
       </div>
 
-      <section class="content-panel teacher-explorer-tools" aria-label="Teacher tools" style="margin-bottom:14px;">
-        <p id="previewStatus" role="status" style="margin:0;font-size:0.82rem;color:var(--text-muted);">Teacher view includes systems hidden from students.</p>
-      </section>
+      <aside class="info-panel" id="infoPanel" aria-label="System information">
+        <header class="info-panel__header">
+          <div><h2 id="sysName">3D Anatomy Explorer</h2><p id="sysSummary" hidden></p></div>
+          <button type="button" class="tool-btn tool-btn--sm" data-action="info-close" aria-label="Close info panel"></button>
+        </header>
+        <div class="info-panel__body" id="infoBody"></div>
+      </aside>
 
-      <section class="content-panel" style="margin-bottom:14px;">
-        <p id="systemTogglesLabel" class="system-toggles-label">Body systems</p>
-        <div id="systemToggles" class="system-toggles" role="group" aria-labelledby="systemTogglesLabel">Loading...</div>
-        <p id="layerNote" class="layer-note" role="status" hidden>This model isn't part of the layered body, so it's shown on its own.</p>
-      </section>
-
-      <div class="anatomy-workspace">
-        <section>
-          <div class="model-stage">
-            <canvas id="anatomyCanvas" aria-describedby="viewerGestures" aria-label="Interactive anatomy model. Scroll to zoom at the pointer. Drag to rotate; right-drag or use arrow keys to pan. On touch screens, pinch and move two fingers to zoom and pan." tabindex="0"></canvas>
-            <div id="modelMessage" class="model-message" role="status">Loading anatomy content...</div>
-          </div>
-          <div class="model-tools" style="margin-top:10px;">
-            <button class="btn btn-secondary btn-sm" id="zoomIn">Zoom in</button>
-            <button class="btn btn-secondary btn-sm" id="zoomOut">Zoom out</button>
-            <button class="btn btn-secondary btn-sm" id="resetModel">Reset view</button>
-            <button class="btn btn-secondary btn-sm" id="rotateModel" aria-pressed="false">Auto rotate</button>
-            <button class="btn btn-secondary btn-sm" id="exportModel">
-              <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#floppy-disk"/></svg>
-              Save image
-            </button>
-          </div>
-          <section class="content-panel part-info" style="margin-top:14px;" aria-live="polite">
-            <div class="part-info-head">
-              <h2 id="structureTitle" style="font-size:1.05rem;font-weight:700;margin-bottom:6px;">Choose a structure</h2>
-              <button type="button" class="btn btn-secondary btn-sm" id="exitFocus" hidden>Back to full body</button>
-            </div>
-            <p id="structureSystem" class="part-info-system"></p>
-            <span id="structureBadge" class="part-info-badge" hidden>Awaiting identification</span>
-            <p id="structureDescription" style="font-size:0.82rem;color:var(--text-secondary);margin:0;">Structure descriptions will appear here.</p>
-            <p id="structureFunctionRow" class="part-info-function" hidden><strong>Function: </strong><span id="structureFunction"></span></p>
-            <p id="structureAlso" class="part-info-also" hidden></p>
-            <a id="structureReference" class="part-info-reference" href="#" target="_blank" rel="noopener" hidden>Reference</a>
-          </section>
-        </section>
-
-        <section class="content-panel">
-          <h2 id="systemTitle" style="font-size:1.15rem;font-weight:700;margin-bottom:6px;">Loading...</h2>
-          <p id="systemDescription" style="font-size:0.84rem;color:var(--text-secondary);line-height:1.5;margin-bottom:14px;"></p>
-          <div id="systemFacts"></div>
-          <h3 style="font-size:0.95rem;font-weight:700;margin-top:16px;margin-bottom:8px;">Structures</h3>
-          <div id="structures"></div>
-          <h3 style="font-size:0.95rem;font-weight:700;margin-top:16px;margin-bottom:8px;">Sources</h3>
-          <p id="systemSources" style="font-size:0.82rem;color:var(--text-muted);margin:0;"></p>
-        </section>
-      </div>
-
-      <section class="content-panel" style="margin-top:16px;">
-        <h2>Quick practice</h2>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Practice with your teacher's structure descriptions. This activity is ungraded.</p>
-        <button class="btn btn-primary btn-sm" id="practiceButton" disabled>Practice a structure</button>
-        <p id="practicePrompt" style="margin-top:12px;font-size:0.84rem;color:var(--text-primary);"></p>
-        <div id="practiceChoices" class="model-tools"></div>
-        <p id="practiceResult" role="status" style="margin-top:8px;font-size:0.84rem;font-weight:600;"></p>
-      </section>
-
-      <section class="content-panel" id="relatedContent" style="margin-top:16px;">
-        <h2>Related lessons</h2>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Open a module to view and manage its lessons.</p>
-        <div id="relatedModules" class="model-tools" role="status">Choose a body system.</div>
-      </section>
-    </div>
+      <p class="visually-hidden" id="explorerLive" aria-live="polite"></p>
+    </section>
   </main>
 </div>
 
 <script src="../assets/js/app.js?v=20261005-brand1"></script>
 <script src="../assets/js/anatomy.js"></script>
-<script src="../assets/js/anatomy-layers-core.js?v=20261006-layers1"></script>
-<script src="../assets/js/model-viewer.js?v=20261006-layers1"></script>
-<script src="../assets/js/teacher-anatomy.js"></script>
-<script src="../assets/js/anatomy-page.js?v=20261006-layers1"></script>
+<script src="../assets/js/anatomy-layers-core.js?v=20261008-explorer1"></script>
+<script src="../assets/js/model-viewer.js?v=20261008-explorer1"></script>
+<script type="module" src="../assets/js/explorer/main.js?v=20261008-explorer1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>

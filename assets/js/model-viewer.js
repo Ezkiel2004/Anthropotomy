@@ -20,7 +20,9 @@ const AnatomyViewer = {
         this.controls.screenSpacePanning = true;
         this.controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
         this.controls.listenToKeyEvents(canvas);
-        this.controls.addEventListener('start', () => { this.tween = null; });
+        this.controls.addEventListener('start', () => { this.tween = null; if (!this.focusedPart) this.restoreMinDistance(); });
+        // Keep panning near the model: the orbit target never leaves the bounds set by resetView.
+        this.controls.addEventListener('change', () => { if (this.panBounds) this.panBounds.clampPoint(this.controls.target, this.controls.target); });
         this.raycaster = new THREE.Raycaster();
         const draco = new THREE.DRACOLoader(); draco.setDecoderPath(this.dracoPath);
         this.loader = new THREE.GLTFLoader(); this.loader.setDRACOLoader(draco);
@@ -53,15 +55,42 @@ const AnatomyViewer = {
             if (document.hidden) return;
             const now = performance.now();
             this.stepTween(now);
+            this.stepViewInset();
             if (this.pendingHover && now - this.lastHover > 50) { // at most ~20 hover raycasts per second
                 const {x, y} = this.pendingHover; this.pendingHover = null; this.lastHover = now;
                 this.setHover(this.partAt(x, y), x, y);
             }
             this.controls.update(); this.renderer.render(this.scene, this.camera);
         };
+        // Stop the render loop while the tab is hidden and start a single new one when it returns.
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { cancelAnimationFrame(this.frame); this.frame = null; }
+            else if (this.frame == null) this.animate();
+        });
         this.animate();
     },
-    resize() { const rect = this.canvas.parentElement.getBoundingClientRect(); this.renderer.setSize(rect.width, rect.height, false); this.camera.aspect = rect.width / Math.max(rect.height, 1); this.camera.updateProjectionMatrix(); },
+    resize() { const rect = this.canvas.parentElement.getBoundingClientRect(); this.renderer.setSize(rect.width, rect.height, false); this.camera.aspect = rect.width / Math.max(rect.height, 1); this.viewSize = {width: rect.width, height: rect.height}; this.applyViewInset(); },
+
+    // ── View inset: overlays covering the right or bottom edge shift the projection centre into the
+    //    uncovered area, so the canvas never resizes but the model stays visible beside the panel. ──
+    viewInset: {right: 0, bottom: 0}, viewInsetTarget: {right: 0, bottom: 0}, viewSize: null,
+    setViewInset(right, bottom) {
+        this.viewInsetTarget = {right: Math.max(0, right), bottom: Math.max(0, bottom)};
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { this.viewInset = {...this.viewInsetTarget}; this.applyViewInset(); }
+    },
+    stepViewInset() {
+        const current = this.viewInset, target = this.viewInsetTarget;
+        if (current.right === target.right && current.bottom === target.bottom) return;
+        const approach = (from, to) => (Math.abs(to - from) < 0.5 ? to : from + (to - from) * 0.2);
+        this.viewInset = {right: approach(current.right, target.right), bottom: approach(current.bottom, target.bottom)};
+        this.applyViewInset();
+    },
+    applyViewInset() {
+        if (!this.viewSize) return;
+        const {width, height} = this.viewSize, {right, bottom} = this.viewInset;
+        if (right || bottom) this.camera.setViewOffset(width, height, right / 2, bottom / 2, width, height);
+        else this.camera.clearViewOffset(); // both update the projection matrix
+    },
 
     // ── Layers ──
     layerState(id) { return this.layers.get(id) || null; },
@@ -100,6 +129,7 @@ const AnatomyViewer = {
         onProgress?.(layer);
     },
     adoptLayer(layer, system, root) {
+        if (layer.disposed) { this.disposeObject(root); return; } // switched off and disposed while downloading
         let layered = false;
         root.traverse(node => { if (node.userData && node.userData.anatomy_schema) layered = true; });
         layer.layered = layered;
@@ -118,6 +148,29 @@ const AnatomyViewer = {
         layer.root = root;
         if (root.visible && this.focusedPart) this.applyMaterials(root);
         if (root.visible && this.visibleRoots().length === 1) this.resetView();
+    },
+    // Frees a layer's GPU resources. Switching the system on again reloads it (the browser cache serves the file).
+    disposeLayer(id) {
+        const layer = this.layers.get(id); if (!layer) return;
+        layer.disposed = true; this.layers.delete(id);
+        if (this.focusedPart && this.focusedPart.userData.layerId === id) this.clearFocus();
+        if (this.hoveredPart && this.hoveredPart.userData.layerId === id) this.setHover(null);
+        if (layer.root) { this.world.remove(layer.root); this.disposeObject(layer.root); layer.root = null; }
+        layer.parts.clear();
+    },
+    disposeObject(root) {
+        const materials = new Set();
+        root.traverse(node => {
+            if (!node.isMesh) return;
+            if (node.geometry) node.geometry.dispose();
+            [].concat(node.userData.baseMaterial || node.material).forEach(material => material && materials.add(material));
+        });
+        for (const material of materials) {
+            const variants = this.materialCache.get(material.uuid);
+            if (variants) { Object.values(variants).forEach(variant => variant.dispose()); this.materialCache.delete(material.uuid); }
+            Object.values(material).forEach(value => { if (value && value.isTexture) value.dispose(); });
+            material.dispose();
+        }
     },
     findPart(meshName) {
         if (!meshName) return null;
@@ -188,38 +241,50 @@ const AnatomyViewer = {
         const sphere = new THREE.Box3().setFromObject(part).getBoundingSphere(new THREE.Sphere());
         const direction = this.camera.position.clone().sub(this.controls.target);
         if (direction.lengthSq() < 1e-12) direction.set(0, 0, 1);
-        direction.normalize().multiplyScalar(AnatomyLayersCore.fitDistance(sphere.radius, this.camera.fov, this.camera.aspect));
+        const distance = AnatomyLayersCore.fitDistance(sphere.radius, this.camera.fov, this.camera.aspect);
+        // Small parts may come closer than the model-wide limit; it returns once the view leaves the part.
+        if (this.baseMinDistance != null) this.controls.minDistance = Math.min(this.baseMinDistance, distance * .5);
+        direction.normalize().multiplyScalar(distance);
         this.moveCamera(sphere.center.clone().add(direction), sphere.center);
     },
     clearFocus() {
         if (!this.focusedPart) return;
         this.focusedPart = null; this.applyMaterials();
         if (this.savedView) this.moveCamera(this.savedView.position, this.savedView.target);
+        else this.restoreMinDistance();
         this.savedView = null;
     },
-    moveCamera(position, target) {
+    restoreMinDistance() { if (this.baseMinDistance != null) this.controls.minDistance = this.baseMinDistance; },
+    moveCamera(position, target, duration = 800) {
         if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            this.tween = null; this.camera.position.copy(position); this.controls.target.copy(target); this.controls.update(); return;
+            this.tween = null; this.camera.position.copy(position); this.controls.target.copy(target);
+            if (!this.focusedPart) this.restoreMinDistance();
+            this.controls.update(); return;
         }
-        this.tween = {start: performance.now(), duration: 800, fromPosition: this.camera.position.clone(), fromTarget: this.controls.target.clone(), toPosition: position.clone(), toTarget: target.clone()};
+        this.tween = {start: performance.now(), duration, fromPosition: this.camera.position.clone(), fromTarget: this.controls.target.clone(), toPosition: position.clone(), toTarget: target.clone()};
     },
     stepTween(now) {
         const tween = this.tween; if (!tween) return;
         const k = Math.min(1, (now - tween.start) / tween.duration), eased = AnatomyLayersCore.easeInOutCubic(k);
         this.camera.position.lerpVectors(tween.fromPosition, tween.toPosition, eased);
         this.controls.target.lerpVectors(tween.fromTarget, tween.toTarget, eased);
-        if (k >= 1) this.tween = null;
+        if (k >= 1) { this.tween = null; if (!this.focusedPart) this.restoreMinDistance(); }
     },
 
     // ── View ──
-    resetView() {
+    resetView(animate = false) {
         const roots = this.visibleRoots(); if (!roots.length) return;
         const box = new THREE.Box3(); roots.forEach(root => box.expandByObject(root));
-        const center = box.getCenter(new THREE.Vector3()); const size = box.getSize(new THREE.Vector3()).length() || 1;
+        const extent = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3()); const size = extent.length() || 1;
         this.tween = null; this.savedView = null;
-        this.camera.position.copy(center).add(new THREE.Vector3(0, size * .1, size * 1.4));
+        const limits = AnatomyLayersCore.distanceLimits(size);
+        this.baseMinDistance = limits.min; this.controls.minDistance = limits.min; this.controls.maxDistance = limits.max;
+        this.panBounds = box.clone().expandByVector(extent.multiplyScalar(.25)); // 50% larger than the model overall
+        const position = center.clone().add(new THREE.Vector3(0, size * .1, size * 1.4));
         this.camera.near = Math.max(size / 1000, .001); this.camera.far = size * 100; this.camera.updateProjectionMatrix();
-        this.controls.target.copy(center); this.controls.update();
+        if (animate) { this.moveCamera(position, center); return; }
+        this.camera.position.copy(position); this.controls.target.copy(center); this.controls.update();
     },
     pointerAnchor(x, y) {
         this.rayFrom(x, y);
@@ -229,14 +294,16 @@ const AnatomyViewer = {
         const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(this.camera.getWorldDirection(new THREE.Vector3()), this.controls.target);
         return this.raycaster.ray.intersectPlane(plane, new THREE.Vector3()) || this.controls.target.clone();
     },
-    zoom(factor, anchor = this.controls.target.clone()) {
+    zoom(factor, anchor = this.controls.target.clone(), animate = false) {
         if (!this.hasVisibleLayer() || !Number.isFinite(factor) || factor <= 0) return;
         this.tween = null;
         const distance = this.camera.position.distanceTo(this.controls.target);
         const next = THREE.MathUtils.clamp(distance * factor, Math.max(this.camera.near * 10, this.controls.minDistance), Math.min(this.camera.far * .5, this.controls.maxDistance));
         const scale = next / Math.max(distance, Number.EPSILON);
-        this.camera.position.sub(anchor).multiplyScalar(scale).add(anchor);
-        this.controls.target.sub(anchor).multiplyScalar(scale).add(anchor);
+        const position = this.camera.position.clone().sub(anchor).multiplyScalar(scale).add(anchor);
+        const target = this.controls.target.clone().sub(anchor).multiplyScalar(scale).add(anchor);
+        if (animate) { this.moveCamera(position, target, 200); return; }
+        this.camera.position.copy(position); this.controls.target.copy(target);
         this.controls.update();
     },
     screenshot() { const link = document.createElement('a'); link.download = 'anatomy-view.png'; link.href = this.canvas.toDataURL('image/png'); link.click(); }
