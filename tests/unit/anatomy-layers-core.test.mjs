@@ -106,3 +106,41 @@ test('materialLook gives each layered system its surface finish', () => {
     for (const id of ['digestive', 'respiratory', 'urinary', 'reproductive', 'endocrine', 'lymphatic']) assert.equal(core.materialLook(id).roughness, 0.4, id);
     assert.deepEqual(core.materialLook('unknown-system'), {roughness: 0.6, metalness: 0, colorScale: 1});
 });
+
+test('tissueLook colours parts like real tissue instead of Z-Anatomy colour codes', () => {
+    const color = (system, material, name) => core.tissueLook(system, material, name)?.color;
+    const T = core.TISSUE;
+    assert.equal(color('muscular', 'Abductor', 'Abductor hallucis (left)'), T.muscle.color);
+    assert.equal(color('muscular', 'Flexion fingers', 'Flexor digiti minimi of foot (left)'), T.muscle.color);
+    assert.equal(color('muscular', 'Tendon', 'Abductor hallucis (left)'), T.tendon.color);
+    assert.equal(color('muscular', 'Bursa', 'Anserine bursa (left)'), T.bursa.color);
+    assert.equal(color('skeletal', 'Bone', 'Femur (left)'), T.bone.color);
+    assert.equal(color('skeletal', 'Articular capsule', 'Articular capsule of elbow joint (left)'), T.capsule.color);
+    assert.equal(color('circulatory', 'Vein', 'Angular vein (left)'), T.vein.color);
+    assert.equal(color('circulatory', 'Artery', 'Abdominal aorta'), T.artery.color);
+    assert.equal(color('circulatory', 'Trapezius', 'Anterior papillary muscle of right ventricle'), T.heart.color);
+    assert.equal(color('digestive', 'Organ', 'Anterior lateral segment of liver (VI)'), T.liver.color);
+    assert.equal(color('urinary', 'Organ', 'Kidney (left)'), T.kidney.color);
+    assert.equal(color('lymphatic', 'Organ', 'Spleen'), T.spleen.color);
+    assert.equal(color('endocrine', 'Gland', 'Thyroid gland'), T.thyroid.color);
+    assert.equal(color('endocrine', 'Gland', 'Suprarenal gland (left)'), T.adrenal.color);
+    assert.equal(color('nervous', 'Bone', 'Hypoglossal nerve (XII) (left)'), T.nerve.color);
+    assert.equal(color('nervous', 'Nucleus (efferent fibers)', 'Accessory nucleus of oculomotor nerve (left)'), T.nucleus.color);
+    assert.equal(color('nervous', 'Frontal lobe', 'Corpus callosum'), T.whiteMatter.color);
+    assert.equal(color('nervous', 'Temporal lobe', 'Inferior temporal gyrus (left)'), T.greyMatter.color);
+    assert.equal(color('respiratory', 'Lung-base', 'Inferior lobe of left lung'), T.lung.color);
+    assert.equal(color('respiratory', 'Fascia', 'Pleura'), T.pleura.color);
+    assert.equal(core.tissueLook('test-system', 'Whatever', 'Thing'), null);
+});
+
+test('the tissue palette has no saturated blue, cyan or purple', () => {
+    for (const [tissue, {color}] of Object.entries(core.TISSUE)) {
+        const [r, g, b] = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16) / 255);
+        const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+        const s = max === min ? 0 : (max - min) / (1 - Math.abs(2 * l - 1));
+        let h = 0;
+        if (max !== min) h = max === r ? 60 * (((g - b) / (max - min)) % 6) : max === g ? 60 * ((b - r) / (max - min) + 2) : 60 * ((r - g) / (max - min) + 4);
+        h = (h + 360) % 360;
+        if (h > 160 && h < 300) assert.ok(s < 0.35, `${tissue} ${color} is a saturated blue/cyan/purple`);
+    }
+});

@@ -85,6 +85,68 @@ const AnatomyLayersCore = (() => {
         return {...(LOOKS[systemId] || {roughness: 0.6, metalness: 0, colorScale: 1})};
     }
 
+    // Natural tissue colours (sRGB) and surface roughness. Z-Anatomy colour-codes many structures
+    // (muscles by action, blue veins, cyan bursae, purple capsules); the explorer shows how they look instead.
+    const tissue = (color, roughness) => ({color, roughness, metalness: 0});
+    const TISSUE = {
+        bone: tissue('#ddd0b3', 0.75), cartilage: tissue('#d9ddd6', 0.35), ligament: tissue('#e2dccb', 0.4),
+        tendon: tissue('#e8e1d2', 0.35), capsule: tissue('#ddd5c6', 0.45), bursa: tissue('#e4e0d8', 0.3),
+        fat: tissue('#e3c477', 0.5), teeth: tissue('#efe7d2', 0.3), toothRoot: tissue('#e2d6bb', 0.5),
+        muscle: tissue('#7c2d26', 0.55), heart: tissue('#702823', 0.5),
+        artery: tissue('#a6342d', 0.4), vein: tissue('#4e2538', 0.4),
+        nerve: tissue('#e5d7ad', 0.45), greyMatter: tissue('#c4a49b', 0.6), whiteMatter: tissue('#e8e0d4', 0.6),
+        nucleus: tissue('#b38b7e', 0.6), cerebellum: tissue('#b89087', 0.6), csf: tissue('#d8e2e2', 0.3),
+        dura: tissue('#dcd3c4', 0.45), choroid: tissue('#9e4d4a', 0.5),
+        sclera: tissue('#ece8df', 0.35), cornea: tissue('#d3dbdc', 0.15), iris: tissue('#5c3c2a', 0.5), retina: tissue('#b5634f', 0.5),
+        tympanic: tissue('#e6ddce', 0.35), mucosa: tissue('#c47c7e', 0.4), intestine: tissue('#cf8f86', 0.45),
+        liver: tissue('#7a3026', 0.4), gallbladder: tissue('#506b3a', 0.35), pancreas: tissue('#dcb28a', 0.5),
+        gland: tissue('#c98b70', 0.5), thyroid: tissue('#9c4a3b', 0.45), adrenal: tissue('#d0a04c', 0.5),
+        spleen: tissue('#6c2a37', 0.45), lymph: tissue('#c99e88', 0.5), thymus: tissue('#d6b49c', 0.5),
+        lung: tissue('#d39a95', 0.55), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#e3d6cf', 0.35),
+        kidney: tissue('#7a3429', 0.4), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
+        peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
+        fascia: tissue('#e0d9cd', 0.45)
+    };
+    const FIBROUS_MATERIALS = {bone: 'bone', suture: 'bone', cartilage: 'cartilage', ligament: 'ligament', tendon: 'tendon',
+        'articular capsule': 'capsule', bursa: 'bursa', fat: 'fat', teeth: 'teeth', 'teeth-roots': 'toothRoot', dentine: 'toothRoot'};
+    const NAME_RULES = [
+        [/falx|tentorium|\bdura\b/, 'dura'], [/choroid plexus/, 'choroid'], [/zonular/, 'ligament'],
+        [/liver/, 'liver'], [/gallbladder|bile duct|cystic duct|hepatic duct/, 'gallbladder'], [/spleen/, 'spleen'],
+        [/pancrea/, 'pancreas'], [/kidney/, 'kidney'], [/urinary bladder/, 'bladder'], [/thyroid/, 'thyroid'],
+        [/suprarenal|adrenal/, 'adrenal'], [/thymus/, 'thymus'], [/hypophysis|pineal/, 'gland'],
+        [/testis|epididymis/, 'testis'], [/corpus cavernosum|corpus spongiosum|glans/, 'erectile'],
+        [/lobe of (left|right) lung/, 'lung'], [/retina/, 'retina'], [/\biris\b/, 'iris'],
+        [/cornea|\blens\b|anterior chamber|vitreous/, 'cornea'], [/segment of eyeball|sclera/, 'sclera'],
+        [/tympanic membrane/, 'tympanic'], [/pleura/, 'pleura']
+    ];
+    const SYSTEM_NAME_RULES = {
+        circulatory: [[/papillary|atrium|ventricle|myocard|heart/, 'heart']],
+        nervous: [[/corpus callosum|commissure|tract|fasciculus|peduncle|internal capsule|fornix|white matter/, 'whiteMatter']]
+    };
+    const MATERIAL_RULES = [
+        [/^pulmonary artery/, 'vein'], [/^pulmonary vein/, 'artery'], [/^artery/, 'artery'], [/^vein/, 'vein'],
+        [/^nerve/, 'nerve'], [/^white matter/, 'whiteMatter'], [/^nucleus/, 'nucleus'], [/^cerebellum/, 'cerebellum'],
+        [/^brain|lobe$|insula|sulci/, 'greyMatter'], [/^lcr/, 'csf'], [/^cornea/, 'cornea'], [/^iris/, 'iris'], [/^eye/, 'sclera'],
+        [/^mucosa/, 'mucosa'], [/^intestine/, 'intestine'], [/^gallbladder/, 'gallbladder'], [/^gland/, 'gland'],
+        [/^peritoneum/, 'peritoneum'], [/^ductus/, 'duct'], [/^lung/, 'lung'], [/^bronchi/, 'bronchi'],
+        [/^fascia/, 'fascia'], [/^lymph/, 'lymph']
+    ];
+    const SYSTEM_FALLBACK = {muscular: 'muscle', circulatory: 'heart', skeletal: 'bone', nervous: 'greyMatter',
+        lymphatic: 'lymph', respiratory: 'lung', digestive: 'intestine', urinary: 'kidney', reproductive: 'mucosa', endocrine: 'gland'};
+
+    // The tissue look for one material on one part, or null for systems the palette does not cover.
+    function tissueLook(systemId, materialName, partName) {
+        const material = String(materialName || '').toLowerCase().replace(/-\d+$/, '').trim();
+        const name = String(partName || '').toLowerCase();
+        const pick = key => ({...TISSUE[key]});
+        if (/\bnerves?\b/.test(name) && !/nucle|artery|vein/.test(name)) return pick('nerve');
+        if (/falx|tentorium|\bdura\b/.test(name)) return pick('dura');
+        if (FIBROUS_MATERIALS[material]) return pick(FIBROUS_MATERIALS[material]);
+        for (const [pattern, key] of [...NAME_RULES, ...(SYSTEM_NAME_RULES[systemId] || [])]) if (pattern.test(name)) return pick(key);
+        for (const [pattern, key] of MATERIAL_RULES) if (pattern.test(material)) return pick(key);
+        return SYSTEM_FALLBACK[systemId] ? pick(SYSTEM_FALLBACK[systemId]) : null;
+    }
+
     const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
     function contextAfterDisable(enabledOrder, disabledId, current) {
@@ -93,6 +155,6 @@ const AnatomyLayersCore = (() => {
         return remaining.length ? remaining[remaining.length - 1] : current;
     }
 
-    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, materialLook, easeInOutCubic, contextAfterDisable};
+    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, materialLook, TISSUE, tissueLook, easeInOutCubic, contextAfterDisable};
 })();
 if (typeof module === 'object' && module.exports) module.exports = AnatomyLayersCore;

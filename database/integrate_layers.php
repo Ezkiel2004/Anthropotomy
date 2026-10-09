@@ -9,6 +9,7 @@ const OLD_SKELETON_DESCRIPTION = 'Explore the supplied human skeleton model. Rot
 $layers = [
     'skeletal' => ['Skeletal System', '#1a6b4a', 1], 'muscular' => ['Muscular System', '#b91c1c', 2], 'circulatory' => ['Circulatory System', '#dc2626', 3],
     'respiratory' => ['Respiratory System', '#0ea5e9', 4], 'digestive' => ['Digestive System', '#d97706', 5], 'urinary' => ['Urinary System', '#ca8a04', 6],
+    'nervous' => ['Nervous System', '#8b5cf6', 7],
     'reproductive' => ['Reproductive System', '#db2777', 8], 'endocrine' => ['Endocrine System', '#7c3aed', 9], 'lymphatic' => ['Lymphatic System', '#16a34a', 10],
 ];
 

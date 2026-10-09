@@ -1,65 +1,82 @@
 {
   "circulatory": {
-    "bytes": 6740968,
+    "bytes": 4331128,
+    "described": 469,
     "file": "circulatory.glb",
-    "parts": 1851,
-    "source_triangles": 4048561,
-    "triangles": 1238348
+    "parts": 669,
+    "source_triangles": 3798264,
+    "triangles": 1139208
   },
   "digestive": {
-    "bytes": 888480,
+    "bytes": 431324,
+    "described": 46,
     "file": "digestive.glb",
-    "parts": 168,
-    "source_triangles": 686645,
-    "triangles": 206990
+    "parts": 47,
+    "source_triangles": 398004,
+    "triangles": 120929
   },
   "endocrine": {
-    "bytes": 12084,
+    "bytes": 37536,
+    "described": 8,
     "file": "endocrine.glb",
-    "parts": 2,
-    "source_triangles": 6290,
-    "triangles": 1886
+    "parts": 10,
+    "source_triangles": 11308,
+    "triangles": 3747
   },
   "lymphatic": {
-    "bytes": 24636,
+    "bytes": 358332,
+    "described": 103,
     "file": "lymphatic.glb",
-    "parts": 3,
-    "source_triangles": 16970,
-    "triangles": 5088
+    "parts": 143,
+    "source_triangles": 123650,
+    "triangles": 43238
   },
   "muscular": {
-    "bytes": 6547788,
+    "bytes": 3468980,
+    "described": 477,
     "file": "muscular.glb",
-    "parts": 1154,
-    "source_triangles": 3737778,
-    "triangles": 1166265
+    "parts": 585,
+    "source_triangles": 2142788,
+    "triangles": 657052
+  },
+  "nervous": {
+    "bytes": 3211820,
+    "described": 480,
+    "file": "nervous.glb",
+    "parts": 578,
+    "source_triangles": 2402946,
+    "triangles": 731679
   },
   "reproductive": {
-    "bytes": 44056,
+    "bytes": 54084,
+    "described": 14,
     "file": "reproductive.glb",
     "parts": 14,
-    "source_triangles": 17091,
-    "triangles": 6351
+    "source_triangles": 19523,
+    "triangles": 7287
   },
   "respiratory": {
-    "bytes": 145460,
+    "bytes": 331764,
+    "described": 35,
     "file": "respiratory.glb",
-    "parts": 19,
-    "source_triangles": 110032,
-    "triangles": 33621
+    "parts": 36,
+    "source_triangles": 252436,
+    "triangles": 76514
   },
   "skeletal": {
-    "bytes": 4383432,
+    "bytes": 2457892,
+    "described": 560,
     "file": "skeletal.glb",
-    "parts": 1599,
-    "source_triangles": 1784218,
-    "triangles": 641268
+    "parts": 686,
+    "source_triangles": 1027718,
+    "triangles": 350785
   },
   "urinary": {
-    "bytes": 25544,
+    "bytes": 41108,
+    "described": 8,
     "file": "urinary.glb",
-    "parts": 6,
-    "source_triangles": 12364,
-    "triangles": 3850
+    "parts": 8,
+    "source_triangles": 19980,
+    "triangles": 5989
   }
 }

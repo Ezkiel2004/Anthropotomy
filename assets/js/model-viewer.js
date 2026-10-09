@@ -174,20 +174,35 @@ const AnatomyViewer = {
         if (root.visible && this.focusedPart) this.applyMaterials(root);
         if (root.visible && this.visibleRoots().length === 1) this.resetView();
     },
-    // Gives each part's materials its body system's finish (AnatomyLayersCore.materialLook), once per material.
+    // Gives each part natural tissue colour and finish (AnatomyLayersCore.tissueLook, falling back to the
+    // system's materialLook). Parts share Z-Anatomy materials, so each distinct look gets its own copy.
     applySystemLooks(root, fallbackSystem) {
-        const done = new Set();
+        const copies = new Map(), replaced = new Set();
         root.traverse(node => {
             if (!node.isMesh) return;
-            const look = AnatomyLayersCore.materialLook(AnatomyLayersCore.resolvePart(node)?.userData.system_id || fallbackSystem);
-            [].concat(node.material).forEach(material => {
-                if (!material || !material.isMeshStandardMaterial || done.has(material)) return;
-                done.add(material);
-                material.roughness = look.roughness; material.metalness = look.metalness;
-                if (look.colorScale !== 1) material.color.multiplyScalar(look.colorScale);
-                material.needsUpdate = true;
-            });
+            const part = AnatomyLayersCore.resolvePart(node);
+            const system = part?.userData.system_id || fallbackSystem;
+            const restyle = material => {
+                if (!material || !material.isMeshStandardMaterial) return material;
+                const look = AnatomyLayersCore.tissueLook(system, material.name, part?.userData.name || node.name) || AnatomyLayersCore.materialLook(system);
+                const key = `${material.uuid}|${look.color || ''}|${look.roughness}`;
+                if (!copies.has(key)) {
+                    const copy = material.clone();
+                    if (look.color) copy.color.set(look.color).convertSRGBToLinear();
+                    else if (look.colorScale && look.colorScale !== 1) copy.color.multiplyScalar(look.colorScale);
+                    copy.roughness = look.roughness; copy.metalness = look.metalness || 0;
+                    // Z-Anatomy materials export with full white emission (and some clearcoat), which washes
+                    // every part out to white; real tissue does not glow.
+                    if (copy.emissive) copy.emissive.setRGB(0, 0, 0);
+                    if ('clearcoat' in copy) copy.clearcoat = 0;
+                    copies.set(key, copy);
+                }
+                replaced.add(material);
+                return copies.get(key);
+            };
+            node.material = Array.isArray(node.material) ? node.material.map(restyle) : restyle(node.material);
         });
+        replaced.forEach(material => material.dispose()); // no mesh uses the originals any more
     },
     // Frees a layer's GPU resources. Switching the system on again reloads it (the browser cache serves the file).
     disposeLayer(id) {

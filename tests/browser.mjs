@@ -90,7 +90,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
             const system=(await request('anatomy-content.php','GET')).data.find(s=>s.system_code==='test-system');
             system.model_url=${JSON.stringify('/system_model/'+model)};
             system.structures=system.structures.filter(s=>s.name!=='Mapped bone');
-            if(${layered}){system.model_url='/system_model/layers/skeletal.glb';system.structures.push({name:'Mapped bone',desc:'A real part from the layered skeleton.',mesh_name:'anatomy_00053'});}
+            if(${layered}){system.model_url='/system_model/layers/skeletal.glb';system.structures.push({name:'Mapped bone',desc:'A real part from the layered skeleton.',mesh_name:'za_femur_l'});}
             await request('anatomy-content.php?id='+system.system_id,'PUT',system);
         })()`);
         const setModel=(code,url)=>evaluate(`(async()=>{
@@ -106,10 +106,11 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await navigate('/teacher/anatomy.html');
         await waitFor(`AnatomyViewer.layerState('test-system')?.status==='ready'`);
         assert.ok(await evaluate(`AnatomyViewer.renderer.outputEncoding===THREE.sRGBEncoding&&AnatomyViewer.renderer.toneMapping===THREE.ACESFilmicToneMapping&&!!AnatomyViewer.scene.environment`),'Realistic renderer: sRGB output, filmic tone mapping and environment lighting');
-        assert.equal(await evaluate(`(()=>{let mesh;AnatomyViewer.layerState('test-system').root.traverse(o=>{if(!mesh&&o.isMesh)mesh=o;});return mesh.userData.baseMaterial.roughness;})()`),0.8,'Bone gets a matte finish');
+        assert.ok(await evaluate(`(()=>{const part=AnatomyViewer.layerState('test-system').parts.get('za_femur_l');let mesh=part.isMesh?part:null;if(!mesh)part.traverse(o=>{if(!mesh&&o.isMesh)mesh=o;});const bone=[].concat(mesh.userData.baseMaterial)[0];return bone.roughness===AnatomyLayersCore.TISSUE.bone.roughness&&'#'+bone.color.clone().convertLinearToSRGB().getHexString()===AnatomyLayersCore.TISSUE.bone.color;})()`),'The femur is coloured and finished like bone');
+        assert.equal(await evaluate(`(()=>{let glowing=0;AnatomyViewer.layerState('test-system').root.traverse(o=>{if(o.isMesh)[].concat(o.userData.baseMaterial).forEach(m=>{if(m.emissive&&m.emissive.getHex()!==0)glowing++;});});return glowing;})()`),0,'No part glows: Z-Anatomy emissive white is removed');
         await evaluate(`[...document.querySelectorAll('.structure-chip')].find(b=>b.textContent==='Mapped bone').click()`);
         await new Promise(resolve=>setTimeout(resolve,300));
-        assert.equal(await evaluate('AnatomyViewer.focusedPart?.userData.part_id'),'anatomy_00053','Structure chip highlights its part');
+        assert.equal(await evaluate('AnatomyViewer.focusedPart?.userData.part_id'),'za_femur_l','Structure chip highlights its part');
         assert.equal(await evaluate(`document.getElementById('selectedPartTitle').textContent`),'Mapped bone','Card shows the clicked structure');
         assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'A real part from the layered skeleton.');
         assert.equal(await evaluate(`[...document.querySelectorAll('.structure-chip')].find(b=>b.textContent==='Mapped bone').getAttribute('aria-pressed')`),'true','Clicked structure chip is pressed');
