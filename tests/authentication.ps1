@@ -89,8 +89,8 @@ try {
     Write-Output 'Passed responsive overflow checks at 1440, 768, 390 and 320 pixels.'
     $null = Eval-JS "location.hash='login';switchView(false);document.getElementById('username').value='auth-browser';document.getElementById('password').value='StudyWell!2026';handleLogin();"
     Start-Sleep -Milliseconds 1000
-    if ((Eval-JS 'location.pathname') -ne '/student/dashboard.html') { throw 'Student redirect failed' }
-    Write-Output 'Passed real student dashboard redirect.'
+    if ((Eval-JS 'location.pathname') -ne '/index.html') { throw 'Student sign-in did not land on the home page' }
+    Write-Output 'Passed real student sign-in to the home page.'
 } finally {
     $socket.Dispose()
     Invoke-RestMethod "$BrowserUrl/json/close/$($target.id)" | Out-Null

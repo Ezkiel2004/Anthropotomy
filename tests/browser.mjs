@@ -28,14 +28,25 @@ assert.equal(await evaluate(`document.querySelectorAll('h1').length`),1,'Landing
 assert.ok(await evaluate(`(()=>{let last=0;for(const h of document.querySelectorAll('h1,h2,h3,h4,h5,h6')){const level=+h.tagName[1];if(level>last+1)return false;last=level;}return true;})()`),'Landing headings are sequential');
 assert.ok(await evaluate(`!/AnatomIQ/i.test(document.body.innerText+[...document.querySelectorAll('[alt],[aria-label],title')].map(e=>(e.getAttribute('alt')||'')+(e.getAttribute('aria-label')||'')+e.textContent).join(' '))`),'No outdated product name on the landing page');
 assert.ok(await evaluate(`[...document.querySelectorAll('img')].every(img=>img.hasAttribute('alt'))`),'Every landing image has alt text');
-assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]')].map(a=>a.getAttribute('href'))`),['login.html#register','login.html#register'],'Primary CTAs open registration');
+const visibleText=`document.body.innerText+document.title+[...document.querySelectorAll('[alt],[aria-label]')].map(e=>(e.getAttribute('alt')||'')+(e.getAttribute('aria-label')||'')).join(' ')`;
+assert.ok(await evaluate(`!/[\u2013\u2014]/.test(${visibleText})`),'No en or em dash in the landing text, title or alt text');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]')].filter(a=>a.offsetParent).map(a=>a.getAttribute('href'))`),['login.html#register','login.html#register'],'Signed out, the main buttons open registration');
 assert.ok(await evaluate(`[...document.querySelectorAll('a[href]')].filter(a=>a.textContent.trim()==='Sign in').every(a=>a.getAttribute('href')==='login.html#login')`),'Sign in links open the login view');
+assert.equal(await evaluate(`[...document.querySelectorAll('[data-auth="signed-in"]')].filter(e=>e.offsetParent).length`),0,'Signed out, no signed-in controls show');
+assert.equal(await evaluate(`document.querySelectorAll('.system-card').length`),11,'The gallery shows all 11 body systems');
+for(let i=0;i<20&&await evaluate(`[...document.querySelectorAll('[data-parts]')].some(e=>e.hidden)`);i++)await new Promise(resolve=>setTimeout(resolve,200));
+assert.ok(await evaluate(`[...document.querySelectorAll('[data-parts]')].every(e=>!e.hidden&&/^[\\d,]+ parts?$/.test(e.textContent))`),'Part counts come from the layer manifest'); 
 await navigate('/login.html#register');
 assert.ok(await evaluate(`!document.getElementById('registerView').hidden && document.getElementById('loginView').hidden`),'Register deep link opens the registration form');
 await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
 await new Promise(resolve=>setTimeout(resolve,1200));
-assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
+assert.equal(await evaluate('location.pathname'),'/index.html','Teacher sign-in lands on the home page');
+for(let i=0;i<20&&await evaluate(`document.querySelector('[data-greeting]').hidden`);i++)await new Promise(resolve=>setTimeout(resolve,200));
+assert.equal(await evaluate(`document.documentElement.dataset.authState`),'signed-in','The home page shows the signed-in state');
+assert.equal(await evaluate(`document.querySelector('[data-greeting]').textContent.trim()`),'Hi, Test','The header greets the teacher by first name');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]')].filter(a=>a.offsetParent).map(a=>a.getAttribute('href'))`),['teacher/dashboard.html','teacher/dashboard.html'],'Open dashboard goes to the teacher dashboard');
+assert.equal(await evaluate(`[...document.querySelectorAll('a[href="login.html#register"]')].filter(a=>a.offsetParent).length`),0,'Signed in, Create account is hidden');
 let checked=0;
 for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','media','settings','content','anatomy']){
     await navigate('/teacher/'+page+'.html');
@@ -203,6 +214,9 @@ return quiz.data.assessment_id;
 await new Promise(resolve=>setTimeout(resolve,700));
 await evaluate(`document.getElementById('username').value='fixture-student';document.getElementById('password').value=${JSON.stringify(studentPassword)};handleLogin();`);
 await new Promise(resolve=>setTimeout(resolve,1200));
+assert.equal(await evaluate('location.pathname'),'/index.html','Student sign-in lands on the home page');
+assert.equal(await evaluate(`document.querySelector('.hero-copy [data-dashboard-link]').getAttribute('href')`),'student/dashboard.html','Open dashboard goes to the student dashboard');
+assert.equal(await evaluate(`document.querySelector('.hero-copy [data-explorer-link]').getAttribute('href')`),'student/anatomy.html','Open 3D explorer goes to the student explorer');
 for(const page of ['dashboard','lessons','quiz','progress','scores','notifications','settings','anatomy']){
     await navigate('/student/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Student stays authenticated: '+page);
