@@ -9,6 +9,7 @@
     "watch:css": "tailwindcss -i ./src/public.css -o ../assets/css/public.css --watch",
     "build:assets": "node scripts/build-assets.mjs",
     "build:renders": "node scripts/render-systems.mjs",
+    "build:explorer": "node scripts/capture-explorer.mjs",
     "build:og": "node scripts/build-og.mjs",
     "check:contrast": "node scripts/contrast.mjs"
   },
