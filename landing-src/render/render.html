@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!-- Render harness for scripts/render-systems.mjs. It draws the layer models through the same stage as
+     the landing page demo (assets/js/landing-stage.js), so the images match the live view. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Layer renders</title>
+<style>html, body { margin: 0; background: #101C2E; } canvas { display: block; }</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<script type="module">
+import {loadEngine, createStage, loadLayer, boxOf, frame, disposeObject, DEMO_FRAME} from '../../assets/js/landing-stage.js';
+
+// Systems that already span the whole body are framed like the body; organ systems are framed on
+// their own bounds, but never on less than this share of the body's height, so they keep context.
+const MIN_SHARE = 0.24;
+const CARD_FRAME = {top: 0.05, bottom: 0.05, side: 0.08};
+// The skeleton drawn faintly behind the other systems, like the explorer's faded parts.
+const GHOST_OPACITY = 0.06;
+
+const canvas = document.getElementById('stage');
+let stage, skeleton, bodyBox;
+const ghosts = new Map();
+
+function ghostOf(material) {
+    if (!ghosts.has(material)) {
+        const copy = material.clone();
+        copy.transparent = true; copy.opacity = GHOST_OPACITY; copy.depthWrite = false;
+        ghosts.set(material, copy);
+    }
+    return ghosts.get(material);
+}
+
+function setGhost(root, on) {
+    root.traverse(node => {
+        if (!node.isMesh) return;
+        const base = node.userData.baseMaterial;
+        node.material = !on ? base : Array.isArray(base) ? base.map(ghostOf) : ghostOf(base);
+        node.renderOrder = on ? 1 : 0;
+    });
+}
+
+function size(width, height) {
+    canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+    stage.setSize(width, height);
+}
+
+async function setup() {
+    await loadEngine();
+    stage = createStage(canvas, {pixelRatio: 1, preserveDrawingBuffer: true});
+    skeleton = await loadLayer(stage, 'skeletal');
+    stage.body.add(skeleton);
+    bodyBox = boxOf(stage, skeleton);
+    const s = bodyBox.getSize(new stage.THREE.Vector3());
+    return {body: {width: s.x, height: s.y, depth: s.z}};
+}
+
+// One system on the faint skeleton (the skeleton card on its own), framed for a gallery card.
+async function renderSystem(id, width, height) {
+    size(width, height);
+    let layer = null;
+    if (id === 'skeletal') {
+        setGhost(skeleton, false);
+        frame(stage, bodyBox, CARD_FRAME);
+    } else {
+        layer = await loadLayer(stage, id);
+        stage.body.add(layer);
+        setGhost(skeleton, true);
+        const minimum = new stage.THREE.Vector3(0, bodyBox.getSize(new stage.THREE.Vector3()).y * MIN_SHARE, 0);
+        frame(stage, boxOf(stage, layer, minimum), CARD_FRAME);
+    }
+    stage.render();
+    const url = canvas.toDataURL('image/png');
+    if (layer) { stage.body.remove(layer); disposeObject(layer); }
+    return url;
+}
+
+// The demo's starting view: the skeleton alone, framed exactly as landing-hero-3d.js frames it.
+function renderPoster(width, height) {
+    size(width, height);
+    setGhost(skeleton, false);
+    frame(stage, bodyBox, DEMO_FRAME);
+    stage.render();
+    return canvas.toDataURL('image/png');
+}
+
+window.harness = {setup, renderSystem, renderPoster};
+window.harnessReady = true;
+</script>
+</body>
+</html>
