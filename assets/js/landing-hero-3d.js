@@ -390,7 +390,8 @@ export async function mountDemo(root, {automatic = false, wideViewport, reducedM
         setTimeout(startIntro, 400);
         return {dispose: () => end('closed')};
     } catch (error) {
-        end('error', error?.message || String(error));
+        // Three.js reports a failed download as the request's ProgressEvent, which has no message.
+        end('error', error?.message || (error instanceof Event ? 'A 3D file could not be downloaded.' : String(error)));
         return null;
     }
 }
