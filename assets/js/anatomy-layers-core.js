@@ -79,7 +79,7 @@ const AnatomyLayersCore = (() => {
         muscular: {roughness: 0.5, metalness: 0, colorScale: 0.65},
         circulatory: {roughness: 0.35, metalness: 0, colorScale: 1},
         digestive: ORGAN_LOOK, respiratory: ORGAN_LOOK, urinary: ORGAN_LOOK,
-        reproductive: ORGAN_LOOK, endocrine: ORGAN_LOOK, lymphatic: ORGAN_LOOK
+        reproductive: ORGAN_LOOK, 'reproductive-female': ORGAN_LOOK, endocrine: ORGAN_LOOK, lymphatic: ORGAN_LOOK
     };
     function materialLook(systemId) {
         return {...(LOOKS[systemId] || {roughness: 0.6, metalness: 0, colorScale: 1})};
@@ -105,6 +105,7 @@ const AnatomyLayersCore = (() => {
         lung: tissue('#d39a95', 0.55), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#e3d6cf', 0.35),
         kidney: tissue('#7a3429', 0.4), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
+        uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),
         fascia: tissue('#e0d9cd', 0.45)
     };
     const FIBROUS_MATERIALS = {bone: 'bone', suture: 'bone', cartilage: 'cartilage', ligament: 'ligament', tendon: 'tendon',
@@ -114,6 +115,7 @@ const AnatomyLayersCore = (() => {
         [/liver/, 'liver'], [/gallbladder|bile duct|cystic duct|hepatic duct/, 'gallbladder'], [/spleen/, 'spleen'],
         [/pancrea/, 'pancreas'], [/kidney/, 'kidney'], [/urinary bladder/, 'bladder'], [/thyroid/, 'thyroid'],
         [/suprarenal|adrenal/, 'adrenal'], [/thymus/, 'thymus'], [/hypophysis|pineal/, 'gland'],
+        [/uterine tubes?|fallopian/, 'tube'], [/cervix|cervical os/, 'cervix'], [/uter|cornua/, 'uterus'], [/\bovary\b/, 'ovary'],
         [/testis|epididymis/, 'testis'], [/corpus cavernosum|corpus spongiosum|glans/, 'erectile'],
         [/lobe of (left|right) lung/, 'lung'], [/retina/, 'retina'], [/\biris\b/, 'iris'],
         [/cornea|\blens\b|anterior chamber|vitreous/, 'cornea'], [/segment of eyeball|sclera/, 'sclera'],
@@ -132,7 +134,7 @@ const AnatomyLayersCore = (() => {
         [/^fascia/, 'fascia'], [/^lymph/, 'lymph']
     ];
     const SYSTEM_FALLBACK = {muscular: 'muscle', circulatory: 'heart', skeletal: 'bone', nervous: 'greyMatter',
-        lymphatic: 'lymph', respiratory: 'lung', digestive: 'intestine', urinary: 'kidney', reproductive: 'mucosa', endocrine: 'gland'};
+        lymphatic: 'lymph', respiratory: 'lung', digestive: 'intestine', urinary: 'kidney', reproductive: 'mucosa', 'reproductive-female': 'uterus', endocrine: 'gland'};
 
     // The tissue look for one material on one part, or null for systems the palette does not cover.
     function tissueLook(systemId, materialName, partName) {

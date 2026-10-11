@@ -68,10 +68,18 @@ export const systems = [
     },
     {
         id: 'reproductive',
-        summary: 'Produces sex cells and hormones and, in females, supports the development of offspring.',
-        description: 'The reproductive system differs between males and females. In males, the testes produce sperm and testosterone, and a series of ducts and glands carries sperm out of the body. In females, the ovaries produce oocytes (eggs) and the hormones estrogen and progesterone, while the uterine tubes, uterus and vagina support fertilization, pregnancy and birth.',
-        functions: ['Produces gametes: sperm in males and oocytes in females', 'Produces sex hormones such as testosterone, estrogen and progesterone', 'Delivers gametes so that fertilization can occur', 'Supports the growth of the embryo and fetus in the uterus'],
-        trivia: ['Sperm are produced in the seminiferous tubules of the testes.', 'The testes sit in the scrotum, outside the abdomen, because sperm develop best slightly below body temperature.', 'Fertilization usually takes place in the uterine tube, not in the uterus.', 'A female is born with all the primary oocytes she will ever have.'],
+        summary: 'Produces sperm and male sex hormones and delivers sperm for fertilization.',
+        description: 'The male reproductive system includes the testes, which produce sperm and the hormone testosterone, and a series of ducts (the epididymis, ductus deferens, ejaculatory ducts and urethra) that store sperm and carry it out of the body. Accessory glands, the seminal glands, prostate and bulbourethral glands, add the fluids that make up semen.',
+        functions: ['Produces sperm in the testes', 'Produces testosterone', 'Stores and matures sperm in the epididymis', 'Adds fluids to sperm to form semen', 'Delivers sperm so that fertilization can occur'],
+        trivia: ['Sperm are produced in the seminiferous tubules of the testes.', 'The testes sit in the scrotum, outside the abdomen, because sperm develop best slightly below body temperature.', 'Sperm mature and are stored in the epididymis.', 'The prostate gland surrounds the urethra just below the urinary bladder.'],
+        sources: [openstax(27, 'The Reproductive System')]
+    },
+    {
+        id: 'reproductive-female',
+        summary: 'Produces oocytes (eggs) and female sex hormones and supports pregnancy and birth.',
+        description: 'The female reproductive system includes the ovaries, which produce oocytes (eggs) and the hormones estrogen and progesterone; the uterine tubes, which carry an oocyte toward the uterus; and the uterus, a muscular organ where an embryo implants and develops. The cervix, the lower part of the uterus, opens into the vagina, which receives sperm and forms the birth canal.',
+        functions: ['Produces oocytes in the ovaries', 'Produces the hormones estrogen and progesterone', 'Provides the site of fertilization in the uterine tube', 'Supports the development of the embryo and fetus in the uterus', 'Forms the birth canal during childbirth'],
+        trivia: ['A female is born with all the primary oocytes she will ever have.', 'Fertilization usually takes place in the uterine tube, not in the uterus.', 'The lining of the uterus, the endometrium, thickens each month and is shed during menstruation if no pregnancy occurs.', 'Each ovary is about the size and shape of an almond.'],
         sources: [openstax(27, 'The Reproductive System')]
     },
     {

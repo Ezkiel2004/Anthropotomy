@@ -103,7 +103,7 @@ test('materialLook gives each layered system its surface finish', () => {
     assert.deepEqual(core.materialLook('skeletal'), {roughness: 0.8, metalness: 0, colorScale: 1});
     assert.deepEqual(core.materialLook('muscular'), {roughness: 0.5, metalness: 0, colorScale: 0.65});
     assert.equal(core.materialLook('circulatory').roughness, 0.35);
-    for (const id of ['digestive', 'respiratory', 'urinary', 'reproductive', 'endocrine', 'lymphatic']) assert.equal(core.materialLook(id).roughness, 0.4, id);
+    for (const id of ['digestive', 'respiratory', 'urinary', 'reproductive', 'reproductive-female', 'endocrine', 'lymphatic']) assert.equal(core.materialLook(id).roughness, 0.4, id);
     assert.deepEqual(core.materialLook('unknown-system'), {roughness: 0.6, metalness: 0, colorScale: 1});
 });
 
@@ -143,4 +143,14 @@ test('the tissue palette has no saturated blue, cyan or purple', () => {
         h = (h + 360) % 360;
         if (h > 160 && h < 300) assert.ok(s < 0.35, `${tissue} ${color} is a saturated blue/cyan/purple`);
     }
+});
+
+test('tissueLook colours the female reproductive organs like real tissue', () => {
+    const color = (material, name) => core.tissueLook('reproductive-female', material, name)?.color;
+    const T = core.TISSUE;
+    for (const name of ['Body of uterus', 'Fundus of uterus', 'Uterine cornua', 'Anterior wall of uterus', 'Posterior wall of uterus', 'Lower uterine segment']) assert.equal(color('Uterus_Mat2', name), T.uterus.color, name);
+    assert.equal(color('Uterus_Mat2', 'Cervix of uterus'), T.cervix.color);
+    assert.equal(color('Uterus_Mat2', 'External os of cervix'), T.cervix.color);
+    assert.equal(color('Ovary_mat', 'Ovary (left)'), T.ovary.color);
+    assert.equal(color('Uterus_Mat2', 'Abdominal ostia of uterine tubes'), T.tube.color);
 });

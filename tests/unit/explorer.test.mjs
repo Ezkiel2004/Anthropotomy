@@ -75,7 +75,7 @@ import {systems, mergeSystem} from '../../assets/js/explorer/data.js';
 const db = (over = {}) => ({id: 'skeletal', system_id: 1, name: 'Skeletal System', isActive: true, color: '#f59e0b', description: '', keyFacts: {}, structures: [], modelUrl: '../system_model/layers/skeletal.glb', source: 'Credit (https://example.org).', ...over});
 
 test('data.js covers the ten database systems with complete entries', () => {
-    assert.deepEqual(systems.map(s => s.id).sort(), ['circulatory', 'digestive', 'endocrine', 'lymphatic', 'muscular', 'nervous', 'reproductive', 'respiratory', 'skeletal', 'urinary']);
+    assert.deepEqual(systems.map(s => s.id).sort(), ['circulatory', 'digestive', 'endocrine', 'lymphatic', 'muscular', 'nervous', 'reproductive', 'reproductive-female', 'respiratory', 'skeletal', 'urinary']);
     for (const s of systems) {
         assert.ok(s.summary && s.description, s.id + ' has text');
         assert.ok(s.functions.length >= 3, s.id + ' functions');
@@ -116,4 +116,15 @@ test('student content keeps reviewed facts accurate', () => {
     assert.doesNotMatch(endocrine, /receptors, so their effects/, 'receptor specificity does not make hormones slower');
     const pulmonary = systems.find(s => s.id === 'circulatory').trivia.find(t => /pulmonary arteries/i.test(t));
     assert.match(pulmonary, /after birth/i, 'umbilical arteries also carry oxygen-poor blood before birth');
+});
+
+test('the male and female reproductive systems each describe their own organs', () => {
+    const male = systems.find(s => s.id === 'reproductive');
+    const female = systems.find(s => s.id === 'reproductive-female');
+    assert.match(male.summary, /sperm/i);
+    assert.doesNotMatch(JSON.stringify(male), /oocyte|uterus|uterine|ovar/i, 'male content mentions no female organs');
+    assert.match(female.summary, /oocyte|egg/i);
+    assert.match(female.description, /uterus/i);
+    assert.doesNotMatch(JSON.stringify(female), /sperm are produced|testis|testes|prostate/i, 'female content mentions no male organs');
+    assert.ok(female.trivia.some(t => /primary oocytes/.test(t)) && female.trivia.some(t => /uterine tube/.test(t)));
 });

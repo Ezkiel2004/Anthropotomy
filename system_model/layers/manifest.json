@@ -55,6 +55,23 @@
     "source_triangles": 19523,
     "triangles": 7287
   },
+  "reproductive-female": {
+    "bytes": 118360,
+    "clearance": {
+      "ovaries_inside_Hip bone.l": 0.0,
+      "ovaries_inside_Hip bone.r": 0.0,
+      "ovaries_inside_Sacrum": 0.0,
+      "uterus_inside_Hip bone.l": 0.0,
+      "uterus_inside_Hip bone.r": 0.0,
+      "uterus_inside_Sacrum": 0.0,
+      "uterus_inside_bladder": 0.0
+    },
+    "described": 12,
+    "file": "reproductive-female.glb",
+    "parts": 12,
+    "source_triangles": 38017,
+    "triangles": 38017
+  },
   "respiratory": {
     "bytes": 331764,
     "described": 35,

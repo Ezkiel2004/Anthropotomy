@@ -115,7 +115,7 @@ def definition(name):
     body = re.sub(r"\s+", " ", paragraphs[0])
     body = re.sub(r"\(\s*[,;]\s*", "(", body)       # "( , pl. femora )" -> "(pl. femora )"
     body = re.sub(r"\s+\)", ")", body)
-    body = re.sub(r"\(\s*\)", "", body).replace(" ,", ",").strip()
+    body = re.sub(r"\s{2,}", " ", re.sub(r"\(\s*\)", "", body)).replace(" ,", ",").strip()  # "womb () is" -> "womb is"
     sentences = re.split(r"(?<=[.!?])\s+", body)
     out = ""
     for sentence in sentences:
@@ -187,6 +187,53 @@ def glb_triangles(path):
     return tris
 
 
+def tag_part(obj, pid, code, name, description, sources):
+    """Custom properties the viewer reads from each part (exported as glTF extras)."""
+    obj["anatomy_schema"] = "1.0"
+    obj["anatomy_role"] = "part"
+    obj["part_id"] = pid
+    obj["system_id"] = code
+    obj["systems"] = [code]
+    obj["name"] = name
+    obj["description"] = description
+    obj["function"] = ""
+    obj["identity_status"] = "identified"
+    obj["source_objects"] = list(sources)
+
+
+def export_temps(temps, path, window, view_layer, reduce=True):
+    """Weld (and, with reduce, decimate) the temporary part objects, export only them, return source triangles.
+
+    The caller restores the selection and deletes the temporary objects."""
+    source_tris = 0
+    for temp in temps:
+        tris = tri_count(temp.data)
+        source_tris += tris
+        weld = temp.modifiers.new("WebWeld", 'WELD')
+        weld.mode = 'ALL'
+        weld.merge_threshold = WELD_DISTANCE
+        if reduce and tris > MIN_TRIS:
+            decimate = temp.modifiers.new("WebDecimate", 'DECIMATE')
+            decimate.decimate_type = 'COLLAPSE'
+            decimate.ratio = RATIO
+    for o in window.scene.objects:
+        o.select_set(False, view_layer=view_layer)
+    for temp in temps:
+        temp.select_set(True, view_layer=view_layer)
+    view_layer.objects.active = temps[0]
+    with bpy.context.temp_override(window=window):
+        bpy.ops.export_scene.gltf(
+            filepath=path, export_format='GLB', use_selection=True, use_visible=False,
+            export_apply=True, export_extras=True, export_yup=True,
+            export_texcoords=False, export_normals=True, export_tangents=False,
+            export_vertex_color='NONE', export_attributes=False, export_materials='EXPORT',
+            export_animations=False, export_skins=False, export_morph=False,
+            export_cameras=False, export_lights=False,
+            export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
+            export_draco_position_quantization=14, export_draco_normal_quantization=10)
+    return source_tris
+
+
 def export_system(code, out_dir):
     window = bpy.context.window_manager.windows[0]
     scene, view_layer = window.scene, window.view_layer
@@ -217,46 +264,11 @@ def export_system(code, out_dir):
                     if slot.link == 'OBJECT' and i < len(temp.material_slots):
                         temp.material_slots[i].link = 'OBJECT'
                         temp.material_slots[i].material = slot.material
-                temp["anatomy_schema"] = "1.0"
-                temp["anatomy_role"] = "part"
-                temp["part_id"] = pid
-                temp["system_id"] = code
-                temp["systems"] = [code]
-                temp["name"] = display_name(o.name)
-                temp["description"] = definition(o.name)
-                temp["function"] = ""
-                temp["identity_status"] = "identified"
-                temp["source_objects"] = [o.name]
+                tag_part(temp, pid, code, display_name(o.name), definition(o.name), [o.name])
                 temps.append(temp)
         finally:
             restore()
-
-        for temp in temps:
-            tris = tri_count(temp.data)
-            source_tris += tris
-            weld = temp.modifiers.new("WebWeld", 'WELD')
-            weld.mode = 'ALL'
-            weld.merge_threshold = WELD_DISTANCE
-            if tris > MIN_TRIS:
-                decimate = temp.modifiers.new("WebDecimate", 'DECIMATE')
-                decimate.decimate_type = 'COLLAPSE'
-                decimate.ratio = RATIO
-
-        for o in scene.objects:
-            o.select_set(False, view_layer=view_layer)
-        for temp in temps:
-            temp.select_set(True, view_layer=view_layer)
-        view_layer.objects.active = temps[0]
-        with bpy.context.temp_override(window=window):
-            bpy.ops.export_scene.gltf(
-                filepath=path, export_format='GLB', use_selection=True, use_visible=False,
-                export_apply=True, export_extras=True, export_yup=True,
-                export_texcoords=False, export_normals=True, export_tangents=False,
-                export_vertex_color='NONE', export_attributes=False, export_materials='EXPORT',
-                export_animations=False, export_skins=False, export_morph=False,
-                export_cameras=False, export_lights=False,
-                export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
-                export_draco_position_quantization=14, export_draco_normal_quantization=10)
+        source_tris = export_temps(temps, path, window, view_layer)
     finally:
         for temp in temps:
             mesh = temp.data

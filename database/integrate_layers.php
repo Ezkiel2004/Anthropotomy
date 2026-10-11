@@ -3,6 +3,8 @@
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once __DIR__ . '/connection.php';
 const LAYER_CREDIT = '3D model: Z-Anatomy (https://github.com/LluisV/Z-Anatomy), licensed CC BY-SA 4.0. Reduced for web; the reduced model files are shared under the same licence.';
+// Z-Anatomy has no female reproductive organs; that layer uses Human Reference Atlas organs (see tools/blender/sources/hra).
+const HRA_CREDIT = '3D model: Human Reference Atlas reference organs (uterus, left and right ovary; Visible Human female) from NIH 3D (https://3d.nih.gov/entries/3DPX-020996, https://3d.nih.gov/entries/3DPX-020979, https://3d.nih.gov/entries/3DPX-020980), licensed CC BY 4.0. Fitted into the Z-Anatomy pelvis with the uterus shown anteverted, and recoloured.';
 // Default text written by integrate_skeleton.php for the old single-mesh skeleton; it no longer applies.
 const OLD_SKELETON_DESCRIPTION = 'Explore the supplied human skeleton model. Rotate, zoom, and reset the view to study its overall form. This asset is a single combined mesh; individual bones cannot be selected separately.';
 // code => [name, colour, sort order]; name, colour and order are used only when the system has to be created.
@@ -10,8 +12,13 @@ $layers = [
     'skeletal' => ['Skeletal System', '#1a6b4a', 1], 'muscular' => ['Muscular System', '#b91c1c', 2], 'circulatory' => ['Circulatory System', '#dc2626', 3],
     'respiratory' => ['Respiratory System', '#0ea5e9', 4], 'digestive' => ['Digestive System', '#d97706', 5], 'urinary' => ['Urinary System', '#ca8a04', 6],
     'nervous' => ['Nervous System', '#8b5cf6', 7],
-    'reproductive' => ['Reproductive System', '#db2777', 8], 'endocrine' => ['Endocrine System', '#7c3aed', 9], 'lymphatic' => ['Lymphatic System', '#16a34a', 10],
+    'reproductive' => ['Male Reproductive System', '#db2777', 8], 'reproductive-female' => ['Female Reproductive System', '#be185d', 8],
+    'endocrine' => ['Endocrine System', '#7c3aed', 9], 'lymphatic' => ['Lymphatic System', '#16a34a', 10],
 ];
+// code => [old default name, new name]: the reproductive layer is male-only now that there is a female layer.
+// A name a teacher has changed is left alone.
+$renames = ['reproductive' => ['Reproductive System', 'Male Reproductive System']];
+$credits = ['reproductive-female' => HRA_CREDIT];
 
 function glbJson(string $file): array {
     $stream = fopen($file, 'rb');
@@ -43,9 +50,10 @@ foreach ($layers as $code => [$name, $color, $order]) {
     $description = "Explore the $name in the layered body model. Switch body systems on and off, then select a part to zoom in on it.";
     $pdo->beginTransaction();
     try {
-        $system = $db->fetchOne('SELECT system_id, description FROM body_systems WHERE system_code = ?', [$code]);
+        $system = $db->fetchOne('SELECT system_id, system_name, description FROM body_systems WHERE system_code = ?', [$code]);
         if ($system) {
             $id = (int)$system['system_id'];
+            if (isset($renames[$code]) && $system['system_name'] === $renames[$code][0]) $db->query('UPDATE body_systems SET system_name=? WHERE system_id=?', [$renames[$code][1], $id]);
             if (trim($system['description'] ?? '') === OLD_SKELETON_DESCRIPTION) $db->query('UPDATE body_systems SET description=? WHERE system_id=?', [$description, $id]);
         } else {
             $id = $db->insert('body_systems', ['system_code'=>$code, 'system_name'=>$name, 'color_hex'=>$color, 'description'=>$description, 'sort_order'=>$order, 'is_active'=>1]);
@@ -53,7 +61,8 @@ foreach ($layers as $code => [$name, $color, $order]) {
         $existing = $db->fetchOne('SELECT source_text FROM anatomy_content WHERE system_id=?', [$id]);
         $source = trim($existing['source_text'] ?? '');
         if ($code === 'skeletal' && $oldCredit !== '') $source = trim(str_replace($oldCredit, '', $source));
-        if (!str_contains($source, LAYER_CREDIT)) $source = $source === '' ? LAYER_CREDIT : $source . "\n\n" . LAYER_CREDIT;
+        $credit = $credits[$code] ?? LAYER_CREDIT;
+        if (!str_contains($source, $credit)) $source = $source === '' ? $credit : $source . "\n\n" . $credit;
         $db->query('INSERT INTO anatomy_content (system_id, model_url, key_facts, structures, source_text) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE model_url=VALUES(model_url), source_text=VALUES(source_text)', [$id, "../system_model/layers/$code.glb", '{}', '[]', $source]);
         $pdo->commit();
         echo "$name connected to system_model/layers/$code.glb. Existing facts and structures preserved.\n";
