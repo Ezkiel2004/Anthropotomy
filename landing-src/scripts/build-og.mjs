@@ -1,5 +1,5 @@
 // Renders og/og-image.html to assets/brand/og-image.jpg (1200 × 630) with the
-// project's own fonts and skeleton art. Run from landing-src/: npm run build:og
+// project's own font and the hero poster render. Run from landing-src/: npm run build:og
 // Uses the Chromium that Playwright finds, or CHROMIUM_PATH if set.
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -10,7 +10,8 @@ const root = path.resolve(import.meta.dirname, '..', '..');
 const template = pathToFileURL(path.join(import.meta.dirname, '..', 'og', 'og-image.html')).href;
 const output = path.join(root, 'assets', 'brand', 'og-image.jpg');
 
-const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+const args = process.getuid?.() === 0 ? ['--no-sandbox'] : []; // Chromium refuses to start as root otherwise
+const browser = await chromium.launch({ args, ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}) });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 await page.goto(template, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
