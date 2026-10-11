@@ -8,12 +8,12 @@
     "build:css": "tailwindcss -i ./src/public.css -o ../assets/css/public.css --minify",
     "watch:css": "tailwindcss -i ./src/public.css -o ../assets/css/public.css --watch",
     "build:assets": "node scripts/build-assets.mjs",
+    "build:renders": "node scripts/render-systems.mjs",
+    "build:explorer": "node scripts/capture-explorer.mjs",
     "build:og": "node scripts/build-og.mjs",
     "check:contrast": "node scripts/contrast.mjs"
   },
   "devDependencies": {
-    "@fontsource/instrument-serif": "^5.3.0",
-    "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@phosphor-icons/core": "^2.1.1",
     "@tailwindcss/cli": "^4.3.3",

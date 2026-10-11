@@ -3,334 +3,377 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Anthropotomy – See inside the human body</title>
-  <meta name="description" content="Anthropotomy is an interactive anatomy learning system for students: explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
-  <meta name="theme-color" content="#07110E">
+  <title>Anthropotomy · Explore the human body in 3D</title>
+  <meta name="description" content="Anthropotomy is an anatomy learning system for students. Switch body systems on in 3D, click any part to see its name and definition, then learn with your teacher’s lessons and quizzes and follow your progress.">
+  <meta name="theme-color" content="#0A111C">
   <link rel="canonical" href="./">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Anthropotomy">
-  <meta property="og:title" content="Anthropotomy – See inside the human body">
-  <meta property="og:description" content="Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
+  <meta property="og:title" content="Anthropotomy · Explore the human body in 3D">
+  <meta property="og:description" content="Switch body systems on in 3D, click any part to see its real name, then test yourself with your teacher’s lessons and quizzes.">
   <meta property="og:image" content="assets/brand/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="The Anthropotomy wordmark and the line “See inside the human body” beside a glowing green X-ray style skeleton.">
+  <meta property="og:image:alt" content="The Anthropotomy logo and the line “Click any part of the human body.” beside a 3D model of the human skeleton.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Anthropotomy – See inside the human body">
-  <meta name="twitter:description" content="Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track your progress.">
+  <meta name="twitter:title" content="Anthropotomy · Explore the human body in 3D">
+  <meta name="twitter:description" content="Switch body systems on in 3D, click any part to see its real name, then test yourself with your teacher’s lessons and quizzes.">
   <meta name="twitter:image" content="assets/brand/og-image.jpg">
   <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" href="assets/brand/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
-  <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/public.css?v=20261005-landing1">
-  <script>document.documentElement.classList.add('js');</script>
-  <script type="module" src="assets/js/landing.js?v=20261005-landing1"></script>
+  <link rel="stylesheet" href="assets/css/public.css?v=20261011-atlas1">
+  <script>
+    // Show the signed-in variant before the first paint when sign-in cached a user; landing.js then
+    // confirms it with the server and fills in the name.
+    document.documentElement.classList.add('js');
+    try { if (sessionStorage.getItem('anatomiq_user')) document.documentElement.dataset.authState = 'signed-in'; } catch (_) {}
+  </script>
+  <script type="module" src="assets/js/landing.js?v=20261011-atlas1"></script>
 </head>
-<body class="on-paper">
+<body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
-  <header class="site-header on-dark">
+  <header class="site-header">
     <div class="page site-header-inner">
       <a class="brand" href="./" aria-label="Anthropotomy home"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt=""><span class="brand-name">Anthropotomy</span></a>
-      <button class="nav-toggle btn btn-secondary btn-small" type="button" aria-expanded="false" aria-controls="siteNav"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#list"/></svg><span>Menu</span></button>
+      <button class="nav-toggle btn btn-secondary btn-small" type="button" aria-expanded="false" aria-controls="siteNav"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#list"/></svg><span>Menu</span></button>
       <nav class="nav-panel" id="siteNav" aria-label="Main">
         <ul class="nav-list">
-          <li><a class="nav-link" href="#features">Features</a></li>
+          <li><a class="nav-link" href="#systems">Body systems</a></li>
           <li><a class="nav-link" href="#how-it-works">How it works</a></li>
-          <li class="nav-divider"><a class="nav-link" href="login.html#login">Sign in</a></li>
+        </ul>
+        <ul class="nav-actions" data-auth="signed-out">
+          <li><a class="nav-link" href="login.html#login">Sign in</a></li>
           <li><a class="btn btn-quiet btn-small" href="login.html#register" data-header-cta>Create account</a></li>
         </ul>
+        <ul class="nav-actions" data-auth="signed-in">
+          <li class="nav-greeting" data-greeting hidden>Hi, <span data-first-name></span></li>
+          <li><a class="btn btn-quiet btn-small" href="student/dashboard.html" data-header-cta data-dashboard-link>Open dashboard</a></li>
+          <li><button class="nav-link" type="button" data-sign-out>Sign out</button></li>
+        </ul>
       </nav>
+      <p class="sr-only" role="status" data-auth-status></p>
     </div>
   </header>
 
   <main id="main" tabindex="-1">
-    <!-- Hero: the plate, lit from within -->
-    <section class="hero on-dark" aria-labelledby="heroTitle">
+    <section class="hero" aria-labelledby="heroTitle">
       <div class="page hero-grid">
-        <div>
-          <p class="caption caption--leader">Explore. Learn. Understand.</p>
-          <h1 id="heroTitle" class="hero-title mt-6">See <em>inside</em> the human body.</h1>
-          <p class="lead mt-6 prose-measure">Explore 3D anatomy models, work through your teacher’s lessons, test yourself with quizzes and track how far you’ve come.</p>
-          <div class="mt-8 flex flex-wrap gap-3">
-            <a class="btn btn-primary" href="login.html#register" data-primary-cta>Create account <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></a>
-            <a class="btn btn-secondary" href="login.html#login">Sign in</a>
+        <div class="hero-copy">
+          <h1 id="heroTitle" class="hero-title">Click <em>any part</em> of the human body.</h1>
+          <p class="lead mt-5 measure">Switch body systems on in 3D, tap a part to see its real name, then test yourself.</p>
+          <div class="mt-8">
+            <div class="cta-row" data-auth="signed-out">
+              <a class="btn btn-primary" href="login.html#register" data-primary-cta>Create account <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#arrow-right"/></svg></a>
+              <a class="btn btn-secondary" href="login.html#login">Sign in</a>
+            </div>
+            <div class="cta-row" data-auth="signed-in">
+              <a class="btn btn-primary" href="student/dashboard.html" data-primary-cta data-dashboard-link>Open dashboard <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#arrow-right"/></svg></a>
+              <a class="btn btn-secondary" href="student/anatomy.html" data-explorer-link>Open 3D explorer</a>
+            </div>
           </div>
-          <p class="mt-4 text-14 text-muted">You’ll need the student ID your school gave you.</p>
         </div>
 
-        <figure class="plate" data-hero-3d>
-          <div class="plate-media">
+        <!-- Live 3D demo over its poster. landing.js starts it; landing-hero-3d.js runs it. -->
+        <div class="demo" data-demo>
+          <div class="demo-stage">
             <picture>
-              <source type="image/avif" srcset="assets/img/hero-skeleton-480.avif 480w, assets/img/hero-skeleton-720.avif 720w, assets/img/hero-skeleton-957.avif 957w" sizes="(min-width: 48rem) min(40vw, 33rem), min(calc(100vw - 2rem), 26rem)">
-              <source type="image/webp" srcset="assets/img/hero-skeleton-480.webp 480w, assets/img/hero-skeleton-720.webp 720w, assets/img/hero-skeleton-957.webp 957w" sizes="(min-width: 48rem) min(40vw, 33rem), min(calc(100vw - 2rem), 26rem)">
-              <img src="assets/img/hero-skeleton-720.png" width="957" height="1333" fetchpriority="high" decoding="async" alt="A glowing green X-ray style illustration of a human skeleton, seen from the side with one arm raised.">
+              <source type="image/avif" srcset="assets/img/hero-skeletal-480.avif 480w, assets/img/hero-skeletal-800.avif 800w, assets/img/hero-skeletal-1200.avif 1200w" sizes="(min-width: 64rem) 36rem, (min-width: 48rem) 28rem, calc((100vw - 2rem) * 1.2)">
+              <source type="image/webp" srcset="assets/img/hero-skeletal-480.webp 480w, assets/img/hero-skeletal-800.webp 800w, assets/img/hero-skeletal-1200.webp 1200w" sizes="(min-width: 64rem) 36rem, (min-width: 48rem) 28rem, calc((100vw - 2rem) * 1.2)">
+              <img src="assets/img/hero-skeletal-800.png" width="800" height="1000" fetchpriority="high" decoding="async" alt="A 3D model of the human skeleton, turned slightly to one side.">
             </picture>
-            <span class="chip plate-hint" id="heroHint" data-hero-hint hidden><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#hand-grabbing"/></svg>Drag to rotate</span>
-            <div class="plate-controls" data-hero-controls hidden>
-              <span class="chip" data-hero-loading role="status" hidden><span class="chip-pulse" aria-hidden="true"></span>Loading 3D model…</span>
-              <button class="chip" type="button" data-hero-pause aria-pressed="false" hidden><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#pause"/></svg><span>Pause rotation</span></button>
+            <div class="demo-toggles" role="group" aria-label="Body systems in the 3D view" data-demo-toggles hidden>
+              <button class="toggle" type="button" aria-pressed="true" data-system="skeletal"><span>Skeletal</span></button>
+              <button class="toggle" type="button" aria-pressed="false" data-system="muscular"><span>Muscular</span></button>
+              <button class="toggle" type="button" aria-pressed="false" data-system="circulatory"><span>Circulatory</span></button>
+            </div>
+            <button class="btn btn-secondary demo-try" type="button" data-demo-try hidden><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#cube"/></svg><span data-try-label>Try it in 3D (about 3.5 MB)</span></button>
+            <div class="demo-card" data-demo-card hidden>
+              <div class="demo-card-row" data-card-hint>
+                <p class="text-14 muted" data-hint-text>Click any part to see its name.</p>
+                <button class="btn btn-secondary btn-small" type="button" data-show-part>Show me a part</button>
+              </div>
+              <div data-card-part hidden>
+                <div class="demo-card-row">
+                  <p class="card-system" data-card-system></p>
+                  <button class="icon-button" type="button" data-card-close aria-label="Clear the selected part"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#x"/></svg></button>
+                </div>
+                <p class="card-name" data-card-name></p>
+                <p class="card-def" data-card-def></p>
+                <div class="card-actions">
+                  <a class="text-link" href="login.html#register" data-auth="signed-out">Create account</a>
+                  <a class="text-link" href="student/anatomy.html" data-auth="signed-in" data-explorer-link>Open 3D explorer</a>
+                  <span class="card-credit">Definition from Wikipedia via Z-Anatomy</span>
+                </div>
+              </div>
             </div>
           </div>
-          <figcaption class="plate-caption"><span class="caption">Plate I — <strong>Skeletal system</strong></span><span class="caption">Rotate · Zoom · Explore</span></figcaption>
-        </figure>
-      </div>
-    </section>
-    <div class="seam" aria-hidden="true"></div>
-
-    <!-- Feature walkthrough -->
-    <section class="section on-paper" id="features" aria-labelledby="featuresTitle">
-      <div class="page">
-        <div class="prose-measure">
-          <p class="caption caption--leader">What you can do</p>
-          <h2 id="featuresTitle" class="section-title mt-4">Four ways to get to know the body</h2>
-          <p class="lead mt-4">Your teacher sets up the lessons, quizzes and models. You reach all of them from one student account.</p>
+          <p class="sr-only" role="status" data-demo-status></p>
         </div>
-
-        <!-- FIG. 01 · text left, annotated explorer right -->
-        <article class="feature mt-8" aria-labelledby="featureExplore">
-          <div class="feature-text">
-            <p class="caption">Fig. 01</p>
-            <h3 id="featureExplore" class="feature-title mt-3">Explore in 3D</h3>
-            <p class="body-copy mt-4 prose-measure">Open the 3D anatomy explorer and turn the model any way you like. Drag to rotate, scroll or pinch to zoom, and reset the view when you lose your place. Your teacher’s notes on each body system sit right beside the model.</p>
-            <ul class="check-list mt-6">
-              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Zoom in and out, or let the model turn on its own.</span></li>
-              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Save an image of the view you’re studying.</span></li>
-              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check"/></svg><span>Practise with your teacher’s structure descriptions. It’s ungraded.</span></li>
-            </ul>
-            <p class="caption mt-6" data-system-count-line hidden>Body systems set up at your school: <strong data-system-count></strong></p>
-          </div>
-          <figure class="feature-media m-0" data-reveal>
-            <div class="mock" role="img" aria-label="Simplified drawing of the 3D anatomy explorer: a body system menu above the model viewer, with zoom, reset view, auto rotate and save image buttons below it.">
-              <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Student Portal / <b>3D Anatomy Explorer</b></span></div>
-              <div class="mock-body" aria-hidden="true">
-                <span class="mock-label">Body system</span>
-                <div class="mock-field"><span>Skeletal system</span><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#caret-right"/></svg></div>
-                <div class="mock-stage">
-                  <picture>
-                    <source type="image/avif" srcset="assets/img/hero-skeleton-480.avif">
-                    <source type="image/webp" srcset="assets/img/hero-skeleton-480.webp">
-                    <img src="assets/img/hero-skeleton-720.png" width="480" height="669" loading="lazy" decoding="async" alt="">
-                  </picture>
-                  <span class="callout callout--right callout-drag"><span>Drag · rotate</span></span>
-                  <span class="callout callout-zoom"><span>Scroll or pinch · zoom</span></span>
-                </div>
-                <div class="mock-tools">
-                  <span class="mock-tool">Zoom in</span><span class="mock-tool">Zoom out</span><span class="mock-tool">Reset view</span><span class="mock-tool">Auto rotate</span><span class="mock-tool"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#floppy-disk"/></svg>Save image</span>
-                </div>
-              </div>
-            </div>
-            <figcaption class="caption mt-4">Fig. 01 — The 3D anatomy explorer, simplified</figcaption>
-          </figure>
-        </article>
-
-        <!-- FIG. 02 · line-art lesson sheet left, text right -->
-        <article class="feature feature--flip" aria-labelledby="featureLessons">
-          <div class="feature-text">
-            <p class="caption">Fig. 02</p>
-            <h3 id="featureLessons" class="feature-title mt-3">Learn in lessons</h3>
-            <p class="body-copy mt-4 prose-measure">Your teacher groups lessons into modules. Each lesson keeps its reading, images, PDFs, videos and 3D models together on one page, so you’re not hunting through folders. Finish it, mark it complete, and the next one is waiting.</p>
-          </div>
-          <figure class="feature-media m-0" data-reveal>
-            <div class="mock" role="img" aria-label="Simplified drawing of a lesson page: reading text, an image, a PDF, a video and a 3D model on one page, with a mark lesson as complete button.">
-              <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">My Lessons / <b>Lesson</b></span></div>
-              <div class="mock-body sheet" aria-hidden="true">
-                <span class="caption">Module · Lesson</span>
-                <span class="mock-skeleton-line h-4 w-2/3"></span>
-                <span class="mock-skeleton-line w-full"></span>
-                <span class="mock-skeleton-line w-11/12"></span>
-                <span class="mock-skeleton-line w-3/4"></span>
-                <div class="grid gap-2 mt-2">
-                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#book-open"/></svg></span><b>Reading</b><small>Text</small></div>
-                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#image"/></svg></span><b>Image</b><small>Img</small></div>
-                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#file-pdf"/></svg></span><b>Document</b><small>PDF</small></div>
-                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#video-camera"/></svg></span><b>Video</b><small>Video</small></div>
-                  <div class="attachment"><span class="attachment-icon"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#cube"/></svg></span><b>3D model</b><small>GLB</small></div>
-                </div>
-                <span class="mock-tool mt-2 justify-self-start"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#check-circle"/></svg>Mark Lesson as Complete</span>
-              </div>
-            </div>
-            <figcaption class="caption mt-4">Fig. 02 — A lesson page, simplified</figcaption>
-          </figure>
-        </article>
-
-        <!-- FIG. 03 · the one interactive demo -->
-        <article class="feature feature--wide" aria-labelledby="featureQuiz">
-          <div class="feature-text">
-            <p class="caption">Fig. 03</p>
-            <h3 id="featureQuiz" class="feature-title mt-3">Test yourself</h3>
-            <p class="body-copy mt-4 prose-measure">Quizzes mix four kinds of question: identification, multiple choice, true or false, and image hotspots, where you click the right spot on a picture. <strong>Your answers save as you go.</strong> Refresh the page and you’re back in the same attempt, with your saved answers and the time you have left. Grading happens on the server when you submit.</p>
-          </div>
-          <div class="feature-media">
-            <div class="demo" data-quiz-demo>
-              <div class="demo-tabs" role="tablist" aria-label="Question types">
-                <button class="demo-tab" type="button" role="tab" id="tabIdentification" aria-controls="panelIdentification" aria-selected="true"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#textbox"/></svg>Identification</button>
-                <button class="demo-tab" type="button" role="tab" id="tabChoice" aria-controls="panelChoice" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#list-checks"/></svg>Multiple choice</button>
-                <button class="demo-tab" type="button" role="tab" id="tabTrueFalse" aria-controls="panelTrueFalse" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#toggle-left"/></svg>True or false</button>
-                <button class="demo-tab" type="button" role="tab" id="tabHotspot" aria-controls="panelHotspot" aria-selected="false" tabindex="-1"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#crosshair"/></svg>Image hotspot</button>
-              </div>
-              <div class="mock">
-                <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Quizzes and Activities / <b>Practice question</b></span></div>
-                <div class="mock-body">
-                  <div role="tabpanel" id="panelIdentification" aria-labelledby="tabIdentification" tabindex="0">
-                    <div class="question-head"><span class="question-num">Question 1</span><span class="badge">Identification</span></div>
-                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-2/3"></span></div>
-                    <p class="sr-only">Your teacher’s question appears here.</p>
-                    <label class="mock-label" for="demoIdentification">Your answer</label>
-                    <input class="text-input" id="demoIdentification" type="text" placeholder="Type the term" autocomplete="off" spellcheck="false" data-demo-answer>
-                  </div>
-                  <div role="tabpanel" id="panelChoice" aria-labelledby="tabChoice" tabindex="0" hidden>
-                    <div class="question-head"><span class="question-num">Question 2</span><span class="badge">Multiple choice</span></div>
-                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-1/2"></span></div>
-                    <fieldset>
-                      <legend class="sr-only">Your teacher’s question appears here. Choose one answer.</legend>
-                      <div class="answer-list">
-                        <label class="answer"><input type="radio" name="demoChoice" value="a" data-demo-answer><span class="answer-key" aria-hidden="true">A</span><span>Option A</span></label>
-                        <label class="answer"><input type="radio" name="demoChoice" value="b" data-demo-answer><span class="answer-key" aria-hidden="true">B</span><span>Option B</span></label>
-                        <label class="answer"><input type="radio" name="demoChoice" value="c" data-demo-answer><span class="answer-key" aria-hidden="true">C</span><span>Option C</span></label>
-                        <label class="answer"><input type="radio" name="demoChoice" value="d" data-demo-answer><span class="answer-key" aria-hidden="true">D</span><span>Option D</span></label>
-                      </div>
-                    </fieldset>
-                  </div>
-                  <div role="tabpanel" id="panelTrueFalse" aria-labelledby="tabTrueFalse" tabindex="0" hidden>
-                    <div class="question-head"><span class="question-num">Question 3</span><span class="badge">True or false</span></div>
-                    <div class="question-text" aria-hidden="true"><span class="mock-skeleton-line w-full"></span><span class="mock-skeleton-line w-3/4"></span></div>
-                    <fieldset>
-                      <legend class="sr-only">Your teacher’s statement appears here. Is it true or false?</legend>
-                      <div class="answer-list sm:grid-cols-2">
-                        <label class="answer"><input type="radio" name="demoTrueFalse" value="true" data-demo-answer><span class="answer-key" aria-hidden="true">T</span><span>True</span></label>
-                        <label class="answer"><input type="radio" name="demoTrueFalse" value="false" data-demo-answer><span class="answer-key" aria-hidden="true">F</span><span>False</span></label>
-                      </div>
-                    </fieldset>
-                  </div>
-                  <div role="tabpanel" id="panelHotspot" aria-labelledby="tabHotspot" tabindex="0" hidden>
-                    <div class="question-head"><span class="question-num">Question 4</span><span class="badge">Image hotspot</span></div>
-                    <p class="mt-4 mb-3 text-14 text-muted-on-paper">Click the spot on your teacher’s image that the question asks about.</p>
-                    <button class="hotspot" type="button" data-demo-hotspot aria-describedby="hotspotHelp">
-                      <svg class="hotspot-art" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
-                        <rect x="24" y="16" width="272" height="148" rx="8" stroke-dasharray="4 6"/>
-                        <circle cx="160" cy="90" r="44"/><circle cx="160" cy="90" r="22" stroke-dasharray="3 5"/>
-                        <path d="M160 34v-12M160 158v-12M104 90H92M228 90h-12"/>
-                        <text x="160" y="172" text-anchor="middle" font-size="10" fill="currentColor" stroke="none" font-family="JetBrains Mono, monospace" letter-spacing="1">YOUR TEACHER’S IMAGE</text>
-                      </svg>
-                      <span class="hotspot-pin" hidden></span>
-                      <span class="sr-only">Place a pin on the image</span>
-                    </button>
-                    <p class="sr-only" id="hotspotHelp">With a keyboard, press Enter to place the pin in the centre, then move it with the arrow keys.</p>
-                  </div>
-                  <p class="save-status" role="status" data-demo-status><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#clock"/></svg><span>Answer a question to see it save.</span></p>
-                </div>
-              </div>
-            </div>
-            <p class="caption mt-4">Fig. 03 — Practice only: nothing here is graded or sent anywhere</p>
-          </div>
-        </article>
-
-        <!-- FIG. 04 · annotated progress plate -->
-        <article class="feature feature--wide" aria-labelledby="featureProgress">
-          <div class="feature-text">
-            <p class="caption">Fig. 04</p>
-            <h3 id="featureProgress" class="feature-title mt-3">See your progress</h3>
-            <p class="body-copy mt-4 prose-measure">Your progress page lists every assessment result next to your average quiz score, the lessons you’ve completed and your study time. Your dashboard charts your recent scores and shows the achievements you unlock by reaching goals your teacher sets.</p>
-          </div>
-          <div class="feature-media" data-reveal>
-            <div class="progress-plate">
-              <div class="mock" role="img" aria-label="Simplified drawing of the progress page before any results: a lesson completion ring, four empty score tiles, a 21-day activity strip and three empty achievement slots.">
-                <div class="mock-bar" aria-hidden="true"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-crumb">Student Portal / <b>My Progress &amp; Scores</b></span></div>
-                <div class="mock-body" aria-hidden="true">
-                  <div class="flex items-center gap-2"><span class="marker">1</span><span class="mock-label m-0">Scores and lessons</span></div>
-                  <div class="progress-row progress-row--overview">
-                    <div class="donut">
-                      <svg viewBox="0 0 36 36" focusable="false"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--color-rule-on-paper)" stroke-width="3"/></svg>
-                      <div class="donut-value"><div>—<small>Overall progress</small></div></div>
-                    </div>
-                    <div class="tiles">
-                      <div class="tile"><b>—</b><span>Average quiz score</span></div>
-                      <div class="tile"><b>—</b><span>Quizzes completed</span></div>
-                      <div class="tile"><b>—</b><span>Lessons completed</span></div>
-                      <div class="tile"><b>—</b><span>Total study time</span></div>
-                    </div>
-                  </div>
-                  <div class="progress-row">
-                    <div class="flex items-center gap-2"><span class="marker">2</span><span class="mock-label m-0">Learning activity, last 21 days</span></div>
-                    <div class="activity"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-                  </div>
-                  <div class="progress-row">
-                    <div class="flex items-center gap-2"><span class="marker">3</span><span class="mock-label m-0">Achievements</span></div>
-                    <div class="badges">
-                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#trophy"/></svg>Goal</div>
-                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#medal"/></svg>Goal</div>
-                      <div class="badge-slot"><svg viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#target"/></svg>Goal</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <ol class="notes">
-                <li class="note"><span class="marker" aria-hidden="true">1</span><p><strong>Scores come from graded attempts</strong>Your average quiz score is the mean of your graded attempts.</p></li>
-                <li class="note"><span class="marker" aria-hidden="true">2</span><p><strong>Lesson completion is yours to mark</strong>It shows where you are. Assessments show what you understand.</p></li>
-                <li class="note"><span class="marker" aria-hidden="true">3</span><p><strong>Goals come from your teacher</strong>Achievements unlock when you reach them. Until your teacher adds goals, this stays empty.</p></li>
-              </ol>
-            </div>
-            <p class="caption mt-4">Fig. 04 — The progress page before your first result</p>
-          </div>
-        </article>
       </div>
     </section>
 
-    <!-- How it works -->
-    <section class="section on-paper" id="how-it-works" aria-labelledby="howTitle">
+    <section class="section" id="systems" aria-labelledby="systemsTitle">
       <div class="page">
-        <p class="caption caption--leader">How it works</p>
-        <h2 id="howTitle" class="section-title mt-4">Three steps to your first lesson</h2>
-        <ol class="steps mt-12">
-          <li class="step"><span class="step-num" aria-hidden="true">01</span><h3>Create your account</h3><p>Sign up with the student ID your school issued, your section and a password of your own.</p></li>
-          <li class="step"><span class="step-num" aria-hidden="true">02</span><h3>Learn with lessons and the 3D explorer</h3><p>Open the modules your teacher has published. Read, watch, and turn the models until it clicks.</p></li>
-          <li class="step"><span class="step-num" aria-hidden="true">03</span><h3>Take assessments and track your progress</h3><p>Answer the quizzes your teacher assigns, then check your scores and progress whenever you like.</p></li>
+        <h2 id="systemsTitle" class="section-title">One body. Every system.</h2>
+        <p class="lead mt-4 measure">Bones, muscles, vessels, nerves and organs, each with its own named parts. Turn them on alone or together.</p>
+      </div>
+      <ul class="gallery" tabindex="0" aria-label="Body systems in the 3D explorer" data-reveal>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/skeletal-480.avif 480w, assets/img/systems/skeletal-800.avif 800w, assets/img/systems/skeletal-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/skeletal-800.webp" srcset="assets/img/systems/skeletal-480.webp 480w, assets/img/systems/skeletal-800.webp 800w, assets/img/systems/skeletal-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The 3D skeleton, seen from the front and to one side.">
+          </picture>
+          <figcaption><span class="system-name">Skeletal</span><span class="system-count" data-parts="skeletal" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/muscular-480.avif 480w, assets/img/systems/muscular-800.avif 800w, assets/img/systems/muscular-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/muscular-800.webp" srcset="assets/img/systems/muscular-480.webp 480w, assets/img/systems/muscular-800.webp 800w, assets/img/systems/muscular-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The muscles of the whole body in 3D.">
+          </picture>
+          <figcaption><span class="system-name">Muscular</span><span class="system-count" data-parts="muscular" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/circulatory-480.avif 480w, assets/img/systems/circulatory-800.avif 800w, assets/img/systems/circulatory-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/circulatory-800.webp" srcset="assets/img/systems/circulatory-480.webp 480w, assets/img/systems/circulatory-800.webp 800w, assets/img/systems/circulatory-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The heart, arteries and veins over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Circulatory</span><span class="system-count" data-parts="circulatory" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/respiratory-480.avif 480w, assets/img/systems/respiratory-800.avif 800w, assets/img/systems/respiratory-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/respiratory-800.webp" srcset="assets/img/systems/respiratory-480.webp 480w, assets/img/systems/respiratory-800.webp 800w, assets/img/systems/respiratory-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The airway and both lungs over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Respiratory</span><span class="system-count" data-parts="respiratory" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/digestive-480.avif 480w, assets/img/systems/digestive-800.avif 800w, assets/img/systems/digestive-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/digestive-800.webp" srcset="assets/img/systems/digestive-480.webp 480w, assets/img/systems/digestive-800.webp 800w, assets/img/systems/digestive-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The digestive tract, liver and stomach over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Digestive</span><span class="system-count" data-parts="digestive" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/urinary-480.avif 480w, assets/img/systems/urinary-800.avif 800w, assets/img/systems/urinary-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/urinary-800.webp" srcset="assets/img/systems/urinary-480.webp 480w, assets/img/systems/urinary-800.webp 800w, assets/img/systems/urinary-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The kidneys, ureters and bladder over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Urinary</span><span class="system-count" data-parts="urinary" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/nervous-480.avif 480w, assets/img/systems/nervous-800.avif 800w, assets/img/systems/nervous-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/nervous-800.webp" srcset="assets/img/systems/nervous-480.webp 480w, assets/img/systems/nervous-800.webp 800w, assets/img/systems/nervous-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The brain, spinal cord and nerves over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Nervous</span><span class="system-count" data-parts="nervous" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/reproductive-480.avif 480w, assets/img/systems/reproductive-800.avif 800w, assets/img/systems/reproductive-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/reproductive-800.webp" srcset="assets/img/systems/reproductive-480.webp 480w, assets/img/systems/reproductive-800.webp 800w, assets/img/systems/reproductive-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The male reproductive organs in front of a faint pelvis.">
+          </picture>
+          <figcaption><span class="system-name">Male reproductive</span><span class="system-count" data-parts="reproductive" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/reproductive-female-480.avif 480w, assets/img/systems/reproductive-female-800.avif 800w, assets/img/systems/reproductive-female-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/reproductive-female-800.webp" srcset="assets/img/systems/reproductive-female-480.webp 480w, assets/img/systems/reproductive-female-800.webp 800w, assets/img/systems/reproductive-female-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The uterus and ovaries inside a faint pelvis.">
+          </picture>
+          <figcaption><span class="system-name">Female reproductive</span><span class="system-count" data-parts="reproductive-female" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/endocrine-480.avif 480w, assets/img/systems/endocrine-800.avif 800w, assets/img/systems/endocrine-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/endocrine-800.webp" srcset="assets/img/systems/endocrine-480.webp 480w, assets/img/systems/endocrine-800.webp 800w, assets/img/systems/endocrine-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="The pituitary, thyroid and adrenal glands over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Endocrine</span><span class="system-count" data-parts="endocrine" hidden></span></figcaption>
+        </figure></li>
+        <li class="system-card"><figure>
+          <picture>
+            <source type="image/avif" srcset="assets/img/systems/lymphatic-480.avif 480w, assets/img/systems/lymphatic-800.avif 800w, assets/img/systems/lymphatic-1200.avif 1200w" sizes="(min-width: 64rem) 17rem, 15rem">
+            <img src="assets/img/systems/lymphatic-800.webp" srcset="assets/img/systems/lymphatic-480.webp 480w, assets/img/systems/lymphatic-800.webp 800w, assets/img/systems/lymphatic-1200.webp 1200w" sizes="(min-width: 64rem) 17rem, 15rem" width="800" height="1067" loading="lazy" decoding="async" alt="Lymph nodes, the thymus and the spleen over a faint skeleton.">
+          </picture>
+          <figcaption><span class="system-name">Lymphatic</span><span class="system-count" data-parts="lymphatic" hidden></span></figcaption>
+        </figure></li>
+      </ul>
+    </section>
+
+    <section class="section" aria-labelledby="partTitle">
+      <div class="page">
+        <h2 id="partTitle" class="section-title">Every part tells you what it is.</h2>
+        <p class="lead mt-4 measure">Select a part in the 3D explorer and a panel opens beside the model.</p>
+        <figure class="shot" data-reveal>
+          <picture>
+            <source type="image/avif" srcset="assets/img/explorer-part-800.avif 800w, assets/img/explorer-part-1200.avif 1200w" sizes="(min-width: 80rem) 75rem, calc(100vw - 3rem)">
+            <img src="assets/img/explorer-part-1200.webp" srcset="assets/img/explorer-part-800.webp 800w, assets/img/explorer-part-1200.webp 1200w" sizes="(min-width: 80rem) 75rem, calc(100vw - 3rem)" width="1200" height="745" loading="lazy" decoding="async" alt="The 3D explorer with the left femur selected: the rest of the skeleton fades, and the panel shows the bone’s name, system and definition.">
+          </picture>
+        </figure>
+        <ul class="notes">
+          <li class="note"><h3>Its name and definition</h3><p>The panel shows the part’s name, its body system and a short definition from the model.</p></li>
+          <li class="note"><h3>Did you know?</h3><p>Short facts about each body system, listed with the sources they come from.</p></li>
+          <li class="note"><h3>Quick practice</h3><p>Read one of your teacher’s structure descriptions and pick the name that matches. It is never graded.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="learnTitle">
+      <div class="page">
+        <h2 id="learnTitle" class="section-title">Lessons and quizzes in one place.</h2>
+        <div class="pair">
+          <article class="cell" aria-labelledby="lessonsTitle" data-reveal>
+            <h3 id="lessonsTitle">Lessons</h3>
+            <p>Your teacher groups lessons into modules. Everything a lesson needs sits on one page.</p>
+            <ul class="attachments" aria-label="What one lesson can hold">
+              <li class="attachment"><span class="attachment-icon"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#book-open"/></svg></span><span>Reading</span><span class="attachment-kind">Text</span></li>
+              <li class="attachment"><span class="attachment-icon"><img src="assets/img/systems/respiratory-480.webp" width="40" height="53" loading="lazy" decoding="async" alt=""></span><span>Images</span><span class="attachment-kind">PNG, JPG, WebP</span></li>
+              <li class="attachment"><span class="attachment-icon"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#file-pdf"/></svg></span><span>Documents</span><span class="attachment-kind">PDF</span></li>
+              <li class="attachment"><span class="attachment-icon"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#video-camera"/></svg></span><span>Videos</span><span class="attachment-kind">MP4, WebM</span></li>
+              <li class="attachment"><span class="attachment-icon"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#cube"/></svg></span><span>3D models</span><span class="attachment-kind">GLB</span></li>
+            </ul>
+            <p class="fine-print">When you finish a lesson, mark it complete and it counts toward your progress.</p>
+          </article>
+
+          <article class="cell" aria-labelledby="quizTitle" data-quiz-demo data-reveal>
+            <h3 id="quizTitle">Quizzes</h3>
+            <p>Four kinds of question: identification, multiple choice, true or false, and image hotspots, where you click the right spot on a picture.</p>
+            <div class="demo-tabs" role="tablist" aria-label="Question types">
+              <button class="demo-tab" type="button" role="tab" id="tabIdentification" aria-controls="panelIdentification" aria-selected="true"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#textbox"/></svg>Identification</button>
+              <button class="demo-tab" type="button" role="tab" id="tabChoice" aria-controls="panelChoice" aria-selected="false" tabindex="-1"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#list-checks"/></svg>Multiple choice</button>
+              <button class="demo-tab" type="button" role="tab" id="tabTrueFalse" aria-controls="panelTrueFalse" aria-selected="false" tabindex="-1"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#toggle-left"/></svg>True or false</button>
+              <button class="demo-tab" type="button" role="tab" id="tabHotspot" aria-controls="panelHotspot" aria-selected="false" tabindex="-1"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#crosshair"/></svg>Image hotspot</button>
+            </div>
+            <div class="question">
+              <div role="tabpanel" id="panelIdentification" aria-labelledby="tabIdentification" tabindex="0">
+                <div class="question-head"><span class="question-num">Question 1</span><span class="question-type">Identification</span></div>
+                <div class="question-text" aria-hidden="true"><span class="placeholder-line w-full"></span><span class="placeholder-line w-2/3"></span></div>
+                <p class="sr-only">Your teacher’s question appears here.</p>
+                <label class="field-label" for="demoIdentification">Your answer</label>
+                <input class="text-input" id="demoIdentification" type="text" placeholder="Type the term" autocomplete="off" spellcheck="false" data-demo-answer>
+              </div>
+              <div role="tabpanel" id="panelChoice" aria-labelledby="tabChoice" tabindex="0" hidden>
+                <div class="question-head"><span class="question-num">Question 2</span><span class="question-type">Multiple choice</span></div>
+                <div class="question-text" aria-hidden="true"><span class="placeholder-line w-full"></span><span class="placeholder-line w-1/2"></span></div>
+                <fieldset class="answers">
+                  <legend class="sr-only">Your teacher’s question appears here. Choose one answer.</legend>
+                  <label class="answer"><input type="radio" name="demoChoice" value="a" data-demo-answer><span class="answer-key" aria-hidden="true">A</span><span>Option A</span></label>
+                  <label class="answer"><input type="radio" name="demoChoice" value="b" data-demo-answer><span class="answer-key" aria-hidden="true">B</span><span>Option B</span></label>
+                  <label class="answer"><input type="radio" name="demoChoice" value="c" data-demo-answer><span class="answer-key" aria-hidden="true">C</span><span>Option C</span></label>
+                  <label class="answer"><input type="radio" name="demoChoice" value="d" data-demo-answer><span class="answer-key" aria-hidden="true">D</span><span>Option D</span></label>
+                </fieldset>
+              </div>
+              <div role="tabpanel" id="panelTrueFalse" aria-labelledby="tabTrueFalse" tabindex="0" hidden>
+                <div class="question-head"><span class="question-num">Question 3</span><span class="question-type">True or false</span></div>
+                <div class="question-text" aria-hidden="true"><span class="placeholder-line w-full"></span><span class="placeholder-line w-3/4"></span></div>
+                <fieldset class="answers answers-2">
+                  <legend class="sr-only">Your teacher’s statement appears here. Is it true or false?</legend>
+                  <label class="answer"><input type="radio" name="demoTrueFalse" value="true" data-demo-answer><span class="answer-key" aria-hidden="true">T</span><span>True</span></label>
+                  <label class="answer"><input type="radio" name="demoTrueFalse" value="false" data-demo-answer><span class="answer-key" aria-hidden="true">F</span><span>False</span></label>
+                </fieldset>
+              </div>
+              <div role="tabpanel" id="panelHotspot" aria-labelledby="tabHotspot" tabindex="0" hidden>
+                <div class="question-head"><span class="question-num">Question 4</span><span class="question-type">Image hotspot</span></div>
+                <p class="fine-print mb-3">Click the spot on your teacher’s image that the question asks about.</p>
+                <button class="hotspot" type="button" data-demo-hotspot aria-describedby="hotspotHelp">
+                  <img src="assets/img/systems/urinary-800.webp" width="800" height="1067" loading="lazy" decoding="async" alt="">
+                  <span class="hotspot-pin" hidden></span>
+                  <span class="sr-only">Place a pin on the picture of the kidneys and bladder</span>
+                </button>
+                <p class="sr-only" id="hotspotHelp">With a keyboard, press Enter to place the pin in the centre, then move it with the arrow keys.</p>
+              </div>
+              <p class="save-status" role="status" data-demo-status><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#clock"/></svg><span>Answer a question to see it save.</span></p>
+            </div>
+            <p class="fine-print">Answers save as you go. Refresh and you are back in the same attempt with the time you had left.</p>
+            <p class="fine-print">Practice only. Nothing here is graded or sent anywhere.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="progressTitle">
+      <div class="page progress">
+        <div>
+          <h2 id="progressTitle" class="section-title">See how you are doing.</h2>
+          <p class="lead mt-4 measure">Your progress page fills in as you learn. This is how it looks before your first quiz.</p>
+          <ul class="points">
+            <li class="point"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#exam"/></svg><div><h3>Scores from graded attempts</h3><p>Your average and your list of results fill in as your quiz attempts are graded.</p></div></li>
+            <li class="point"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#check-circle"/></svg><div><h3>Lessons you complete</h3><p>You mark each lesson complete yourself. Quizzes then show how much you understood.</p></div></li>
+            <li class="point"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#trophy"/></svg><div><h3>Goals from your teacher</h3><p>Achievements unlock when you reach the goals your teacher sets.</p></div></li>
+          </ul>
+        </div>
+        <div class="progress-card" data-reveal>
+          <h3>My progress and scores</h3>
+          <dl class="tiles">
+            <div class="tile"><dt class="tile-label">Average quiz score</dt><dd class="tile-value">Not yet</dd></div>
+            <div class="tile"><dt class="tile-label">Quizzes completed</dt><dd class="tile-value">0</dd></div>
+            <div class="tile"><dt class="tile-label">Lessons completed</dt><dd class="tile-value">Not yet</dd></div>
+            <div class="tile"><dt class="tile-label">Total study time</dt><dd class="tile-value">0.0h</dd></div>
+          </dl>
+          <h4 class="card-heading">Achievements</h4>
+          <p class="goal"><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#medal"/></svg>No achievements available yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works" aria-labelledby="stepsTitle">
+      <div class="page">
+        <h2 id="stepsTitle" class="section-title">Three steps to your first lesson.</h2>
+        <ol class="steps" data-reveal>
+          <li class="step"><span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#user-plus"/></svg></span><div><h3>Create your account</h3><p>Sign up with the student ID your school gave you and a password of your own.</p></div></li>
+          <li class="step"><span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#cube"/></svg></span><div><h3>Explore and learn</h3><p>Turn body systems on in the 3D explorer and open the lessons your teacher publishes.</p></div></li>
+          <li class="step"><span class="step-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 256 256" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#chart-line"/></svg></span><div><h3>Take quizzes, track progress</h3><p>Answer the quizzes your teacher assigns, then check your scores whenever you like.</p></div></li>
         </ol>
       </div>
     </section>
 
-    <!-- Closing CTA -->
-    <section class="cta-band on-dark" aria-labelledby="ctaTitle">
-      <div class="page grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-        <div>
-          <p class="caption caption--leader">Your account</p>
-          <h2 id="ctaTitle" class="section-title mt-4 prose-measure">Bring your student ID and take a closer look.</h2>
-          <p class="mt-6 text-14 text-muted prose-measure">Forgot your password? Your teacher resets it for you; there’s no email reset. The sign-in page shows who to contact.</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <a class="btn btn-primary btn-halo" href="login.html#register" data-primary-cta>Create account <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#arrow-right"/></svg></a>
-          <a class="btn btn-secondary" href="login.html#login">Sign in</a>
+    <section class="section">
+      <div class="page">
+        <div class="closing" data-reveal>
+          <div data-auth="signed-out">
+            <h2 class="section-title">Bring your student ID and take a closer look.</h2>
+            <p class="mt-4 muted measure">Forgot your password? Your teacher resets it; there is no email reset.</p>
+          </div>
+          <div data-auth="signed-in">
+            <h2 class="section-title">Pick up where you left off.</h2>
+          </div>
+          <div class="cta-row" data-auth="signed-out">
+            <a class="btn btn-primary" href="login.html#register" data-primary-cta>Create account <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#arrow-right"/></svg></a>
+            <a class="btn btn-secondary" href="login.html#login">Sign in</a>
+          </div>
+          <div class="cta-row" data-auth="signed-in">
+            <a class="btn btn-primary" href="student/dashboard.html" data-primary-cta data-dashboard-link>Open dashboard <svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#arrow-right"/></svg></a>
+            <a class="btn btn-secondary" href="student/anatomy.html" data-explorer-link>Open 3D explorer</a>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer on-dark">
+  <footer class="footer">
     <div class="page footer-grid">
       <div>
-        <a class="brand" href="#main" aria-label="Anthropotomy, back to top"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt="" loading="lazy"><span class="brand-name">Anthropotomy</span></a>
-        <p class="caption mt-4">Explore. Learn. Understand.</p>
-        <p class="footer-small mt-4 flex items-center gap-2" data-school-line hidden><svg class="icon-inline" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261005-landing1#building-apartment"/></svg><span data-setting="school_name"></span></p>
+        <a class="brand" href="./" aria-label="Anthropotomy home"><img class="brand-mark" src="assets/brand/mark-96.png" width="36" height="36" alt="" loading="lazy"><span class="brand-name">Anthropotomy</span></a>
+        <p class="footer-small mt-3">Explore. Learn. Understand.</p>
+        <p class="footer-small mt-3 flex items-center gap-2" data-school-line hidden><svg class="icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261011-atlas1#building-apartment"/></svg><span data-school-name></span></p>
       </div>
-      <nav aria-label="Footer">
-        <ul class="footer-links">
-          <li><a href="login.html#register">Create account</a></li>
-          <li><a href="login.html#login">Sign in</a></li>
-          <li><a href="login.html#terms">Terms and Conditions</a></li>
-        </ul>
-      </nav>
-      <div class="footer-small grid gap-4 content-start">
-        <p><a href="login.html">Teachers and administrators sign in here too.</a></p>
-        <p>3D model in the preview above: <a href="https://sketchfab.com/3d-models/male-human-skeleton-zbrush-anatomy-study-665890c542be433fb18ef235cf987cef" rel="noopener">“Male Human Skeleton – ZBrush – Anatomy Study”</a> by <a href="https://sketchfab.com/ruslangadzhiev" rel="noopener">Ruslan Gadzhiev</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener">CC BY 4.0</a>.</p>
+      <ul class="footer-links">
+        <li data-auth="signed-out"><a href="login.html#register">Create account</a></li>
+        <li data-auth="signed-out"><a href="login.html#login">Sign in</a></li>
+        <li data-auth="signed-in"><a href="student/dashboard.html" data-dashboard-link>Open dashboard</a></li>
+        <li data-auth="signed-in"><a href="student/anatomy.html" data-explorer-link>Open 3D explorer</a></li>
+        <li><a href="login.html#terms">Terms and Conditions</a></li>
+      </ul>
+      <div class="footer-small grid gap-3 content-start">
+        <p data-auth="signed-out">Teachers and administrators use the same sign-in page.</p>
+        <p>3D models from <a href="https://github.com/LluisV/Z-Anatomy" rel="noopener">Z-Anatomy</a> (<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license noopener">CC BY-SA 4.0</a>), with part definitions from Wikipedia. Female reproductive organs from the <a href="https://3d.nih.gov/" rel="noopener">NIH 3D</a> Human Reference Atlas (<a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener">CC BY 4.0</a>).</p>
+        <p>“Did you know?” facts from <a href="https://openstax.org/details/books/anatomy-and-physiology-2e" rel="noopener">OpenStax Anatomy and Physiology 2e</a> (<a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener">CC BY 4.0</a>).</p>
       </div>
     </div>
-    <div class="page footer-small footer-base">© <span data-current-year></span> Anthropotomy. Interactive human anatomy learning.</div>
+    <div class="page footer-small footer-base">© <span data-current-year>2026</span> Anthropotomy. Interactive human anatomy learning.</div>
   </footer>
-
-  <script src="assets/js/site-config.js"></script>
 </body>
 </html>

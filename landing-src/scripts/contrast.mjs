@@ -16,34 +16,29 @@ const ratio = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((p, q
 // [foreground, background, minimum, where it is used]
 const TEXT = 4.5, UI = 3;
 const pairs = [
-  ['text-on-dark', 'ink', TEXT, 'body text on hero, header, CTA band, footer'],
-  ['muted-on-dark', 'ink', TEXT, 'secondary text and plate captions on dark'],
-  ['glow', 'ink', TEXT, 'links and quiet CTA on dark'],
-  ['ink', 'glow', TEXT, 'primary button label on dark'],
-  ['ink', 'glow-strong', TEXT, 'primary button label on dark, hover'],
-  ['text-on-dark', 'forest', TEXT, 'text on raised dark surfaces'],
-  ['muted-on-dark', 'forest', TEXT, 'captions on raised dark surfaces'],
-  ['glow', 'forest', TEXT, 'accent text on raised dark surfaces'],
-  ['line-on-dark', 'ink', UI, 'secondary button and input borders on dark'],
-  ['line-on-dark', 'forest', UI, 'borders on raised dark surfaces'],
-  ['text-on-paper', 'paper', TEXT, 'body text on paper'],
-  ['muted-on-paper', 'paper', TEXT, 'secondary text and captions on paper'],
-  ['brand', 'paper', TEXT, 'links and accents on paper'],
-  ['white', 'brand', TEXT, 'primary button label on paper'],
-  ['white', 'brand-strong', TEXT, 'primary button label on paper, hover'],
-  ['text-on-paper', 'paper-raised', TEXT, 'text in mock screens and form fields'],
-  ['muted-on-paper', 'paper-raised', TEXT, 'secondary text in mock screens and fields'],
-  ['brand', 'paper-raised', TEXT, 'accents in mock screens'],
-  ['brand', 'brand-tint', TEXT, 'selected answer and badges in mock screens'],
-  ['text-on-paper', 'brand-tint', TEXT, 'text on selected answer'],
-  ['line-on-paper', 'paper', UI, 'input and secondary button borders on paper'],
-  ['line-on-paper', 'paper-raised', UI, 'input borders inside raised panels'],
-  ['brand', 'paper', UI, 'focus ring on paper'],
-  ['glow', 'ink', UI, 'focus ring on dark'],
-  ['error', 'paper', TEXT, 'field errors on paper'],
-  ['error', 'paper-raised', TEXT, 'field errors inside the form panel'],
+  ['text', 'page', TEXT, 'body text on the page'],
+  ['text', 'surface', TEXT, 'text on cards and the 3D stage'],
+  ['text', 'raised', TEXT, 'text in inputs, toggles and the part card'],
+  ['muted', 'page', TEXT, 'secondary text on the page'],
+  ['muted', 'surface', TEXT, 'secondary text on cards'],
+  ['muted', 'raised', TEXT, 'secondary text in inputs and the part card'],
+  ['accent', 'page', TEXT, 'links and the quiet button on the page'],
+  ['accent', 'surface', TEXT, 'accent text on cards'],
+  ['accent', 'raised', TEXT, 'accent text on raised controls'],
+  ['on-accent', 'accent', TEXT, 'main button label'],
+  ['on-accent', 'accent-strong', TEXT, 'main button label, hover'],
+  ['line', 'page', UI, 'input and secondary button borders on the page'],
+  ['line', 'surface', UI, 'borders on cards'],
+  ['line', 'raised', UI, 'borders on raised controls'],
+  ['accent', 'page', UI, 'focus ring on the page'],
+  ['accent', 'surface', UI, 'focus ring on cards'],
+  ['accent', 'raised', UI, 'focus ring on raised controls'],
+  ['error', 'surface', TEXT, 'field errors in the form card'],
+  ['error', 'raised', TEXT, 'field errors next to inputs'],
   ['error', 'error-tint', TEXT, 'error notice'],
-  ['brand-strong', 'success-tint', TEXT, 'success notice'],
+  ['accent', 'success-tint', TEXT, 'success notice'],
+  ['text', 'success-tint', TEXT, 'text in the success notice'],
+  ['text', 'error-tint', TEXT, 'text in the error notice'],
 ];
 
 let failed = 0;
@@ -52,7 +47,7 @@ for (const [fg, bg, min, use] of pairs) {
   const value = ratio(tokens[fg], tokens[bg]);
   const ok = value >= min;
   if (!ok) failed++;
-  console.log(`${ok ? 'pass' : 'FAIL'}  ${value.toFixed(2).padStart(5)}:1  (min ${min})  ${fg} on ${bg} — ${use}`);
+  console.log(`${ok ? 'pass' : 'FAIL'}  ${value.toFixed(2).padStart(5)}:1  (min ${min})  ${fg} on ${bg}: ${use}`);
 }
 if (failed) { console.error(`${failed} pair(s) below the minimum.`); process.exit(1); }
 console.log(`All ${pairs.length} pairs pass.`);

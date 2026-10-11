@@ -1,39 +1,17 @@
-// Builds the public-page images from the two source images in uploads/images/.
+// Builds the brand mark, favicons and app icons from uploads/images/logo.png.
 // Run from landing-src/: npm run build:assets. Outputs are committed, so the site
-// itself never needs Node.
+// itself never needs Node. The 3D renders come from scripts/render-systems.mjs.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const out = dir => path.join(root, 'assets', dir);
-const INK = '#07110E';
+const INK = '#0A111C'; // --color-page
 
 async function report(file) {
   const { size } = await fs.stat(file);
   console.log(`${(size / 1024).toFixed(1).padStart(7)} KB  ${path.relative(root, file)}`);
-}
-
-// ── Hero poster: the glowing X-ray skeleton, cropped to its visible bounds. ──
-// The source is transparent around the figure; keep the alpha so the plate
-// grid shows through on the page.
-async function poster() {
-  await fs.mkdir(out('img'), { recursive: true });
-  const crop = { left: 0, top: 115, width: 957, height: 1333 };
-  const base = sharp(path.join(root, 'uploads/images/sidebar_bg.png')).extract(crop);
-  for (const width of [480, 720, 957]) {
-    const resized = base.clone().resize({ width });
-    const stem = path.join(out('img'), `hero-skeleton-${width}`);
-    await resized.clone().avif({ quality: 52, effort: 7 }).toFile(stem + '.avif');
-    await resized.clone().webp({ quality: 74, alphaQuality: 80, effort: 6 }).toFile(stem + '.webp');
-    await report(stem + '.avif');
-    await report(stem + '.webp');
-  }
-  // PNG fallback for browsers without WebP: palette-quantised to stay small.
-  const png = path.join(out('img'), 'hero-skeleton-720.png');
-  await base.clone().resize({ width: 720 }).png({ palette: true, quality: 80, colours: 128, effort: 10 }).toFile(png);
-  await report(png);
-  console.log(`poster aspect: ${crop.width} × ${crop.height}`);
 }
 
 // ── Brand mark: only the hexagon-and-skeleton mark from logo.png. ──
@@ -111,5 +89,4 @@ async function icons(master) {
   await report(ico);
 }
 
-await poster();
 await icons(await mark());

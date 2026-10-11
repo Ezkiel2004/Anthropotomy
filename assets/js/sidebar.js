@@ -3,13 +3,13 @@
 (() => {
     const host=document.currentScript.parentElement;
     const templates={
-        teacher: `<div class="sidebar-logo">
+        teacher: `<a class="sidebar-logo" href="../index.html" aria-label="Anthropotomy home">
       <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png" alt="" width="36" height="36"/></div>
       <div class="sidebar-logo-text">
         <div class="sidebar-logo-name">Anthropotomy</div>
         <div class="sidebar-logo-sub">Teacher Portal</div>
       </div>
-    </div>
+    </a>
 
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
@@ -58,13 +58,13 @@
     <a class="nav-item" href="content.html"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#building-apartment"/></svg></span><span class="nav-label">School & Anatomy Content</span></a><a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
 
     <div class="sidebar-footer"><div class="user-card"><a class="sidebar-profile" href="settings.html" title="Settings and profile"><div class="avatar">&#8226;</div><div class="user-info"><div class="user-name">Teacher</div><div class="user-role">Teacher</div></div></a><button type="button" class="logout-btn" title="Sign out" aria-label="Sign out"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#sign-out"/></svg></button></div></div>`,
-        student: `<div class="sidebar-logo">
+        student: `<a class="sidebar-logo" href="../index.html" aria-label="Anthropotomy home">
       <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png" alt="" width="36" height="36"/></div>
       <div class="sidebar-logo-text">
         <div class="sidebar-logo-name">Anthropotomy</div>
         <div class="sidebar-logo-sub">Student Portal</div>
       </div>
-    </div>
+    </a>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Learning</div>
       <a class="nav-item" href="dashboard.html" data-tooltip="Dashboard">
@@ -103,7 +103,7 @@
         if(link.getAttribute('href')===current){link.classList.add('active');link.setAttribute('aria-current','page');}
         // A new page URL also bypasses HTML cached before revalidation was enabled.
         const destination=new URL(link.href);
-        destination.searchParams.set('nav','20261005-brand1');
+        destination.searchParams.set('nav','20261011-atlas1');
         link.href=destination.pathname+destination.search;
     });
 })();

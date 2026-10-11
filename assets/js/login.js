@@ -46,7 +46,7 @@ function validate(form) {
         let message = '';
         if (input.required && (input.type === 'checkbox' ? !input.checked : !input.value.trim())) message = input.type === 'checkbox' ? 'Please agree to the Terms and Conditions to register.' : 'Please complete this field.';
         else if (input.validity.typeMismatch) message = 'Enter a valid email address, such as name@example.com.';
-        else if (input.id === 'regUsername' && !/^[A-Za-z0-9_.-]{3,50}$/.test(input.value)) message = 'Use 3–50 letters, numbers, periods, underscores or hyphens.';
+        else if (input.id === 'regUsername' && !/^[A-Za-z0-9_.-]{3,50}$/.test(input.value)) message = 'Use 3 to 50 letters, numbers, periods, underscores or hyphens.';
         else if (input.id === 'contactNo' && (!/^[+\d\s().-]+$/.test(input.value) || input.value.replace(/\D/g, '').length < 7)) message = 'Enter a valid contact number with at least 7 digits.';
         else if (input.id === 'regPassword' && (input.value.length < 8 || new TextEncoder().encode(input.value).length > 72)) message = 'Use at least 8 characters and no more than 72 bytes.';
         else if (input.id === 'confirmPassword' && input.value !== byId('regPassword').value) message = 'Your passwords do not match. Please try again.';
@@ -63,7 +63,8 @@ async function request(path, body) {
     if (!response.ok || !result.success) throw new Error(result.message || 'Unable to complete your request. Please try again.');
     return result;
 }
-function destination(role) { return `${APP_BASE}/${['teacher','admin'].includes(role) ? 'teacher' : 'student'}/dashboard.html`; }
+// Everyone lands on the home page after signing in; it links to the right dashboard for the role.
+const HOME = `${APP_BASE}/index.html`;
 async function handleLogin(event) {
     event?.preventDefault();
     if (byId('loginBtn').disabled || !validate(byId('loginForm'))) return;
@@ -78,8 +79,8 @@ async function handleLogin(event) {
             if (byId('rememberMe').checked) localStorage.setItem('anatomiq_remember', username);
             else localStorage.removeItem('anatomiq_remember');
         } catch (_) { /* The server session remains authoritative when browser storage is unavailable. */ }
-        notice('loginSuccess', `Welcome, ${result.data.full_name}! Opening your dashboard…`);
-        location.assign(destination(result.data.role));
+        notice('loginSuccess', `Welcome, ${result.data.full_name}!`);
+        location.assign(HOME);
     } catch (error) {
         notice('loginError', error instanceof TypeError || error instanceof SyntaxError ? 'We couldn’t connect. Please try again in a moment.' : error.message, true);
         restoreLabel(button);
@@ -126,7 +127,7 @@ function switchView(focus = true) {
     document.body.classList.toggle('register-mode', register);
     for (const id of ['loginTab', 'registerTab']) byId(id).removeAttribute('aria-current');
     byId(register ? 'registerTab' : 'loginTab').setAttribute('aria-current','page');
-    document.title = register ? 'Create your student account – Anthropotomy' : 'Sign in – Anthropotomy';
+    document.title = register ? 'Create your student account · Anthropotomy' : 'Sign in · Anthropotomy';
     if (location.hash === '#terms') {
         // Deep link from the landing page footer: show the terms over the sign-in view.
         if (!byId('termsModal').open) byId('termsModal').showModal();
@@ -177,6 +178,9 @@ document.addEventListener('siteconfigloaded', event => {
     const grade = event.detail.grade_level;
     if (grade && ![...byId('gradeLevel').options].some(option => option.value === grade)) byId('gradeLevel').add(new Option(grade, grade));
 });
+// Already signed in: cache the user for the portal pages in this tab, then go home.
 fetch(API_BASE + '/auth/session.php', {credentials:'same-origin'}).then(response => response.json()).then(result => {
-    if (result.success) location.replace(destination(result.data.role));
+    if (!result.success) return;
+    try { sessionStorage.setItem('anatomiq_user', JSON.stringify(result.data)); } catch (_) { /* The server session remains authoritative. */ }
+    location.replace(HOME);
 }).catch(() => { /* Keep the form available during a connection failure. */ });

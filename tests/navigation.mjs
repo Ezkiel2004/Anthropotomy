@@ -24,7 +24,15 @@ async function navigate(path){
 await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
 await new Promise(resolve=>setTimeout(resolve,1200));
-assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
+assert.equal(await evaluate('location.pathname'),'/index.html','Teacher sign-in lands on the home page');
+assert.equal(await evaluate(`document.querySelector('.hero-copy [data-dashboard-link]').getAttribute('href')`),'teacher/dashboard.html','The home page links the teacher to the teacher dashboard');
+await evaluate(`document.querySelector('.hero-copy [data-dashboard-link]').click()`);
+for(let i=0;i<60;i++){
+ await new Promise(resolve=>setTimeout(resolve,200));
+ if(await evaluate(`location.pathname==='/teacher/dashboard.html' && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav'))`))break;
+}
+assert.equal(await evaluate('location.pathname'),'/teacher/dashboard.html','Open dashboard reaches the teacher dashboard');
+assert.equal(await evaluate(`document.querySelector('.sidebar-logo').getAttribute('href')`),'../index.html','The sidebar logo links to the home page');
 
 const expected={
  teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','media','settings','content','anatomy'],
@@ -54,6 +62,8 @@ for(const role of ['teacher','student']){
    await evaluate('Auth.logout()');await navigate('/login.html');
    await evaluate(`document.getElementById('username').value='navigation-student';document.getElementById('password').value='navigation-test-password';handleLogin();`);
    await new Promise(resolve=>setTimeout(resolve,1000));
+   assert.equal(await evaluate('location.pathname'),'/index.html','Student sign-in lands on the home page');
+   assert.equal(await evaluate(`document.querySelector('.hero-copy [data-dashboard-link]').getAttribute('href')`),'student/dashboard.html','The home page links the student to the student dashboard');
  }
  let baseline;
  for(const page of pages[role]){

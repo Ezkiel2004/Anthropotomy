@@ -4,33 +4,29 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  @font-face { font-family: "Instrument Serif"; src: url("../../assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2"); }
-  @font-face { font-family: "Instrument Serif"; font-style: italic; src: url("../../assets/fonts/instrument-serif-latin-400-italic.woff2") format("woff2"); }
-  @font-face { font-family: "JetBrains Mono"; font-weight: 500; src: url("../../assets/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
-  :root { --ink: #07110E; --glow: #3DDC97; --text: #E8F3EC; --muted: #9DB8AA; --rule: #1F3A30; --line: #6A897B; }
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 400; src: url("../../assets/fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 800; src: url("../../assets/fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2"); }
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 800; font-style: italic; src: url("../../assets/fonts/plus-jakarta-sans-latin-800-italic.woff2") format("woff2"); }
+  /* The public pages' tokens (landing-src/src/public.css). */
+  :root { --page: #0A111C; --surface: #101C2E; --rule: #22344D; --text: #E8EEF5; --muted: #A7B6C8; --accent: #3DDC97; }
   * { box-sizing: border-box; margin: 0; }
-  body { width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--text); font-family: "Instrument Serif", serif; }
-  .frame { position: absolute; inset: 40px; border: 1px solid var(--rule); }
-  .grid { position: absolute; inset: 40px; background-image: linear-gradient(to right, var(--rule) 1px, transparent 1px), linear-gradient(to bottom, var(--rule) 1px, transparent 1px); background-size: 50px 50px; opacity: .55; }
-  .figure { position: absolute; right: 40px; bottom: 40px; height: 550px; width: auto; }
-  .copy { position: absolute; left: 96px; top: 96px; width: 640px; }
-  .brand { display: flex; align-items: center; gap: 18px; font-size: 44px; }
-  .brand img { width: 64px; height: 64px; }
-  .caption { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 18px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 16px; }
-  .caption::after { content: ""; width: 64px; height: 1px; background: currentColor; opacity: .6; }
-  h1 { margin-top: 56px; font-weight: 400; font-size: 104px; line-height: .98; letter-spacing: -.01em; }
-  h1 em { color: var(--glow); }
-  .foot { position: absolute; left: 96px; bottom: 88px; }
+  body { width: 1200px; height: 630px; overflow: hidden; background: var(--page); color: var(--text); font-family: "Plus Jakarta Sans", sans-serif; }
+  .copy { position: absolute; left: 80px; top: 72px; width: 600px; }
+  .brand { display: flex; align-items: center; gap: 16px; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand img { width: 56px; height: 56px; }
+  h1 { margin-top: 60px; font-size: 76px; font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; padding-bottom: 8px; }
+  h1 em { color: var(--accent); }
+  .tagline { position: absolute; left: 80px; bottom: 72px; font-size: 24px; color: var(--muted); }
+  .stage { position: absolute; right: 80px; top: 40px; width: 440px; height: 550px; overflow: hidden; border-radius: 16px; border: 1px solid var(--rule); background: var(--surface); }
+  .stage img { display: block; width: 100%; height: 100%; object-fit: cover; }
 </style>
 </head>
 <body>
-  <div class="grid"></div>
-  <img class="figure" src="../../assets/img/hero-skeleton-957.webp" alt="">
-  <div class="frame"></div>
   <div class="copy">
     <div class="brand"><img src="../../assets/brand/mark-192.png" alt="">Anthropotomy</div>
-    <h1>See <em>inside</em><br>the human body.</h1>
+    <h1>Click <em>any part</em> of the human body.</h1>
   </div>
-  <div class="foot caption">Explore. Learn. Understand.</div>
+  <p class="tagline">Explore. Learn. Understand.</p>
+  <div class="stage"><img src="../../assets/img/hero-skeletal-1200.webp" alt=""></div>
 </body>
 </html>
