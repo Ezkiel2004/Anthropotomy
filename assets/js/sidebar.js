@@ -103,7 +103,7 @@
         if(link.getAttribute('href')===current){link.classList.add('active');link.setAttribute('aria-current','page');}
         // A new page URL also bypasses HTML cached before revalidation was enabled.
         const destination=new URL(link.href);
-        destination.searchParams.set('nav','20261005-brand1');
+        destination.searchParams.set('nav','20261011-atlas1');
         link.href=destination.pathname+destination.search;
     });
 })();
