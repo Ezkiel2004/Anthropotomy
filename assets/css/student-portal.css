@@ -149,56 +149,7 @@
   .student-dashboard .profile-fields { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Dashboard: one clear next step, encouraging hints and empty states that lead somewhere.
-   One surface per section: no pastel icon tiles and no boxes inside cards. The next-step
-   panel uses the X-ray palette from the landing page (ink, forest, glow). */
-.student-dashboard.dashboard-page .next-step {
-  flex-wrap: wrap; gap: 20px; padding: 22px 24px; margin-bottom: 16px;
-  background: #0b1f19; border-color: #1f3a30; box-shadow: none; color: #e8f3ec;
-}
-.student-dashboard.dashboard-page .next-step::after { content: none; }
-.student-dashboard.dashboard-page .next-step .anatomy-shortcut-icon {
-  width: 48px; height: 48px; border-radius: 10px; background: transparent; border: 1px solid #3ddc97; color: #3ddc97; box-shadow: none;
-}
-.student-dashboard.dashboard-page .next-step .anatomy-shortcut-icon svg { width: 24px; height: 24px; }
-.student-dashboard.dashboard-page .next-step .anatomy-shortcut-copy { flex: 1 1 320px; }
-.student-dashboard .next-step-kicker {
-  margin: 0 0 6px; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #3ddc97;
-}
-.student-dashboard.dashboard-page .next-step h2 { color: #e8f3ec; font-size: 1.35rem; overflow-wrap: anywhere; }
-.student-dashboard.dashboard-page .next-step p { color: #9db8aa; }
-.student-dashboard .next-step-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
-.student-dashboard.dashboard-page .next-step .btn-primary {
-  display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px;
-  background: #3ddc97; border-color: #3ddc97; color: #07110e; font-weight: 700; box-shadow: none;
-}
-.student-dashboard.dashboard-page .next-step .btn-primary:hover { background: #6fe6b4; border-color: #6fe6b4; color: #07110e; }
-.student-dashboard.dashboard-page .next-step .btn-primary svg { width: 18px; height: 18px; }
-.student-dashboard .next-step-alt { font-size: .8125rem; font-weight: 600; color: #6fe6b4; }
-.student-dashboard .next-step-alt:hover { color: #e8f3ec; }
-.student-dashboard.dashboard-page .next-step[data-kind="error"] .anatomy-shortcut-icon { border-color: #ff8a80; color: #ff8a80; }
-
-/* Stats: one strip with hairline dividers instead of four floating cards. */
-.student-dashboard.dashboard-page .stats-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 16px; overflow: hidden;
-  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 11px;
-}
-.student-dashboard.dashboard-page .stats-grid .stat-card {
-  gap: 2px; padding: 18px 20px; border: 0; border-radius: 0; box-shadow: none; background: transparent;
-}
-.student-dashboard.dashboard-page .stats-grid .stat-card + .stat-card { border-left: 1px solid var(--border-light); }
-.student-dashboard.dashboard-page .stat-info { gap: 2px; }
-.student-dashboard.dashboard-page .stat-value { font-size: 2rem; }
-.student-dashboard.dashboard-page .stat-label { order: -1; font-size: .78rem; font-weight: 600; color: var(--text-secondary); }
-.student-dashboard.dashboard-page .stats-grid .stat-card .stat-change { margin-top: 4px; font-size: .74rem; color: var(--text-muted); }
-@media (max-width: 900px) {
-  .student-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .student-dashboard.dashboard-page .stats-grid .stat-card:nth-child(3) { border-left: 0; }
-  .student-dashboard.dashboard-page .stats-grid .stat-card:nth-child(n+3) { border-top: 1px solid var(--border-light); }
-  .student-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
-}
-
+/* Student dashboard lists. The next-step panel and stats strip are shared and live in teacher-dashboard.css. */
 .student-dashboard .dashboard-block { margin-bottom: 16px; }
 .student-dashboard .dashboard-block .monitoring-toolbar { margin-bottom: 4px; }
 
@@ -224,8 +175,3 @@
 .student-dashboard .system-tile-meta { font-size: .75rem; color: var(--text-muted); }
 .student-dashboard .system-tile-link { font-size: .78rem; font-weight: 600; color: var(--brand); white-space: nowrap; }
 .student-dashboard .system-tile-bar { flex-basis: 100%; height: 4px; }
-
-@media (max-width: 760px) {
-  /* The banner becomes a two-column grid here (teacher-dashboard.css); actions sit under the copy. */
-  .student-dashboard .next-step-actions { grid-column: 2; align-items: flex-start; }
-}

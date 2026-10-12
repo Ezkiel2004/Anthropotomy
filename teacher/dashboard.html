@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Teacher Dashboard – Anthropotomy</title>
+  <title>Teacher Dashboard | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -11,16 +11,16 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20260914-icons1"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard dashboard-page">
 
 
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261005-brand1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261012-dash2"></script></aside>
 
   <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -70,150 +70,95 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1><span class="greeting-text">Good Morning</span>, <span id="teacherHeaderName">Teacher</span></h1>
-          <p>Class activity and student progress overview.</p>
+          <p id="teacherEncouragement">Here’s how your class is doing.</p>
         </div>
         <div class="page-header-right">
           <div class="dashboard-date"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#calendar"/></svg><span id="currentDate"></span></div>
-          <a href="assessments.html" class="btn btn-primary btn-sm">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg>
-            New Assessment
-          </a>
         </div>
       </div>
 
-      <section class="card anatomy-shortcut" aria-labelledby="anatomyShortcutTitle">
+      <!-- Your next step: the most important unfinished thing, from live data -->
+      <section class="card anatomy-shortcut next-step" id="teacherNextStep" aria-labelledby="nextStepTitle" aria-live="polite">
         <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#stack"/></svg></span>
-        <div class="anatomy-shortcut-copy"><h2 id="anatomyShortcutTitle">3D Anatomy Explorer</h2><p>Preview learning content and present anatomy models to your class.</p></div>
-        <a href="anatomy.html" class="btn btn-primary">Explore 3D Anatomy <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></a>
+        <div class="anatomy-shortcut-copy"><p class="next-step-kicker">Your next step</p><h2 id="nextStepTitle">Checking your class…</h2></div>
       </section>
 
-      <!-- Stats Grid -->
+      <!-- Stats strip -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statTotalStudents">0</div>
-            <div class="stat-label">Total Students</div>
-            <div class="stat-change up" id="statActiveStudentsSub">0 active accounts</div>
+            <div class="stat-label">Students</div>
+            <div class="stat-change" id="statActiveStudentsSub">Loading…</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pulse"/></svg>
-          </div>
           <div class="stat-info">
-            <div class="stat-value" id="statActiveStudents">0</div>
-            <div class="stat-label">Active Learners</div>
-            <div class="stat-change up">Registered students</div>
+            <div class="stat-value" id="statClassAverage">Not yet</div>
+            <div class="stat-label">Class average</div>
+            <div class="stat-change" id="statClassAverageSub">Loading…</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg>
-          </div>
           <div class="stat-info">
-            <div class="stat-value" id="statClassAverage">0%</div>
-            <div class="stat-label">Class Average Score</div>
-            <div class="stat-change up">Across all quizzes</div>
+            <div class="stat-value" id="statTotalLessons">0</div>
+            <div class="stat-label">Published lessons</div>
+            <div class="stat-change" id="statModulesSub">Loading…</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value" id="statActiveModules">0</div>
-            <div class="stat-label">Published Modules</div>
-            <div class="stat-change up" id="statTotalLessonsSub">0 lessons live</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#file-text"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statActiveAssessments">0</div>
-            <div class="stat-label">Active Assessments</div>
-            <div class="stat-change">Available to students</div>
+            <div class="stat-label">Open quizzes</div>
+            <div class="stat-change" id="statAssessmentsSub">Loading…</div>
           </div>
         </div>
       </div>
 
-      <!-- Row 1: Progress Chart + Leaderboard -->
+      <!-- Who needs help, and the shortcuts -->
       <div class="dashboard-row">
         <div class="card">
-          <h2 class="section-title"><span class="panel-icon green"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg></span>Recent Class Quiz Scores</h2>
+          <h2 class="section-title">Students needing attention</h2>
+          <div id="atRiskList"><div class="dashboard-empty">Checking student progress…</div></div>
+        </div>
+        <div class="card">
+          <h2 class="section-title">Quick actions</h2>
+          <ul class="row-list quick-actions">
+            <li><a class="row-link" href="modules.html"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg><span class="row-copy"><span class="row-title">Add a lesson</span><span class="row-meta">Modules and lessons</span></span></a></li>
+            <li><a class="row-link" href="assessments.html"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg><span class="row-copy"><span class="row-title">Create a quiz</span><span class="row-meta">Assessments</span></span></a></li>
+            <li><a class="row-link" href="students.html"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg><span class="row-copy"><span class="row-title">Manage students</span><span class="row-meta">Accounts and passwords</span></span></a></li>
+            <li><a class="row-link" href="announcements.html"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#megaphone"/></svg><span class="row-copy"><span class="row-title">Post an announcement</span><span class="row-meta">Students see it in notifications</span></span></a></li>
+            <li><a class="row-link" href="anatomy.html"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg><span class="row-copy"><span class="row-title">Present the 3D explorer</span><span class="row-meta">Fullscreen for class demonstrations</span></span></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Scores -->
+      <div class="dashboard-row">
+        <div class="card">
+          <h2 class="section-title">Recent class quiz scores</h2>
           <div class="chart-container">
             <canvas id="weeklyChart" style="width:100%;height:100%;" role="img" aria-label="Recent class quiz scores by submission date"></canvas>
-            <div id="weeklyChartEmpty" class="chart-empty" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg><strong>No quiz data available yet.</strong><span>Scores will appear after students complete quizzes.</span></div>
+            <div id="weeklyChartEmpty" class="chart-empty" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg><strong>No quiz scores yet.</strong><span>The class average by day appears after students submit a quiz.</span></div>
           </div>
         </div>
         <div class="card">
-          <h2 class="section-title"><span class="panel-icon gold"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg></span>Top Performers</h2>
-          <div class="leaderboard-list" id="leaderboardList">
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading leaderboard...</div>
-          </div>
+          <h2 class="section-title">Top performers</h2>
+          <div id="leaderboardList"><div class="dashboard-empty">Loading…</div></div>
         </div>
       </div>
 
-      <!-- Row 2: Module Progress + At-Risk -->
-      <div class="dashboard-row">
-        <div class="card">
-          <h2 class="section-title"><span class="panel-icon green"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#target"/></svg></span>System Completion Overview</h2>
-          <div id="moduleProgressList">
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading system stats...</div>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="section-title"><span class="panel-icon red"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg></span>Students Needing Attention</h2>
-          <div class="activity-feed" id="atRiskList">
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Checking student progress...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Row 3: System Scores + Quick Actions -->
-      <div class="dashboard-row-equal">
-        <div class="card">
-          <h2 class="section-title">Lesson Completion by Body System</h2>
-          <div class="chart-container" style="height:200px;">
-            <canvas id="systemScoreChart" style="width:100%;height:100%;"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="section-title">Quick Actions</h2>
-          <div class="quick-actions-grid">
-            <a href="modules.html" class="quick-action-link">
-              <div class="quick-action-title">Add Lesson</div>
-              <div class="quick-action-desc">Create new module</div>
-            </a>
-            <a href="assessments.html" class="quick-action-link">
-              <div class="quick-action-title">Create Quiz</div>
-              <div class="quick-action-desc">Build assessment</div>
-            </a>
-            <a href="students.html" class="quick-action-link">
-              <div class="quick-action-title">Student Roster</div>
-              <div class="quick-action-desc">Manage accounts</div>
-            </a>
-            <a href="announcements.html" class="quick-action-link">
-              <div class="quick-action-title">Announce</div>
-              <div class="quick-action-desc">Post updates</div>
-            </a>
-            <a href="monitoring.html" class="quick-action-link">
-              <div class="quick-action-title">Monitoring</div>
-              <div class="quick-action-desc">Track progress</div>
-            </a>
-          </div>
-        </div>
+      <!-- Body systems -->
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <h2 class="section-title">Lesson completion by body system</h2>
+        <div id="moduleProgressList"><div class="dashboard-empty">Loading body systems…</div></div>
       </div>
 
       <!-- Recent Student Submissions Table -->
       <div class="card" style="margin-bottom:var(--space-6);">
         <div class="monitoring-toolbar">
-          <h2 class="section-title" style="margin:0;">Recent Student Submissions</h2>
-          <a href="students.html" class="btn btn-secondary btn-sm">View Directory</a>
+          <h2 class="section-title" style="margin:0;">Recent student submissions</h2>
+          <a href="monitoring.html" class="btn btn-secondary btn-sm">Open monitoring</a>
         </div>
         <div class="table-wrapper">
           <table class="data-table">
@@ -228,7 +173,7 @@
               </tr>
             </thead>
             <tbody id="submissionsTable">
-              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading recent submissions...</td></tr>
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading recent submissions…</td></tr>
             </tbody>
           </table>
         </div>
@@ -243,172 +188,198 @@
 'use strict';
 Auth.requireAuthSync('teacher');
 
-// Set current date
+const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+const iconSvg = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
+const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
+const emptyState = (title, text, link) => `<div class="dashboard-empty"><strong>${title}</strong><p>${text}</p>${link ? `<p><a href="${link.href}" class="btn btn-secondary btn-sm">${link.label}</a></p>` : ''}</div>`;
+
 document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-PH', {
   weekday:'long', year:'numeric', month:'long', day:'numeric'
 });
 
+// Four things a class needs before students can learn here, each linked to where it is fixed.
+function setupChecks(stats, config) {
+  return [
+    { done: Boolean(String(config.academic_year || '').trim()), label: 'School year set', href: 'content.html' },
+    { done: stats.total_lessons > 0, label: 'Lessons published', href: 'modules.html' },
+    { done: stats.active_assessments > 0, label: 'A quiz is open', href: 'assessments.html' },
+    { done: stats.total_students > 0, label: 'Students enrolled', href: 'students.html' },
+  ];
+}
+
+// The most important unfinished thing first; once set up, who needs help; otherwise the explorer.
+function pickTeacherStep(stats, config, atRisk) {
+  if (!String(config.academic_year || '').trim()) {
+    return { kind: 'setup', icon: 'calendar', kicker: 'Students can’t sign up yet', title: 'Set the school year',
+      detail: 'New students can’t create accounts until the school year is set in School & Anatomy Content.', action: 'Set the school year', href: 'content.html' };
+  }
+  if (stats.total_lessons === 0) {
+    return { kind: 'setup', icon: 'book-open', kicker: 'Students have nothing to read yet', title: 'Publish your first lesson',
+      detail: stats.total_modules > 0
+        ? `You have ${plural(stats.total_modules, 'published module')}, but none of their lessons are published, so students see an empty lesson list.`
+        : 'Create a module, add a lesson and publish both. Students see it right away.',
+      action: 'Open modules', href: 'modules.html' };
+  }
+  if (stats.active_assessments === 0) {
+    return { kind: 'setup', icon: 'exam', kicker: 'No quizzes are open', title: 'Open your first quiz',
+      detail: 'Create a quiz from identification, multiple choice, true or false and image hotspot questions, then publish it.', action: 'Create a quiz', href: 'assessments.html' };
+  }
+  if (stats.total_students === 0) {
+    return { kind: 'setup', icon: 'users', kicker: 'Your class is empty', title: 'Add your students',
+      detail: 'Add students yourself, or share the sign-in page so they can register with their student ID.', action: 'Add students', href: 'students.html' };
+  }
+  if (atRisk.length) {
+    return { kind: 'attention', icon: 'warning-circle', kicker: 'Worth a look today', title: `${plural(atRisk.length, 'student')} may need help`,
+      detail: `Their quiz average is below the passing score${config.passing_score ? ` of ${config.passing_score}%` : ''}, or their account is turned off.`, action: 'Review in monitoring', href: 'monitoring.html' };
+  }
+  return { kind: 'explore', icon: 'cube', kicker: 'Your class is set up', title: 'Show the body in 3D',
+    detail: 'Open the explorer in fullscreen to walk your class through a body system.', action: 'Open the 3D explorer', href: 'anatomy.html' };
+}
+
+function renderTeacherStep(step, checks) {
+  const card = document.getElementById('teacherNextStep');
+  card.dataset.kind = step.kind;
+  const open = checks.filter(c => !c.done).length;
+  card.innerHTML = `
+    <span class="anatomy-shortcut-icon">${iconSvg(step.icon)}</span>
+    <div class="anatomy-shortcut-copy">
+      <p class="next-step-kicker">${escHtml(step.kicker)}</p>
+      <h2 id="nextStepTitle">${escHtml(step.title)}</h2>
+      <p>${escHtml(step.detail)}</p>
+    </div>
+    <div class="next-step-actions">
+      <a href="${step.href}" class="btn btn-primary">${escHtml(step.action)} ${iconSvg('arrow-right')}</a>
+      ${step.kind === 'explore' ? '' : '<a href="anatomy.html" class="next-step-alt">or open the 3D explorer</a>'}
+    </div>
+    ${open ? `<ul class="setup-list" aria-label="Class setup, ${checks.length - open} of ${checks.length} done">${checks.map(c => c.done
+      ? `<li><span class="is-done">${iconSvg('check-circle')}${c.label}</span></li>`
+      : `<li><a href="${c.href}">${iconSvg('circle')}${c.label}</a></li>`).join('')}</ul>` : ''}`;
+}
+
 async function loadTeacherDashboard() {
   try {
-    const [statsRes, studentsRes] = await Promise.all([
+    const [statsRes, studentsRes, configRes] = await Promise.all([
       fetch(`${API_BASE}/dashboard/teacher-stats.php`, { credentials: 'same-origin' }),
-      fetch(`${API_BASE}/students.php`, { credentials: 'same-origin' })
+      fetch(`${API_BASE}/students.php`, { credentials: 'same-origin' }),
+      fetch(`${API_BASE}/config.php`, { credentials: 'same-origin' })
     ]);
-
     const statsData    = await statsRes.json();
     const studentsData = await studentsRes.json();
-
-    if (!statsData.success) return;
+    const configData   = await configRes.json().catch(() => ({}));
+    if (!statsData.success) throw new Error(statsData.message || 'Unable to load dashboard.');
 
     const { stats, recent_submissions, system_stats, at_risk_students } = statsData.data;
+    const config = configData.success ? configData.data : {};
+    const atRisk = at_risk_students || [];
 
-    // Stat Cards
-    document.getElementById('statTotalStudents').textContent     = stats.total_students;
-    document.getElementById('statActiveStudentsSub').textContent = `${stats.active_students} active accounts`;
-    document.getElementById('statActiveStudents').textContent    = stats.active_students;
-    document.getElementById('statClassAverage').textContent     = stats.class_average_score === null ? '—' : `${stats.class_average_score}%`;
-    document.getElementById('statActiveModules').textContent     = stats.total_modules;
-    document.getElementById('statTotalLessonsSub').textContent   = `${stats.total_lessons} lessons live`;
-    document.getElementById('statActiveAssessments').textContent = stats.active_assessments;
-
-    // Leaderboard (Top 5 from students API)
-    const leaderContainer = document.getElementById('leaderboardList');
-    if (studentsData.success && studentsData.data.students) {
-      const topStudents = [...studentsData.data.students]
-        .filter(s => s.avg_quiz_score !== null)
-        .sort((a, b) => b.avg_quiz_score - a.avg_quiz_score)
-        .slice(0, 5);
-
-      if (topStudents.length) {
-        leaderContainer.innerHTML = topStudents.map((s, idx) => `
-          <div class="leaderboard-item">
-            <div class="leaderboard-rank ${idx <= 2 ? 'rank-' + (idx + 1) : 'rank-other'}">
-              ${idx + 1}
-            </div>
-            <div class="leaderboard-info">
-              <div class="leaderboard-name">${escHtml(s.full_name)}</div>
-              <div class="leaderboard-section">${escHtml(s.section)} · ${s.school_id}</div>
-            </div>
-            <div class="leaderboard-score">${s.avg_quiz_score}%</div>
-          </div>
-        `).join('');
-      } else {
-        leaderContainer.innerHTML = '<div class="dashboard-empty"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg><strong>No student quiz scores recorded yet.</strong><p>Top performing students will appear here after quizzes are completed.</p></div>';
-      }
-    }
-
-    // System Progress Overview
-    const moduleProgressList = document.getElementById('moduleProgressList');
-    if (system_stats && system_stats.length) {
-      moduleProgressList.innerHTML = system_stats.slice(0, 6).map(ss => `
-        <div class="system-progress-row">
-          <span class="system-progress-name">${escHtml(ss.system_name)}</span>
-          <div class="progress-bar" role="progressbar" aria-label="${escHtml(ss.system_name)} completion" aria-valuenow="${Number(ss.avg_completion_pct)}" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-fill" style="width:${ss.avg_completion_pct}%;"></div>
-          </div>
-          <span class="system-progress-value">${ss.avg_completion_pct}% completion</span>
-        </div>
-      `).join('');
-    } else {
-      moduleProgressList.innerHTML = '<div style="color:var(--text-muted);padding:1rem;">No systems published yet.</div>';
-    }
-
-    // At-Risk / Attention Students
-    const atRiskContainer = document.getElementById('atRiskList');
-    if (at_risk_students && at_risk_students.length) {
-      atRiskContainer.innerHTML = at_risk_students.map(s => `
-        <div class="activity-item">
-          <div class="activity-dot" style="background:var(--error);"></div>
-          <div class="activity-content">
-            <div class="activity-text">
-              <strong>${escHtml(s.full_name)}</strong> (${escHtml(s.section)}) – Score: <span style="color:var(--error);font-weight:700;">${s.avg_score}%</span>
-            </div>
-            <div class="activity-time">${s.completed_lessons} lessons completed</div>
-          </div>
-        </div>
-      `).join('');
-    } else {
-      atRiskContainer.innerHTML = '<div class="dashboard-empty"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg><strong>No students currently flagged.</strong><p>Results appear after students complete assessments.</p></div>';
-    }
-
-    // Recent Submissions Table
-    const subTable = document.getElementById('submissionsTable');
-    if (recent_submissions && recent_submissions.length) {
-      subTable.innerHTML = recent_submissions.map(sub => {
-        const score = Math.round(sub.score);
-        const pass = score >= sub.passing_score;
-        return `
-          <tr>
-            <td>
-              <div style="display:flex;align-items:center;gap:var(--space-2);">
-                <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;">${initials(sub.student_name)}</div>
-                <div>
-                  <div style="font-weight:600;font-size:0.8125rem;">${escHtml(sub.student_name)}</div>
-                  <div style="font-size:0.6875rem;color:var(--text-muted);">${sub.school_id}</div>
-                </div>
-              </div>
-            </td>
-            <td>${escHtml(sub.assessment_title)}</td>
-            <td>${escHtml(sub.section)}</td>
-            <td style="font-weight:700;color:${pass ? 'var(--success)' : 'var(--error)'};">${score}%</td>
-            <td><span class="badge ${pass ? 'badge-green' : 'badge-red'}">${pass ? 'Passed' : 'Needs Review'}</span></td>
-            <td style="font-size:0.75rem;color:var(--text-muted);">${fmtDate(sub.submitted_at)}</td>
-          </tr>
-        `;
-      }).join('');
-    } else {
-      subTable.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">No student submissions recorded yet.</td></tr>';
-    }
-
-    // Dynamic Greeting & Name
+    // Greeting, setup progress and the next step
     const cachedUser = Auth.getUser();
-    if (cachedUser && cachedUser.full_name) {
-      const headerName = document.getElementById('teacherHeaderName');
-      if (headerName) headerName.textContent = cachedUser.full_name;
-    }
-    const greetingEl = document.querySelector('.greeting-text');
-    if (greetingEl) greetingEl.textContent = getGreeting();
+    if (cachedUser && cachedUser.full_name) document.getElementById('teacherHeaderName').textContent = cachedUser.full_name;
+    document.querySelector('.greeting-text').textContent = getGreeting();
+    const checks = setupChecks(stats, config);
+    const done = checks.filter(c => c.done).length;
+    document.getElementById('teacherEncouragement').textContent = done < checks.length
+      ? `${done} of ${checks.length} setup steps done. Your next step is below.`
+      : 'Your class is set up. Here’s how it’s going.';
+    renderTeacherStep(pickTeacherStep(stats, config, atRisk), checks);
 
-    // Render Charts
+    // Stats strip
+    document.getElementById('statTotalStudents').textContent = stats.total_students;
+    document.getElementById('statActiveStudentsSub').textContent = stats.total_students ? `${stats.active_students} with active accounts` : 'No students yet';
+    document.getElementById('statClassAverage').textContent = stats.class_average_score === null ? 'Not yet' : `${stats.class_average_score}%`;
+    document.getElementById('statClassAverageSub').textContent = stats.class_average_score === null ? 'Appears after the first graded quiz' : 'Across all graded quizzes';
+    document.getElementById('statTotalLessons').textContent = stats.total_lessons;
+    document.getElementById('statModulesSub').textContent = `In ${plural(stats.total_modules, 'published module')}`;
+    document.getElementById('statActiveAssessments').textContent = stats.active_assessments;
+    document.getElementById('statAssessmentsSub').textContent = stats.active_assessments ? 'Open to students now' : 'None open yet';
+
+    // Students needing attention
+    const passing = config.passing_score ? `${config.passing_score}%` : 'the passing score';
+    document.getElementById('atRiskList').innerHTML = atRisk.length
+      ? `<ul class="row-list">${atRisk.map(s => `
+          <li><a class="row-link" href="monitoring.html">
+            <span class="row-copy"><span class="row-title">${escHtml(s.full_name)}</span>
+            <span class="row-meta">${escHtml(s.section)}, ${plural(Number(s.completed_lessons) || 0, 'lesson')} finished</span></span>
+            <span class="row-end is-low">${Number(s.avg_score)}%</span></a></li>`).join('')}</ul>`
+      : emptyState('No one is flagged right now.', `Students appear here when their quiz average falls below ${passing} or their account is turned off.`);
+
+    // Top performers
+    const leaderContainer = document.getElementById('leaderboardList');
+    const topStudents = (studentsData.success && studentsData.data.students ? studentsData.data.students : [])
+      .filter(s => s.avg_quiz_score !== null)
+      .sort((a, b) => b.avg_quiz_score - a.avg_quiz_score)
+      .slice(0, 5);
+    leaderContainer.innerHTML = topStudents.length
+      ? `<ol class="row-list">${topStudents.map((s, idx) => `
+          <li class="row-link"><span class="leaderboard-rank ${idx <= 2 ? 'rank-' + (idx + 1) : 'rank-other'}">${idx + 1}</span>
+            <span class="row-copy"><span class="row-title">${escHtml(s.full_name)}</span><span class="row-meta">${escHtml(s.section)}, ${escHtml(s.school_id)}</span></span>
+            <span class="row-end">${s.avg_quiz_score}%</span></li>`).join('')}</ol>`
+      : emptyState('No quiz scores yet.', 'Your five highest quiz averages appear here once students submit quizzes.');
+
+    // Lesson completion by body system
+    const systems = system_stats || [];
+    const withLessons = systems.filter(ss => Number(ss.total_lessons) > 0);
+    document.getElementById('moduleProgressList').innerHTML = !systems.length
+      ? emptyState('No body systems are active.', 'Turn systems on in School & Anatomy Content.', { href: 'content.html', label: 'Open content' })
+      : !withLessons.length
+        ? emptyState('No lessons are published yet.', 'Completion for each body system appears once students can open lessons.', { href: 'modules.html', label: 'Open modules' })
+        : systems.map(ss => `
+          <div class="system-progress-row">
+            <span class="system-progress-name">${escHtml(ss.system_name)}</span>
+            <div class="progress-bar" role="progressbar" aria-label="${escHtml(ss.system_name)} completion" aria-valuenow="${Number(ss.avg_completion_pct)}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-fill" style="width:${Number(ss.avg_completion_pct)}%;"></div>
+            </div>
+            <span class="system-progress-value">${Number(ss.total_lessons) ? `${ss.avg_completion_pct}% complete` : 'No lessons yet'}</span>
+          </div>`).join('');
+
+    // Recent submissions
+    const subTable = document.getElementById('submissionsTable');
+    subTable.innerHTML = recent_submissions && recent_submissions.length ? recent_submissions.map(sub => {
+      const score = Math.round(sub.score);
+      const pass = score >= sub.passing_score;
+      return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:var(--space-2);">
+              <div class="avatar" style="width:28px;height:28px;font-size:0.65rem;">${initials(sub.student_name)}</div>
+              <div>
+                <div style="font-weight:600;font-size:0.8125rem;">${escHtml(sub.student_name)}</div>
+                <div style="font-size:0.6875rem;color:var(--text-muted);">${escHtml(sub.school_id)}</div>
+              </div>
+            </div>
+          </td>
+          <td>${escHtml(sub.assessment_title)}</td>
+          <td>${escHtml(sub.section)}</td>
+          <td style="font-weight:700;color:${pass ? 'var(--success)' : 'var(--error)'};">${score}%</td>
+          <td><span class="badge ${pass ? 'badge-green' : 'badge-red'}">${pass ? 'Passed' : 'Needs review'}</span></td>
+          <td style="font-size:0.75rem;color:var(--text-muted);">${fmtDate(sub.submitted_at)}</td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">No submissions yet. Results appear here as students finish quizzes.</td></tr>';
+
     _cachedTrend = statsData.data.score_trend || [];
-    _cachedSystemStats = system_stats;
-    renderTeacherCharts(system_stats);
-
+    renderTeacherCharts();
   } catch (err) {
     console.error(err);
+    renderTeacherStep({ kind: 'error', icon: 'warning-circle', kicker: 'Something went wrong', title: 'Unable to load your dashboard',
+      detail: 'Please refresh to try again. Your class data is safe.', action: 'Open monitoring', href: 'monitoring.html' }, []);
   }
 }
 
-let _cachedSystemStats = [];
 let _cachedTrend = [];
 
-function renderTeacherCharts(systemStats) {
+function renderTeacherCharts() {
   document.getElementById('weeklyChartEmpty').hidden = _cachedTrend.length > 0;
-  // Recent quiz performance by recorded submission date
   drawBarChart('weeklyChart', {
     labels: _cachedTrend.map(p => p.day),
     values: _cachedTrend.map(p => Number(p.score)),
     color: '#079669',
     maxVal: 100
   });
-
-  // System Completion Bar Chart
-  const stats = systemStats || _cachedSystemStats;
-  if (stats && stats.length) {
-    const labels = stats.slice(0, 6).map(s => s.system_code.slice(0, 4).toUpperCase());
-    const values = stats.slice(0, 6).map(s => Math.round(s.avg_completion_pct));
-    drawBarChart('systemScoreChart', {
-      labels: labels,
-      values: values,
-      color: '#079669',
-      maxVal: 100
-    });
-  }
 }
 
 // ── Init ────────────────────────────────────────────────────────
 loadTeacherDashboard();
-initChartResize(() => renderTeacherCharts(_cachedSystemStats));
+initChartResize(renderTeacherCharts);
 </script>
 <script src="../assets/js/site-config.js"></script>
 </body>

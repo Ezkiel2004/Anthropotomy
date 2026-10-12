@@ -40,7 +40,7 @@ let checked=0;
 for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','content','anatomy']){
     await navigate('/teacher/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Teacher stays authenticated: '+page);
-    if(page==='dashboard')assert.equal(await evaluate(`document.querySelector('#anatomyShortcutTitle').parentElement.parentElement.querySelector('a').getAttribute('href')`),'anatomy.html','Dashboard links to teacher explorer');
+    if(page==='dashboard')assert.ok(await evaluate(`Boolean(document.querySelector('.page-content a[href="anatomy.html"]'))`),'Dashboard links to teacher explorer');
     if(page==='anatomy'){
         assert.ok((await evaluate('document.body.innerText')).includes('No 3D model has been added'),'Missing model has an honest empty state');
         await evaluate(`localStorage.removeItem('anatomy.systemsOpen')`);

@@ -625,3 +625,89 @@
 .teacher-dashboard .part-info-reference { display: inline-block; margin-top: 8px; font-size: 0.78rem; }
 .teacher-dashboard .part-info [hidden],
 .teacher-dashboard .part-hover-label[hidden] { display: none; }
+
+/* Student and teacher dashboards (body.dashboard-page): one clear next step, encouraging hints.
+   One surface per section: no pastel icon tiles and no boxes inside cards. The next-step
+   panel uses the X-ray palette from the landing page (ink, forest, glow). */
+.teacher-dashboard.dashboard-page .next-step {
+  flex-wrap: wrap; gap: 20px; padding: 22px 24px; margin-bottom: 16px;
+  background: #0b1f19; border-color: #1f3a30; box-shadow: none; color: #e8f3ec;
+}
+.teacher-dashboard.dashboard-page .next-step::after { content: none; }
+.teacher-dashboard.dashboard-page .next-step .anatomy-shortcut-icon {
+  width: 48px; height: 48px; border-radius: 10px; background: transparent; border: 1px solid #3ddc97; color: #3ddc97; box-shadow: none;
+}
+.teacher-dashboard.dashboard-page .next-step .anatomy-shortcut-icon svg { width: 24px; height: 24px; }
+.teacher-dashboard.dashboard-page .next-step .anatomy-shortcut-copy { flex: 1 1 320px; }
+.teacher-dashboard.dashboard-page .next-step-kicker {
+  margin: 0 0 6px; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #3ddc97;
+}
+.teacher-dashboard.dashboard-page .next-step h2 { color: #e8f3ec; font-size: 1.35rem; overflow-wrap: anywhere; }
+.teacher-dashboard.dashboard-page .next-step p { color: #9db8aa; }
+.teacher-dashboard.dashboard-page .next-step-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.teacher-dashboard.dashboard-page .next-step .btn-primary {
+  display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px;
+  background: #3ddc97; border-color: #3ddc97; color: #07110e; font-weight: 700; box-shadow: none;
+}
+.teacher-dashboard.dashboard-page .next-step .btn-primary:hover { background: #6fe6b4; border-color: #6fe6b4; color: #07110e; }
+.teacher-dashboard.dashboard-page .next-step .btn-primary svg { width: 18px; height: 18px; }
+.teacher-dashboard.dashboard-page .next-step-alt { font-size: .8125rem; font-weight: 600; color: #6fe6b4; }
+.teacher-dashboard.dashboard-page .next-step-alt:hover { color: #e8f3ec; }
+.teacher-dashboard.dashboard-page .next-step[data-kind="error"] .anatomy-shortcut-icon { border-color: #ff8a80; color: #ff8a80; }
+
+/* Stats: one strip with hairline dividers instead of four floating cards. */
+.teacher-dashboard.dashboard-page .stats-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 16px; overflow: hidden;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 11px;
+}
+.teacher-dashboard.dashboard-page .stats-grid .stat-card {
+  gap: 2px; padding: 18px 20px; border: 0; border-radius: 0; box-shadow: none; background: transparent;
+}
+.teacher-dashboard.dashboard-page .stats-grid .stat-card + .stat-card { border-left: 1px solid var(--border-light); }
+.teacher-dashboard.dashboard-page .stat-info { gap: 2px; }
+.teacher-dashboard.dashboard-page .stat-value { font-size: 2rem; }
+.teacher-dashboard.dashboard-page .stat-label { order: -1; font-size: .78rem; font-weight: 600; color: var(--text-secondary); }
+.teacher-dashboard.dashboard-page .stats-grid .stat-card .stat-change { margin-top: 4px; font-size: .74rem; color: var(--text-muted); }
+@media (max-width: 900px) {
+  .teacher-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .teacher-dashboard.dashboard-page .stats-grid .stat-card:nth-child(3) { border-left: 0; }
+  .teacher-dashboard.dashboard-page .stats-grid .stat-card:nth-child(n+3) { border-top: 1px solid var(--border-light); }
+}
+.teacher-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
+@media (max-width: 760px) {
+  /* The banner becomes a two-column grid here (teacher-dashboard.css); actions sit under the copy. */
+  .teacher-dashboard.dashboard-page .next-step-actions { grid-column: 2; align-items: flex-start; }
+}
+
+/* Next-step setup checklist (teacher): done items are quiet, open items link to the fix. */
+.teacher-dashboard.dashboard-page .setup-list {
+  flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 4px 0 0; padding: 14px 0 0 68px;
+  list-style: none; border-top: 1px solid #1f3a30;
+}
+.teacher-dashboard.dashboard-page .setup-list a,
+.teacher-dashboard.dashboard-page .setup-list span { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; }
+.teacher-dashboard.dashboard-page .setup-list a { color: #e8f3ec; }
+.teacher-dashboard.dashboard-page .setup-list a:hover { color: #6fe6b4; }
+.teacher-dashboard.dashboard-page .setup-list .is-done { color: #9db8aa; font-weight: 500; }
+.teacher-dashboard.dashboard-page .setup-list svg { width: 16px; height: 16px; flex-shrink: 0; }
+.teacher-dashboard.dashboard-page .setup-list .is-done svg { color: #3ddc97; }
+
+/* Teacher dashboard lists: plain rows divided by hairlines, no boxes inside cards. */
+.teacher-dashboard.dashboard-page .section-title { display: block; }
+.teacher-dashboard.dashboard-page .row-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.teacher-dashboard.dashboard-page .row-list > * + * { border-top: 1px solid var(--border-light); }
+.teacher-dashboard.dashboard-page .row-link {
+  display: flex; align-items: center; gap: 12px; padding: 12px 4px; color: var(--text-primary); text-decoration: none; border-radius: 6px;
+}
+.teacher-dashboard.dashboard-page .row-link:hover { background: var(--bg-inset); color: var(--text-primary); text-decoration: none; }
+.teacher-dashboard.dashboard-page .row-link > svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--brand); }
+.teacher-dashboard.dashboard-page .row-copy { flex: 1; min-width: 0; }
+.teacher-dashboard.dashboard-page .row-title { display: block; font-size: .875rem; font-weight: 600; }
+.teacher-dashboard.dashboard-page .row-meta { display: block; font-size: .75rem; color: var(--text-muted); }
+.teacher-dashboard.dashboard-page .row-end { font-size: .875rem; font-weight: 700; white-space: nowrap; }
+.teacher-dashboard.dashboard-page .row-end.is-low { color: var(--error); }
+@media (max-width: 760px) {
+  .teacher-dashboard.dashboard-page .setup-list { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 0; }
+}
+
