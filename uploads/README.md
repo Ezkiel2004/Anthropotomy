@@ -6,7 +6,8 @@ This directory stores all user-uploaded files.
 ```
 uploads/
   lessons/   → Lesson media files (PDF, video, images, 3D models attached to lessons)
-  media/     → General media library files managed via teacher/media.html
+  media/     → Files uploaded through the former Media Library (removed 2026-10-12).
+               Kept so model URLs that point here keep working.
 ```
 
 ## Security Notes

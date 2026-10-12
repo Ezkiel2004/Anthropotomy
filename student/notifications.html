@@ -21,12 +21,12 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Notifications</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="View notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -67,7 +67,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261005-brand1"></script>
+<script src="../assets/js/app.js?v=20261012-icons3"></script>
 <script src="../assets/js/student-portal.js?v=20260915-account3"></script>
 <script>
 Auth.requireAuthSync('student');
@@ -126,7 +126,7 @@ function renderNotifs() {
     <div role="button" tabindex="0" onclick="readNotif('${n.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
          style="display:flex;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:${n.unread ? 'var(--brand-50)' : 'var(--bg-surface)'};border:1px solid var(--border);${n.unread ? 'border-left:3px solid var(--brand);' : ''}border-radius:var(--radius-lg);cursor:pointer;transition:all 0.2s;"
          id="notif-card-${n.id}">
-      <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--bg-inset);border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);flex-shrink:0;">${n.icon || '<svg width="18" height="18" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>'}</div>
+      <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--bg-inset);border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary);flex-shrink:0;">${n.icon || '<svg width="18" height="18" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>'}</div>
       <div style="flex:1;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-1);">
           <div style="font-size:0.875rem;font-weight:${n.unread ? '600' : '500'};color:var(--text-primary);">${escHtml(n.title)}</div>

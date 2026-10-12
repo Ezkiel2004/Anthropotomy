@@ -24,7 +24,7 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Settings &amp; Profile</span>
@@ -32,7 +32,7 @@
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -98,7 +98,7 @@
                   </div>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary" id="saveProfileBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#floppy-disk"/></svg> Save Profile Changes</button>
+              <button type="submit" class="btn btn-primary" id="saveProfileBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#floppy-disk"/></svg> Save Profile Changes</button>
             </div>
           </form>
         </div>
@@ -162,7 +162,6 @@
             <div>Modules: <strong id="cntModules" style="color:var(--text-primary);">—</strong></div>
             <div>Lessons: <strong id="cntLessons" style="color:var(--text-primary);">—</strong></div>
             <div>Assessments: <strong id="cntAssessments" style="color:var(--text-primary);">—</strong></div>
-            <div>Media Assets: <strong id="cntMedia" style="color:var(--text-primary);">—</strong></div>
           </div>
         </div>
 
@@ -171,7 +170,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261005-brand1"></script>
+<script src="../assets/js/app.js?v=20261012-icons3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -204,7 +203,6 @@ async function loadSettings() {
     document.getElementById('cntModules').textContent     = c.modules;
     document.getElementById('cntLessons').textContent     = c.lessons;
     document.getElementById('cntAssessments').textContent = c.assessments;
-    document.getElementById('cntMedia').textContent       = c.media;
 
   } catch (err) {
     showToast('Failed to connect to settings API.', 'error');

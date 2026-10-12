@@ -21,12 +21,12 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Assessments</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -53,7 +53,7 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary btn-sm" onclick="openModal('createAssessModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#plus"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg>
             Create Assessment
           </button>
         </div>
@@ -81,7 +81,7 @@
   <div class="modal-box" style="width:min(95%,560px);">
     <div class="modal-header">
       <h3>Create New Assessment</h3>
-      <button class="modal-close" onclick="closeModal('createAssessModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('createAssessModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <form id="createAssessForm" onsubmit="handleCreateAssessment(event)">
       <div class="modal-body">
@@ -149,7 +149,7 @@
   <div class="modal-box" style="width:min(95%,750px);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-header">
       <h3 id="builderModalTitle">Question Bank</h3>
-      <button class="modal-close" onclick="closeModal('questionBuilderModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('questionBuilderModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <div class="modal-body" style="overflow-y:auto;flex:1;" id="builderModalBody">
       <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading questions…</div>
@@ -166,7 +166,7 @@
   <div class="modal-box" style="width:min(95%,600px);">
     <div class="modal-header">
       <h3>Add Question to Assessment</h3>
-      <button class="modal-close" onclick="closeModal('addQuestionModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('addQuestionModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <form id="addQuestionForm" onsubmit="handleSaveQuestion(event)">
       <div class="modal-body">
@@ -254,13 +254,13 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('addQuestionModal')">Back</button>
-        <button type="submit" class="btn btn-primary" id="saveQBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#floppy-disk"/></svg> Save Question</button>
+        <button type="submit" class="btn btn-primary" id="saveQBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#floppy-disk"/></svg> Save Question</button>
       </div>
     </form>
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261005-brand1"></script>
+<script src="../assets/js/app.js?v=20261012-icons3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -271,7 +271,7 @@ let currentFilter = 'all';
 let activeAssessmentId = null;
 
 const typeColors = { quiz:'#3b82f6', interactive:'#8b5cf6', identification:'#10b981', diagram:'#f59e0b', exploration:'#06b6d4' };
-const typeIcons  = { quiz:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#exam"/></svg>', interactive:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#map-pin"/></svg>', identification:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#magnifying-glass"/></svg>', diagram:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#image"/></svg>', exploration:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#cube"/></svg>' };
+const typeIcons  = { quiz:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg>', interactive:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#map-pin"/></svg>', identification:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>', diagram:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#image"/></svg>', exploration:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg>' };
 const statusBadge = { active:'badge-success', closed:'badge-error', draft:'badge-warning', scheduled:'badge-info' };
 
 // ── Load Assessments & Systems ──────────────────────────────────
@@ -300,7 +300,7 @@ async function loadAssessments() {
     allSystems.forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.system_id;
-      opt.textContent = `${s.icon_emoji} ${s.system_name}`;
+      opt.textContent = s.system_name;
       sysSelect.appendChild(opt);
     });
 
@@ -359,7 +359,7 @@ function renderAssessments() {
           <button class="btn btn-primary btn-sm" style="flex:1;" onclick="toggleAssessmentStatus(${a.assessment_id}, '${a.status}')">
             ${a.status === 'active' ? 'Pause' : 'Activate'}
           </button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteAssessment(${a.assessment_id}, '${escHtml(a.title)}')" title="Delete assessment"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#trash"/></svg> Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteAssessment(${a.assessment_id}, '${escHtml(a.title)}')" title="Delete assessment"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trash"/></svg> Delete</button>
         </div>
       </div>
     `;
@@ -448,7 +448,7 @@ async function reloadQuestions() {
     if (!questions.length) {
       body.innerHTML = `
         <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
-          <div style="font-size:2.5rem;margin-bottom:0.5rem;">❓</div>
+          <div style="margin:0 auto 0.5rem;width:40px;color:var(--text-muted);"><svg class="ui-icon" style="width:40px;height:40px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#question"/></svg></div>
           <div style="font-weight:600;font-size:1rem;margin-bottom:0.5rem;">No questions in this assessment yet</div>
           <p style="font-size:0.85rem;">Click the <strong>+ Add New Question</strong> button below to build questions.</p>
         </div>
@@ -462,7 +462,7 @@ async function reloadQuestions() {
         details = (q.options || []).map(opt => `
           <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;padding:2px 0;">
             <span style="color:${opt.is_correct ? '#34d399' : 'var(--text-muted)'};font-weight:${opt.is_correct ? '700' : '400'};">
-              ${opt.is_correct ? '✓ [Correct]' : '○'} ${escHtml(opt.option_text)}
+              ${opt.is_correct ? '<svg class="ui-icon" title="Correct answer" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg> [Correct]' : '<svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#circle"/></svg>'} ${escHtml(opt.option_text)}
             </span>
           </div>
         `).join('');
@@ -482,7 +482,7 @@ async function reloadQuestions() {
             <div style="font-weight:600;font-size:0.9rem;">
               <span style="color:var(--brand);">Q${idx + 1}.</span> ${escHtml(q.question_text)}
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="deleteQuestion(${q.question_id})" title="Delete question" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#trash"/></svg> Delete</button>
+            <button class="btn btn-secondary btn-sm" onclick="deleteQuestion(${q.question_id})" title="Delete question" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trash"/></svg> Delete</button>
           </div>
           <div style="margin-left:1.5rem;">
             ${details}

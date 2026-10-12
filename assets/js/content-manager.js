@@ -1,6 +1,6 @@
 'use strict';
-let contentSystems = [], contentMedia = [];
-const contentFields = ['system_name','system_code','icon_emoji','color_hex','description','sort_order','model_url','source_text'];
+let contentSystems = [];
+const contentFields = ['system_name','system_code','color_hex','description','sort_order','model_url','source_text'];
 async function contentRequest(url, options = {}) {
     const response = await fetch(API_BASE + url, {credentials:'same-origin', ...options});
     const result = await response.json();
@@ -30,12 +30,15 @@ function editSystem(id = '') {
     (row.structures || []).forEach(s => contentRow('structure',s));
 }
 async function refreshContent() {
-    const [systems, media] = await Promise.all([contentRequest('/anatomy-content.php'), contentRequest('/media.php?type=model_3d')]);
-    contentSystems=systems; contentMedia=media;
+    const [systems, layers] = await Promise.all([
+        contentRequest('/anatomy-content.php'),
+        fetch('../system_model/layers/manifest.json').then(r => r.ok ? r.json() : {}).catch(() => ({}))
+    ]);
+    contentSystems=systems;
     const select=document.getElementById('systemSelect'); select.replaceChildren(new Option('Create a body system',''));
     systems.forEach(s => select.add(new Option(s.system_name + (s.is_active ? '' : ' (hidden)'),s.system_id)));
     const models=document.getElementById('modelChoices'); models.replaceChildren();
-    media.forEach(m=> { const option=document.createElement('option'); option.value=m.file_path; option.label=m.original_name; models.append(option); });
+    Object.entries(layers).forEach(([code, layer]) => { const option=document.createElement('option'); option.value='../system_model/layers/'+layer.file; option.label=code; models.append(option); });
     document.getElementById('contentStatus').textContent=systems.length ? 'Choose a system to edit its learning content.' : 'No body systems yet. Create your first system below.';
 }
 document.getElementById('systemSelect').onchange=e=>editSystem(e.target.value);

@@ -15,7 +15,7 @@
     trigger.setAttribute('aria-expanded', 'false');
     trigger.setAttribute('aria-controls', 'accountDropdown');
     while (accountLink.firstChild) trigger.appendChild(accountLink.firstChild);
-    trigger.insertAdjacentHTML('beforeend', '<svg class="account-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    trigger.insertAdjacentHTML('beforeend', '<svg class="account-chevron ui-icon" width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#caret-down"/></svg>');
     const menu = document.createElement('div');
     menu.className = 'account-dropdown';
     menu.id = 'accountDropdown';

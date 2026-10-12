@@ -25,7 +25,7 @@
   <main class="main-content" id="mainContent">
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle">
-        <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#list"/></svg>
+        <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg>
       </button>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Student Portal</span>
@@ -35,7 +35,7 @@
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -63,13 +63,13 @@
           <p id="dashboardEncouragement">Here’s what’s waiting for you today.</p>
         </div>
         <div class="page-header-right">
-          <div class="dashboard-date"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#calendar"/></svg><span id="currentDate"></span></div>
+          <div class="dashboard-date"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#calendar"/></svg><span id="currentDate"></span></div>
         </div>
       </div>
 
       <!-- Your next step: one clear action, chosen from the student's own data -->
       <section class="card anatomy-shortcut next-step" id="continueLearningGrid" aria-labelledby="nextStepTitle" aria-live="polite">
-        <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#stack"/></svg></span>
+        <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#stack"/></svg></span>
         <div class="anatomy-shortcut-copy"><p class="next-step-kicker">Your next step</p><h2 id="nextStepTitle">Finding your next step…</h2></div>
       </section>
 
@@ -160,13 +160,13 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261005-brand1"></script>
+<script src="../assets/js/app.js?v=20261012-icons3"></script>
 <script src="../assets/js/student-portal.js?v=20260915-account3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
 
-const ICON_SPRITE = '../assets/icons/interface.svg?v=20260914-icons1';
+const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
 const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
 
 // A due date has passed once the whole due day is over; the quiz can still be open.

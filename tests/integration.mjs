@@ -14,13 +14,6 @@ for(const path of ['students.php','modules.php','reports.php','dashboard/teacher
 const config={school_name:'Integration School',academic_year:'Test Year',department:'Science',subject:'Biology',grade_level:'Custom Grade',recovery_contact:'School office',grade_a:'90',grade_b:'80',grade_c:'70',grade_d:'60',passing_score:'75',support_score:'60'};
 check((await teacher('config.php','PUT',config)).success,'Save school settings');
 check((await teacher('config.php','PUT',{grade_a:'50',grade_b:'90'})).status===422,'Inconsistent grade bands rejected');
-const upload = new FormData();
-upload.set('file',new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64')],{type:'image/png'}),'unsafe.phtml');
-const uploaded=await teacher('media.php','POST',upload);
-check(uploaded.success && uploaded.data.file_name.endsWith('.png'),'Upload uses a safe server-selected extension');
-check((await teacher('media.php?id='+uploaded.data.media_id,'DELETE')).success,'Test upload cleaned up');
-const invalidModel=new FormData();invalidModel.set('file',new Blob(['not a model']),'fake.glb');
-check((await teacher('media.php','POST',invalidModel)).status===422,'Invalid GLB rejected');
 check((await guest('config.php')).data.school_name===config.school_name,'Public school identity reads saved data');
 check(!(await guest('auth/reset-password.php','POST',{action:'request',identifier:credentials.username})).data?.token,'Recovery never exposes tokens');
 const system=await teacher('anatomy-content.php','POST',{system_name:'Test System',system_code:'test-system',color_hex:'#123456',description:'Database description',is_active:true,key_facts:{Fact:'Database fact'},structures:[{name:'Test Structure',desc:'Database structure',mesh_name:'part'}]});check(system.success,'Create anatomy content');const sid=system.data.system_id;

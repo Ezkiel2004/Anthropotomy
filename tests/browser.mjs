@@ -37,7 +37,7 @@ await evaluate(`document.getElementById('username').value=${JSON.stringify(crede
 await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 let checked=0;
-for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','media','settings','content','anatomy']){
+for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','content','anatomy']){
     await navigate('/teacher/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Teacher stays authenticated: '+page);
     if(page==='dashboard')assert.equal(await evaluate(`document.querySelector('#anatomyShortcutTitle').parentElement.parentElement.querySelector('a').getAttribute('href')`),'anatomy.html','Dashboard links to teacher explorer');

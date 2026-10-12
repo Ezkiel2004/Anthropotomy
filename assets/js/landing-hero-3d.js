@@ -11,7 +11,7 @@ const VENDOR_SCRIPTS = ['three.min.js', 'OrbitControls.js', 'GLTFLoader.js']
   .map(name => new URL(`../vendor/three/${name}`, import.meta.url).href);
 const LOADING_LABEL_DELAY_MS = 300;
 const LOAD_TIMEOUT_MS = 20000;
-const ICONS = 'assets/icons/interface.svg?v=20261005-landing1';
+const ICONS = 'assets/icons/interface.svg?v=20261012-icons3';
 
 const cssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 

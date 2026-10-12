@@ -6,7 +6,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const media = query => window.matchMedia(query);
 const reducedMotion = media('(prefers-reduced-motion: reduce)');
 const wideViewport = media('(min-width: 48rem)');
-const ICONS = 'assets/icons/interface.svg?v=20261012-landing2';
+const ICONS = 'assets/icons/interface.svg?v=20261012-icons3';
 const HEADER_HEIGHT = 64;
 
 function setIcon(svg, name) {

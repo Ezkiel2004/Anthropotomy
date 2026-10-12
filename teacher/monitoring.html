@@ -24,7 +24,7 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Student Monitoring</span>
@@ -32,7 +32,7 @@
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -58,8 +58,8 @@
           <p>Track individual learning progress, activity completion, and performance across all body system modules.</p>
         </div>
         <div class="page-header-right">
-          <div class="search-bar"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#magnifying-glass"/></svg><input type="text" id="studentSearch" placeholder="Search students..." oninput="filterStudents()"/></div>
-          <button class="btn btn-secondary btn-sm" onclick="exportCSV()"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#download-simple"/></svg> Export CSV</button>
+          <div class="search-bar"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg><input type="text" id="studentSearch" placeholder="Search students..." oninput="filterStudents()"/></div>
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV()"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#download-simple"/></svg> Export CSV</button>
         </div>
       </div>
 
@@ -67,25 +67,25 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#users"/></svg>
+            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg>
           </div>
           <div class="stat-info"><div class="stat-value" id="statTotalEnrolled">—</div><div class="stat-label">Total Enrolled</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#check-circle"/></svg>
+            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>
           </div>
           <div class="stat-info"><div class="stat-value" id="statActiveToday">—</div><div class="stat-label">Active Learners</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#chart-bar"/></svg>
+            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg>
           </div>
           <div class="stat-info"><div class="stat-value" id="statClassAvg">—</div><div class="stat-label">Class Average</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#warning-circle"/></svg>
+            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg>
           </div>
           <div class="stat-info"><div class="stat-value" id="statNeedsAttention">—</div><div class="stat-label">Needs Attention</div></div>
         </div>
@@ -132,7 +132,7 @@
   <div class="modal-box" style="width:min(95%,680px);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-header">
       <h3 id="modalStudentName">Student Profile</h3>
-      <button class="modal-close" onclick="closeModal('studentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('studentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="modalStudentBody" style="overflow-y:auto;padding:var(--space-5);">Loading...</div>
     <div class="modal-footer">
@@ -142,7 +142,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261005-brand1"></script>
+<script src="../assets/js/app.js?v=20261012-icons3"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
@@ -317,7 +317,7 @@ async function viewStudent(userId) {
           return `
             <div style="background:var(--bg-inset);border:1px solid var(--border-light);padding:var(--space-3);border-radius:var(--radius-md);">
               <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.78rem;">
-                <span style="font-weight:500;color:var(--text-primary);">${sys.icon_emoji} ${escHtml(sys.system_name)}</span>
+                <span style="font-weight:500;color:var(--text-primary);">${escHtml(sys.system_name)}</span>
                 <span style="font-weight:600;color:${pct>=80?'var(--success)':pct>0?'var(--warning)':'var(--text-muted)'};">${pct}%</span>
               </div>
               <div class="progress-bar" style="background:var(--bg-surface);"><div class="progress-fill" style="width:${pct}%;background:${sys.color_hex};"></div></div>

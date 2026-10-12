@@ -27,7 +27,7 @@ await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
- teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','media','settings','content','anatomy'],
+ teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','content','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','progress']
 };
 // Pages checked per portal. Student notifications and settings are reached from the top bar

@@ -30,7 +30,6 @@ if ($method === 'GET') {
         'modules'     => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM modules")['c'] ?? 0),
         'lessons'     => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM lessons")['c'] ?? 0),
         'assessments' => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM assessments")['c'] ?? 0),
-        'media'       => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM media_files")['c'] ?? 0),
     ];
 
     $settings = schoolSettings();
