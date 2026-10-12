@@ -149,44 +149,83 @@
   .student-dashboard .profile-fields { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Dashboard: one clear next step, encouraging hints and empty states that lead somewhere. */
-.student-dashboard .next-step { flex-wrap: wrap; }
-.student-dashboard .next-step .anatomy-shortcut-copy { flex: 1 1 320px; }
-.student-dashboard .next-step-kicker { margin: 0 0 4px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
-.student-dashboard .next-step h2 { overflow-wrap: anywhere; }
-.student-dashboard .next-step-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-.student-dashboard .next-step-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
-.student-dashboard .next-step-actions .btn svg { width: 18px; height: 18px; }
-.student-dashboard .next-step-alt { font-size: .8125rem; font-weight: 600; color: var(--brand); }
-.student-dashboard .next-step[data-kind="error"] .anatomy-shortcut-icon { background: var(--error); }
-.student-dashboard .stat-card .stat-change.neutral { color: var(--text-muted); }
-.student-dashboard .dashboard-block { margin-bottom: var(--space-6); }
-.student-dashboard .dashboard-block .monitoring-toolbar { margin-bottom: var(--space-3); }
-.student-dashboard .upcoming-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--space-3); }
-.student-dashboard .upcoming-item {
-  display: flex; align-items: center; gap: var(--space-3); min-width: 0;
-  padding: var(--space-3) var(--space-4); background: var(--bg-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+/* Dashboard: one clear next step, encouraging hints and empty states that lead somewhere.
+   One surface per section: no pastel icon tiles and no boxes inside cards. The next-step
+   panel uses the X-ray palette from the landing page (ink, forest, glow). */
+.student-dashboard.dashboard-page .next-step {
+  flex-wrap: wrap; gap: 20px; padding: 22px 24px; margin-bottom: 16px;
+  background: #0b1f19; border-color: #1f3a30; box-shadow: none; color: #e8f3ec;
 }
+.student-dashboard.dashboard-page .next-step::after { content: none; }
+.student-dashboard.dashboard-page .next-step .anatomy-shortcut-icon {
+  width: 48px; height: 48px; border-radius: 10px; background: transparent; border: 1px solid #3ddc97; color: #3ddc97; box-shadow: none;
+}
+.student-dashboard.dashboard-page .next-step .anatomy-shortcut-icon svg { width: 24px; height: 24px; }
+.student-dashboard.dashboard-page .next-step .anatomy-shortcut-copy { flex: 1 1 320px; }
+.student-dashboard .next-step-kicker {
+  margin: 0 0 6px; font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #3ddc97;
+}
+.student-dashboard.dashboard-page .next-step h2 { color: #e8f3ec; font-size: 1.35rem; overflow-wrap: anywhere; }
+.student-dashboard.dashboard-page .next-step p { color: #9db8aa; }
+.student-dashboard .next-step-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.student-dashboard.dashboard-page .next-step .btn-primary {
+  display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px;
+  background: #3ddc97; border-color: #3ddc97; color: #07110e; font-weight: 700; box-shadow: none;
+}
+.student-dashboard.dashboard-page .next-step .btn-primary:hover { background: #6fe6b4; border-color: #6fe6b4; color: #07110e; }
+.student-dashboard.dashboard-page .next-step .btn-primary svg { width: 18px; height: 18px; }
+.student-dashboard .next-step-alt { font-size: .8125rem; font-weight: 600; color: #6fe6b4; }
+.student-dashboard .next-step-alt:hover { color: #e8f3ec; }
+.student-dashboard.dashboard-page .next-step[data-kind="error"] .anatomy-shortcut-icon { border-color: #ff8a80; color: #ff8a80; }
+
+/* Stats: one strip with hairline dividers instead of four floating cards. */
+.student-dashboard.dashboard-page .stats-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 16px; overflow: hidden;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 11px;
+}
+.student-dashboard.dashboard-page .stats-grid .stat-card {
+  gap: 2px; padding: 18px 20px; border: 0; border-radius: 0; box-shadow: none; background: transparent;
+}
+.student-dashboard.dashboard-page .stats-grid .stat-card + .stat-card { border-left: 1px solid var(--border-light); }
+.student-dashboard.dashboard-page .stat-info { gap: 2px; }
+.student-dashboard.dashboard-page .stat-value { font-size: 2rem; }
+.student-dashboard.dashboard-page .stat-label { order: -1; font-size: .78rem; font-weight: 600; color: var(--text-secondary); }
+.student-dashboard.dashboard-page .stats-grid .stat-card .stat-change { margin-top: 4px; font-size: .74rem; color: var(--text-muted); }
+@media (max-width: 900px) {
+  .student-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .student-dashboard.dashboard-page .stats-grid .stat-card:nth-child(3) { border-left: 0; }
+  .student-dashboard.dashboard-page .stats-grid .stat-card:nth-child(n+3) { border-top: 1px solid var(--border-light); }
+  .student-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
+}
+
+.student-dashboard .dashboard-block { margin-bottom: 16px; }
+.student-dashboard .dashboard-block .monitoring-toolbar { margin-bottom: 4px; }
+
+/* Quizzes: plain rows divided by hairlines. */
+.student-dashboard .upcoming-list { display: grid; }
+.student-dashboard .upcoming-item { display: flex; align-items: center; gap: 16px; min-width: 0; padding: 14px 0; }
+.student-dashboard .upcoming-item + .upcoming-item { border-top: 1px solid var(--border-light); }
 .student-dashboard .upcoming-copy { flex: 1; min-width: 0; }
-.student-dashboard .upcoming-title { font-size: .875rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
-.student-dashboard .upcoming-meta { margin-top: 2px; font-size: .75rem; color: var(--text-muted); }
+.student-dashboard .upcoming-title { font-size: .9rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+.student-dashboard .upcoming-meta { margin-top: 2px; font-size: .78rem; color: var(--text-muted); }
+
 .student-dashboard .empty-action { margin: -12px 0 0; text-align: center; }
 .student-dashboard .empty-action[hidden] { display: none; }
-.student-dashboard .system-progress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-3); }
+
+/* Body systems: a two-column list, name and status left, action right. */
+.student-dashboard .system-progress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); column-gap: 32px; }
 .student-dashboard .system-tile {
-  display: grid; align-content: start; gap: 4px; padding: var(--space-3); text-align: center;
-  background: var(--bg-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
 }
-.student-dashboard .system-tile-name { font-size: .8125rem; font-weight: 600; color: var(--text-primary); }
+.student-dashboard .system-tile-copy { flex: 1; min-width: 0; }
+.student-dashboard .system-tile-name { font-size: .875rem; font-weight: 600; color: var(--text-primary); }
 .student-dashboard .system-tile-meta { font-size: .75rem; color: var(--text-muted); }
-.student-dashboard .system-tile-link { font-size: .75rem; font-weight: 600; color: var(--brand); }
+.student-dashboard .system-tile-link { font-size: .78rem; font-weight: 600; color: var(--brand); white-space: nowrap; }
+.student-dashboard .system-tile-bar { flex-basis: 100%; height: 4px; }
+
 @media (max-width: 760px) {
   /* The banner becomes a two-column grid here (teacher-dashboard.css); actions sit under the copy. */
   .student-dashboard .next-step-actions { grid-column: 2; align-items: flex-start; }
-}
-@media (max-width: 600px) {
-  .student-dashboard .system-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .student-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .student-dashboard.dashboard-page .stats-grid .stat-card { padding: 14px; }
-  .student-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
 }

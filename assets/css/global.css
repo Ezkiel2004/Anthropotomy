@@ -261,6 +261,9 @@ textarea:focus-visible {
   white-space: nowrap;
   line-height: 1.4;
 }
+/* Buttons made from links keep their own colours: the global a:hover rule
+   (link colour + underline) outranks a single class and hid button text. */
+a.btn:hover { text-decoration: none; }
 
 .btn-primary {
   background: var(--brand);
@@ -270,6 +273,7 @@ textarea:focus-visible {
 .btn-primary:hover {
   background: var(--brand-dark);
   border-color: var(--brand-dark);
+  color: var(--text-on-brand);
 }
 .btn-primary:active {
   background: #0f4530;
@@ -287,6 +291,7 @@ textarea:focus-visible {
   border: 1px solid var(--border);
 }
 .btn-secondary:hover {
+  color: var(--text-primary);
   background: var(--bg-inset);
   border-color: #c8cbd2;
 }
@@ -300,6 +305,7 @@ textarea:focus-visible {
   border: 1px solid var(--error);
 }
 .btn-danger:hover {
+  color: #fff;
   background: #a82828;
   border-color: #a82828;
 }
@@ -310,6 +316,7 @@ textarea:focus-visible {
   border: 1px solid var(--success);
 }
 .btn-success:hover {
+  color: #fff;
   background: #146238;
 }
 

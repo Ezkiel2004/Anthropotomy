@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20260914-icons1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student.css"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20260914-icons1"/>
-  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261012-dashboard6"/>
+  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261012-dashboard7"/>
 </head>
 <body class="teacher-dashboard student-dashboard dashboard-page">
 <div class="app-layout">
@@ -76,9 +76,6 @@
       <!-- Progress Overview -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#book-open"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="dashOverallProgress">0%</div>
             <div class="stat-label">Lessons finished</div>
@@ -86,9 +83,6 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#cube"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="dashSystemsExplored">0</div>
             <div class="stat-label">Body systems explored</div>
@@ -96,9 +90,6 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#chart-bar"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="dashAvgScore">Not yet</div>
             <div class="stat-label">Quiz average</div>
@@ -106,9 +97,6 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon purple">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#exam"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="dashPendingCount">0</div>
             <div class="stat-label">Quizzes to try</div>
@@ -296,10 +284,12 @@ async function loadStudentDashboard() {
       const explore = `anatomy.html${s.system_code ? '?system=' + encodeURIComponent(s.system_code) : ''}`;
       return `
       <div class="system-tile">
-        <div class="system-tile-name">${escHtml(s.system_name.replace(' System', ''))}</div>
-        ${Number(s.total_lessons) > 0 ? `<div class="progress-bar" style="height:6px;margin-bottom:4px;"><div class="progress-fill" style="width:${Number(s.pct) || 0}%;"></div></div>
-        <div class="system-tile-meta">${s.completed_lessons}/${s.total_lessons} (${s.pct}%)</div>`
-        : `<div class="system-tile-meta">No lessons yet.</div><a class="system-tile-link" href="${explore}">Explore in 3D</a>`}
+        <div class="system-tile-copy">
+          <div class="system-tile-name">${escHtml(s.system_name.replace(' System', ''))}</div>
+          <div class="system-tile-meta">${Number(s.total_lessons) > 0 ? `${s.completed_lessons}/${s.total_lessons} (${s.pct}%) lessons` : 'No lessons yet.'}</div>
+        </div>
+        <a class="system-tile-link" href="${explore}">Explore in 3D</a>
+        ${Number(s.total_lessons) > 0 ? `<div class="progress-bar system-tile-bar"><div class="progress-fill" style="width:${Number(s.pct) || 0}%;"></div></div>` : ''}
       </div>`;
     }).join('') : '<div class="dashboard-empty">No body systems are available yet.</div>';
 
