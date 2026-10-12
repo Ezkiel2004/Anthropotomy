@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Dashboard – Anthropotomy</title>
+  <title>Student Dashboard | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -12,9 +12,9 @@
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student.css"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20260914-icons1"/>
-  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20260915-dashboard5"/>
+  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261012-dashboard6"/>
 </head>
-<body class="teacher-dashboard student-dashboard">
+<body class="teacher-dashboard student-dashboard dashboard-page">
 <div class="app-layout">
 
   <!-- Student Sidebar -->
@@ -60,21 +60,17 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1 id="welcomeGreeting">Welcome back</h1>
-          <p>Track your learning progress, scores, and upcoming activities.</p>
+          <p id="dashboardEncouragement">Here’s what’s waiting for you today.</p>
         </div>
         <div class="page-header-right">
           <div class="dashboard-date"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#calendar"/></svg><span id="currentDate"></span></div>
-          <a href="anatomy.html" class="btn btn-primary btn-sm">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#cube"/></svg>
-            Explore 3D Anatomy
-          </a>
         </div>
       </div>
 
-      <section class="card anatomy-shortcut" aria-labelledby="anatomyShortcutTitle">
+      <!-- Your next step: one clear action, chosen from the student's own data -->
+      <section class="card anatomy-shortcut next-step" id="continueLearningGrid" aria-labelledby="nextStepTitle" aria-live="polite">
         <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#stack"/></svg></span>
-        <div class="anatomy-shortcut-copy"><h2 id="anatomyShortcutTitle">3D Anatomy Explorer</h2><p>Interact with 3D human body models, explore structures, and practice anatomical identification.</p></div>
-        <a href="anatomy.html" class="btn btn-primary">Explore 3D Anatomy <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#arrow-right"/></svg></a>
+        <div class="anatomy-shortcut-copy"><p class="next-step-kicker">Your next step</p><h2 id="nextStepTitle">Finding your next step…</h2></div>
       </section>
 
       <!-- Progress Overview -->
@@ -85,8 +81,8 @@
           </div>
           <div class="stat-info">
             <div class="stat-value" id="dashOverallProgress">0%</div>
-            <div class="stat-label">Overall Progress</div>
-            <div class="stat-change up" id="dashCompletedCount">0 completed</div>
+            <div class="stat-label">Lessons finished</div>
+            <div class="stat-change up" id="dashCompletedCount">Loading…</div>
           </div>
         </div>
         <div class="stat-card">
@@ -94,9 +90,9 @@
             <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#cube"/></svg>
           </div>
           <div class="stat-info">
-            <div class="stat-value" id="dashSystemsExplored">?</div>
-            <div class="stat-label">Systems Explored</div>
-            <div class="stat-change up">3D viewer sessions</div>
+            <div class="stat-value" id="dashSystemsExplored">0</div>
+            <div class="stat-label">Body systems explored</div>
+            <div class="stat-change up" id="dashSystemsHint">In the 3D explorer</div>
           </div>
         </div>
         <div class="stat-card">
@@ -104,46 +100,40 @@
             <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#chart-bar"/></svg>
           </div>
           <div class="stat-info">
-            <div class="stat-value" id="dashAvgScore">—</div>
-            <div class="stat-label">Average Quiz Score</div>
-            <div class="stat-change up" id="dashQuizzesTaken">0 quizzes taken</div>
+            <div class="stat-value" id="dashAvgScore">Not yet</div>
+            <div class="stat-label">Quiz average</div>
+            <div class="stat-change up" id="dashQuizzesTaken">Loading…</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#file-text"/></svg>
+          <div class="stat-icon purple">
+            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20260914-icons1#exam"/></svg>
           </div>
           <div class="stat-info">
             <div class="stat-value" id="dashPendingCount">0</div>
-            <div class="stat-label">Pending Activities</div>
-            <div class="stat-change">Assigned to you</div>
+            <div class="stat-label">Quizzes to try</div>
+            <div class="stat-change neutral" id="dashPendingHint">Loading…</div>
           </div>
         </div>
       </div>
 
-      <!-- Main Row -->
-      <div class="dashboard-row">
-        <!-- Continue Learning -->
-        <div class="card">
-          <div class="section-title">Continue Learning</div>
-          <div class="lesson-grid" id="continueLearningGrid">
-            <div class="dashboard-empty">Loading recommended lesson...</div>
-          </div>
+      <!-- Quizzes and activities -->
+      <div class="card dashboard-block">
+        <div class="monitoring-toolbar">
+          <div class="section-title" style="margin:0;">Quizzes and activities</div>
+          <a href="quiz.html" class="btn btn-secondary btn-sm">See all</a>
         </div>
-        <!-- Upcoming Activities -->
-        <div class="card">
-          <div class="section-title">Upcoming Activities</div>
-          <div id="upcomingList" style="display:flex;flex-direction:column;gap:var(--space-3);">
-            <div style="color:var(--text-muted);padding:1rem;">Checking for assignments...</div>
-          </div>
+        <div id="upcomingList" class="upcoming-list">
+          <div class="dashboard-empty">Checking for quizzes…</div>
         </div>
       </div>
 
-      <!-- Row 2: Weekly Score Chart + Achievement Badges -->
+      <!-- Score history and achievements -->
       <div class="dashboard-row-equal">
         <div class="card">
-          <div class="section-title">Score History</div>
-          <div id="scoreChartEmpty" class="dashboard-empty" role="status">Loading score history...</div>
+          <div class="section-title">Score history</div>
+          <div id="scoreChartEmpty" class="dashboard-empty" role="status">Loading score history…</div>
+          <p class="empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="btn btn-secondary btn-sm">Try a quiz</a></p>
           <div id="scoreChartContainer" class="chart-container" style="height:200px;" hidden>
             <canvas id="scoreChart" style="width:100%;height:100%;" role="img" aria-label="Recent quiz scores"></canvas>
           </div>
@@ -154,25 +144,25 @@
         </div>
       </div>
 
-      <!-- System Completion Overview -->
-      <div class="card" style="margin-bottom:var(--space-6);">
-        <div class="section-title">System Completion Overview</div>
-        <div id="systemProgressGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--space-3);">
-          <div style="color:var(--text-muted);padding:1rem;">Loading system progress...</div>
+      <!-- Body systems -->
+      <div class="card dashboard-block">
+        <div class="section-title">Your body systems</div>
+        <div id="systemProgressGrid" class="system-progress-grid">
+          <div class="dashboard-empty">Loading body systems…</div>
         </div>
       </div>
 
       <!-- Recent Scores -->
       <div class="card">
         <div class="monitoring-toolbar">
-          <div class="section-title" style="margin:0;">Recent Quiz Results</div>
-          <a href="progress.html#scores" class="btn btn-secondary btn-sm">View All</a>
+          <div class="section-title" style="margin:0;">Recent quiz results</div>
+          <a href="progress.html#scores" class="btn btn-secondary btn-sm">View all</a>
         </div>
         <div class="table-wrapper">
           <table class="data-table">
             <thead><tr><th>Assessment</th><th>Type</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="recentScoresTable">
-              <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--text-muted);">Loading recent quiz submissions...</td></tr>
+              <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--text-muted);">Loading recent quiz results…</td></tr>
             </tbody>
           </table>
         </div>
@@ -188,6 +178,66 @@
 'use strict';
 Auth.requireAuthSync('student');
 
+const ICON_SPRITE = '../assets/icons/interface.svg?v=20260914-icons1';
+const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
+
+// A due date has passed once the whole due day is over; the quiz can still be open.
+function dueText(dueDate) {
+  if (!dueDate) return 'No due date';
+  const due = new Date(dueDate);
+  if (Number.isNaN(due.getTime())) return 'No due date';
+  const endOfDueDay = new Date(due); endOfDueDay.setHours(23, 59, 59, 999);
+  return endOfDueDay < new Date() ? 'Due date passed. Still open' : `Due ${fmtDate(dueDate)}`;
+}
+
+// One line under the greeting, written from the student's own numbers.
+function encouragement(p) {
+  const total = Number(p.total_lessons) || 0, done = Number(p.completed_lessons) || 0, quizzes = Number(p.quizzes_taken) || 0;
+  if (total > 0 && done >= total) return 'You’ve finished every published lesson. Nice work.';
+  if (done > 0) return `You’ve finished ${done} of ${plural(total, 'lesson')}. Keep going.`;
+  if (quizzes > 0) return `You’ve taken ${plural(quizzes, 'quiz', 'quizzes')}. Keep it up.`;
+  return 'Here’s a good place to start.';
+}
+
+// The single most useful thing to do next: a lesson in progress, an open quiz,
+// the next lesson, and otherwise the 3D explorer.
+function pickNextStep(data) {
+  const p = data.profile, lesson = data.next_lesson, quiz = (data.upcoming_assessments || [])[0];
+  const lessonDetail = lesson && [lesson.module_title, lesson.system_name].filter(Boolean).join(', ');
+  if (lesson && lesson.progress_status === 'in_progress') {
+    return { kind: 'lesson', icon: 'book-open', kicker: 'Pick up where you left off', title: lesson.title, detail: lessonDetail, action: 'Continue lesson', href: 'lessons.html' };
+  }
+  if (quiz) {
+    return { kind: 'quiz', icon: 'exam', kicker: 'Ready for a quick check?', title: quiz.title,
+      detail: `${dueText(quiz.due_date)}. About ${Number(quiz.time_limit_mins) || 30} minutes.`, action: 'Start quiz',
+      href: `quiz.html?assessment_id=${encodeURIComponent(quiz.assessment_id)}` };
+  }
+  if (lesson) {
+    return { kind: 'lesson', icon: 'book-open', kicker: 'Start your next lesson', title: lesson.title, detail: lessonDetail, action: 'Start lesson', href: 'lessons.html' };
+  }
+  const total = Number(p.total_lessons) || 0, done = Number(p.completed_lessons) || 0;
+  const detail = total === 0 ? 'No lessons available yet. Start by exploring the body in 3D: switch a system on and click any part to learn its name.'
+    : done >= total ? 'All published lessons are complete. Keep your knowledge fresh by exploring the body in 3D.'
+    : 'Visit My Lessons to continue learning, or explore the body in 3D.';
+  return { kind: 'explore', icon: 'cube', kicker: 'Your next step', title: 'Explore the body in 3D', detail, action: 'Explore 3D Anatomy', href: 'anatomy.html' };
+}
+
+function renderNextStep(step) {
+  const card = document.getElementById('continueLearningGrid');
+  card.dataset.kind = step.kind;
+  card.innerHTML = `
+    <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${step.icon}"/></svg></span>
+    <div class="anatomy-shortcut-copy">
+      <p class="next-step-kicker">${escHtml(step.kicker)}</p>
+      <h2 id="nextStepTitle">${escHtml(step.title)}</h2>
+      ${step.detail ? `<p>${escHtml(step.detail)}</p>` : ''}
+    </div>
+    <div class="next-step-actions">
+      <a href="${step.href}" class="btn btn-primary">${escHtml(step.action)} <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#arrow-right"/></svg></a>
+      ${step.kind === 'explore' || step.kind === 'error' ? '' : '<a href="anatomy.html" class="next-step-alt">or explore the body in 3D</a>'}
+    </div>`;
+}
+
 async function loadStudentDashboard() {
   try {
     const res = await fetch(`${API_BASE}/dashboard/student-stats.php`, { credentials: 'same-origin' });
@@ -196,91 +246,71 @@ async function loadStudentDashboard() {
 
     const data = result.data;
     const p = data.profile;
+    const totalLessons = Number(p.total_lessons) || 0;
+    const completedLessons = Number(p.completed_lessons) || 0;
+    const systemCount = (data.systems || []).length;
+    const explored = Number(p.systems_explored) || 0;
+    const quizzesTaken = Number(p.quizzes_taken) || 0;
 
     // Greeting
-    const greeting = getGreeting();
-    document.getElementById('welcomeGreeting').textContent = `${greeting}, ${p.full_name}`;
+    document.getElementById('welcomeGreeting').textContent = `${getGreeting()}, ${p.full_name}`;
+    document.getElementById('dashboardEncouragement').textContent = encouragement(p);
 
-    // Overview Stats
+    // Overview stats, each with a hint that points somewhere useful
     document.getElementById('dashOverallProgress').textContent = `${p.overall_progress}%`;
-    document.getElementById('dashCompletedCount').textContent = `${p.completed_lessons} of ${p.total_lessons} lessons`;
-    document.getElementById('dashSystemsExplored').textContent = `${p.systems_explored}/${result.data.systems.length}`;
-    document.getElementById('dashAvgScore').textContent = p.avg_quiz_score !== null ? `${Math.round(p.avg_quiz_score)}%` : '—';
-    document.getElementById('dashQuizzesTaken').textContent = `${p.quizzes_taken} taken (${p.quizzes_passed} passed)`;
+    document.getElementById('dashCompletedCount').textContent = totalLessons === 0 ? 'Lessons appear when your teacher publishes them'
+      : completedLessons === 0 ? 'Your first one is a click away'
+      : `${completedLessons} of ${plural(totalLessons, 'lesson')}`;
+    document.getElementById('dashSystemsExplored').textContent = `${explored}/${systemCount}`;
+    document.getElementById('dashSystemsHint').textContent = explored === 0 ? 'Switch one on in the 3D explorer' : 'In the 3D explorer';
+    document.getElementById('dashAvgScore').textContent = p.avg_quiz_score !== null ? `${Math.round(p.avg_quiz_score)}%` : 'Not yet';
+    document.getElementById('dashQuizzesTaken').textContent = quizzesTaken === 0 ? 'Your first score will show here'
+      : `${quizzesTaken} taken, ${p.quizzes_passed} passed`;
     const pendingCount = (data.pending_assessments_count !== undefined) ? data.pending_assessments_count : (data.upcoming_assessments || []).length;
     document.getElementById('dashPendingCount').textContent = pendingCount;
+    document.getElementById('dashPendingHint').textContent = pendingCount > 0 ? 'Open and waiting for you' : 'You’re all caught up';
     sessionStorage.setItem('anatomiq_pending_assessments', String(pendingCount));
     document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
       b.textContent = pendingCount;
       b.style.display = pendingCount > 0 ? 'inline-block' : 'none';
     });
 
-    // Continue Learning
-    const continueGrid = document.getElementById('continueLearningGrid');
-    if (data.next_lesson) {
-      const nl = data.next_lesson;
-      continueGrid.innerHTML = `
-        <a href="lessons.html" class="lesson-card" style="text-decoration:none;">
-          <div class="lesson-card-banner" style="background:var(--bg-inset);">
-          </div>
-          <div class="lesson-card-body">
-            <div class="lesson-card-title">${escHtml(nl.title)}</div>
-            <div class="lesson-card-desc">${escHtml(nl.module_title)} · ${nl.system_name}</div>
-            <div class="lesson-card-meta">
-              <span class="lesson-card-status ${nl.progress_status === 'in_progress' ? 'status-in-progress' : 'status-not-started'}">
-                ${nl.progress_status === 'in_progress' ? 'In Progress' : 'Start Lesson'}
-              </span>
-              <span style="font-size:0.75rem;color:var(--text-muted);">${nl.duration_mins ? nl.duration_mins + 'm' : 'Self-paced'}</span>
-            </div>
-          </div>
-        </a>
-      `;
-    } else {
-      const totalLessons = Number(p.total_lessons) || 0;
-      const completedLessons = Number(p.completed_lessons) || 0;
-      const message = totalLessons === 0 ? 'No lessons available yet.'
-        : completedLessons >= totalLessons ? 'All published lessons are complete.'
-        : 'Visit My Lessons to continue learning.';
-      continueGrid.innerHTML = `<div class="dashboard-empty">${message}</div>`;
-    }
+    // Your next step
+    renderNextStep(pickNextStep(data));
 
-    // Upcoming Assessments
-    const upcomingList = document.getElementById('upcomingList');
+    // Quizzes and activities
     const upcomings = data.upcoming_assessments || [];
-    if (upcomings.length) {
-      upcomingList.innerHTML = upcomings.map(u => `
-        <div style="display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="flex:1;">
-            <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);">${escHtml(u.title)}</div>
-            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
-              ${u.due_date ? 'Due: ' + fmtDate(u.due_date) : 'Self-paced'} · ${u.time_limit_mins || 30} mins
-            </div>
-          </div>
-          <a href="quiz.html?assessment_id=${u.assessment_id}" class="btn btn-primary btn-sm">Start</a>
+    document.getElementById('upcomingList').innerHTML = upcomings.length ? upcomings.map(u => `
+      <div class="upcoming-item">
+        <div class="upcoming-copy">
+          <div class="upcoming-title">${escHtml(u.title)}</div>
+          <div class="upcoming-meta">${escHtml(dueText(u.due_date))}. About ${Number(u.time_limit_mins) || 30} minutes.</div>
         </div>
-      `).join('');
-    } else {
-      upcomingList.innerHTML = '<div class="dashboard-empty">No pending activities.</div>';
-    }
-
-    // System Progress Overview
-    const sysGrid = document.getElementById('systemProgressGrid');
-    const systems = data.systems || [];
-    sysGrid.innerHTML = systems.length ? systems.map(s => `
-      <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-        <div style="font-size:0.8125rem;font-weight:600;margin-bottom:4px;color:var(--text-primary);">${escHtml(s.system_name.replace(' System',''))}</div>
-        ${Number(s.total_lessons) > 0 ? `<div class="progress-bar" style="height:6px;margin-bottom:4px;"><div class="progress-fill" style="width:${s.pct}%;"></div></div>
-        <div style="font-size:0.6875rem;color:var(--text-muted);">${s.completed_lessons}/${s.total_lessons} (${s.pct}%)</div>`
-        : '<div style="font-size:0.75rem;color:var(--text-muted);">No lessons available yet.</div>'}
+        <a href="quiz.html?assessment_id=${encodeURIComponent(u.assessment_id)}" class="btn btn-primary btn-sm">Start</a>
       </div>
-    `).join('') : '<div class="dashboard-empty">No body systems available yet.</div>';
+    `).join('') : '<div class="dashboard-empty">You’re all caught up. New quizzes from your teacher will appear here.</div>';
 
-    // Dynamic Achievements
+    // Body systems: progress where there are lessons, a way into 3D where there are none
+    const systems = data.systems || [];
+    document.getElementById('systemProgressGrid').innerHTML = systems.length ? systems.map(s => {
+      const explore = `anatomy.html${s.system_code ? '?system=' + encodeURIComponent(s.system_code) : ''}`;
+      return `
+      <div class="system-tile">
+        <div class="system-tile-name">${escHtml(s.system_name.replace(' System', ''))}</div>
+        ${Number(s.total_lessons) > 0 ? `<div class="progress-bar" style="height:6px;margin-bottom:4px;"><div class="progress-fill" style="width:${Number(s.pct) || 0}%;"></div></div>
+        <div class="system-tile-meta">${s.completed_lessons}/${s.total_lessons} (${s.pct}%)</div>`
+        : `<div class="system-tile-meta">No lessons yet.</div><a class="system-tile-link" href="${explore}">Explore in 3D</a>`}
+      </div>`;
+    }).join('') : '<div class="dashboard-empty">No body systems are available yet.</div>';
+
+    // Achievements
     renderDynamicAchievements(result.data.achievements || []);
 
   } catch (err) {
     console.error(err);
-    for (const id of ['continueLearningGrid', 'upcomingList', 'achievementList', 'systemProgressGrid']) {
+    renderNextStep({ kind: 'error', icon: 'warning-circle', kicker: 'Something went wrong', title: 'Unable to load your dashboard',
+      detail: 'Please refresh to try again. Your progress is safe.', action: 'Explore 3D Anatomy', href: 'anatomy.html' });
+    for (const id of ['upcomingList', 'achievementList', 'systemProgressGrid']) {
       document.getElementById(id).innerHTML = '<div class="dashboard-empty" role="status">Unable to load this section. Please refresh to try again.</div>';
     }
   }
@@ -288,7 +318,7 @@ async function loadStudentDashboard() {
 
 function renderDynamicAchievements(achs) {
   if (!achs.length) {
-    document.getElementById('achievementList').innerHTML = '<div class="dashboard-empty">No achievements available yet.</div>';
+    document.getElementById('achievementList').innerHTML = '<div class="dashboard-empty">Your teacher hasn’t set any goals yet. Achievements will appear here when they do.</div>';
     return;
   }
   document.getElementById('achievementList').innerHTML = achs.map(a => `
@@ -308,8 +338,8 @@ async function loadRecentScoresAndChart() {
     const tbody = document.getElementById('recentScoresTable');
 
     if (!subs.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">No quiz submissions yet. Take your first quiz today.</td></tr>';
-      showScoreChartMessage('No scores yet. Your quiz results will appear here.');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">No quiz submissions yet. Your first result will show up here.</td></tr>';
+      showScoreChartMessage('No scores yet. Your scores will chart here after your first quiz.', true);
       return;
     }
 
@@ -331,7 +361,7 @@ async function loadRecentScoresAndChart() {
     // Score Chart
     const chartSubs = subs.filter(s => s.score !== null && s.score !== '' && Number.isFinite(Number(s.score))).slice(0, 6).reverse();
     if (!chartSubs.length) {
-      showScoreChartMessage('No scores yet. Your quiz results will appear here.');
+      showScoreChartMessage('No scores yet. Your scores will chart here after your first quiz.', true);
       return;
     }
     const labels = chartSubs.map((_, i) => `Attempt ${i + 1}`);
@@ -342,6 +372,7 @@ async function loadRecentScoresAndChart() {
       datasets: [{ values, color: '#1a6b4a' }]
     };
     document.getElementById('scoreChartEmpty').hidden = true;
+    document.getElementById('scoreChartCta').hidden = true;
     document.getElementById('scoreChartContainer').hidden = false;
     document.getElementById('scoreChart').setAttribute('aria-label', `Recent quiz scores: ${values.map(v => v + '%').join(', ')}`);
     drawLineChart('scoreChart', _cachedScoreData);
@@ -355,9 +386,10 @@ async function loadRecentScoresAndChart() {
 
 let _cachedScoreData = null;
 
-function showScoreChartMessage(message) {
+function showScoreChartMessage(message, offerQuiz = false) {
   _cachedScoreData = null;
   document.getElementById('scoreChartContainer').hidden = true;
+  document.getElementById('scoreChartCta').hidden = !offerQuiz;
   const empty = document.getElementById('scoreChartEmpty');
   empty.textContent = message;
   empty.hidden = false;

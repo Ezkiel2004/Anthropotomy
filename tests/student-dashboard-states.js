@@ -27,11 +27,13 @@
     try {
         await render();
         assert(element('continueLearningGrid').textContent.includes('No lessons available yet'), 'Zero lessons must not claim completion');
-        assert(element('systemProgressGrid').textContent.includes('No lessons available yet'), 'Empty system must not show a completion ratio');
+        assert(element('systemProgressGrid').textContent.includes('No lessons yet') && element('systemProgressGrid').querySelector('a[href^="anatomy.html"]'), 'Empty system offers the 3D explorer, not a completion ratio');
+        assert(element('continueLearningGrid').dataset.kind === 'explore', 'With nothing assigned, the next step is the 3D explorer');
+        assert(!element('scoreChartCta').hidden, 'Empty score history offers a quiz');
         assert(element('scoreChartContainer').hidden && element('scoreChartEmpty').textContent.includes('No scores yet'), 'Empty scores need a message, not a chart');
         assert(draws === 0 && _cachedScoreData === null, 'Empty scores must not draw or cache chart data');
         assert(element('recentScoresTable').textContent.includes('No quiz submissions'), 'Empty results table');
-        for (const id of ['achievementList', 'continueLearningGrid']) {
+        for (const id of ['achievementList']) {
             const parent = element(id), message = parent.querySelector('.dashboard-empty');
             assert(message && message.getBoundingClientRect().width >= parent.clientWidth - 2, `${id} message must span the grid`);
         }
@@ -50,12 +52,21 @@
         const submission = { assessment_title: 'Anatomy quiz', assessment_type: 'quiz', system_name: 'Skeletal', score: 80, passed: true, submitted_at: '2026-09-15' };
         submissions = [submission, { ...submission, score: 0, passed: false }];
         await render();
-        assert(element('continueLearningGrid').querySelector('.lesson-card'), 'Recommendation card retained');
+        assert(element('continueLearningGrid').dataset.kind === 'lesson' && element('continueLearningGrid').textContent.includes('Learn the skeleton'), 'Lesson in progress is the next step');
+        assert(element('dashboardEncouragement').textContent.includes('1 of 2 lessons'), 'Encouragement uses real lesson counts');
+        assert(element('scoreChartCta').hidden, 'Quiz offer hidden once scores exist');
         assert(element('achievementList').children.length === 2 && !element('achievementList').querySelector('.dashboard-empty'), 'Achievement badges retained');
         assert(element('systemProgressGrid').textContent.includes('1/2 (50%)'), 'Populated system progress retained');
         assert(!element('scoreChartContainer').hidden && element('scoreChartEmpty').hidden && draws > 0, 'Populated chart rendered');
         assert(_cachedScoreData.datasets[0].values.join(',') === '0,80', 'Real zero scores preserved in chart');
         assert(element('recentScoresTable').rows.length === 2, 'Recent results populated');
+
+        data.next_lesson = { ...data.next_lesson, progress_status: 'not_started' };
+        data.upcoming_assessments = [{ assessment_id: 5, title: 'Bones quiz', due_date: '2020-01-01', time_limit_mins: 20 }];
+        await loadStudentDashboard();
+        assert(element('continueLearningGrid').dataset.kind === 'quiz' && element('continueLearningGrid').querySelector('a[href="quiz.html?assessment_id=5"]'), 'An open quiz comes before a lesson not yet started');
+        assert(element('upcomingList').textContent.includes('Due date passed. Still open'), 'Past due dates are stated, and the quiz is still open');
+        data.upcoming_assessments = [];
 
         submissions = [{ ...submission, score: null }, { ...submission, score: 'invalid' }];
         await loadRecentScoresAndChart();
@@ -63,7 +74,7 @@
         assert(!element('recentScoresTable').textContent.includes('NaN'), 'Invalid scores cannot render NaN in results');
         fail = true;
         await render();
-        assert(element('scoreChartEmpty').textContent.includes('Unable to load'), 'Score errors are distinct from empty history');
+        assert(element('scoreChartEmpty').textContent.includes('Unable to load') && element('scoreChartCta').hidden, 'Score errors are distinct from empty history');
         assert(element('continueLearningGrid').textContent.includes('Unable to load'), 'Dashboard error is distinct from completion');
         fail = false;
         submissions = [];

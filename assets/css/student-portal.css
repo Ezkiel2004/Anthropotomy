@@ -148,3 +148,45 @@
   .student-dashboard .filter-selects-wrap .filter-select { max-width: none; flex-basis: 100%; }
   .student-dashboard .profile-fields { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Dashboard: one clear next step, encouraging hints and empty states that lead somewhere. */
+.student-dashboard .next-step { flex-wrap: wrap; }
+.student-dashboard .next-step .anatomy-shortcut-copy { flex: 1 1 320px; }
+.student-dashboard .next-step-kicker { margin: 0 0 4px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); }
+.student-dashboard .next-step h2 { overflow-wrap: anywhere; }
+.student-dashboard .next-step-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.student-dashboard .next-step-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+.student-dashboard .next-step-actions .btn svg { width: 18px; height: 18px; }
+.student-dashboard .next-step-alt { font-size: .8125rem; font-weight: 600; color: var(--brand); }
+.student-dashboard .next-step[data-kind="error"] .anatomy-shortcut-icon { background: var(--error); }
+.student-dashboard .stat-card .stat-change.neutral { color: var(--text-muted); }
+.student-dashboard .dashboard-block { margin-bottom: var(--space-6); }
+.student-dashboard .dashboard-block .monitoring-toolbar { margin-bottom: var(--space-3); }
+.student-dashboard .upcoming-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--space-3); }
+.student-dashboard .upcoming-item {
+  display: flex; align-items: center; gap: var(--space-3); min-width: 0;
+  padding: var(--space-3) var(--space-4); background: var(--bg-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+}
+.student-dashboard .upcoming-copy { flex: 1; min-width: 0; }
+.student-dashboard .upcoming-title { font-size: .875rem; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+.student-dashboard .upcoming-meta { margin-top: 2px; font-size: .75rem; color: var(--text-muted); }
+.student-dashboard .empty-action { margin: -12px 0 0; text-align: center; }
+.student-dashboard .empty-action[hidden] { display: none; }
+.student-dashboard .system-progress-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-3); }
+.student-dashboard .system-tile {
+  display: grid; align-content: start; gap: 4px; padding: var(--space-3); text-align: center;
+  background: var(--bg-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md);
+}
+.student-dashboard .system-tile-name { font-size: .8125rem; font-weight: 600; color: var(--text-primary); }
+.student-dashboard .system-tile-meta { font-size: .75rem; color: var(--text-muted); }
+.student-dashboard .system-tile-link { font-size: .75rem; font-weight: 600; color: var(--brand); }
+@media (max-width: 760px) {
+  /* The banner becomes a two-column grid here (teacher-dashboard.css); actions sit under the copy. */
+  .student-dashboard .next-step-actions { grid-column: 2; align-items: flex-start; }
+}
+@media (max-width: 600px) {
+  .student-dashboard .system-progress-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .student-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .student-dashboard.dashboard-page .stats-grid .stat-card { padding: 14px; }
+  .student-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
+}
