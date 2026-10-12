@@ -1,12 +1,12 @@
-// Landing page behaviour: mobile menu, header CTA state, scroll reveals, school
-// settings, the practice quiz demo and the optional live 3D hero.
+// Landing page behaviour: mobile menu, signed-in state, header CTA state, scroll
+// reveals, school settings, the practice quiz demo and the optional live 3D hero.
 // Small and dependency-free; the page is complete without it.
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const media = query => window.matchMedia(query);
 const reducedMotion = media('(prefers-reduced-motion: reduce)');
 const wideViewport = media('(min-width: 48rem)');
-const ICONS = 'assets/icons/interface.svg?v=20261005-landing1';
+const ICONS = 'assets/icons/interface.svg?v=20261012-landing2';
 const HEADER_HEIGHT = 64;
 
 function setIcon(svg, name) {
@@ -42,17 +42,46 @@ function initMenu() {
 // ── One primary CTA per viewport: the header CTA stays outlined while the hero
 //    or closing CTA is on screen, and fills in once neither is visible. ──
 function initHeaderCta() {
-  const headerCta = $('[data-header-cta]');
+  const headerCtas = $$('[data-header-cta]');
   const primaries = $$('[data-primary-cta]');
-  if (!headerCta || !primaries.length || !('IntersectionObserver' in window)) return;
+  if (!headerCtas.length || !primaries.length || !('IntersectionObserver' in window)) return;
   const visible = new Set();
   const observer = new IntersectionObserver(entries => {
     for (const entry of entries) entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target);
     const quiet = visible.size > 0;
-    headerCta.classList.toggle('btn-quiet', quiet);
-    headerCta.classList.toggle('btn-primary', !quiet);
+    headerCtas.forEach(cta => {
+      cta.classList.toggle('btn-quiet', quiet);
+      cta.classList.toggle('btn-primary', !quiet);
+    });
   }, { rootMargin: `-${HEADER_HEIGHT}px 0px 0px 0px` });
   primaries.forEach(element => observer.observe(element));
+}
+
+// ── Signed-in visitors see the same page with their own actions: a greeting,
+//    a link to their dashboard and Sign out. The static HTML is the signed-out
+//    state, so a failed or slow session check changes nothing. ──
+function initAuth() {
+  fetch('api/auth/session.php', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(response => (response.ok ? response.json() : null))
+    .then(result => {
+      if (!result?.success || !result.data) return;
+      const user = result.data;
+      const staff = ['teacher', 'admin'].includes(user.role);
+      const firstName = String(user.full_name || user.username || '').trim().split(/\s+/)[0];
+      $$('[data-member-name]').forEach(element => { element.textContent = firstName ? `Welcome back, ${firstName}` : 'Welcome back'; });
+      $$('[data-dashboard-link]').forEach(link => { link.href = `${staff ? 'teacher' : 'student'}/dashboard.html`; });
+      if (staff) $$('[data-dashboard-label]').forEach(label => { label.textContent = 'Go to teacher dashboard'; });
+      $$('[data-auth="guest"]').forEach(element => { element.hidden = true; });
+      $$('[data-auth="member"]').forEach(element => { element.hidden = false; });
+    })
+    .catch(() => { /* Stay in the signed-out state. */ });
+
+  $$('[data-sign-out]').forEach(button => button.addEventListener('click', async () => {
+    button.disabled = true;
+    try { await fetch('api/auth/logout.php', { method: 'POST', credentials: 'same-origin' }); } catch (_) { /* Best effort. */ }
+    try { sessionStorage.removeItem('anatomiq_user'); } catch (_) { /* Storage may be unavailable. */ }
+    location.replace(location.pathname);
+  }));
 }
 
 // ── Reveal feature figures as they scroll in. Skipped entirely with reduced motion. ──
@@ -189,7 +218,7 @@ function initHero3d() {
   const observer = new IntersectionObserver(entries => {
     if (!entries.some(entry => entry.isIntersecting)) return;
     observer.disconnect();
-    const start = () => import('./landing-hero-3d.js?v=20261005-landing1')
+    const start = () => import('./landing-hero-3d.js?v=20261012-landing2')
       .then(module => module.mountHero3d(plate, { wideViewport, reducedMotion }))
       .catch(() => { /* The poster is already a finished hero. */ });
     if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1500 });
@@ -199,6 +228,7 @@ function initHero3d() {
 }
 
 initMenu();
+initAuth();
 initHeaderCta();
 initReveal();
 initSchoolSettings();

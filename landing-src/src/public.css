@@ -263,6 +263,7 @@
     border-radius: var(--radius-md); color: var(--fg); font-weight: 600; text-decoration: none;
     transition: background-color var(--duration-micro) var(--ease-out), transform var(--duration-press) var(--ease-out);
   }
+  button.nav-link { border: 0; background: transparent; font: inherit; font-weight: 600; }
   .nav-link:hover { background-color: var(--surface-raised); text-decoration: none; }
   .nav-link:active { transform: scale(0.97); }
   @media (min-width: 48rem) { .nav-divider { margin-left: 0.5rem; padding-left: 0.5rem; border-left: 1px solid var(--rule); } }
@@ -375,6 +376,60 @@
 
   /* Scan → printed page: a clean edge with a single hairline. */
   .seam { height: 1px; background: color-mix(in srgb, var(--color-glow) 45%, var(--color-ink)); }
+
+  /* ── Proof strip: real figures from the layer manifest and the quiz engine ── */
+  .proof { padding-block: 2.5rem; border-bottom: 1px solid var(--rule); }
+  @media (min-width: 64rem) { .proof { padding-block: 3.5rem; } }
+  .proof-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1.5rem; margin-block: 0; }
+  @media (min-width: 64rem) { .proof-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem; } }
+  .proof-item { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 0.5rem; }
+  @media (min-width: 64rem) { .proof-item + .proof-item { padding-left: 2.5rem; border-left: 1px solid var(--rule); } }
+  .proof-item dd { margin: 0; font-family: var(--font-display); font-size: var(--text-48); line-height: 1; color: var(--accent); }
+  @media (min-width: 64rem) { .proof-item dd { font-size: var(--text-72); } }
+  .proof-item dt { max-width: 22ch; font-size: var(--text-14); color: var(--muted); }
+
+  /* ── Why it helps: the usual struggle, struck out, and what replaces it ── */
+  .swaps { display: grid; margin: 0; padding: 0; list-style: none; }
+  .swap { display: grid; gap: 0.75rem; padding-block: 2rem; }
+  .swap + .swap { border-top: 1px solid var(--rule); }
+  @media (min-width: 64rem) {
+    .swap { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 3rem; align-items: baseline; padding-block: 2.5rem; }
+  }
+  .swap-from {
+    margin: 0; font-family: var(--font-display); font-style: italic; font-size: var(--text-24); line-height: 1.3;
+    color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-brand) 55%, transparent);
+    text-decoration-thickness: 1px;
+  }
+  .swap-to h3 { font-size: var(--text-32); line-height: var(--text-32--line-height); }
+  .swap-to p { margin: 0.75rem 0 0; max-width: 52ch; color: var(--muted); }
+
+  /* A real screenshot of the explorer, framed like the hero plate. */
+  .shot {
+    overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg);
+    background: var(--color-ink); box-shadow: var(--shadow-2);
+  }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  /* ── FAQ ── */
+  .faq { display: grid; gap: 2rem; }
+  @media (min-width: 64rem) { .faq { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 4rem; align-items: start; } }
+  .faq-list { border-top: 1px solid var(--rule); }
+  .faq-item { border-bottom: 1px solid var(--rule); }
+  .faq-item summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    min-height: 3.5rem; padding-block: 1rem; cursor: pointer; list-style: none;
+    font-size: var(--text-18); font-weight: 600; line-height: 1.4;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: "+"; flex-shrink: 0; display: grid; place-items: center; width: 2rem; height: 2rem;
+    border: 1px solid var(--line); border-radius: var(--radius-full);
+    font: 500 var(--text-18)/1 var(--font-mono); color: var(--accent);
+    transition: transform var(--duration-micro) var(--ease-out);
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item summary:hover { color: var(--accent); }
+  .faq-item p { margin: 0 0 1.25rem; max-width: 60ch; color: var(--muted); }
 
   /* ── Sections on paper ── */
   .section { padding-block: 4rem; }
@@ -490,6 +545,7 @@
   }
   .badge svg { width: 1rem; height: 1rem; fill: currentColor; }
   .question-text { display: grid; gap: 0.5rem; margin-block: 1.25rem; }
+  .question-prompt { display: block; margin-block: 1.25rem; padding: 0; font-size: var(--text-18); font-weight: 600; line-height: 1.4; color: var(--color-text-on-paper); }
   .answer-list { display: grid; gap: 0.5rem; }
   .answer {
     display: flex; align-items: center; gap: 0.75rem; min-height: 3rem; padding: 0.5rem 0.875rem;
