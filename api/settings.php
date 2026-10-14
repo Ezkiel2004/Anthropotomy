@@ -32,12 +32,9 @@ if ($method === 'GET') {
         'assessments' => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM assessments")['c'] ?? 0),
     ];
 
-    $settings = schoolSettings();
     $systemInfo = [
         'php_version'   => PHP_VERSION,
         'server_time'   => date('Y-m-d H:i:s'),
-        'school_name'   => $settings['school_name'] ?? '',
-        'academic_year' => $settings['academic_year'] ?? '',
         'database'      => 'MySQL / MariaDB (Connected)',
         'counts'        => $counts,
     ];

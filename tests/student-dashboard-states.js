@@ -33,10 +33,7 @@
         assert(element('scoreChartContainer').hidden && element('scoreChartEmpty').textContent.includes('No scores yet'), 'Empty scores need a message, not a chart');
         assert(draws === 0 && _cachedScoreData === null, 'Empty scores must not draw or cache chart data');
         assert(element('recentScoresTable').textContent.includes('No quiz submissions'), 'Empty results table');
-        for (const id of ['achievementList']) {
-            const parent = element(id), message = parent.querySelector('.dashboard-empty');
-            assert(message && message.getBoundingClientRect().width >= parent.clientWidth - 2, `${id} message must span the grid`);
-        }
+        assert(element('achievementsCard').hidden && element('scoreRow').classList.contains('is-single'), 'Without goals, achievements hide and score history takes the row');
 
         data.profile.total_lessons = 2;
         data.profile.completed_lessons = 2;
@@ -55,7 +52,7 @@
         assert(element('continueLearningGrid').dataset.kind === 'lesson' && element('continueLearningGrid').textContent.includes('Learn the skeleton'), 'Lesson in progress is the next step');
         assert(element('dashboardEncouragement').textContent.includes('1 of 2 lessons'), 'Encouragement uses real lesson counts');
         assert(element('scoreChartCta').hidden, 'Quiz offer hidden once scores exist');
-        assert(element('achievementList').children.length === 2 && !element('achievementList').querySelector('.dashboard-empty'), 'Achievement badges retained');
+        assert(element('achievementList').children.length === 2 && !element('achievementsCard').hidden, 'Achievement badges shown when goals exist');
         assert(element('systemProgressGrid').textContent.includes('1/2 (50%)'), 'Populated system progress retained');
         assert(!element('scoreChartContainer').hidden && element('scoreChartEmpty').hidden && draws > 0, 'Populated chart rendered');
         assert(_cachedScoreData.datasets[0].values.join(',') === '0,80', 'Real zero scores preserved in chart');

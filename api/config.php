@@ -30,5 +30,6 @@ $settings = array_fill_keys($keys, '');
 foreach ($db->fetchAll('SELECT setting_key, setting_value FROM app_settings') as $row) {
     if (array_key_exists($row['setting_key'], $settings)) $settings[$row['setting_key']] = $row['setting_value'];
 }
+if ($settings['academic_year'] === '') $settings['academic_year'] = currentSchoolYear();
 $settings['system_count'] = (int)$db->fetchOne('SELECT COUNT(*) AS n FROM body_systems WHERE is_active = 1')['n'];
 jsonSuccess($settings);

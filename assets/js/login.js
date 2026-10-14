@@ -172,16 +172,8 @@ try {
 } catch (_) { /* Remembering a username is optional. */ }
 // Reuse the school's configured grade when it differs from the standard options.
 document.addEventListener('siteconfigloaded', event => {
-    // Show the school name only when one is configured; never a placeholder.
-    if (event.detail.school_name && byId('schoolLine')) byId('schoolLine').hidden = false;
     const grade = event.detail.grade_level;
     if (grade && ![...byId('gradeLevel').options].some(option => option.value === grade)) byId('gradeLevel').add(new Option(grade, grade));
-    // The server refuses sign-ups until the school year is set; say so before the student fills in the form.
-    const closed = !String(event.detail.academic_year || '').trim();
-    byId('registerClosed').hidden = !closed;
-    byId('registerForm').hidden = closed;
-    const contact = String(event.detail.recovery_contact || '').trim();
-    if (closed && contact) { byId('registerContact').querySelector('[data-contact]').textContent = contact; byId('registerContact').hidden = false; }
 });
 fetch(API_BASE + '/auth/session.php', {credentials:'same-origin'}).then(response => response.json()).then(result => {
     if (result.success) location.replace(destination(result.data.role));

@@ -9,11 +9,9 @@ const SiteConfig = {
             const result = await response.json();
             if (!result.success) throw new Error(result.message);
             this.data = result.data;
-            document.querySelectorAll('[data-setting]').forEach(el => { el.textContent = this.data[el.dataset.setting] || 'Not configured'; });
             document.querySelectorAll('[data-system-count]').forEach(el => el.textContent = this.data.system_count);
             document.dispatchEvent(new CustomEvent('siteconfigloaded', {detail:this.data}));
         } catch (error) {
-            document.querySelectorAll('[data-setting]').forEach(el => el.textContent = 'Unavailable');
             console.error('School settings could not be loaded:', error.message);
         }
         document.querySelectorAll('[data-current-year]').forEach(el => el.textContent = new Date().getFullYear());

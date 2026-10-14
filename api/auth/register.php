@@ -22,7 +22,7 @@ $db = Database::getInstance();
 $settings = schoolSettings();
 $grades = array_merge(['Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','1st Year','2nd Year','3rd Year','4th Year','5th Year','Graduate'], [$settings['grade_level'] ?? '']);
 if (!in_array($data['grade_level'], $grades, true)) jsonError('Select a valid grade or year level.', 422);
-$schoolYear = trim($settings['academic_year'] ?? '');
+$schoolYear = trim($settings['academic_year'] ?? '') ?: currentSchoolYear();
 if ($schoolYear === '' || mb_strlen($schoolYear) > 20) jsonError('Registration is not ready yet. Ask your teacher to configure the school academic year.', 409);
 // Prevent ambiguous student-ID/username identifiers. Existing usernames retain login priority.
 if ($db->fetchOne('SELECT user_id FROM users WHERE username IN (?, ?)', [$data['username'], $data['school_id']]) ||

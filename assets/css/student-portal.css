@@ -149,6 +149,7 @@
   .student-dashboard .profile-fields { grid-template-columns: minmax(0, 1fr); }
 }
 
+.student-dashboard .dashboard-row-equal.is-single { grid-template-columns: minmax(0, 1fr); }
 /* Student dashboard lists. The next-step panel and stats strip are shared and live in teacher-dashboard.css. */
 .student-dashboard .dashboard-block { margin-bottom: 16px; }
 .student-dashboard .dashboard-block .monitoring-toolbar { margin-bottom: 4px; }

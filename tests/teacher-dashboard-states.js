@@ -5,7 +5,7 @@
     const originalFetch = window.fetch;
     let fail = false;
     const stats = { total_students: 0, active_students: 0, class_average_score: null, total_modules: 3, total_lessons: 0, active_assessments: 0 };
-    const config = { academic_year: '', passing_score: '75' };
+    const config = { academic_year: '2026-2027', passing_score: '75' };
     let atRisk = [], systems = [], students = [];
     window.fetch = async (url, options) => {
         const path = String(url);
@@ -18,11 +18,10 @@
     const primaryHref = () => step().querySelector('.btn-primary').getAttribute('href');
     try {
         await loadTeacherDashboard();
-        assert(primaryHref() === 'content.html' && step().textContent.includes('Students can’t sign up yet'), 'Missing school year comes first');
-        assert(step().querySelectorAll('.setup-list li').length === 4 && element('teacherEncouragement').textContent.startsWith('0 of 4'), 'Checklist shows all four setup steps');
+        assert(step().querySelectorAll('.setup-list li').length === 3 && element('teacherEncouragement').textContent.startsWith('0 of 3'), 'Checklist shows the three setup steps');
+        assert(!step().textContent.includes('school year') && !document.querySelector('a[href^="content.html"]'), 'No school-year step or content links remain');
         assert(element('moduleProgressList').textContent.includes('No body systems are active'), 'No systems state');
 
-        config.academic_year = '2026-2027';
         systems = [{ system_name: 'Skeletal System', system_code: 'skeletal', total_lessons: 0, avg_completion_pct: 0 }];
         await loadTeacherDashboard();
         assert(primaryHref() === 'modules.html' && step().textContent.includes('3 published modules'), 'No published lessons is next, naming the module count');

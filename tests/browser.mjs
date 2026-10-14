@@ -37,7 +37,7 @@ await evaluate(`document.getElementById('username').value=${JSON.stringify(crede
 await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 let checked=0;
-for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','content','anatomy']){
+for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','anatomy']){
     await navigate('/teacher/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Teacher stays authenticated: '+page);
     if(page==='dashboard')assert.ok(await evaluate(`Boolean(document.querySelector('.page-content a[href="anatomy.html"]'))`),'Dashboard links to teacher explorer');
@@ -75,7 +75,6 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'Database structure');
         assert.deepEqual(explorationPosts,[],'Teacher viewing never posts student exploration progress');
         assert.ok(await evaluate(`Boolean(document.querySelector('#relatedModules a[href*="module_id="]'))`),'Related module comes from database');
-        const editPath=await evaluate(`new URL(document.getElementById('editAnatomy').href).pathname+new URL(document.getElementById('editAnatomy').href).search`);
         assert.equal(await evaluate(`document.querySelector('[data-action="zoom-in"]').disabled`),false);
         await evaluate(`(()=>{const e=document.getElementById('explorer');e.requestFullscreen=undefined;e.webkitRequestFullscreen=undefined;document.querySelector('[data-action="fullscreen"]').click();})()`);
         await new Promise(resolve=>setTimeout(resolve,300));
@@ -163,10 +162,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await navigate('/teacher/anatomy.html?preview=student&system=hidden-anatomy');
         assert.equal(await evaluate(`document.querySelectorAll('#systemChips .system-chip').length`),1,'Student preview excludes hidden systems');
         assert.equal(await evaluate('AnatomyExplorer.contextSystem.id'),'test-system','Hidden requested system falls back to visible content');
-        assert.equal(await evaluate(`getComputedStyle(document.getElementById('editAnatomy')).display`),'none');
         assert.equal(await evaluate(`Auth.getUser().role`),'teacher','Preview preserves teacher session');
-        await navigate(editPath);
-        assert.equal(await evaluate(`document.getElementById('content_system_code').value`),'test-system','Edit link opens selected system');
     }
     if(page==='students'){
         assert.ok((await evaluate(`document.getElementById('studentListTbody').innerText`)).includes('Test Student'),'Student table loaded');
@@ -176,12 +172,6 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await evaluate(`(async()=>{openModal('addStudentModal');const values={addFullName:'Browser Created Student',addSchoolId:'BROWSER-STUDENT',addUsername:'browser-student',addPassword:'browser-password-123',addSection:'Browser Section',addGrade:'Browser Grade',addSchoolYear:'Browser Year'};Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value);await handleAddStudent({preventDefault(){}});})()`);
         await new Promise(resolve=>setTimeout(resolve,350));
         assert.ok((await evaluate('document.body.innerText')).includes('Browser Created Student'),'Student form saves and reloads the database roster');
-    }
-    if(page==='content'){
-        assert.equal(await evaluate(`document.querySelector('[name="school_name"]').value`),'Integration School');
-        await evaluate(`document.getElementById('systemSelect').value=contentSystems[0].system_id;editSystem(contentSystems[0].system_id);`);
-        assert.equal(await evaluate(`document.getElementById('content_system_name').value`),'Test System');
-        const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('.runtime/teacher-content.png',Buffer.from(shot.data,'base64'));
     }
     checked++;
 }

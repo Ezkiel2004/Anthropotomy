@@ -15,9 +15,8 @@ export function initTeacher({preview}) {
         textContent: preview ? 'Return to teacher view' : 'Student preview',
         href: preview ? 'anatomy.html' : 'anatomy.html?preview=student'
     });
-    const editLink = Object.assign(document.createElement('a'), {id: 'editAnatomy', className: 'panel-btn', textContent: 'Edit content', href: 'content.html', hidden: preview});
     const links = Object.assign(document.createElement('div'), {className: 'teacher-tools__links'});
-    links.append(previewLink, editLink);
+    links.append(previewLink);
     tools.append(status, links);
     tools.hidden = false;
 
@@ -29,7 +28,6 @@ export function initTeacher({preview}) {
     return {
         async onContext(system) {
             const version = ++requestVersion;
-            editLink.href = 'content.html?system=' + encodeURIComponent(system.id);
             previewLink.href = 'anatomy.html?' + new URLSearchParams({...(!preview ? {preview: 'student'} : {}), system: system.id});
             const url = new URL(location.href); url.searchParams.set('system', system.id); history.replaceState(null, '', url);
             if (preview) return;

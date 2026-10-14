@@ -18,7 +18,7 @@
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261012-dash2"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -131,20 +131,10 @@
           </form>
         </div>
 
-        <!-- System & Institution Information -->
+        <!-- System status -->
         <div class="card" style="grid-column:1/-1;">
-          <h3 style="margin-bottom:var(--space-4);">Institutional Environment & Database Diagnostics</h3>
+          <h3 style="margin-bottom:var(--space-4);">System status</h3>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--space-4);margin-bottom:var(--space-4);">
-            <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-              <div style="font-size:0.75rem;color:var(--text-muted);">Institution</div>
-              <div style="font-weight:700;font-size:0.95rem;margin-top:4px;" id="diagSchool">Loading?</div>
-              <div style="font-size:0.75rem;color:var(--brand);margin-top:2px;">Science Department</div>
-            </div>
-            <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-              <div style="font-size:0.75rem;color:var(--text-muted);">School Year</div>
-              <div style="font-weight:700;font-size:0.95rem;margin-top:4px;" id="diagYear">Loading?</div>
-              <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;"><span data-setting="subject"></span></div>
-            </div>
             <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
               <div style="font-size:0.75rem;color:var(--text-muted);">Database Connection</div>
               <div style="font-weight:700;font-size:0.95rem;color:var(--success);margin-top:4px;">Connected</div>
@@ -194,8 +184,6 @@ async function loadSettings() {
     document.getElementById('settingSubject').value    = profile.subject || '';
 
     // Fill diagnostics
-    document.getElementById('diagSchool').textContent     = system_info.school_name;
-    document.getElementById('diagYear').textContent       = system_info.academic_year;
     document.getElementById('diagServerTime').textContent = `Server: ${system_info.server_time}`;
 
     const c = system_info.counts;

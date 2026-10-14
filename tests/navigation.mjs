@@ -27,7 +27,7 @@ await new Promise(resolve=>setTimeout(resolve,1200));
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
- teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','content','anatomy'],
+ teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','progress']
 };
 // Pages checked per portal. Student notifications and settings are reached from the top bar
@@ -42,7 +42,7 @@ for(const page of ['assessments','monitoring','dashboard','assessments','monitor
  }
  assert.equal(await evaluate('location.pathname'),'/teacher/'+page+'.html','Sidebar click reaches '+page);
  assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav a')].map(a=>new URL(a.href).pathname.split('/').pop())`),expected.teacher.map(p=>p+'.html'),'Every menu remains present after clicking '+page);
- for(const link of ['settings','content','anatomy']){
+ for(const link of ['settings','anatomy']){
    assert.ok(await evaluate(`(()=>{const link=document.querySelector('.sidebar-nav a[href*="${link}.html"]');link.scrollIntoView({block:'center'});const r=link.getBoundingClientRect();return link.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})()`),'Lower sidebar link is reachable on '+page+': '+link);
  }
 }

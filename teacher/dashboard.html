@@ -20,7 +20,7 @@
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261012-dash2"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
 
   <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -197,10 +197,9 @@ document.getElementById('currentDate').textContent = new Date().toLocaleDateStri
   weekday:'long', year:'numeric', month:'long', day:'numeric'
 });
 
-// Four things a class needs before students can learn here, each linked to where it is fixed.
+// Three things a class needs before students can learn here, each linked to where it is fixed.
 function setupChecks(stats, config) {
   return [
-    { done: Boolean(String(config.academic_year || '').trim()), label: 'School year set', href: 'content.html' },
     { done: stats.total_lessons > 0, label: 'Lessons published', href: 'modules.html' },
     { done: stats.active_assessments > 0, label: 'A quiz is open', href: 'assessments.html' },
     { done: stats.total_students > 0, label: 'Students enrolled', href: 'students.html' },
@@ -209,10 +208,6 @@ function setupChecks(stats, config) {
 
 // The most important unfinished thing first; once set up, who needs help; otherwise the explorer.
 function pickTeacherStep(stats, config, atRisk) {
-  if (!String(config.academic_year || '').trim()) {
-    return { kind: 'setup', icon: 'calendar', kicker: 'Students can’t sign up yet', title: 'Set the school year',
-      detail: 'New students can’t create accounts until the school year is set in School & Anatomy Content.', action: 'Set the school year', href: 'content.html' };
-  }
   if (stats.total_lessons === 0) {
     return { kind: 'setup', icon: 'book-open', kicker: 'Students have nothing to read yet', title: 'Publish your first lesson',
       detail: stats.total_modules > 0
@@ -320,7 +315,7 @@ async function loadTeacherDashboard() {
     const systems = system_stats || [];
     const withLessons = systems.filter(ss => Number(ss.total_lessons) > 0);
     document.getElementById('moduleProgressList').innerHTML = !systems.length
-      ? emptyState('No body systems are active.', 'Turn systems on in School & Anatomy Content.', { href: 'content.html', label: 'Open content' })
+      ? emptyState('No body systems are active.', 'Body systems appear here once they are connected to the explorer.')
       : !withLessons.length
         ? emptyState('No lessons are published yet.', 'Completion for each body system appears once students can open lessons.', { href: 'modules.html', label: 'Open modules' })
         : systems.map(ss => `

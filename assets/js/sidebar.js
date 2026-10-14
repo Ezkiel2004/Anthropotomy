@@ -55,7 +55,7 @@
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#gear"/></svg></span>
         <span class="nav-label">Settings</span>
       </a>
-    <a class="nav-item" href="content.html"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#building-apartment"/></svg></span><span class="nav-label">School & Anatomy Content</span></a><a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
+<a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
 
     <div class="sidebar-footer"><div class="user-card"><a class="sidebar-profile" href="settings.html" title="Settings and profile"><div class="avatar">&#8226;</div><div class="user-info"><div class="user-name">Teacher</div><div class="user-role">Teacher</div></div></a><button type="button" class="logout-btn" title="Sign out" aria-label="Sign out"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#sign-out"/></svg></button></div></div>`,
         student: `<div class="sidebar-logo">

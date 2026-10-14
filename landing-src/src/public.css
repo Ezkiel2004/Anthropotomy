@@ -734,9 +734,6 @@
   .notice { margin: 1rem 0; padding: 0.75rem 1rem; border: 1px solid var(--rule); border-radius: var(--radius-md); overflow-wrap: anywhere; }
   .notice.error { border-color: var(--color-error); background: var(--color-error-tint); color: var(--color-error); }
   .notice.success { border-color: var(--color-brand); background: var(--color-success-tint); color: var(--color-brand-strong); }
-  .notice.info { margin: 0 0 1.5rem; padding: 1.25rem; border-color: var(--color-brand); background: var(--color-brand-tint); color: var(--color-text-on-paper); }
-  .notice.info strong { display: block; font-size: var(--text-18); font-weight: 600; }
-  .notice.info p { margin: 0.5rem 0 0; color: var(--color-muted-on-paper); }
   .text-accent { color: var(--accent); }
   .strength { display: flex; align-items: center; gap: 0.75rem; font-size: var(--text-14); color: var(--muted); }
   .strength meter { width: 8rem; height: 0.5rem; }

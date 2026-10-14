@@ -37,6 +37,12 @@ function schoolSettings(): array {
     return array_column(Database::getInstance()->fetchAll('SELECT setting_key, setting_value FROM app_settings'), 'setting_value', 'setting_key');
 }
 
+/** The school year in progress (June to May), used because this install serves one school. */
+function currentSchoolYear(): string {
+    $year = (int) date('Y');
+    return (int) date('n') >= 6 ? $year . '-' . ($year + 1) : ($year - 1) . '-' . $year;
+}
+
 function gradingPolicy(): array {
     $settings = schoolSettings();
     $policy = [];

@@ -99,13 +99,11 @@ function initReveal() {
   items.forEach(item => observer.observe(item));
 }
 
-// ── School settings from api/config.php. Elements stay hidden unless the API
-//    returns a real value: no placeholders, no invented numbers. ──
+// ── Body system count from api/config.php; hidden unless the API returns a real number. ──
 function initSchoolSettings() {
   $$('[data-current-year]').forEach(element => { if (!element.textContent) element.textContent = String(new Date().getFullYear()); });
   if (typeof SiteConfig === 'undefined' || !SiteConfig.ready) return;
   SiteConfig.ready.then(data => {
-    if (typeof data.school_name === 'string' && data.school_name.trim()) $$('[data-school-line]').forEach(element => { element.hidden = false; });
     const count = Number(data.system_count);
     if (Number.isInteger(count) && count > 0) $$('[data-system-count-line]').forEach(element => { element.hidden = false; });
   }).catch(() => { /* Settings are optional on this page. */ });
