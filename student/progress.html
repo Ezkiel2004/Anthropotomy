@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Progress &amp; Scores – Anthropotomy</title>
+  <title>My Progress &amp; Scores | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
+  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
 </head>
 <body class="teacher-dashboard student-dashboard">
@@ -67,7 +67,7 @@
           <div style="flex:1;">
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);margin-bottom:var(--space-5);">
               <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--brand);" id="statAvgQuizScore">—</div>
+                <div style="font-size:1.5rem;font-weight:700;color:var(--brand);" id="statAvgQuizScore">…</div>
                 <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Average Quiz Score</div>
               </div>
               <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
@@ -75,7 +75,7 @@
                 <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Quizzes Completed</div>
               </div>
               <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);" id="statLessonsRatio">—</div>
+                <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);" id="statLessonsRatio">…</div>
                 <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Lessons Completed</div>
               </div>
               <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
@@ -138,7 +138,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261012-icons3"></script>
+<script src="../assets/js/app.js?v=20261014-ui3"></script>
 <script src="../assets/js/student-portal.js?v=20260915-account3"></script>
 <script>
 'use strict';
@@ -171,7 +171,7 @@ async function loadProgress() {
 
     // Highlights
     document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${(system_progress || []).length} systems explored`;
-    document.getElementById('statAvgQuizScore').textContent = summary?.avg_quiz_score != null ? `${Math.round(summary.avg_quiz_score)}%` : '—';
+    document.getElementById('statAvgQuizScore').textContent = summary?.avg_quiz_score != null ? `${Math.round(summary.avg_quiz_score)}%` : 'Not yet';
     document.getElementById('statQuizzesDone').textContent  = `${summary?.quizzes_passed || 0} passed / ${summary?.quizzes_taken || 0} taken`;
     document.getElementById('statLessonsRatio').textContent = `${completed} / ${total}`;
     document.getElementById('statStudyHours').textContent   = `${parseFloat(summary?.total_time_hours || 0).toFixed(1)}h`;

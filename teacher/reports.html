@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reports – Anthropotomy</title>
+  <title>Reports | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
 </head>
 <body class="teacher-dashboard">
@@ -63,28 +63,16 @@
       <!-- Key Metrics -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg>
-          </div>
-          <div class="stat-info"><div class="stat-value" id="statClassAvg">—</div><div class="stat-label">Class Average Score</div><div class="stat-change up" id="statClassSub">Overall performance</div></div>
+          <div class="stat-info"><div class="stat-value" id="statClassAvg">…</div><div class="stat-label">Class Average Score</div><div class="stat-change up" id="statClassSub">Overall performance</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>
-          </div>
-          <div class="stat-info"><div class="stat-value" id="statSubRate">—</div><div class="stat-label">Quiz Submission Rate</div><div class="stat-change up">Active participation</div></div>
+          <div class="stat-info"><div class="stat-value" id="statSubRate">…</div><div class="stat-label">Quiz Submission Rate</div><div class="stat-change up">Active participation</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#medal"/></svg>
-          </div>
-          <div class="stat-info"><div class="stat-value" id="statPassedCount">—</div><div class="stat-label">Students Passed (75%+)</div><div class="stat-change up" id="statPassedPct">Passing cohort</div></div>
+          <div class="stat-info"><div class="stat-value" id="statPassedCount">…</div><div class="stat-label">Students Passed (75%+)</div><div class="stat-change up" id="statPassedPct">Passing cohort</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg>
-          </div>
-          <div class="stat-info"><div class="stat-value" id="statInterventionCount">—</div><div class="stat-label">Needs Intervention</div><div class="stat-change down">Below 60% or inactive</div></div>
+          <div class="stat-info"><div class="stat-value" id="statInterventionCount">…</div><div class="stat-label">Needs Intervention</div><div class="stat-change down">Below 60% or inactive</div></div>
         </div>
       </div>
 
@@ -92,7 +80,8 @@
       <div class="report-grid">
         <div class="report-chart-card">
           <div class="report-chart-title">Recent Quiz Score Trend (Class Average)</div>
-          <div style="height:220px;"><canvas id="trendChart" style="width:100%;height:100%;"></canvas></div>
+          <div style="height:220px;" id="trendChartWrap"><canvas id="trendChart" style="width:100%;height:100%;"></canvas></div>
+          <div class="dashboard-empty" id="trendChartEmpty" hidden><strong>No quiz scores yet.</strong><p>The class average by day appears here after students submit a quiz.</p></div>
         </div>
         <div class="report-chart-card">
           <div class="report-chart-title">Average Score by Body System</div>
@@ -150,11 +139,12 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261012-icons3"></script>
+<script src="../assets/js/app.js?v=20261014-ui3"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
 let reportStudents = [];
+let reportSystemCount = 0;
 let reportData = null;
 
 async function loadReports() {
@@ -165,10 +155,11 @@ async function loadReports() {
 
     reportData = result.data;
     reportStudents = reportData.students || [];
+    reportSystemCount = Number(reportData.system_count) || 0;
 
     // 1. Populate Metric Cards
     const s = reportData.summary || {};
-    document.getElementById('statClassAvg').textContent = s.class_average_score === null ? '—' : s.class_average_score + '%';
+    document.getElementById('statClassAvg').textContent = s.class_average_score === null ? 'Not yet' : s.class_average_score + '%';
     document.getElementById('statSubRate').textContent = (s.submission_rate_pct ?? 0) + '%';
     document.getElementById('statPassedCount').textContent = s.students_passed_count ?? 0;
     document.getElementById('statPassedPct').textContent = (s.passed_pct ?? 0) + '% of enrolled class';
@@ -224,7 +215,10 @@ async function loadReports() {
 
 function renderCharts(data) {
   // Line chart: Progress by recorded submission date
-  drawLineChart('trendChart', {
+  const hasTrend = (data.score_trend || []).length > 0;
+  document.getElementById('trendChartWrap').hidden = !hasTrend;
+  document.getElementById('trendChartEmpty').hidden = hasTrend;
+  if (hasTrend) drawLineChart('trendChart', {
     labels: (data.score_trend || []).map(p => p.day),
     datasets: [
       { values: (data.score_trend || []).map(p => Number(p.score)), color: '#1a6b4a' }
@@ -253,13 +247,13 @@ function renderReport(students) {
   tbody.innerHTML = students.map(s => {
     const hasScore = s.quizzes_taken > 0 && s.avg_quiz_score !== null;
     const scoreVal = hasScore ? parseFloat(s.avg_quiz_score) : null;
-    const scoreText = scoreVal !== null ? scoreVal.toFixed(1) + '%' : '—';
+    const scoreText = scoreVal !== null ? scoreVal.toFixed(1) + '%' : 'Not yet';
     const scoreColor = scoreVal !== null
       ? (scoreVal >= 85 ? 'var(--success)' : scoreVal >= 70 ? 'var(--warning)' : 'var(--error)')
       : 'var(--text-muted)';
     const initial = initials(s.full_name);
     const rankDisplay = `#${s.rank}`;
-    const gradeBadge = s.grade === 'A' ? 'badge-success' : s.grade === 'B' ? 'badge-info' : s.grade === 'C' ? 'badge-warning' : 'badge-error';
+    const gradeBadge = s.grade === 'A' ? 'badge-success' : s.grade === 'B' ? 'badge-info' : s.grade === 'C' ? 'badge-warning' : ['D', 'F'].includes(s.grade) ? 'badge-error' : 'badge-neutral';
     const statusBadge = s.status_label === 'Passed' ? 'badge-success' : s.status_label === 'At Risk' ? 'badge-warning' : s.status_label === 'Needs Support' ? 'badge-error' : 'badge-neutral';
 
     return `
@@ -278,7 +272,7 @@ function renderReport(students) {
         <td style="font-weight:700;color:${scoreColor};">${scoreText}</td>
         <td><span class="badge ${gradeBadge}">${s.grade}</span></td>
         <td>${s.completed_lessons} / ${s.total_lessons}</td>
-        <td>${s.systems_explored || 0} / 9</td>
+        <td>${Number(s.systems_explored) || 0} / ${reportSystemCount}</td>
         <td style="font-weight:600;color:var(--text-secondary);">${rankDisplay}</td>
         <td><span class="badge ${statusBadge}">${s.status_label}</span></td>
       </tr>

@@ -109,6 +109,7 @@ if ($method === 'GET') {
                 sps.avg_quiz_score,
                 COALESCE(sps.quizzes_taken, 0)     AS quizzes_taken,
                 COALESCE(sps.quizzes_passed, 0)    AS quizzes_passed,
+                COALESCE(sps.systems_explored, 0)  AS systems_explored,
                 COALESCE(sps.total_time_hours, 0)  AS total_time_hours
          FROM users u
          JOIN student_profiles sp ON sp.user_id = u.user_id
@@ -149,7 +150,8 @@ if ($method === 'GET') {
 
     jsonSuccess([
         'students' => $students,
-        'sections' => array_column($sections, 'section')
+        'sections' => array_column($sections, 'section'),
+        'system_count' => (int) ($db->fetchOne('SELECT COUNT(*) AS c FROM body_systems WHERE is_active = 1')['c'] ?? 0),
     ]);
 }
 

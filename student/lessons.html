@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Lessons – Anthropotomy</title>
+  <title>My Lessons | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
+  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
 </head>
 <body class="teacher-dashboard student-dashboard lessons-page">
@@ -56,45 +56,21 @@
       <!-- Top Summary Metrics Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-            <div class="stat-icon green">
-              <svg width="20" height="20" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg>
-            </div>
-            <span class="badge badge-brand">Curriculum</span>
-          </div>
-          <div class="stat-value" id="statTotalModules">&mdash;</div>
+          <div class="stat-value" id="statTotalModules">…</div>
           <div class="stat-label" id="statTotalLessonsLabel">Total Modules</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-            <div class="stat-icon blue">
-              <svg width="20" height="20" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>
-            </div>
-            <span class="badge badge-green">Completed</span>
-          </div>
           <div class="stat-value" id="statCompletedModules">&mdash;</div>
           <div class="stat-label">Completed Modules</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-            <div class="stat-icon gold">
-              <svg width="20" height="20" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg>
-            </div>
-            <span class="badge badge-amber">In Progress</span>
-          </div>
           <div class="stat-value" id="statInProgressModules">&mdash;</div>
           <div class="stat-label">In Progress Modules</div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-            <div class="stat-icon red">
-              <svg width="20" height="20" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg>
-            </div>
-            <span class="badge badge-blue">Overall Progress</span>
-          </div>
           <div class="stat-value" id="statOverallPct">&mdash;</div>
           <div class="stat-label" id="statCompletedLessonsLabel">Lessons Completed</div>
         </div>
@@ -133,7 +109,7 @@
             <option value="curriculum">Curriculum Order</option>
             <option value="progress-desc">Progress: High to Low</option>
             <option value="progress-asc">Progress: Low to High</option>
-            <option value="alpha">Title (A–Z)</option>
+            <option value="alpha">Title (A to Z)</option>
           </select>
         </div>
       </div>
@@ -181,7 +157,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261012-icons3"></script>
+<script src="../assets/js/app.js?v=20261014-ui3"></script>
 <script src="../assets/js/student-portal.js?v=20260915-account3"></script>
 <script>
 'use strict';
@@ -205,12 +181,13 @@ async function loadLessons() {
       grid.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--error);">Failed to load lessons.</div>';
       return;
     }
-    allModules = result.data || [];
+    // A module without published lessons has nothing to open, so students don't see it.
+    allModules = (result.data || []).filter(m => Number(m.lesson_count) > 0);
     updateSummaryMetrics();
     renderLessons();
   } catch (e) {
     document.getElementById('lessonResultsCount').textContent = 'Modules unavailable';
-    grid.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--error);">Server error — make sure XAMPP is running.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--error);">We couldn’t load your lessons. Please refresh to try again.</div>';
   }
 }
 
@@ -314,9 +291,9 @@ function renderLessons() {
   if (!data.length) {
     grid.innerHTML = `
       <div class="module-browser-empty">
-        <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-2);">${allModules.length ? 'No modules match your filter' : 'No lessons published yet'}</div>
-        <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:var(--space-4);">${allModules.length ? 'Try another filter or clear your search.' : 'Your teacher will publish learning modules here.'}</p>
-        ${allModules.length ? '<button type="button" class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset All Filters</button>' : ''}
+        <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-2);">${allModules.length ? 'No modules match your filter' : 'Your lessons are on the way'}</div>
+        <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:var(--space-4);">${allModules.length ? 'Try another filter or clear your search.' : 'Your teacher hasn’t published any lessons yet. While you wait, explore the body in 3D.'}</p>
+        ${allModules.length ? '<button type="button" class="btn btn-secondary btn-sm" onclick="resetFilters()">Reset All Filters</button>' : '<a class="btn btn-primary btn-sm" href="anatomy.html">Explore 3D Anatomy</a>'}
       </div>`;
     return;
   }
@@ -354,24 +331,12 @@ function renderLessons() {
 
         <div class="lesson-card-body">
           <div class="lesson-card-title">${escHtml(m.title)}</div>
-          <div class="lesson-card-desc">${escHtml(m.description || 'Comprehensive curriculum module exploring anatomical structures and physiological functions.')}</div>
+          <div class="lesson-card-desc">${escHtml(m.description || '')}</div>
 
           <div class="lesson-specs-grid">
-            <div class="lesson-spec-item" title="${m.lesson_count || 2} Curriculum Lessons">
+            <div class="lesson-spec-item">
               <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg>
-              <span>${m.lesson_count || 2} Lessons</span>
-            </div>
-            <div class="lesson-spec-item" title="Self-paced lesson duration">
-              <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg>
-              <span>~25–30 Mins</span>
-            </div>
-            <div class="lesson-spec-item" title="Interactive 3D WebGL model ready">
-              <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg>
-              <span>3D Model Ready</span>
-            </div>
-            <div class="lesson-spec-item" title="Chapter assessment quiz available">
-              <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#file-text"/></svg>
-              <span>Quiz Ready</span>
+              <span>${Number(m.lesson_count)} ${Number(m.lesson_count) === 1 ? 'lesson' : 'lessons'}</span>
             </div>
           </div>
 
@@ -389,7 +354,7 @@ function renderLessons() {
         <div class="lesson-card-footer">
           <div class="lesson-status-info">
             <span class="lesson-status-text" style="color:${isCompleted ? 'var(--success)' : isInProgress ? 'var(--warning)' : 'var(--text-secondary)'};">
-              ${m.completed_lessons || 0} of ${m.lesson_count || 2} Lessons Done
+              ${Number(m.completed_lessons) || 0} of ${Number(m.lesson_count)} lessons done
             </span>
             <span class="lesson-count-text">Learning module</span>
           </div>
@@ -537,7 +502,7 @@ async function viewModule(moduleId) {
               <div style="flex:1;min-width:0;">
                 <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(l.title)}</div>
                 <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;display:flex;gap:8px;">
-                  <span>${l.duration_mins ? l.duration_mins + ' mins' : '15 mins'}</span>
+                  <span>${l.duration_mins ? l.duration_mins + ' mins' : 'Self-paced'}</span>
                   <span>·</span>
                   <span style="text-transform:capitalize;">${escHtml(l.lesson_type ? l.lesson_type.replace('_', ' ') : 'Theory')}</span>
                 </div>

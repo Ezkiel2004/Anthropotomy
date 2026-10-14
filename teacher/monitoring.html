@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Student Monitoring – Anthropotomy</title>
+  <title>Student Monitoring | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
 </head>
 <body class="teacher-dashboard">
@@ -66,27 +66,15 @@
       <!-- Summary Stats -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg>
-          </div>
           <div class="stat-info"><div class="stat-value" id="statTotalEnrolled">—</div><div class="stat-label">Total Enrolled</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>
-          </div>
           <div class="stat-info"><div class="stat-value" id="statActiveToday">—</div><div class="stat-label">Active Learners</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg>
-          </div>
           <div class="stat-info"><div class="stat-value" id="statClassAvg">—</div><div class="stat-label">Class Average</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg>
-          </div>
           <div class="stat-info"><div class="stat-value" id="statNeedsAttention">—</div><div class="stat-label">Needs Attention</div></div>
         </div>
       </div>
@@ -142,12 +130,15 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261012-icons3"></script>
+<script src="../assets/js/app.js?v=20261014-ui3"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
 let allStudents = [];
 let currentFilter = 'all';
+let systemCount = 0;
+// A score only exists after a graded quiz; never show a missing score as 0%.
+const scoreText = value => value === null || value === undefined || value === '' ? 'Not yet' : `${parseFloat(value).toFixed(1)}%`;
 let searchTerm = '';
 
 async function loadMonitoringData() {
@@ -157,13 +148,15 @@ async function loadMonitoringData() {
     if (!result.success) throw new Error(result.message);
 
     allStudents = result.data.students || [];
+    systemCount = Number(result.data.system_count) || 0;
     const stats = result.data.stats || {};
 
     // Update Summary Stats
     document.getElementById('statTotalEnrolled').textContent = stats.total_students ?? allStudents.length;
     document.getElementById('statActiveToday').textContent = stats.active_students ?? allStudents.filter(s => s.is_active).length;
-    document.getElementById('statClassAvg').textContent = (stats.class_avg_score ?? 0) + '%';
-    document.getElementById('statNeedsAttention').textContent = stats.at_risk ?? allStudents.filter(s => s.performance === 'at-risk').length;
+    const scored = allStudents.filter(s => s.avg_quiz_score !== null);
+    document.getElementById('statClassAvg').textContent = stats.class_avg_score ?? (scored.length ? `${(scored.reduce((sum, s) => sum + Number(s.avg_quiz_score), 0) / scored.length).toFixed(1)}%` : 'Not yet');
+    document.getElementById('statNeedsAttention').textContent = stats.at_risk ?? allStudents.filter(s => s.performance_status === 'at-risk').length;
 
     applyFilters();
   } catch (err) {
@@ -183,10 +176,10 @@ function renderTable(data) {
 
   tbody.innerHTML = data.map(s => {
     const scoreVal = parseFloat(s.avg_quiz_score || 0);
-    const scoreColor = scoreVal >= 85 ? 'var(--success)' : scoreVal >= 70 ? 'var(--warning)' : 'var(--error)';
-    const avatarBg = s.performance === 'top' ? 'var(--warning)' : s.performance === 'at-risk' ? 'var(--error)' : 'var(--brand)';
+    const scoreColor = s.avg_quiz_score === null ? 'var(--text-muted)' : scoreVal >= 85 ? 'var(--success)' : scoreVal >= 70 ? 'var(--warning)' : 'var(--error)';
+    const avatarBg = s.performance_status === 'top' ? 'var(--warning)' : s.performance_status === 'at-risk' ? 'var(--error)' : 'var(--brand)';
     const initial = initials(s.full_name);
-    const progressPct = Math.round(parseFloat(s.completion_pct || 0));
+    const progressPct = Math.round(parseFloat(s.progress_pct || 0));
     const secName = s.section || '';
 
     return `
@@ -207,9 +200,9 @@ function renderTable(data) {
             <span>${progressPct}%</span>
           </div>
         </td>
-        <td style="font-weight:700;color:${scoreColor};">${scoreVal.toFixed(1)}%</td>
+        <td style="font-weight:700;color:${scoreColor};">${scoreText(s.avg_quiz_score)}</td>
         <td>${s.completed_lessons} / ${s.total_lessons}</td>
-        <td>${s.systems_explored} / 9</td>
+        <td>${Number(s.systems_explored) || 0} / ${systemCount}</td>
         <td style="font-size:0.8rem;color:var(--text-muted);">${escHtml(s.last_active_fmt || 'Never')}</td>
         <td><span class="badge ${s.is_active ? 'badge-success' : 'badge-error'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
         <td>
@@ -239,8 +232,8 @@ function applyFilters() {
     data = data.filter(s => {
       if (currentFilter === 'active')   return s.is_active;
       if (currentFilter === 'inactive') return !s.is_active;
-      if (currentFilter === 'at-risk')  return s.performance === 'at-risk';
-      if (currentFilter === 'top')      return s.performance === 'top';
+      if (currentFilter === 'at-risk')  return s.performance_status === 'at-risk';
+      if (currentFilter === 'top')      return s.performance_status === 'top';
       return true;
     });
   }
@@ -295,7 +288,7 @@ async function viewStudent(userId) {
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Overall Progress</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--brand);">${scoreVal.toFixed(1)}%</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--brand);">${scoreText(s.avg_quiz_score)}</div>
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Average Score</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
@@ -303,7 +296,7 @@ async function viewStudent(userId) {
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Lessons Done</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${s.systems_explored || 0} / 9</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${Number(s.systems_explored) || 0} / ${systemCount || (sysProgress.length)}</div>
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">3D Explored</div>
         </div>
       </div>

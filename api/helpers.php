@@ -43,10 +43,15 @@ function currentSchoolYear(): string {
     return (int) date('n') >= 6 ? $year . '-' . ($year + 1) : ($year - 1) . '-' . $year;
 }
 
+/**
+ * Grade bands for this school. Saved settings win; otherwise the school's usual scale:
+ * 90+ A, 85+ B, 80+ C, 75+ D (passing), and below 60 needs support.
+ */
 function gradingPolicy(): array {
+    $defaults = ['grade_a' => 90, 'grade_b' => 85, 'grade_c' => 80, 'grade_d' => 75, 'passing_score' => 75, 'support_score' => 60];
     $settings = schoolSettings();
     $policy = [];
-    foreach (['grade_a','grade_b','grade_c','grade_d','passing_score','support_score'] as $key) $policy[$key] = isset($settings[$key]) && $settings[$key] !== '' ? (float)$settings[$key] : null;
+    foreach ($defaults as $key => $default) $policy[$key] = isset($settings[$key]) && $settings[$key] !== '' ? (float)$settings[$key] : (float)$default;
     return $policy;
 }
 

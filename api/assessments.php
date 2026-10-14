@@ -131,6 +131,7 @@ if ($method === 'GET') {
     } elseif ($user['role'] === 'student') {
         // Students only see active assessments by default
         $where[] = "a.status = 'active'";
+        $where[] = "EXISTS (SELECT 1 FROM questions qq WHERE qq.assessment_id = a.assessment_id)";
     }
 
     $whereSql = implode(' AND ', $where);

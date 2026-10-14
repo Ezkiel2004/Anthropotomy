@@ -42,10 +42,10 @@ foreach ($students as &$s) {
     $score = $hasScore ? (float)$s['avg_quiz_score'] : null;
 
     if ($score === null) {
-        $s['grade'] = '—';
+        $s['grade'] = 'None';
         $s['status_label'] = 'Not Started';
     } elseif ($policy['grade_a'] === null || $policy['grade_b'] === null || $policy['grade_c'] === null || $policy['grade_d'] === null) {
-        $s['grade'] = '—';
+        $s['grade'] = 'None';
     } elseif ($score >= $policy['grade_a']) {
         $s['grade'] = 'A';
     } elseif ($score >= $policy['grade_b']) {
@@ -194,6 +194,7 @@ $systemScores = $db->fetchAll(
 $scoreTrend = $db->fetchAll("SELECT DATE(submitted_at) AS day, ROUND(AVG(score),1) AS score FROM assessment_submissions WHERE status IN ('submitted','graded') GROUP BY DATE(submitted_at) ORDER BY day DESC LIMIT 14");
 $scoreTrend = array_reverse($scoreTrend);
 jsonSuccess([
+    'system_count' => (int) ($db->fetchOne('SELECT COUNT(*) AS c FROM body_systems WHERE is_active = 1')['c'] ?? 0),
     'score_trend' => $scoreTrend,
     'grading_policy' => $policy,
     'summary' => [

@@ -351,7 +351,7 @@ function closeModal(id) {
 
 // ── Format Helpers ──────────────────────────────────────────────
 function fmtDate(dateStr) {
-    if (!dateStr) return '—';
+    if (!dateStr) return 'No date';
     return new Date(dateStr).toLocaleDateString('en-PH', {
         year: 'numeric', month: 'short', day: 'numeric'
     });
@@ -482,7 +482,8 @@ function drawLineChart(canvasId, data) {
     const cW  = W - pad.left - pad.right;
     const cH  = H - pad.top  - pad.bottom;
     const allVals = datasets.flatMap(d => d.values.map(Number));
-    const max = Math.max(...allVals) * 1.15 || 100;
+    // With no values the scale defaults to 0-100 (Math.max of nothing is -Infinity).
+    const max = allVals.length ? (Math.max(...allVals) * 1.15 || 100) : 100;
 
     ctx.clearRect(0, 0, W, H);
 

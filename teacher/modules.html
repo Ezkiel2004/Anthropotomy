@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Modules & Lessons – Anthropotomy</title>
+  <title>Modules & Lessons | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261012-dash2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
 </head>
 <body class="teacher-dashboard">
@@ -66,36 +66,24 @@
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon green">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statTotalModules">0</div>
             <div class="stat-label">Total Modules</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon blue">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statTotalLessons">0</div>
             <div class="stat-label">Total Lessons</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon gold">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statPublishedModules">0</div>
             <div class="stat-label">Published</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon red">
-            <svg style="width:20px;height:20px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pencil-simple"/></svg>
-          </div>
           <div class="stat-info">
             <div class="stat-value" id="statDraftModules">0</div>
             <div class="stat-label">Draft</div>
@@ -220,7 +208,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261012-icons3"></script>
+<script src="../assets/js/app.js?v=20261014-ui3"></script>
 <script>
 'use strict';
 
@@ -309,7 +297,6 @@ function renderModules(modules) {
 
     return `
     <div class="module-card" id="mc-${m.module_id}">
-      <div class="module-card-header" style="background:var(--bg-inset);border-bottom:1px solid var(--border-light);font-size:2.25rem;color:var(--brand);"><svg class="ui-icon" style="width:36px;height:36px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></div>
       <div class="module-card-body">
         <div class="module-card-title">${escHtml(m.title)}</div>
         <div class="module-card-desc">${escHtml((m.description || '').substring(0, 100))}${(m.description || '').length > 100 ? '…' : ''}</div>

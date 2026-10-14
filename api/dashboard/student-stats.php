@@ -64,7 +64,7 @@ $upcomingAssessments = $db->fetchAll(
             (SELECT COUNT(*) FROM assessment_submissions WHERE assessment_id = a.assessment_id AND student_id = ?) AS attempts_made
      FROM assessments a
      LEFT JOIN body_systems bs ON bs.system_id = a.system_id
-     WHERE a.status = 'active'
+     WHERE a.status = 'active' AND EXISTS (SELECT 1 FROM questions qq WHERE qq.assessment_id = a.assessment_id)
      HAVING attempts_made < a.max_attempts
      ORDER BY (a.due_date IS NOT NULL) DESC, a.due_date ASC, a.created_at DESC
      LIMIT 3",
@@ -75,7 +75,7 @@ $upcomingAssessments = $db->fetchAll(
 $pendingRow = $db->fetchOne(
     "SELECT COUNT(*) AS c
      FROM assessments a
-     WHERE a.status = 'active'
+     WHERE a.status = 'active' AND EXISTS (SELECT 1 FROM questions qq WHERE qq.assessment_id = a.assessment_id)
        AND NOT EXISTS (
            SELECT 1 FROM assessment_submissions sub
            WHERE sub.assessment_id = a.assessment_id

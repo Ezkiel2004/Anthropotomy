@@ -1327,10 +1327,11 @@
 
 .assessment-badges-wrap {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 5px;
-  flex-shrink: 0;
-  white-space: nowrap !important;
+  min-width: 0;
 }
 
 .assessment-badges-wrap .badge {

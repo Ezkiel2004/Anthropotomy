@@ -44,7 +44,6 @@
 .teacher-dashboard .dashboard-date svg { width: 16px; height: 16px; }
 .teacher-dashboard .btn-primary { background: linear-gradient(180deg, #0a9a69, #04724e); border: 1px solid #0b996a; box-shadow: inset 0 1px #ffffff30, 0 3px 8px #07604716; }
 .teacher-dashboard .btn-primary:hover { background: #056044; }
-.teacher-dashboard .btn-primary span { font-size: 1.15rem; line-height: 1; }
 .teacher-dashboard .card, .teacher-dashboard .stat-card { border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 3px 12px #24486205; }
 .teacher-dashboard .card { padding: 17px 18px; min-width: 0; }
 .teacher-dashboard .anatomy-shortcut { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; min-height: 98px; padding: 18px 24px; position: relative; overflow: hidden; background: radial-gradient(ellipse at 70% 0, #a3e4cf80, transparent 58%), linear-gradient(110deg, #fff 20%, #eaf9f3 80%, #f7fcfa); }
@@ -656,25 +655,26 @@
 .teacher-dashboard.dashboard-page .next-step-alt:hover { color: #e8f3ec; }
 .teacher-dashboard.dashboard-page .next-step[data-kind="error"] .anatomy-shortcut-icon { border-color: #ff8a80; color: #ff8a80; }
 
-/* Stats: one strip with hairline dividers instead of four floating cards. */
-.teacher-dashboard.dashboard-page .stats-grid {
+/* Stats on every portal page: one strip with hairline dividers, no icon tiles or badges. */
+body.teacher-dashboard .stats-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-bottom: 16px; overflow: hidden;
   background: var(--bg-surface); border: 1px solid var(--border); border-radius: 11px;
 }
-.teacher-dashboard.dashboard-page .stats-grid .stat-card {
+body.teacher-dashboard .stats-grid .stat-card {
+  display: flex; flex-direction: column; align-items: stretch; min-width: 0;
   gap: 2px; padding: 18px 20px; border: 0; border-radius: 0; box-shadow: none; background: transparent;
 }
-.teacher-dashboard.dashboard-page .stats-grid .stat-card + .stat-card { border-left: 1px solid var(--border-light); }
-.teacher-dashboard.dashboard-page .stat-info { gap: 2px; }
-.teacher-dashboard.dashboard-page .stat-value { font-size: 2rem; }
-.teacher-dashboard.dashboard-page .stat-label { order: -1; font-size: .78rem; font-weight: 600; color: var(--text-secondary); }
-.teacher-dashboard.dashboard-page .stats-grid .stat-card .stat-change { margin-top: 4px; font-size: .74rem; color: var(--text-muted); }
+body.teacher-dashboard .stats-grid .stat-card + .stat-card { border-left: 1px solid var(--border-light); }
+body.teacher-dashboard .stats-grid .stat-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.teacher-dashboard .stats-grid .stat-value { font-size: 2rem; }
+body.teacher-dashboard .stats-grid .stat-label { order: -1; font-size: .78rem; font-weight: 600; color: var(--text-secondary); }
+body.teacher-dashboard .stats-grid .stat-card .stat-change { margin-top: 4px; font-size: .74rem; color: var(--text-muted); }
 @media (max-width: 900px) {
-  .teacher-dashboard.dashboard-page .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .teacher-dashboard.dashboard-page .stats-grid .stat-card:nth-child(3) { border-left: 0; }
-  .teacher-dashboard.dashboard-page .stats-grid .stat-card:nth-child(n+3) { border-top: 1px solid var(--border-light); }
+  body.teacher-dashboard .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.teacher-dashboard .stats-grid .stat-card:nth-child(3) { border-left: 0; }
+  body.teacher-dashboard .stats-grid .stat-card:nth-child(n+3) { border-top: 1px solid var(--border-light); }
 }
-.teacher-dashboard.dashboard-page .stats-grid .stat-card:last-child { grid-column: auto; }
+body.teacher-dashboard .stats-grid .stat-card:last-child { grid-column: auto; }
 @media (max-width: 760px) {
   /* The banner becomes a two-column grid here (teacher-dashboard.css); actions sit under the copy. */
   .teacher-dashboard.dashboard-page .next-step-actions { grid-column: 2; align-items: flex-start; }
