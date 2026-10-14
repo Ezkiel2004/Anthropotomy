@@ -2,7 +2,7 @@
 const APP_BASE = new URL('../../', document.currentScript.src).pathname.replace(/\/$/, '');
 const API_BASE = APP_BASE + '/api';
 const byId = id => document.getElementById(id);
-const eye = hidden => `<svg viewBox="0 0 256 256" aria-hidden="true"><use href="assets/icons/interface.svg#${hidden ? 'eye' : 'eye-slash'}"/></svg>`;
+const eye = hidden => `<svg viewBox="0 0 256 256" aria-hidden="true"><use href="assets/icons/interface.svg?v=20261012-icons3#${hidden ? 'eye' : 'eye-slash'}"/></svg>`;
 function togglePassword(id, button) {
     const input = byId(id);
     const visible = input.type === 'password';
@@ -176,6 +176,12 @@ document.addEventListener('siteconfigloaded', event => {
     if (event.detail.school_name && byId('schoolLine')) byId('schoolLine').hidden = false;
     const grade = event.detail.grade_level;
     if (grade && ![...byId('gradeLevel').options].some(option => option.value === grade)) byId('gradeLevel').add(new Option(grade, grade));
+    // The server refuses sign-ups until the school year is set; say so before the student fills in the form.
+    const closed = !String(event.detail.academic_year || '').trim();
+    byId('registerClosed').hidden = !closed;
+    byId('registerForm').hidden = closed;
+    const contact = String(event.detail.recovery_contact || '').trim();
+    if (closed && contact) { byId('registerContact').querySelector('[data-contact]').textContent = contact; byId('registerContact').hidden = false; }
 });
 fetch(API_BASE + '/auth/session.php', {credentials:'same-origin'}).then(response => response.json()).then(result => {
     if (result.success) location.replace(destination(result.data.role));
