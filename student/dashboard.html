@@ -4,20 +4,19 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Dashboard | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261015-stage1"/>
 </head>
-<body class="teacher-dashboard student-dashboard dashboard-page">
+<body class="student-dashboard dashboard-page stage-portal">
 <div class="app-layout">
 
-  <!-- Student Sidebar -->
+  <!-- Student Sidebar (desktop). Phones use the tab bar at the bottom instead. -->
   <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -27,6 +26,7 @@
       <button class="topbar-toggle" id="sidebarToggle">
         <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg>
       </button>
+      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Student Portal</span>
         <span class="breadcrumb-sep">/</span>
@@ -39,13 +39,13 @@
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-            <div class="notif-header"><span>Notifications</span><a href="notifications.html" style="font-size:0.75rem;color:var(--brand);">Mark all read</a></div>
+            <div class="notif-header"><span>Notifications</span><a href="notifications.html">Mark all read</a></div>
             <div class="notif-list"></div>
             <div class="notif-footer"><a href="notifications.html">View all</a></div>
           </div>
         </div>
         <a href="settings.html" class="topbar-user" style="text-decoration:none;color:inherit;" title="Manage Account">
-          <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;">MS</div>
+          <div class="avatar">MS</div>
           <div>
             <div class="topbar-user-name">Student</div>
             <div class="topbar-user-role">Student</div>
@@ -54,110 +54,71 @@
       </div>
     </header>
 
-    <div class="page-content">
-
-      <!-- Welcome -->
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 id="welcomeGreeting">Welcome back</h1>
-          <p id="dashboardEncouragement">Here’s what’s waiting for you today.</p>
-        </div>
-        <div class="page-header-right">
-          <div class="dashboard-date"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#calendar"/></svg><span id="currentDate"></span></div>
-        </div>
-      </div>
-
-      <!-- Your next step: one clear action, chosen from the student's own data -->
-      <section class="card anatomy-shortcut next-step" id="continueLearningGrid" aria-labelledby="nextStepTitle" aria-live="polite">
-        <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#stack"/></svg></span>
-        <div class="anatomy-shortcut-copy"><p class="next-step-kicker">Your next step</p><h2 id="nextStepTitle">Finding your next step…</h2></div>
+    <div class="page-content sd">
+      <section class="sd-hello" aria-labelledby="welcomeGreeting">
+        <p class="sd-date" id="currentDate"></p>
+        <h1 id="welcomeGreeting" class="sd-title">Welcome back</h1>
+        <p id="dashboardEncouragement" class="sd-sub">Here’s what’s waiting for you today.</p>
       </section>
 
-      <!-- Progress Overview -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="dashOverallProgress">0%</div>
-            <div class="stat-label">Lessons finished</div>
-            <div class="stat-change up" id="dashCompletedCount">Loading…</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="dashSystemsExplored">0</div>
-            <div class="stat-label">Body systems explored</div>
-            <div class="stat-change up" id="dashSystemsHint">In the 3D explorer</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="dashAvgScore">Not yet</div>
-            <div class="stat-label">Quiz average</div>
-            <div class="stat-change up" id="dashQuizzesTaken">Loading…</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="dashPendingCount">0</div>
-            <div class="stat-label">Quizzes to try</div>
-            <div class="stat-change neutral" id="dashPendingHint">Loading…</div>
-          </div>
-        </div>
+      <div class="sd-top">
+        <!-- Your next step: one clear action, chosen from the student's own data -->
+        <section class="sd-next" id="continueLearningGrid" data-tone="none" aria-labelledby="nextStepTitle" aria-live="polite">
+          <div class="sd-next-copy"><p class="sd-next-kicker">Your next step</p><h2 id="nextStepTitle" class="sd-next-title">Finding your next step…</h2></div>
+        </section>
+
+        <dl class="sd-stats" aria-label="Your progress at a glance">
+          <div class="sd-stat"><dt>Lessons finished</dt><dd><span class="sd-stat-value" id="dashOverallProgress">0%</span><span class="sd-stat-hint" id="dashCompletedCount">Loading…</span></dd></div>
+          <div class="sd-stat"><dt>Systems explored</dt><dd><span class="sd-stat-value" id="dashSystemsExplored">0</span><span class="sd-stat-hint" id="dashSystemsHint">In the 3D explorer</span></dd></div>
+          <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="dashAvgScore">Not yet</span><span class="sd-stat-hint" id="dashQuizzesTaken">Loading…</span></dd></div>
+          <div class="sd-stat"><dt>Quizzes to try</dt><dd><span class="sd-stat-value" id="dashPendingCount">0</span><span class="sd-stat-hint" id="dashPendingHint">Loading…</span></dd></div>
+        </dl>
       </div>
 
-      <!-- Quizzes and activities -->
-      <div class="card dashboard-block">
-        <div class="monitoring-toolbar">
-          <div class="section-title" style="margin:0;">Quizzes and activities</div>
-          <a href="quiz.html" class="btn btn-secondary btn-sm">See all</a>
-        </div>
-        <div id="upcomingList" class="upcoming-list">
-          <div class="dashboard-empty">Checking for quizzes…</div>
-        </div>
-      </div>
+      <section class="sd-block" aria-labelledby="quizzesTitle">
+        <div class="sd-h"><h2 id="quizzesTitle" class="sd-h-title">Quizzes to try</h2><a class="sd-link" href="quiz.html">See all</a></div>
+        <div id="upcomingList" class="sd-quizzes"><div class="dashboard-empty">Checking for quizzes…</div></div>
+      </section>
 
-      <!-- Score history and achievements -->
-      <div class="dashboard-row-equal" id="scoreRow">
-        <div class="card">
-          <div class="section-title">Score history</div>
+      <section class="sd-block" aria-labelledby="systemsTitle">
+        <div class="sd-h"><h2 id="systemsTitle" class="sd-h-title">Your body systems</h2><a class="sd-link" href="anatomy.html">Explore 3D</a></div>
+        <div id="systemProgressGrid" class="sd-shelf"><div class="dashboard-empty">Loading body systems…</div></div>
+      </section>
+
+      <div class="sd-row" id="scoreRow">
+        <section class="sd-block" aria-labelledby="scoreTitle">
+          <div class="sd-h"><h2 id="scoreTitle" class="sd-h-title">Score history</h2><span class="sd-legend"><i class="is-pass"></i>Passed<i class="is-review"></i>Review</span></div>
           <div id="scoreChartEmpty" class="dashboard-empty" role="status">Loading score history…</div>
-          <p class="empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="btn btn-secondary btn-sm">Try a quiz</a></p>
-          <div id="scoreChartContainer" class="chart-container" style="height:200px;" hidden>
-            <canvas id="scoreChart" style="width:100%;height:100%;" role="img" aria-label="Recent quiz scores"></canvas>
-          </div>
-        </div>
-        <div class="card" id="achievementsCard" hidden>
-          <div class="section-title">Achievements</div>
-          <div id="achievementList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:var(--space-2);"></div>
-        </div>
+          <p class="sd-empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="sd-go sd-go--light">Try a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></span></a></p>
+          <div id="scoreChartContainer" class="sd-chart" role="img" aria-label="Recent quiz scores" hidden></div>
+        </section>
+        <section class="sd-block" id="achievementsCard" aria-labelledby="achievementsTitle" hidden>
+          <div class="sd-h"><h2 id="achievementsTitle" class="sd-h-title">Achievements</h2><span class="sd-count" id="achievementCount"></span></div>
+          <div id="achievementList" class="sd-achievements"></div>
+        </section>
       </div>
 
-      <!-- Body systems -->
-      <div class="card dashboard-block">
-        <div class="section-title">Your body systems</div>
-        <div id="systemProgressGrid" class="system-progress-grid">
-          <div class="dashboard-empty">Loading body systems…</div>
-        </div>
-      </div>
-
-      <!-- Recent Scores -->
-      <div class="card">
-        <div class="monitoring-toolbar">
-          <div class="section-title" style="margin:0;">Recent quiz results</div>
-          <a href="progress.html#scores" class="btn btn-secondary btn-sm">View all</a>
-        </div>
-        <div class="table-wrapper">
+      <section class="sd-block" aria-labelledby="recentTitle">
+        <div class="sd-h"><h2 id="recentTitle" class="sd-h-title">Recent quiz results</h2><a class="sd-link" href="progress.html#scores">View all</a></div>
+        <div class="sd-table">
           <table class="data-table">
             <thead><tr><th>Assessment</th><th>Type</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="recentScoresTable">
-              <tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--text-muted);">Loading recent quiz results…</td></tr>
+              <tr><td colspan="5" class="sd-table-empty">Loading recent quiz results…</td></tr>
             </tbody>
           </table>
         </div>
-      </div>
-
+      </section>
     </div>
   </main>
+
+  <nav class="sd-tabbar" aria-label="Student sections">
+    <a href="dashboard.html" aria-current="page"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#house"/></svg><span>Home</span></a>
+    <a href="anatomy.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg><span>3D</span></a>
+    <a href="lessons.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg><span>Lessons</span></a>
+    <a href="quiz.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg><span>Quizzes</span><span class="sd-tab-badge" id="tabQuizBadge" hidden></span></a>
+    <a href="progress.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg><span>Progress</span></a>
+  </nav>
 </div>
 
 <script src="../assets/js/app.js?v=20261014-ui3"></script>
@@ -167,7 +128,21 @@
 Auth.requireAuthSync('student');
 
 const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+const icon = name => `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
 const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
+
+// Card colours and renders from the landing page, one per body system (Anthropotomy Stage).
+const CARD_COLOURS = { sky: '#3fb8f5', teal: '#2ccf9a', violet: '#6c63ff', purple: '#8b5cf6', coral: '#f2545b' };
+const SYSTEM_LOOKS = {
+  skeletal: ['sky', 'skeletal'], muscular: ['purple', 'muscular'], circulatory: ['sky', 'circulatory'],
+  nervous: ['violet', 'nervous'], lymphatic: ['coral', 'lymphatic'], respiratory: ['teal', 'respiratory'],
+  digestive: ['violet', 'digestive'], urinary: ['sky', 'urinary'], endocrine: ['teal', 'endocrine'],
+  reproductive: ['coral', null], 'reproductive-female': ['purple', null],
+};
+function systemLook(code) {
+  const [tone, art] = SYSTEM_LOOKS[code] || ['sky', null];
+  return { tone, art: art ? `../assets/img/hero/${art}.webp` : null };
+}
 
 // A due date has passed once the whole due day is over; the quiz can still be open.
 function dueText(dueDate) {
@@ -191,38 +166,47 @@ function encouragement(p) {
 // the next lesson, and otherwise the 3D explorer.
 function pickNextStep(data) {
   const p = data.profile, lesson = data.next_lesson, quiz = (data.upcoming_assessments || [])[0];
-  const lessonDetail = lesson && [lesson.module_title, lesson.system_name].filter(Boolean).join(', ');
+  const lessonDetail = lesson && (lesson.module_title || lesson.system_name || '');
+  const lessonSystem = lesson && (data.systems || []).find(s => s.system_name === lesson.system_name);
+  const lessonLook = lessonSystem ? systemLook(lessonSystem.system_code) : { tone: 'sky', art: '../assets/img/hero/skeletal.webp' };
+  const lessonProgress = lessonSystem && Number(lessonSystem.total_lessons) > 0
+    ? { pct: Number(lessonSystem.pct) || 0, label: `${lessonSystem.completed_lessons} of ${plural(Number(lessonSystem.total_lessons), 'lesson')} in ${lessonSystem.system_name}` } : null;
   if (lesson && lesson.progress_status === 'in_progress') {
-    return { kind: 'lesson', icon: 'book-open', kicker: 'Pick up where you left off', title: lesson.title, detail: lessonDetail, action: 'Continue lesson', href: 'lessons.html' };
+    return { kind: 'lesson', ...lessonLook, icon: 'book-open', kicker: 'Pick up where you left off', title: lesson.title, detail: lessonDetail, progress: lessonProgress, action: 'Continue lesson', href: 'lessons.html' };
   }
   if (quiz) {
-    return { kind: 'quiz', icon: 'exam', kicker: 'Ready for a quick check?', title: quiz.title,
+    return { kind: 'quiz', tone: 'coral', art: '../assets/img/hero/decor-heart.webp', icon: 'exam', kicker: 'Ready for a quick check?', title: quiz.title,
       detail: `${dueText(quiz.due_date)}. About ${Number(quiz.time_limit_mins) || 30} minutes.`, action: 'Start quiz',
       href: `quiz.html?assessment_id=${encodeURIComponent(quiz.assessment_id)}` };
   }
   if (lesson) {
-    return { kind: 'lesson', icon: 'book-open', kicker: 'Start your next lesson', title: lesson.title, detail: lessonDetail, action: 'Start lesson', href: 'lessons.html' };
+    return { kind: 'lesson', ...lessonLook, icon: 'book-open', kicker: 'Start your next lesson', title: lesson.title, detail: lessonDetail, progress: lessonProgress, action: 'Start lesson', href: 'lessons.html' };
   }
   const total = Number(p.total_lessons) || 0, done = Number(p.completed_lessons) || 0;
-  const detail = total === 0 ? 'No lessons available yet. Start by exploring the body in 3D: switch a system on and click any part to learn its name.'
-    : done >= total ? 'All published lessons are complete. Keep your knowledge fresh by exploring the body in 3D.'
+  const detail = total === 0 ? 'No lessons yet. Switch a body system on and click any part to learn its name.'
+    : done >= total ? 'All published lessons are complete. Keep your knowledge fresh in 3D.'
     : 'Visit My Lessons to continue learning, or explore the body in 3D.';
-  return { kind: 'explore', icon: 'cube', kicker: 'Your next step', title: 'Explore the body in 3D', detail, action: 'Explore 3D Anatomy', href: 'anatomy.html' };
+  return { kind: 'explore', tone: 'sky', art: '../assets/img/hero/skeletal.webp', icon: 'cube', kicker: 'Your next step', title: 'Explore the body in 3D', detail, action: 'Explore 3D Anatomy', href: 'anatomy.html' };
 }
 
 function renderNextStep(step) {
   const card = document.getElementById('continueLearningGrid');
   card.dataset.kind = step.kind;
+  card.dataset.tone = step.tone || 'none';
+  card.style.setProperty('--card', CARD_COLOURS[step.tone] || '#1f1f1f');
+  const progress = step.progress
+    ? `<div class="sd-next-bar" role="progressbar" aria-label="${escHtml(step.progress.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${step.progress.pct}"><i style="width:${step.progress.pct}%"></i></div><p class="sd-next-detail">${escHtml(step.progress.label)}</p>` : '';
   card.innerHTML = `
-    <span class="anatomy-shortcut-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${step.icon}"/></svg></span>
-    <div class="anatomy-shortcut-copy">
-      <p class="next-step-kicker">${escHtml(step.kicker)}</p>
-      <h2 id="nextStepTitle">${escHtml(step.title)}</h2>
-      ${step.detail ? `<p>${escHtml(step.detail)}</p>` : ''}
+    ${step.art ? `<img class="sd-next-art${step.kind === 'quiz' ? ' sd-next-art--organ' : ''}" src="${step.art}" alt="">` : `<span class="sd-next-icon">${icon(step.icon)}</span>`}
+    <div class="sd-next-copy">
+      <p class="sd-next-kicker">${escHtml(step.kicker)}</p>
+      <h2 id="nextStepTitle" class="sd-next-title">${escHtml(step.title)}</h2>
+      ${step.detail ? `<p class="sd-next-detail">${escHtml(step.detail)}</p>` : ''}
+      ${progress}
     </div>
-    <div class="next-step-actions">
-      <a href="${step.href}" class="btn btn-primary">${escHtml(step.action)} <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#arrow-right"/></svg></a>
-      ${step.kind === 'explore' || step.kind === 'error' ? '' : '<a href="anatomy.html" class="next-step-alt">or explore the body in 3D</a>'}
+    <div class="sd-next-actions">
+      <a href="${step.href}" class="sd-go">${escHtml(step.action)}<span class="sd-go-disc">${icon('arrow-right')}</span></a>
+      ${step.kind === 'explore' || step.kind === 'error' ? '' : '<a href="anatomy.html" class="sd-next-alt">or explore the body in 3D</a>'}
     </div>`;
 }
 
@@ -240,8 +224,9 @@ async function loadStudentDashboard() {
     const explored = Number(p.systems_explored) || 0;
     const quizzesTaken = Number(p.quizzes_taken) || 0;
 
-    // Greeting
-    document.getElementById('welcomeGreeting').textContent = `${getGreeting()}, ${p.full_name}`;
+    // Greeting, with the first name so it fits the display face
+    const firstName = String(p.full_name || '').trim().split(/\s+/)[0];
+    document.getElementById('welcomeGreeting').textContent = firstName ? `${getGreeting()}, ${firstName}` : getGreeting();
     document.getElementById('dashboardEncouragement').textContent = encouragement(p);
 
     // Overview stats, each with a hint that points somewhere useful
@@ -257,40 +242,42 @@ async function loadStudentDashboard() {
     const pendingCount = (data.pending_assessments_count !== undefined) ? data.pending_assessments_count : (data.upcoming_assessments || []).length;
     document.getElementById('dashPendingCount').textContent = pendingCount;
     document.getElementById('dashPendingHint').textContent = pendingCount > 0 ? 'Open and waiting for you' : 'You’re all caught up';
-    sessionStorage.setItem('anatomiq_pending_assessments', String(pendingCount));
+    sessionStorage.setItem('anthropotomy_pending_assessments', String(pendingCount));
     document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
       b.textContent = pendingCount;
       b.style.display = pendingCount > 0 ? 'inline-block' : 'none';
     });
+    const tabBadge = document.getElementById('tabQuizBadge');
+    tabBadge.textContent = pendingCount;
+    tabBadge.hidden = !(pendingCount > 0);
 
     // Your next step
     renderNextStep(pickNextStep(data));
 
     // Quizzes and activities
     const upcomings = data.upcoming_assessments || [];
-    document.getElementById('upcomingList').innerHTML = upcomings.length ? upcomings.map(u => `
-      <div class="upcoming-item">
-        <div class="upcoming-copy">
-          <div class="upcoming-title">${escHtml(u.title)}</div>
-          <div class="upcoming-meta">${escHtml(dueText(u.due_date))}. About ${Number(u.time_limit_mins) || 30} minutes.</div>
-        </div>
-        <a href="quiz.html?assessment_id=${encodeURIComponent(u.assessment_id)}" class="btn btn-primary btn-sm">Start</a>
-      </div>
+    const quizTones = ['coral', 'teal', 'violet'];
+    document.getElementById('upcomingList').innerHTML = upcomings.length ? upcomings.map((u, i) => `
+      <a class="sd-quiz" href="quiz.html?assessment_id=${encodeURIComponent(u.assessment_id)}">
+        <span class="sd-quiz-icon" style="--card:${CARD_COLOURS[quizTones[i % quizTones.length]]}">${icon('exam')}</span>
+        <span class="sd-quiz-copy"><span class="sd-quiz-title">${escHtml(u.title)}</span><span class="sd-quiz-meta">About ${Number(u.time_limit_mins) || 30} minutes</span></span>
+        <span class="sd-quiz-due">${escHtml(dueText(u.due_date))}</span>
+      </a>
     `).join('') : '<div class="dashboard-empty">You’re all caught up. New quizzes from your teacher will appear here.</div>';
 
-    // Body systems: progress where there are lessons, a way into 3D where there are none
+    // Body systems: progress where there are lessons, a way into 3D everywhere
     const systems = data.systems || [];
     document.getElementById('systemProgressGrid').innerHTML = systems.length ? systems.map(s => {
+      const look = systemLook(s.system_code);
+      const lessons = Number(s.total_lessons) || 0;
       const explore = `anatomy.html${s.system_code ? '?system=' + encodeURIComponent(s.system_code) : ''}`;
       return `
-      <div class="system-tile">
-        <div class="system-tile-copy">
-          <div class="system-tile-name">${escHtml(s.system_name.replace(' System', ''))}</div>
-          <div class="system-tile-meta">${Number(s.total_lessons) > 0 ? `${s.completed_lessons}/${s.total_lessons} (${s.pct}%) lessons` : 'No lessons yet.'}</div>
-        </div>
-        <a class="system-tile-link" href="${explore}">Explore in 3D</a>
-        ${Number(s.total_lessons) > 0 ? `<div class="progress-bar system-tile-bar"><div class="progress-fill" style="width:${Number(s.pct) || 0}%;"></div></div>` : ''}
-      </div>`;
+      <a class="sd-sys" style="--card:${CARD_COLOURS[look.tone]}" href="${explore}">
+        ${look.art ? `<img src="${look.art}" alt="" loading="lazy" width="560" height="640">` : `<span class="sd-sys-icon">${icon('cube')}</span>`}
+        <span class="sd-sys-name">${escHtml(s.system_name.replace(' System', ''))}</span>
+        <span class="sd-sys-meta">${lessons > 0 ? `${s.completed_lessons} of ${plural(lessons, 'lesson')}` : 'No lessons yet'}<span class="sr-only">. Explore in 3D</span></span>
+        ${lessons > 0 ? `<span class="sd-sys-bar"><i style="width:${Number(s.pct) || 0}%"></i></span>` : ''}
+      </a>`;
     }).join('') : '<div class="dashboard-empty">No body systems are available yet.</div>';
 
     // Achievements
@@ -314,11 +301,26 @@ function renderDynamicAchievements(achs) {
     document.getElementById('achievementList').replaceChildren();
     return;
   }
+  document.getElementById('achievementCount').textContent = `${achs.filter(a => a.earned).length} of ${achs.length}`;
   document.getElementById('achievementList').innerHTML = achs.map(a => `
-    <div style="text-align:center;padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);background:${a.earned ? 'var(--brand-light)' : 'var(--bg-inset)'};border:1px solid ${a.earned ? 'var(--brand)' : 'var(--border-light)'};opacity:${a.earned ? 1 : 0.4};">
-      <div style="font-size:0.75rem;font-weight:600;color:${a.earned ? 'var(--brand)' : 'var(--text-muted)'};">${escHtml(a.name)}</div>
+    <div class="sd-ach${a.earned ? ' is-earned' : ''}">
+      <span class="sd-ach-icon">${icon(a.earned ? 'trophy' : 'flag')}</span>
+      <span class="sd-ach-name">${escHtml(a.name)}</span>
+      <span class="sd-ach-state">${a.earned ? 'Earned' : 'Not yet'}</span>
     </div>
   `).join('');
+}
+
+// Score history as bars: one per graded attempt, oldest first, coloured by pass or review.
+function renderScoreBars(subs) {
+  const box = document.getElementById('scoreChartContainer');
+  box.style.setProperty('--n', subs.length);
+  box.innerHTML = subs.map((s, i) => {
+    const value = Math.max(0, Math.min(100, Math.round(Number(s.score))));
+    const day = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) : '';
+    return `<div class="sd-bar ${s.passed ? 'is-pass' : 'is-review'}" style="--v:${value};--i:${i}"><span class="sd-bar-value">${value}</span><i></i><span class="sd-bar-day">${escHtml(day)}</span></div>`;
+  }).join('');
+  box.setAttribute('aria-label', `Recent quiz scores, oldest first: ${subs.map(s => `${Math.round(Number(s.score))}% ${s.passed ? 'passed' : 'review'}`).join(', ')}`);
 }
 
 async function loadRecentScoresAndChart() {
@@ -331,44 +333,34 @@ async function loadRecentScoresAndChart() {
     const tbody = document.getElementById('recentScoresTable');
 
     if (!subs.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-muted);">No quiz submissions yet. Your first result will show up here.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="sd-table-empty">No quiz submissions yet. Your first result will show up here.</td></tr>';
       showScoreChartMessage('No scores yet. Your scores will chart here after your first quiz.', true);
       return;
     }
 
-    // Populate recent table
     tbody.innerHTML = subs.slice(0, 5).map(s => {
       const hasScore = s.score !== null && s.score !== '' && Number.isFinite(Number(s.score));
-      const scoreColor = s.passed ? 'var(--success)' : 'var(--error)';
+      const state = hasScore ? (s.passed ? 'is-pass' : 'is-review') : '';
       return `
         <tr>
-          <td style="font-weight:600;">${escHtml(s.assessment_title)}</td>
-          <td><span class="badge badge-blue">${escHtml(s.assessment_type || 'Quiz')}</span></td>
-          <td style="font-weight:700;color:${hasScore ? scoreColor : 'var(--text-muted)'};">${hasScore ? Math.round(s.score) + '%' : 'Pending'}</td>
-          <td><span class="badge ${hasScore ? (s.passed ? 'badge-green' : 'badge-red') : 'badge-neutral'}">${hasScore ? (s.passed ? 'Passed' : 'Review') : 'Awaiting score'}</span></td>
-          <td style="font-size:0.75rem;color:var(--text-muted);">${fmtDate(s.submitted_at)}</td>
+          <td class="sd-table-title">${escHtml(s.assessment_title)}</td>
+          <td><span class="sd-chip">${escHtml(s.assessment_type || 'Quiz')}</span></td>
+          <td class="sd-table-score ${state}">${hasScore ? Math.round(s.score) + '%' : 'Pending'}</td>
+          <td><span class="sd-chip ${state}">${hasScore ? (s.passed ? 'Passed' : 'Review') : 'Awaiting score'}</span></td>
+          <td class="sd-table-date">${fmtDate(s.submitted_at)}</td>
         </tr>
       `;
     }).join('');
 
-    // Score Chart
     const chartSubs = subs.filter(s => s.score !== null && s.score !== '' && Number.isFinite(Number(s.score))).slice(0, 6).reverse();
     if (!chartSubs.length) {
       showScoreChartMessage('No scores yet. Your scores will chart here after your first quiz.', true);
       return;
     }
-    const labels = chartSubs.map((_, i) => `Attempt ${i + 1}`);
-    const values = chartSubs.map(s => Math.round(s.score));
-
-    _cachedScoreData = {
-      labels,
-      datasets: [{ values, color: '#1a6b4a' }]
-    };
     document.getElementById('scoreChartEmpty').hidden = true;
     document.getElementById('scoreChartCta').hidden = true;
     document.getElementById('scoreChartContainer').hidden = false;
-    document.getElementById('scoreChart').setAttribute('aria-label', `Recent quiz scores: ${values.map(v => v + '%').join(', ')}`);
-    drawLineChart('scoreChart', _cachedScoreData);
+    renderScoreBars(chartSubs);
 
   } catch (e) {
     console.error(e);
@@ -377,10 +369,7 @@ async function loadRecentScoresAndChart() {
   }
 }
 
-let _cachedScoreData = null;
-
 function showScoreChartMessage(message, offerQuiz = false) {
-  _cachedScoreData = null;
   document.getElementById('scoreChartContainer').hidden = true;
   document.getElementById('scoreChartCta').hidden = !offerQuiz;
   const empty = document.getElementById('scoreChartEmpty');
@@ -390,12 +379,9 @@ function showScoreChartMessage(message, offerQuiz = false) {
 
 // ── Init ────────────────────────────────────────────────────────
 const dEl = document.getElementById('currentDate');
-if (dEl) dEl.textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+if (dEl) dEl.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 loadStudentDashboard();
 loadRecentScoresAndChart();
-initChartResize(() => {
-  if (_cachedScoreData) drawLineChart('scoreChart', _cachedScoreData);
-});
 </script>
 <script src="../assets/js/site-config.js"></script>
 </body>

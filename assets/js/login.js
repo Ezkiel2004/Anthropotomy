@@ -74,9 +74,9 @@ async function handleLogin(event) {
         const username = byId('username').value.trim();
         const result = await request('/auth/login.php', {username, password:byId('password').value});
         try {
-            sessionStorage.setItem('anatomiq_user', JSON.stringify(result.data));
-            if (byId('rememberMe').checked) localStorage.setItem('anatomiq_remember', username);
-            else localStorage.removeItem('anatomiq_remember');
+            sessionStorage.setItem('anthropotomy_user', JSON.stringify(result.data));
+            if (byId('rememberMe').checked) localStorage.setItem('anthropotomy_remember', username);
+            else localStorage.removeItem('anthropotomy_remember');
         } catch (_) { /* The server session remains authoritative when browser storage is unavailable. */ }
         notice('loginSuccess', `Welcome, ${result.data.full_name}! Opening your dashboard…`);
         location.assign(destination(result.data.role));
@@ -85,9 +85,25 @@ async function handleLogin(event) {
         restoreLabel(button);
     }
 }
+// Registration runs in two steps on one form. Enter on step 1 moves on instead of
+// submitting; on step 2 any problem left in step 1 sends the student back to it.
+function showStep(n, focus = true) {
+    const second = n === 2;
+    byId('regStep1').hidden = second;
+    byId('regStep2').hidden = !second;
+    byId('regBack').hidden = !second;
+    byId('regBackLink').hidden = second;
+    byId('regBar2').classList.toggle('is-on', second);
+    byId('regStepLabel').textContent = second ? 'Step 2 of 2 · Your account' : 'Step 1 of 2 · About you';
+    if (focus) byId(second ? 'email' : 'fullName').focus();
+}
 async function handleRegister(event) {
     event.preventDefault();
-    if (byId('registerBtn').disabled || !validate(byId('registerForm'))) return;
+    const first = byId('regStep1'), second = byId('regStep2');
+    if (byId('registerBtn').disabled) return;
+    if (second.hidden) { if (validate(first)) showStep(2); return; }
+    if (!validate(first)) { showStep(1); validate(first); return; }
+    if (!validate(second)) return;
     const button = byId('registerBtn');
     button.disabled = true; button.textContent = 'Creating your account…';
     notice('registerError', '');
@@ -99,6 +115,7 @@ async function handleRegister(event) {
         byId('password').value = '';
         byId('registerForm').reset();
         updateStrength();
+        showStep(1, false);
         location.hash = 'login';
         switchView();
         notice('loginSuccess', 'Your student account is ready! Sign in with your student ID or username.');
@@ -124,8 +141,6 @@ function switchView(focus = true) {
     byId('loginView').hidden = register;
     byId('registerView').hidden = !register;
     document.body.classList.toggle('register-mode', register);
-    for (const id of ['loginTab', 'registerTab']) byId(id).removeAttribute('aria-current');
-    byId(register ? 'registerTab' : 'loginTab').setAttribute('aria-current','page');
     document.title = register ? 'Create your student account – Anthropotomy' : 'Sign in – Anthropotomy';
     if (location.hash === '#terms') {
         // Deep link from the landing page footer: show the terms over the sign-in view.
@@ -136,6 +151,8 @@ function switchView(focus = true) {
 }
 byId('loginForm').addEventListener('submit', handleLogin);
 byId('registerForm').addEventListener('submit', handleRegister);
+byId('regNext').addEventListener('click', () => { if (validate(byId('regStep1'))) showStep(2); });
+byId('regBack').addEventListener('click', () => showStep(1));
 byId('regPassword').addEventListener('input', updateStrength);
 document.querySelectorAll('.password-toggle').forEach(button => {
     button.innerHTML = eye(true);
@@ -167,7 +184,7 @@ byId('forgotPasswordForm').addEventListener('submit', async event => {
 window.addEventListener('hashchange', () => switchView());
 switchView(false);
 try {
-    const remembered = localStorage.getItem('anatomiq_remember');
+    const remembered = localStorage.getItem('anthropotomy_remember');
     if (remembered) { byId('username').value = remembered; byId('rememberMe').checked = true; }
 } catch (_) { /* Remembering a username is optional. */ }
 // Reuse the school's configured grade when it differs from the standard options.
