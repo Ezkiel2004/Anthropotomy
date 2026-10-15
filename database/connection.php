@@ -3,10 +3,10 @@
  * Anthropotomy – Database Connection Configuration
  */
 
-define('DB_HOST', getenv('ANATOMIQ_DB_HOST') ?: '127.0.0.1');
-define('DB_NAME', getenv('ANATOMIQ_DB_NAME') ?: 'anatomiq_db');
-define('DB_USER', getenv('ANATOMIQ_DB_USER') ?: 'root');       // Change to your MySQL username
-define('DB_PASS', getenv('ANATOMIQ_DB_PASS') ?: '');           // Change to your MySQL password
+define('DB_HOST', getenv('ANTHROPOTOMY_DB_HOST') ?: '127.0.0.1');
+define('DB_NAME', getenv('ANTHROPOTOMY_DB_NAME') ?: 'anthropotomy_db');
+define('DB_USER', getenv('ANTHROPOTOMY_DB_USER') ?: 'root');       // Change to your MySQL username
+define('DB_PASS', getenv('ANTHROPOTOMY_DB_PASS') ?: '');           // Change to your MySQL password
 define('DB_CHARSET',  'utf8mb4');
 
 class Database {

@@ -51,7 +51,7 @@ Out of scope: `login.html`, dashboards, the explorer, every API.
   - The hero eyebrow reads "Welcome back, <first name>". The text is set with `textContent`, never HTML.
   - The calls to action become "Go to my dashboard" and "Sign out".
   - The dashboard link is `teacher/dashboard.html` for the teacher and admin roles, and `student/dashboard.html` for everyone else. This mirrors `destination()` in `login.js`.
-  - Sign out posts to `api/auth/logout.php`, clears `sessionStorage.anatomiq_user`, then reloads the landing page in its signed-out state.
+  - Sign out posts to `api/auth/logout.php`, clears `sessionStorage.anthropotomy_user`, then reloads the landing page in its signed-out state.
 - The dashboards stay separate pages. Signing in still lands on the dashboard (`login.js` is unchanged).
 - Both portal sidebars get a "Home" item linking to `../index.html`, so a signed-in user can return to the landing page.
 

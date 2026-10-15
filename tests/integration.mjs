@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-const base=process.env.ANATOMIQ_TEST_URL || 'http://127.0.0.1:8091';
+const base=process.env.ANTHROPOTOMY_TEST_URL || 'http://127.0.0.1:8091';
 const credentials=JSON.parse(fs.readFileSync('.runtime/test-access.json','utf8'));
 let assertions=0;
 function check(value,message){assert.ok(value,message);assertions++;}

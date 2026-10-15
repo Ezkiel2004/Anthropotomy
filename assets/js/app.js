@@ -15,7 +15,7 @@ const Auth = {
      * This is a fast sync read used for immediate UI population.
      */
     getUser() {
-        try { return JSON.parse(sessionStorage.getItem('anatomiq_user')); }
+        try { return JSON.parse(sessionStorage.getItem('anthropotomy_user')); }
         catch (e) { return null; }
     },
 
@@ -38,7 +38,7 @@ const Auth = {
             const result = await res.json();
 
             if (!result.success) {
-                sessionStorage.removeItem('anatomiq_user');
+                sessionStorage.removeItem('anthropotomy_user');
                 this._redirectToLogin();
                 return null;
             }
@@ -46,7 +46,7 @@ const Auth = {
             const user = result.data;
 
             // Update cached data with fresh server data
-            sessionStorage.setItem('anatomiq_user', JSON.stringify(user));
+            sessionStorage.setItem('anthropotomy_user', JSON.stringify(user));
 
             // Role check
             if (role && user.role !== role && user.role !== 'admin') {
@@ -97,7 +97,7 @@ const Auth = {
         } catch (e) {
             // Best effort
         }
-        sessionStorage.removeItem('anatomiq_user');
+        sessionStorage.removeItem('anthropotomy_user');
         this._redirectToLogin();
     },
 
@@ -120,7 +120,7 @@ const Auth = {
         document.querySelectorAll('.sidebar-footer .avatar').forEach(el => el.textContent = av);
         document.querySelectorAll('.topbar .avatar').forEach(el   => el.textContent = av);
 
-        const pendingAssessments = sessionStorage.getItem('anatomiq_pending_assessments');
+        const pendingAssessments = sessionStorage.getItem('anthropotomy_pending_assessments');
         if (pendingAssessments !== null) {
             document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
                 b.textContent = pendingAssessments;

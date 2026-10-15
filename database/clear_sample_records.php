@@ -7,7 +7,7 @@ if (PHP_SAPI !== 'cli' || !in_array('--confirm', $argv, true)) {
 }
 require_once __DIR__ . '/connection.php';
 $pdo = Database::getInstance()->getConnection();
-$backupDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'AnatomIQ-backups';
+$backupDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'Anthropotomy-backups';
 if (!is_dir($backupDir) && !mkdir($backupDir, 0700, true)) throw new RuntimeException('Cannot create backup directory.');
 $backup = $backupDir . DIRECTORY_SEPARATOR . 'before-cleanup-' . date('Ymd-His') . '.sql';
 $handle = fopen($backup, 'xb');

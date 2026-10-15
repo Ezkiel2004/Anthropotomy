@@ -42,7 +42,7 @@
 Run once per session from the project root in PowerShell, then reuse:
 
 ```powershell
-$env:ANATOMIQ_DB_NAME='anatomiq_test_explorer'
+$env:ANTHROPOTOMY_DB_NAME='anthropotomy_test_explorer'
 C:/xampp/php/php.exe tests/database.php setup
 Start-Process C:/xampp/php/php.exe -ArgumentList '-S','127.0.0.1:8091','tests/router.php'
 Start-Process 'C:/Program Files/Google/Chrome/Application/chrome.exe' -ArgumentList '--headless=new','--remote-debugging-port=9225','--user-data-dir=.runtime/chrome-explorer','about:blank'
@@ -563,5 +563,5 @@ Expected: every suite passes; record the pass counts.
 
 - [ ] **Step 4: Tear down the test environment**
 
-Run: stop the PHP server and headless Chrome processes started in the Test Environment, then `C:/xampp/php/php.exe tests/database.php cleanup` with the same `ANATOMIQ_DB_NAME`.
+Run: stop the PHP server and headless Chrome processes started in the Test Environment, then `C:/xampp/php/php.exe tests/database.php cleanup` with the same `ANTHROPOTOMY_DB_NAME`.
 Expected: cleanup reports the test database removed.
