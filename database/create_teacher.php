@@ -1,12 +1,12 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once __DIR__ . '/connection.php';
-$username = getenv('ANATOMIQ_BOOTSTRAP_USERNAME');
-$name = getenv('ANATOMIQ_BOOTSTRAP_NAME');
-$teacherId = getenv('ANATOMIQ_BOOTSTRAP_TEACHER_ID');
-$password = getenv('ANATOMIQ_BOOTSTRAP_PASSWORD');
+$username = getenv('ANTHROPOTOMY_BOOTSTRAP_USERNAME');
+$name = getenv('ANTHROPOTOMY_BOOTSTRAP_NAME');
+$teacherId = getenv('ANTHROPOTOMY_BOOTSTRAP_TEACHER_ID');
+$password = getenv('ANTHROPOTOMY_BOOTSTRAP_PASSWORD');
 if (!$username || !$name || !$teacherId || !$password || strlen($password) < 8) {
-    fwrite(STDERR, "Set ANATOMIQ_BOOTSTRAP_USERNAME, ANATOMIQ_BOOTSTRAP_NAME, ANATOMIQ_BOOTSTRAP_TEACHER_ID and ANATOMIQ_BOOTSTRAP_PASSWORD (at least 8 characters).\n");
+    fwrite(STDERR, "Set ANTHROPOTOMY_BOOTSTRAP_USERNAME, ANTHROPOTOMY_BOOTSTRAP_NAME, ANTHROPOTOMY_BOOTSTRAP_TEACHER_ID and ANTHROPOTOMY_BOOTSTRAP_PASSWORD (at least 8 characters).\n");
     exit(1);
 }
 $db = Database::getInstance(); $pdo = $db->getConnection();

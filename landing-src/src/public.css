@@ -245,7 +245,6 @@
   .btn-quiet { border-color: var(--accent); color: var(--accent); background-color: transparent; }
   .btn-quiet:hover { background-color: var(--surface-raised); }
   /* The closing CTA is the only button with a halo: it has no skeleton competing with it. */
-  .btn-halo { box-shadow: 0 0 0 1px var(--color-glow), 0 10px 40px -10px color-mix(in srgb, var(--color-glow) 70%, transparent); }
   .btn-small { min-height: 2.75rem; padding: 0 1rem; }
   .btn:disabled { opacity: 0.6; cursor: progress; }
   .text-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 0.25em; }
@@ -370,9 +369,6 @@
   button.chip:active { transform: scale(0.96); }
   .chip svg { width: 1rem; height: 1rem; fill: currentColor; }
   .plate-hint { position: absolute; z-index: 3; left: 0.75rem; bottom: 0.75rem; min-height: 2.25rem; pointer-events: none; }
-  .chip-pulse { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--accent); }
-  @media (prefers-reduced-motion: no-preference) { .chip-pulse { animation: pulse 1.2s var(--ease-out) infinite alternate; } }
-  @keyframes pulse { to { opacity: 0.3; } }
 
   /* Scan → printed page: a clean edge with a single hairline. */
   .seam { height: 1px; background: color-mix(in srgb, var(--color-glow) 45%, var(--color-ink)); }

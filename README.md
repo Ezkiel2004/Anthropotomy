@@ -79,15 +79,15 @@ Lesson completion is a student's self-reported progress marker, not proof of mas
 
 Requires PHP 8.1 or newer, PDO MySQL, fileinfo, mbstring, Apache and MySQL/MariaDB. The included XAMPP PHP was used for validation.
 
-1. Create an empty database named anatomiq_db in phpMyAdmin.
-2. Configure ANATOMIQ_DB_HOST, ANATOMIQ_DB_NAME, ANATOMIQ_DB_USER and ANATOMIQ_DB_PASS in the server environment as needed. Local XAMPP defaults are used when absent.
+1. Create an empty database named anthropotomy_db in phpMyAdmin.
+2. Configure ANTHROPOTOMY_DB_HOST, ANTHROPOTOMY_DB_NAME, ANTHROPOTOMY_DB_USER and ANTHROPOTOMY_DB_PASS in the server environment as needed. Local XAMPP defaults are used when absent.
 3. From the project directory run:
 
 ~~~powershell
 & C:/xampp/php/php.exe database/schema.php
 ~~~
 
-4. For a new installation only, set ANATOMIQ_BOOTSTRAP_USERNAME, ANATOMIQ_BOOTSTRAP_NAME, ANATOMIQ_BOOTSTRAP_TEACHER_ID and ANATOMIQ_BOOTSTRAP_PASSWORD in the process environment, then run database/create_teacher.php with PHP. Remove the password variable afterward. Existing installations do not need a new teacher account.
+4. For a new installation only, set ANTHROPOTOMY_BOOTSTRAP_USERNAME, ANTHROPOTOMY_BOOTSTRAP_NAME, ANTHROPOTOMY_BOOTSTRAP_TEACHER_ID and ANTHROPOTOMY_BOOTSTRAP_PASSWORD in the process environment, then run database/create_teacher.php with PHP. Remove the password variable afterward. Existing installations do not need a new teacher account.
 5. For future non-destructive schema upgrades run database/migrate.php with PHP.
 
 Maintenance scripts are CLI-only and database/, tests/ and .runtime/ are denied web access by Apache rules. Do not run reset or cleanup scripts as routine setup. Never use a production database for integration tests.
@@ -96,11 +96,11 @@ Password recovery is teacher-managed. The public recovery form shows the configu
 
 ## Public pages
 
-`index.html` is the public landing page and `login.html` holds sign-in, registration, the teacher-managed password recovery dialog and the terms (`login.html#login`, `#register` and `#terms` link straight to each). Signing out from either portal returns to `login.html`. Both pages use `assets/css/public.css`; the portals keep their own styles.
+`index.html` is the public landing page and `login.html` holds sign-in, registration, the teacher-managed password recovery dialog and the terms (`login.html#login`, `#register` and `#terms` link straight to each). Signing out from either portal returns to `login.html`. Both pages use `assets/css/public.css`; the landing header and hero add `assets/css/hero.css`. The portals keep their own styles. The sign-in page uses the same file; the student dashboard adds `assets/css/stage-portal.css`, which re-points the portal variables at the Stage palette and swaps the sidebar for a bottom tab bar below 1024px. The tokens, components and motion of the landing hero are documented in the Anthropotomy Stage design system (https://claude.ai/artifact/WUqWgeksGPCYuvLNngBp44); build new public sections from it.
 
 The landing page shows only real information. The number of active body systems comes from `api/config.php` and stay hidden when the API returns nothing or is unreachable. The feature figures are simplified drawings of the real student pages with generic labels.
 
-On tablets and larger screens the hero loads the vendored Three.js build and the skeleton model from `system_model/` after the static poster is visible, unless the visitor prefers reduced motion or has Save-Data on. If WebGL, the scripts or the model are unavailable, the poster simply stays. The model is credited in the footer (CC BY 4.0, Ruslan Gadzhiev).
+The hero shows a fan of body-system cards (click a side card, use the arrow keys, swipe or type in the header search to bring one to the front; hovering lifts a card). The card and floating images in `assets/img/hero/` are still renders of the layered models in `system_model/layers/`, made with the explorer's own viewer and materials on a transparent background, so no 3D loads on the landing page. The two reproductive systems are left out of the hero. Re-render the images if those models change.
 
 ### Building the public pages
 
@@ -115,7 +115,7 @@ npm run build:assets     # hero poster (AVIF/WebP/PNG), brand mark and favicons 
 npm run build:og         # assets/brand/og-image.jpg, rendered in Chromium
 ~~~
 
-Design tokens live in the `@theme` block of `landing-src/src/public.css`; Tailwind's default palette, radii, shadows and type sizes are cleared so only those tokens exist. Fonts (Instrument Serif, Plus Jakarta Sans, JetBrains Mono) are self-hosted in `assets/fonts/` under the SIL Open Font License. `landing-src/node_modules/` is ignored by Git. Advance the `?v=20261005-landing1` query on the public pages' assets when you change them.
+Design tokens live in the `@theme` block of `landing-src/src/public.css`; Tailwind's default palette, radii, shadows and type sizes are cleared so only those tokens exist. Fonts (Instrument Serif, Plus Jakarta Sans, JetBrains Mono, and Bungee for the landing headings) are self-hosted in `assets/fonts/` under the SIL Open Font License. `landing-src/node_modules/` is ignored by Git. Advance the `?v=20261005-landing1` query on the public pages' assets when you change them.
 
 ## Shared navigation
 
@@ -135,7 +135,7 @@ Unit tests for the layered viewer's helpers run with `node --test "tests/unit/*.
 
 The syntax check also compiles the public pages' ES modules. Outside XAMPP on Windows, set PHP_BINARY (or have `php` on PATH); the integration suite uses the same setting.
 
-The integration suite uses an isolated database whose name must begin with anatomiq_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANATOMIQ_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile with a desktop-sized window (for example --window-size=1366,900; the default 764×485 window triggers the mobile layouts) and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
+The integration suite uses an isolated database whose name must begin with anthropotomy_test_. tests/database.php refuses to create, expire attempts or remove a database outside that prefix. Set ANTHROPOTOMY_DB_NAME to a unique test name, run tests/database.php setup, and launch a separate PHP development server on 127.0.0.1:8091 using tests/router.php. Then run tests/integration.mjs. The browser suite uses a separate headless Chrome profile with a desktop-sized window (for example --window-size=1366,900; the default 764×485 window triggers the mobile layouts) and debugging port 9225 and runs after the integration suite. It first checks the public landing page (one h1, sequential headings, real sign-in and registration links, no outdated product name), then signs in through login.html and checks the real student creation form, quiz refresh/resume, all portal pages, a real GLB load and mobile anatomy layout.
 
 The focused sidebar regression suite, node tests/navigation.mjs, covers the 11 teacher pages and 7 student pages (scores.html redirects to My Progress & Scores). It verifies complete and consistent menus, active links, icons, profile links, desktop collapse and mobile controls. The student sidebar has five links; notifications and settings open from the top bar. Run it against a fresh isolated test database and the same server/browser setup; it creates its own student fixture and does not require the integration suite.
 
@@ -147,4 +147,4 @@ Teacher and student portals use a shared, locally served Phosphor SVG icon set s
 
 ## Supplied skeletal model
 
-The bundled `system_model/male_human_skeleton_-_zbrush_-_anatomy_study.glb` is used by the landing page hero. The anatomy explorers use the layered models in `system_model/layers/` instead (see Anatomy content). `database/integrate_skeleton.php` remains for installations that want the single-mesh skeleton connected to the Skeletal System.
+The bundled `system_model/male_human_skeleton_-_zbrush_-_anatomy_study.glb` is the source of the skeleton poster images on the login page (`assets/img/hero-skeleton-*`). The anatomy explorers use the layered models in `system_model/layers/` instead (see Anatomy content). `database/integrate_skeleton.php` remains for installations that want the single-mesh skeleton connected to the Skeletal System.

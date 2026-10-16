@@ -1,13 +1,12 @@
-// Landing page behaviour: mobile menu, signed-in state, header CTA state, scroll
-// reveals, school settings, the practice quiz demo and the optional live 3D hero.
+// Landing page behaviour: mobile menu, signed-in state, the hero card carousel,
+// scroll reveals, school settings and the practice quiz demo.
 // Small and dependency-free; the page is complete without it.
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const media = query => window.matchMedia(query);
 const reducedMotion = media('(prefers-reduced-motion: reduce)');
-const wideViewport = media('(min-width: 48rem)');
+const wideNav = media('(min-width: 72rem)');
 const ICONS = 'assets/icons/interface.svg?v=20261012-icons3';
-const HEADER_HEIGHT = 64;
 
 function setIcon(svg, name) {
   svg?.querySelector('use')?.setAttribute('href', `${ICONS}#${name}`);
@@ -15,7 +14,7 @@ function setIcon(svg, name) {
 
 // ── Mobile menu: a disclosure button that controls the nav panel. ──
 function initMenu() {
-  const toggle = $('.nav-toggle');
+  const toggle = $('[aria-controls="siteNav"]');
   const panel = $('#siteNav');
   if (!toggle || !panel) return;
   const label = $('span', toggle);
@@ -31,30 +30,12 @@ function initMenu() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && isOpen()) { setOpen(false); toggle.focus(); }
   });
-  document.addEventListener('click', event => { if (isOpen() && !event.target.closest('.site-header')) setOpen(false); });
+  document.addEventListener('click', event => { if (isOpen() && !event.target.closest('.hx-header')) setOpen(false); });
   // Close when keyboard focus leaves the header entirely.
-  $('.site-header').addEventListener('focusout', event => {
-    if (isOpen() && event.relatedTarget && !event.relatedTarget.closest('.site-header')) setOpen(false);
+  $('.hx-header').addEventListener('focusout', event => {
+    if (isOpen() && event.relatedTarget && !event.relatedTarget.closest('.hx-header')) setOpen(false);
   });
-  wideViewport.addEventListener('change', event => { if (event.matches) setOpen(false); });
-}
-
-// ── One primary CTA per viewport: the header CTA stays outlined while the hero
-//    or closing CTA is on screen, and fills in once neither is visible. ──
-function initHeaderCta() {
-  const headerCtas = $$('[data-header-cta]');
-  const primaries = $$('[data-primary-cta]');
-  if (!headerCtas.length || !primaries.length || !('IntersectionObserver' in window)) return;
-  const visible = new Set();
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target);
-    const quiet = visible.size > 0;
-    headerCtas.forEach(cta => {
-      cta.classList.toggle('btn-quiet', quiet);
-      cta.classList.toggle('btn-primary', !quiet);
-    });
-  }, { rootMargin: `-${HEADER_HEIGHT}px 0px 0px 0px` });
-  primaries.forEach(element => observer.observe(element));
+  wideNav.addEventListener('change', event => { if (event.matches) setOpen(false); });
 }
 
 // ── Signed-in visitors see the same page with their own actions: a greeting,
@@ -73,15 +54,70 @@ function initAuth() {
       if (staff) $$('[data-dashboard-label]').forEach(label => { label.textContent = 'Go to teacher dashboard'; });
       $$('[data-auth="guest"]').forEach(element => { element.hidden = true; });
       $$('[data-auth="member"]').forEach(element => { element.hidden = false; });
+      $$('[data-member-initial]').forEach(element => { element.textContent = firstName.charAt(0).toUpperCase(); element.hidden = !firstName; });
     })
     .catch(() => { /* Stay in the signed-out state. */ });
 
   $$('[data-sign-out]').forEach(button => button.addEventListener('click', async () => {
     button.disabled = true;
     try { await fetch('api/auth/logout.php', { method: 'POST', credentials: 'same-origin' }); } catch (_) { /* Best effort. */ }
-    try { sessionStorage.removeItem('anatomiq_user'); } catch (_) { /* Storage may be unavailable. */ }
+    try { sessionStorage.removeItem('anthropotomy_user'); } catch (_) { /* Storage may be unavailable. */ }
     location.replace(location.pathname);
   }));
+}
+
+// ── Hero cards: a fan carousel. Clicking a side card, the arrow keys, a swipe or the
+//    header search brings a system to the front; CSS lifts a card on hover or focus. ──
+function initDeck() {
+  const deck = $('[data-deck]');
+  if (!deck) return;
+  const slides = $$('.hx-slide', deck);
+  const count = slides.length;
+  const half = Math.floor(count / 2);
+  let active = 0;
+  const show = index => {
+    active = (index + count) % count;
+    slides.forEach((slide, i) => {
+      const offset = ((i - active + count + half) % count) - half;
+      const card = $('button', slide);
+      slide.style.setProperty('--d', offset);
+      slide.toggleAttribute('data-far', Math.abs(offset) > 2);
+      card.setAttribute('aria-current', String(offset === 0));
+      card.tabIndex = Math.abs(offset) > 2 ? -1 : 0;
+    });
+  };
+
+  let swiped = false;
+  slides.forEach((slide, i) => $('button', slide).addEventListener('click', () => {
+    if (swiped) { swiped = false; return; }
+    show(i);
+  }));
+  deck.addEventListener('keydown', event => {
+    const step = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    show(active + step);
+    $('button', slides[active]).focus();
+  });
+  let startX = null;
+  deck.addEventListener('pointerdown', event => { if (event.pointerType === 'touch') startX = event.clientX; });
+  deck.addEventListener('pointerup', event => {
+    if (startX === null) return;
+    const distance = event.clientX - startX;
+    startX = null;
+    if (Math.abs(distance) < 40) return;
+    swiped = true;
+    setTimeout(() => { swiped = false; }, 0);
+    show(active + (distance < 0 ? 1 : -1));
+  });
+
+  const search = $('[data-deck-search]');
+  search?.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    if (!query) return;
+    const match = slides.findIndex(slide => slide.dataset.name.includes(query));
+    if (match >= 0) show(match);
+  });
 }
 
 // ── Reveal feature figures as they scroll in. Skipped entirely with reduced motion. ──
@@ -193,42 +229,9 @@ function initQuizDemo() {
   }
 }
 
-// ── Live 3D hero: only on capable, wide screens that have not asked for less
-//    motion or data. Anything else keeps the finished poster. ──
-function saveData() {
-  const connection = navigator.connection;
-  return Boolean(connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || '')));
-}
-function hasWebGL() {
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-    gl?.getExtension('WEBGL_lose_context')?.loseContext();
-    return Boolean(gl);
-  } catch (_) {
-    return false;
-  }
-}
-function initHero3d() {
-  const plate = $('[data-hero-3d]');
-  if (!plate || !('IntersectionObserver' in window)) return;
-  if (!wideViewport.matches || reducedMotion.matches || saveData() || !hasWebGL()) return;
-  const observer = new IntersectionObserver(entries => {
-    if (!entries.some(entry => entry.isIntersecting)) return;
-    observer.disconnect();
-    const start = () => import('./landing-hero-3d.js?v=20261012-landing2')
-      .then(module => module.mountHero3d(plate, { wideViewport, reducedMotion }))
-      .catch(() => { /* The poster is already a finished hero. */ });
-    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1500 });
-    else setTimeout(start, 200);
-  }, { threshold: 0.25 });
-  observer.observe(plate);
-}
-
 initMenu();
 initAuth();
-initHeaderCta();
+initDeck();
 initReveal();
 initSchoolSettings();
 initQuizDemo();
-initHero3d();

@@ -296,7 +296,7 @@ async function handleProfileUpdate(e) {
       const stored = Auth.getUser();
       if (stored) {
         stored.full_name = payload.full_name;
-        sessionStorage.setItem('anatomiq_user', JSON.stringify(stored));
+        sessionStorage.setItem('anthropotomy_user', JSON.stringify(stored));
       }
       loadStudentProfile();
     } else {

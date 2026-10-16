@@ -1285,7 +1285,7 @@ Expected: `No syntax errors detected`.
 - [ ] **Step 4: Record the current rows, then run it**
 
 ```powershell
-& C:\xampp\mysql\bin\mysql.exe -u root anatomiq_db -e "SELECT bs.system_code, bs.is_active, ac.model_url, LEFT(ac.source_text,120) FROM body_systems bs LEFT JOIN anatomy_content ac ON ac.system_id=bs.system_id ORDER BY bs.sort_order;"
+& C:\xampp\mysql\bin\mysql.exe -u root anthropotomy_db -e "SELECT bs.system_code, bs.is_active, ac.model_url, LEFT(ac.source_text,120) FROM body_systems bs LEFT JOIN anatomy_content ac ON ac.system_id=bs.system_id ORDER BY bs.sort_order;"
 & C:\xampp\php\php.exe database\integrate_layers.php
 ```
 Expected output:

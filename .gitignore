@@ -22,3 +22,6 @@ backups/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Design-hook cache (the shared detector config in .impeccable/config.json is kept)
+.impeccable/hook.cache.json

@@ -1,0 +1,80 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "assets/css/hero.css"
+        ],
+        "createdAt": "2026-10-15T03:58:53.765Z",
+        "reason": "Agent decision: Plus Jakarta Sans is the project's existing self-hosted body font (assets/css/public.css); the hero reuses it for consistency"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-15T06:05:08.343Z",
+        "reason": "Agent decision: Plus Jakarta Sans is the project's established self-hosted body font (public.css, Anthropotomy Stage design system); the user chose bolder weights of it plus Pixelify Sans"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-15T06:05:08.918Z",
+        "reason": "Agent decision: verified visually at 1440 and 375px; every flagged block (hero, sections, swaps, FAQ list, CTA, mock progress rows) has 16px to 144px of padding; the detector misreads clamp()/media padding"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "login.html"
+        ],
+        "createdAt": "2026-10-15T09:09:18.673Z",
+        "reason": "Agent decision: Plus Jakarta Sans is the project's established self-hosted body font (Anthropotomy Stage design system)"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "student/dashboard.html"
+        ],
+        "createdAt": "2026-10-15T09:09:19.612Z",
+        "reason": "Agent decision: Plus Jakarta Sans is the project's established self-hosted body font (Anthropotomy Stage design system)"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "files": [
+          "assets/css/stage-portal.css"
+        ],
+        "createdAt": "2026-10-15T09:09:20.713Z",
+        "reason": "Agent decision: Plus Jakarta Sans is the project's established self-hosted body font (Anthropotomy Stage design system)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "login.html"
+        ],
+        "createdAt": "2026-10-15T09:10:15.091Z",
+        "reason": "Agent decision: verified at 375 and 1440px; the flagged au-input wrappers have 18px side padding and the input fills their height on purpose"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "student/dashboard.html"
+        ],
+        "createdAt": "2026-10-15T09:10:16.025Z",
+        "reason": "Agent decision: verified at 375 and 1440px; the flagged sd-table wrapper's cells have 14-16px padding"
+      }
+    ]
+  }
+}

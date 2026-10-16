@@ -356,7 +356,7 @@ function updateSummaryMetrics(list) {
   if (avgEl) avgEl.textContent = avg !== null ? `${avg}%` : 'Not yet';
 
   // Sync sidebar badge with pending count
-  sessionStorage.setItem('anatomiq_pending_assessments', String(pending));
+  sessionStorage.setItem('anthropotomy_pending_assessments', String(pending));
   document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
     b.textContent = pending;
     b.style.display = pending > 0 ? 'inline-block' : 'none';
