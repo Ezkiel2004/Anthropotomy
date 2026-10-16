@@ -9,18 +9,22 @@
  * Success Response (200):
  *   { "success": true, "data": { user_id, username, role, full_name, context, role_id } }
  *
- * Error Response (401):
- *   { "success": false, "message": "Not authenticated." }
+ * Signed out (200): { "success": false, "data": null, "message": "Not signed in." }
+ *   Being signed out is a normal answer here, so it is not an HTTP error (no console
+ *   noise on public pages). A session that existed but was revoked or expired still
+ *   gets 401 from requireLogin().
  */
 
 require_once __DIR__ . '/../helpers.php';
 requireMethod('GET');
 
-$user = requireLogin();
-
-if (!$user) {
-    jsonError('Not authenticated. Please log in.', 401);
+if (!Auth::getCurrentUser()) {
+    http_response_code(200);
+    echo json_encode(['success' => false, 'data' => null, 'message' => 'Not signed in.']);
+    exit;
 }
+
+$user = requireLogin();
 
 // Optionally refresh user data from the database for accuracy
 $db = Database::getInstance();

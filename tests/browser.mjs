@@ -11,8 +11,11 @@ function call(method,params={}){return new Promise((resolve,reject)=>{const id=+
 async function evaluate(expression){const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);return result.result.value;}
 await call('Runtime.enable');await call('Page.enable');
 await call('Network.enable');
+// Start signed out, whatever an earlier suite left in this browser profile.
+await call('Network.clearBrowserCookies');
 const explorationPosts=[];
 socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.requestWillBeSent' && data.params.request.method==='POST' && data.params.request.url.includes('/analytics/exploration.php'))explorationPosts.push(data.params.request.url);});
+async function waitFor(expression,timeout=15000){for(let waited=0;waited<timeout;waited+=200){try{if(await evaluate(expression))return true;}catch{/* The page is mid-navigation. */}await new Promise(resolve=>setTimeout(resolve,200));}return false;}
 async function navigate(path){
     await call('Page.navigate',{url:base+path});
     for(let i=0;i<60;i++){
@@ -28,13 +31,13 @@ assert.equal(await evaluate(`document.querySelectorAll('h1').length`),1,'Landing
 assert.ok(await evaluate(`(()=>{let last=0;for(const h of document.querySelectorAll('h1,h2,h3,h4,h5,h6')){const level=+h.tagName[1];if(level>last+1)return false;last=level;}return true;})()`),'Landing headings are sequential');
 assert.ok(await evaluate(`!/AnatomIQ/i.test(document.body.innerText+[...document.querySelectorAll('[alt],[aria-label],title')].map(e=>(e.getAttribute('alt')||'')+(e.getAttribute('aria-label')||'')+e.textContent).join(' '))`),'No outdated product name on the landing page');
 assert.ok(await evaluate(`[...document.querySelectorAll('img')].every(img=>img.hasAttribute('alt'))`),'Every landing image has alt text');
-assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]')].map(a=>a.getAttribute('href'))`),['login.html#register','login.html#register'],'Primary CTAs open registration');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('[data-primary-cta]:is([data-auth="guest"],[data-auth="guest"] *)')].map(a=>a.getAttribute('href'))`),['login.html#register','login.html#register'],'Primary CTAs open registration');
 assert.ok(await evaluate(`[...document.querySelectorAll('a[href]')].filter(a=>a.textContent.trim()==='Sign in').every(a=>a.getAttribute('href')==='login.html#login')`),'Sign in links open the login view');
 await navigate('/login.html#register');
 assert.ok(await evaluate(`!document.getElementById('registerView').hidden && document.getElementById('loginView').hidden`),'Register deep link opens the registration form');
 await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
-await new Promise(resolve=>setTimeout(resolve,1200));
+await waitFor(`location.pathname.startsWith('/teacher/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 let checked=0;
 for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','anatomy']){
@@ -192,7 +195,7 @@ return quiz.data.assessment_id;
 })()`);
 await new Promise(resolve=>setTimeout(resolve,700));
 await evaluate(`document.getElementById('username').value='fixture-student';document.getElementById('password').value=${JSON.stringify(studentPassword)};handleLogin();`);
-await new Promise(resolve=>setTimeout(resolve,1200));
+await waitFor(`location.pathname.startsWith('/student/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
 for(const page of ['dashboard','lessons','quiz','progress','scores','notifications','settings','anatomy']){
     await navigate('/student/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Student stays authenticated: '+page);

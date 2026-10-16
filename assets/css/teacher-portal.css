@@ -9,7 +9,7 @@
 .teacher-dashboard .user-info { min-width: 0; }
 .teacher-dashboard .module-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 .teacher-dashboard .module-card { min-width: 0; overflow-wrap: anywhere; }
-.teacher-dashboard .portal-empty { grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: var(--bg-surface); border: 1px dashed var(--border); border-radius: 11px; color: var(--text-muted); }
+.teacher-dashboard .portal-empty { grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: var(--bg-surface); border-radius: 1.25rem; color: var(--text-muted); }
 .teacher-dashboard .portal-empty p { max-width: 480px; margin-inline: auto; }
 .teacher-dashboard .search-bar { max-width: 100%; min-width: 0; }
 .teacher-dashboard .search-bar input { min-width: 0; width: 100%; }

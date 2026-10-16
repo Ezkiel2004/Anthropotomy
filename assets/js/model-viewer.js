@@ -14,7 +14,8 @@ const AnatomyViewer = {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 0.6;
-        this.scene = new THREE.Scene(); this.scene.background = new THREE.Color('#101c2e');
+        // The page's --navy sets the backdrop, so the Stage student explorer stays on its dark stage.
+        this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(getComputedStyle(canvas).getPropertyValue('--navy').trim() || '#101c2e');
         this.scene.environment = this.studioEnvironment();
         this.camera = new THREE.PerspectiveCamera(40, 1, .01, 10000);
         this.scene.add(new THREE.HemisphereLight(0xffffff, 0x536077, 0.4));

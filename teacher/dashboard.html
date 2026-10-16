@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Teacher Dashboard | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard dashboard-page">
+<body class="teacher-dashboard dashboard-page stage-portal">
 
 
 <div class="app-layout">
@@ -183,7 +184,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -367,7 +368,7 @@ function renderTeacherCharts() {
   drawBarChart('weeklyChart', {
     labels: _cachedTrend.map(p => p.day),
     values: _cachedTrend.map(p => Number(p.score)),
-    color: '#079669',
+    color: '#3fb8f5',
     maxVal: 100
   });
 }

@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>3D Anatomy Explorer | Anthropotomy</title>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/content.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <!-- Three.js WebGL Libraries (Local with CDN fallback) -->
   <script src="../assets/vendor/three/three.min.js"></script>
   <script src="../assets/vendor/three/OrbitControls.js"></script>
@@ -20,18 +18,20 @@
   <script src="../assets/vendor/three/DRACOLoader.js"></script>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
   <link rel="stylesheet" href="../assets/css/explorer.css?v=20261008-collapse1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage3"/>
 </head>
-<body class="explorer-page teacher-dashboard student-dashboard" data-anatomy-role="student">
+<body class="explorer-page student-dashboard stage-portal" data-anatomy-role="student">
 <div class="app-layout">
 
   <!-- Student Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261016-stage3"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">3D Anatomy Explorer</span>
@@ -43,13 +43,13 @@
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-            <div class="notif-header"><span>Notifications</span><a href="notifications.html" style="font-size:0.75rem;color:var(--brand);">Mark all read</a></div>
+            <div class="notif-header"><span>Notifications</span><a href="notifications.html">Mark all read</a></div>
             <div class="notif-list"></div>
             <div class="notif-footer"><a href="notifications.html">View all notifications</a></div>
           </div>
         </div>
         <a href="settings.html" class="topbar-user" style="text-decoration:none;color:inherit;" title="Manage Account">
-          <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;">MS</div>
+          <div class="avatar">MS</div>
           <div>
             <div class="topbar-user-name">Student</div>
             <div class="topbar-user-role">Student</div>
@@ -97,11 +97,11 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
-<script src="../assets/js/student-portal.js?v=20260915-account3"></script>
+<script src="../assets/js/app.js?v=20261016-auth1"></script>
+<script src="../assets/js/student-portal.js?v=20261016-stage3"></script>
 <script src="../assets/js/anatomy.js"></script>
 <script src="../assets/js/anatomy-layers-core.js?v=20261011-female1"></script>
-<script src="../assets/js/model-viewer.js?v=20261009-za1"></script>
+<script src="../assets/js/model-viewer.js?v=20261016-stage3"></script>
 <script type="module" src="../assets/js/explorer/main.js?v=20261014-school1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>

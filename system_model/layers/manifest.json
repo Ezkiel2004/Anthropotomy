@@ -8,12 +8,12 @@
     "triangles": 1139208
   },
   "digestive": {
-    "bytes": 431324,
-    "described": 46,
+    "bytes": 430200,
+    "described": 45,
     "file": "digestive.glb",
-    "parts": 47,
+    "parts": 46,
     "source_triangles": 398004,
-    "triangles": 120929
+    "triangles": 97539
   },
   "endocrine": {
     "bytes": 37536,

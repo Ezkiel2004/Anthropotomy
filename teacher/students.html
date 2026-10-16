@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Management | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard stage-portal">
 <div class="app-layout">
 
   <!-- Sidebar -->
@@ -54,7 +55,7 @@
     <div class="page-content">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Student Directory &amp; Records</h1>
+          <h1>Students</h1>
           <p>Manage enrolled students, section assignments, accounts, and inspect individual academic progress.</p>
         </div>
         <div class="page-header-right">
@@ -107,7 +108,7 @@
           <div class="chip" onclick="setFilterStatus(this, 'inactive')">Inactive</div>
         </div>
         <div style="display:flex;gap:var(--space-3);align-items:center;">
-          <select id="sectionFilter" onchange="filterStudents()" style="background:var(--bg-surface);border:1px solid var(--border);color:var(--text-primary);padding:0.45rem 0.75rem;border-radius:var(--radius-md);font-size:0.85rem;">
+          <select id="sectionFilter" onchange="filterStudents()" aria-label="Filter by section">
             <option value="">All Sections</option>
           </select>
           <div class="search-bar">
@@ -146,7 +147,7 @@
 <div class="modal-overlay" id="addStudentModal" style="display:none;" onclick="if(event.target===this)closeModal('addStudentModal')">
   <div class="modal-box" style="width:min(95%,560px);">
     <div class="modal-header">
-      <h3>Register New Student</h3>
+      <h3>Add a student</h3>
       <button class="modal-close" onclick="closeModal('addStudentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <form id="addStudentForm" onsubmit="handleAddStudent(event)">
@@ -211,7 +212,7 @@
 <div class="modal-overlay" id="studentDetailModal" style="display:none;" onclick="if(event.target===this)closeModal('studentDetailModal')">
   <div class="modal-box" style="width:min(95%,680px);">
     <div class="modal-header">
-      <h3 id="detailStudentTitle">Student Profile</h3>
+      <h3 id="detailStudentTitle">Student profile</h3>
       <button class="modal-close" onclick="closeModal('studentDetailModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="detailStudentBody">Loading student details…</div>
@@ -222,7 +223,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -299,7 +300,7 @@ function renderStudentsTable(students) {
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:var(--space-3);">
-            <div class="avatar" style="width:34px;height:34px;font-size:0.75rem;background:${avatarBg};color:#ffffff;flex-shrink:0;">${initials}</div>
+            <div class="avatar" style="width:34px;height:34px;font-size:0.75rem;background:${avatarBg};color:#121212;flex-shrink:0;">${initials}</div>
             <div>
               <div style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">${escHtml(s.full_name)}</div>
               <div style="font-size:0.75rem;color:var(--text-muted);">@${escHtml(s.username)}</div>
@@ -386,7 +387,7 @@ async function viewStudentDetails(userId) {
     }
 
     selectedStudent = result.data;
-    document.getElementById('detailStudentTitle').textContent = `${selectedStudent.full_name} – Student Profile`;
+    document.getElementById('detailStudentTitle').textContent = `${selectedStudent.full_name} – student profile`;
 
     const toggleBtn = document.getElementById('detailToggleStatusBtn');
     toggleBtn.textContent = selectedStudent.is_active ? 'Deactivate Account' : 'Reactivate Account';

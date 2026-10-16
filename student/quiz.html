@@ -4,25 +4,24 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Quizzes &amp; Activities | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage3"/>
 </head>
-<body class="teacher-dashboard student-dashboard">
+<body class="student-dashboard stage-portal">
 <div class="app-layout">
-
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261016-stage3"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Quizzes and Activities</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
@@ -31,13 +30,13 @@
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-            <div class="notif-header"><span>Notifications</span><a href="notifications.html" style="font-size:0.75rem;color:var(--brand);">Mark all read</a></div>
+            <div class="notif-header"><span>Notifications</span><a href="notifications.html">Mark all read</a></div>
             <div class="notif-list"></div>
             <div class="notif-footer"><a href="notifications.html">View all</a></div>
           </div>
         </div>
         <a href="settings.html" class="topbar-user" style="text-decoration:none;color:inherit;" title="Manage Account">
-          <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;">MS</div>
+          <div class="avatar">MS</div>
           <div>
             <div class="topbar-user-name">Student</div>
             <div class="topbar-user-role">Student</div>
@@ -46,233 +45,145 @@
       </div>
     </header>
 
-    <div class="page-content" id="mainPage">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Quizzes &amp; Activities</h1>
-          <p>Complete your assigned assessments, practice chapter tests, and test interactive anatomical identification.</p>
+    <!-- Quiz list -->
+    <div class="page-content sd" id="mainPage">
+      <header class="sd-head">
+        <div>
+          <h1 class="sd-title">Quizzes and activities</h1>
+          <p class="sd-sub" id="quizIntro">Check what you know, one body system at a time.</p>
         </div>
-      </div>
+      </header>
 
-      <!-- Top Summary Metrics Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="statTotalAssessments">…</div>
-          <div class="stat-label">Available Tasks</div>
-        </div>
+      <dl class="sd-stats sd-stats--row" aria-label="Your quizzes at a glance">
+        <div class="sd-stat"><dt>Available</dt><dd><span class="sd-stat-value" id="statTotalAssessments">0</span><span class="sd-stat-hint">Published by your teacher</span></dd></div>
+        <div class="sd-stat"><dt>Passed</dt><dd><span class="sd-stat-value" id="statCompletedAssessments">0</span><span class="sd-stat-hint">Best score at the pass mark</span></dd></div>
+        <div class="sd-stat"><dt>To take</dt><dd><span class="sd-stat-value" id="statPendingAssessments">0</span><span class="sd-stat-hint" id="statPendingHint">Loading…</span></dd></div>
+        <div class="sd-stat"><dt>Average best score</dt><dd><span class="sd-stat-value" id="statAverageScore">Not yet</span><span class="sd-stat-hint">Across quizzes you’ve taken</span></dd></div>
+      </dl>
 
-        <div class="stat-card">
-          <div class="stat-value" id="statCompletedAssessments">…</div>
-          <div class="stat-label">Completed &amp; Passed</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value" id="statPendingAssessments">…</div>
-          <div class="stat-label">Pending / To Take</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value" id="statAverageScore">…</div>
-          <div class="stat-label">Average Score</div>
-        </div>
-      </div>
-
-      <!-- Filter & Search Toolbar -->
-      <section class="card assessment-browser" aria-labelledby="availableAssessmentsTitle">
-      <div class="filter-toolbar">
-        <!-- Row 1: Search Input (left) & Filter Selects (right) -->
-        <div class="filter-toolbar-row">
-          <div class="filter-search-wrap">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
-            <input type="search" aria-label="Search assessments" id="assessmentSearchInput" class="filter-search-input" placeholder="Search by assessment title, body system, or topic..." oninput="handleAssessmentSearch(this.value)">
+      <section class="sd-block" aria-labelledby="availableAssessmentsTitle">
+        <div class="sd-stack">
+          <div class="sd-tools">
+            <label class="sd-search">
+              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
+              <span class="sr-only">Search quizzes</span>
+              <input type="search" id="assessmentSearchInput" placeholder="Search quizzes or body systems" autocomplete="off" oninput="handleAssessmentSearch(this.value)">
+            </label>
+            <div class="sd-filters">
+              <select id="assessmentSystemFilter" class="sd-select" aria-label="Filter by body system" onchange="handleAssessmentSystemFilter(this.value)"><option value="all">All body systems</option></select>
+              <select id="assessmentStatusFilter" class="sd-select" aria-label="Filter by status" onchange="handleAssessmentStatusFilter(this.value)">
+                <option value="all">Any status</option>
+                <option value="pending">Still to pass</option>
+                <option value="completed">Passed</option>
+              </select>
+            </div>
           </div>
-
-          <div class="filter-selects-wrap">
-            <!-- Body System Dropdown -->
-            <select id="assessmentSystemFilter" aria-label="Filter by body system" class="form-control filter-select" onchange="handleAssessmentSystemFilter(this.value)">
-              <option value="all">All Body Systems</option>
-            </select>
-
-            <!-- Status Dropdown -->
-            <select id="assessmentStatusFilter" aria-label="Filter by status" class="form-control filter-select" onchange="handleAssessmentStatusFilter(this.value)">
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-            </select>
+          <div class="sd-seg" id="typeFilterChips" role="group" aria-label="Show formats">
+            <button type="button" class="filter-chip-btn active" data-type="all" aria-pressed="true" onclick="setAssessmentTypeFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
+            <button type="button" class="filter-chip-btn" data-type="quiz" aria-pressed="false" onclick="setAssessmentTypeFilter('quiz')">Chapter quizzes <span class="chip-count" id="countQuiz">0</span></button>
+            <button type="button" class="filter-chip-btn" data-type="interactive" aria-pressed="false" onclick="setAssessmentTypeFilter('interactive')">Hotspot <span class="chip-count" id="countHotspot">0</span></button>
+            <button type="button" class="filter-chip-btn" data-type="identification" aria-pressed="false" onclick="setAssessmentTypeFilter('identification')">Identification <span class="chip-count" id="countIdentification">0</span></button>
+            <button type="button" class="filter-chip-btn" data-type="mixed" aria-pressed="false" onclick="setAssessmentTypeFilter('mixed')">Mixed <span class="chip-count" id="countMixed">0</span></button>
           </div>
         </div>
 
-        <!-- Row 2: Format Category Filter Tabs -->
-        <div class="filter-chips-row">
-          <div class="filter-chips-group" id="typeFilterChips">
-            <button type="button" class="filter-chip-btn active" data-type="all" onclick="setAssessmentTypeFilter('all')">
-              <span>All Tasks</span> <span class="chip-count" id="countAll">0</span>
-            </button>
-            <button type="button" class="filter-chip-btn" data-type="quiz" onclick="setAssessmentTypeFilter('quiz')">
-              <span>Chapter Quizzes</span> <span class="chip-count" id="countQuiz">0</span>
-            </button>
-            <button type="button" class="filter-chip-btn" data-type="interactive" onclick="setAssessmentTypeFilter('interactive')">
-              <span>Hotspot Activities</span> <span class="chip-count" id="countHotspot">0</span>
-            </button>
-            <button type="button" class="filter-chip-btn" data-type="identification" onclick="setAssessmentTypeFilter('identification')">
-              <span>Identification</span> <span class="chip-count" id="countIdentification">0</span>
-            </button>
-            <button type="button" class="filter-chip-btn" data-type="mixed" onclick="setAssessmentTypeFilter('mixed')">
-              <span>Multi-Format</span> <span class="chip-count" id="countMixed">0</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section Title & Results Counter -->
-      <div class="assessment-browser-results">
-      <div class="lesson-results-heading">
-        <h2 id="availableAssessmentsTitle">
-          Available Assessments
-        </h2>
-        <div style="font-size:0.8125rem;color:var(--text-muted);" id="assessmentResultsCount" role="status">
-          Loading assessments…
-        </div>
-      </div>
-
-      <!-- Assessments Cards Grid -->
-      <div class="assessments-grid" id="availableAssessmentsGrid">
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">Loading assessments from database…</div>
-      </div>
-      </div>
+        <div class="sd-h"><h2 id="availableAssessmentsTitle" class="sd-h-title">Quizzes</h2><span class="sd-count" id="assessmentResultsCount" role="status">Loading quizzes…</span></div>
+        <div class="sd-grid" id="availableAssessmentsGrid"><div class="sd-loading">Loading quizzes…</div></div>
       </section>
     </div>
 
-    <!-- Quiz Interface (hidden by default) -->
-    <div class="page-content" id="quizPage" style="display:none;">
-      <div class="quiz-container">
-
-        <!-- Quiz Header -->
-        <div class="quiz-header">
+    <!-- Taking a quiz -->
+    <div class="page-content sd" id="quizPage" style="display:none;">
+      <div class="sd-run">
+        <div class="sd-run-head">
           <div>
-            <div style="font-size:1.1rem;font-weight:700;" id="activeQuizTitle">Assessment Title</div>
-            <div class="quiz-progress-text" id="questionProgress">Question 1 of 10</div>
+            <h1 class="sd-run-title" id="activeQuizTitle">Quiz</h1>
+            <p class="sd-run-progress" id="questionProgress">Question 1 of 1</p>
           </div>
-          <div class="quiz-timer" id="quizTimer">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg>
-            <span id="timerDisplay">—</span>
+          <div class="sd-timer" id="quizTimer">
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg>
+            <span id="timerDisplay">—</span><span class="sr-only"> left</span>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="confirmExitQuiz()">Exit Quiz</button>
+          <button type="button" class="sd-ghost" onclick="confirmExitQuiz()">Exit</button>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-bar" style="margin-bottom:var(--space-5);">
-          <div class="progress-fill" id="quizProgressBar" style="width:10%;"></div>
-        </div>
+        <div class="sd-meter sd-meter--run" role="presentation"><i id="quizProgressBar" style="width:0%"></i></div>
 
-        <!-- Question Card -->
-        <div class="question-card" id="questionCard">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <div class="question-num" id="questionNum">QUESTION 1</div>
-            <div style="font-size:0.75rem;color:var(--brand);font-weight:600;" id="questionTypeBadge">Multiple Choice</div>
+        <section class="sd-qcard" id="questionCard" aria-labelledby="questionText">
+          <div class="sd-qcard-top">
+            <span class="sd-qnum" id="questionNum">Question 1</span>
+            <span class="sd-chip" id="questionTypeBadge">Multiple choice</span>
           </div>
-          <div class="question-text" id="questionText"></div>
+          <h2 class="sd-qtext" id="questionText"></h2>
 
-          <!-- Multiple Choice Options -->
-          <div class="answer-options" id="answerOptions"></div>
+          <div class="sd-opts" id="answerOptions" role="group" aria-labelledby="questionText"></div>
 
-          <!-- Hotspot / Click-to-Identify Interactive Area -->
-          <div id="hotspotArea" style="display:none;margin-top:var(--space-4);">
-            <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3);font-size:0.85rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <strong>Task:</strong> Click directly on the designated anatomical structure on the diagram below:
+          <div class="sd-answer-area" id="hotspotArea" hidden>
+            <p class="sd-hint-box">Click the structure named in the question on the diagram below.</p>
+            <div class="sd-hotspot" id="hotspotCanvasContainer" onclick="handleHotspotClick(event)">
+              <div id="hotspotSvgWrapper"></div>
+              <div class="sd-hotspot-pin" id="hotspotPin"></div>
             </div>
-            <div id="hotspotCanvasContainer" style="position:relative;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:crosshair;min-height:280px;display:flex;align-items:center;justify-content:center;" onclick="handleHotspotClick(event)">
-              <div id="hotspotSvgWrapper" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
-              <div id="hotspotPin" style="display:none;position:absolute;width:20px;height:20px;background:var(--error);color:#fff;border-radius:50%;border:2px solid #fff;transform:translate(-50%, -50%);align-items:center;justify-content:center;font-size:10px;font-weight:700;box-shadow:var(--shadow-sm);pointer-events:none;"></div>
-            </div>
-            <div id="hotspotFeedback" style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;text-align:center;">Click anywhere on the anatomical structure to place your target pin.</div>
+            <p class="sd-hint" id="hotspotFeedback" role="status">Click the diagram to place your pin.</p>
           </div>
 
-          <!-- Identification / Fill-in-the-Blank Input Area -->
-          <div id="identificationArea" style="display:none;margin-top:var(--space-4);">
-            <div style="background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3);font-size:0.85rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-              <strong>Instruction:</strong> Type the exact scientific or anatomical term in the box below:
-            </div>
-            <div class="input-wrapper" style="max-width:520px;">
-              <input type="text" id="identificationInput" class="form-control" placeholder="Type your anatomical term here..." style="font-size:1rem;padding:10px 14px;width:100%;" oninput="handleIdentificationInput(this.value)" autocomplete="off"/>
-            </div>
-            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">Correct spelling is required. Case-insensitive automatic evaluation.</div>
+          <div class="sd-answer-area" id="identificationArea" hidden>
+            <label class="sd-field">
+              <span class="sd-hint">Type the anatomical term. Spelling counts; capital letters don’t.</span>
+              <span class="sd-input"><input type="text" id="identificationInput" placeholder="Your answer" autocomplete="off" oninput="handleIdentificationInput(this.value)"/></span>
+            </label>
           </div>
+        </section>
+
+        <div class="sd-run-nav">
+          <button type="button" class="sd-ghost" id="prevBtn" onclick="prevQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg>Back</button>
+          <button type="button" class="sd-ghost" id="flagBtn" aria-pressed="false" onclick="toggleFlagCurrentQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#flag"/></svg><span id="flagLabel">Flag</span></button>
+          <button type="button" class="sd-go sd-go--yellow" id="nextBtn" onclick="nextQuestion()"><span id="nextLabel">Next</span><span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></span></button>
         </div>
 
-        <!-- Navigation -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--space-4);">
-          <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()">Previous</button>
-          <button class="btn btn-secondary btn-sm" id="flagBtn" onclick="toggleFlagCurrentQuestion()" style="display:flex;align-items:center;gap:6px;border-color:var(--border);">
-            <span id="flagIcon"><svg style="width:13px;height:13px;vertical-align:-2px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#flag"/></svg></span> <span id="flagLabel">Flag for Review</span>
-          </button>
-          <div style="display:flex;gap:var(--space-2);">
-            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next</button>
-          </div>
-        </div>
-
-        <!-- Question Map -->
-        <div class="card" style="margin-top:var(--space-5);">
-          <div style="font-size:0.82rem;font-weight:600;margin-bottom:var(--space-3);">Question Navigation</div>
-          <div id="questionMap" style="display:flex;flex-wrap:wrap;gap:var(--space-2);"></div>
-        </div>
-
+        <section class="sd-block" aria-labelledby="qmapTitle">
+          <div class="sd-h"><h2 id="qmapTitle" class="sd-h-title">Questions</h2><span class="sd-count" id="answeredCount"></span></div>
+          <div class="sd-qmap" id="questionMap"></div>
+        </section>
       </div>
     </div>
 
-    <!-- Quiz Result Page -->
-    <div class="page-content" id="resultPage" style="display:none;">
-      <div class="quiz-container">
-        <div class="card" style="text-align:center;padding:var(--space-8);">
-          <div style="font-size:2.5rem;font-weight:800;margin-bottom:var(--space-2);" id="resultScore">0%</div>
-          <div style="font-size:0.95rem;color:var(--text-secondary);margin-bottom:var(--space-6);" id="resultMessage">Quiz submitted.</div>
-          
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);max-width:440px;margin:0 auto var(--space-6);">
-            <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius-md);">
-              <div style="font-size:1.3rem;font-weight:700;color:var(--success);" id="resultCorrect">—</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Points Earned</div>
-            </div>
-            <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius-md);">
-              <div style="font-size:1.3rem;font-weight:700;color:var(--warning);" id="resultPassing">—</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Passing Score</div>
-            </div>
-            <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border);border-radius:var(--radius-md);">
-              <div style="font-size:1.3rem;font-weight:700;color:var(--brand);" id="resultTime">—</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);">Time Used</div>
-            </div>
+    <!-- Result -->
+    <div class="page-content sd" id="resultPage" style="display:none;">
+      <div class="sd-run">
+        <section class="sd-next" id="resultCard" data-tone="none" aria-labelledby="resultTitle">
+          <img class="sd-next-art sd-next-art--organ" src="../assets/img/hero/decor-heart.webp" alt="">
+          <div class="sd-next-copy">
+            <p class="sd-next-kicker" id="resultKicker">Your score</p>
+            <h1 class="sd-next-title" id="resultTitle">Quiz submitted</h1>
+            <span class="sd-result-score" id="resultScore">0%</span>
+            <p class="sd-next-detail" id="resultMessage"></p>
           </div>
+        </section>
 
-          <!-- Question Review Breakdown -->
-          <div style="text-align:left;margin-top:var(--space-6);border-top:1px solid var(--border);padding-top:var(--space-4);">
-            <div style="font-weight:600;font-size:0.95rem;margin-bottom:var(--space-3);">Detailed Question Review</div>
-            <div id="resultBreakdownList" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:300px;overflow-y:auto;padding-right:4px;"></div>
-          </div>
+        <dl class="sd-stats sd-stats--three" aria-label="Result details">
+          <div class="sd-stat"><dt>Points</dt><dd><span class="sd-stat-value" id="resultCorrect">—</span></dd></div>
+          <div class="sd-stat"><dt>Pass mark</dt><dd><span class="sd-stat-value" id="resultPassing">—</span></dd></div>
+          <div class="sd-stat"><dt>Time used</dt><dd><span class="sd-stat-value" id="resultTime">—</span></dd></div>
+        </dl>
 
-          <div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-6);">
-            <button class="btn btn-secondary" onclick="exitQuiz()">Back to Assessments</button>
-            <a href="progress.html#scores" class="btn btn-secondary">View All Scores</a>
-            <a id="resultStudyLink" href="anatomy.html" class="btn btn-primary">Explore System in 3D</a>
-          </div>
+        <section class="sd-block" aria-labelledby="breakdownTitle">
+          <div class="sd-h"><h2 id="breakdownTitle" class="sd-h-title">Question by question</h2></div>
+          <div class="sd-review" id="resultBreakdownList"></div>
+        </section>
+
+        <div class="sd-actions">
+          <a id="resultStudyLink" href="anatomy.html" class="sd-go sd-go--yellow">Explore this system in 3D<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></span></a>
+          <button type="button" class="sd-ghost" onclick="exitQuiz()">Back to quizzes</button>
+          <a href="progress.html#scores" class="sd-ghost">All my scores</a>
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
-<script src="../assets/js/student-portal.js?v=20260915-account3"></script>
-<script>
-// "Due soon" only within three days; a past due date is said plainly (the quiz is still open).
-function dueBadge(dueDate) {
-  if (!dueDate) return '';
-  const end = new Date(dueDate); end.setHours(23, 59, 59, 999);
-  const days = (end - new Date()) / 86400000;
-  if (days < 0) return '<span class="badge badge-gray">Due date passed</span>';
-  if (days <= 3) return '<span class="badge badge-amber">Due soon</span>';
-  return '';
-}
-</script>
+<script src="../assets/js/app.js?v=20261016-auth1"></script>
+<script src="../assets/js/student-portal.js?v=20261016-stage3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
@@ -290,107 +201,76 @@ let saveTimer = null;
 let saveChain = Promise.resolve();
 let submitting = false;
 
-// ── Assessment Directory State ──────────────────────────────────
+// ── Quiz list state ─────────────────────────────────────────────
 let allAssessments = [];
 let typeFilter = 'all';
 let systemFilter = 'all';
 let statusFilter = 'all';
 let searchQuery = '';
 
-function hexToRgba(hex, alpha) {
-  if (!hex || !hex.startsWith('#')) return `rgba(26, 107, 74, ${alpha})`;
-  const r = parseInt(hex.slice(1, 3), 16) || 26;
-  const g = parseInt(hex.slice(3, 5), 16) || 107;
-  const b = parseInt(hex.slice(5, 7), 16) || 74;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function getFormatLabel(type) {
+// Each format gets one card colour and icon from the Stage palette.
+function formatLook(type) {
   switch ((type || '').toLowerCase()) {
     case 'interactive':
-    case 'diagram':
-      return 'Hotspot Activity';
-    case 'identification':
-      return 'Identification';
-    case 'quiz':
-      return 'Chapter Quiz';
-    case 'mixed':
-      return 'Multi-Format';
-    default:
-      return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Assessment';
+    case 'diagram':        return { label: 'Hotspot', tone: 'violet', glyph: 'crosshair' };
+    case 'identification': return { label: 'Identification', tone: 'teal', glyph: 'textbox' };
+    case 'quiz':           return { label: 'Chapter quiz', tone: 'coral', glyph: 'exam' };
+    case 'mixed':          return { label: 'Mixed', tone: 'sky', glyph: 'list-checks' };
+    default:               return { label: type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Quiz', tone: 'purple', glyph: 'file-text' };
   }
 }
 
-function getFormatBadgeClass(type) {
-  switch ((type || '').toLowerCase()) {
-    case 'interactive':
-    case 'diagram':
-      return 'badge-purple';
-    case 'identification':
-      return 'badge-blue';
-    case 'quiz':
-      return 'badge-brand';
-    case 'mixed':
-      return 'badge-gold';
-    default:
-      return 'badge-gray';
-  }
+// "Due soon" only within three days; a past due date is said plainly (the quiz is still open).
+function dueChip(dueDate) {
+  if (!dueDate) return '';
+  const end = new Date(dueDate); end.setHours(23, 59, 59, 999);
+  const days = (end - new Date()) / 86400000;
+  if (days < 0) return '<span class="sd-chip">Due date passed</span>';
+  if (days <= 3) return '<span class="sd-chip is-progress">Due soon</span>';
+  return '';
 }
+
+const isPassed = a => a.my_status === 'completed' || a.my_passed;
 
 function updateSummaryMetrics(list) {
   const total = list.length;
-  const completed = list.filter(a => a.my_status === 'completed' || a.my_passed).length;
+  const completed = list.filter(isPassed).length;
   const pending = total - completed;
-  
   const scores = list.filter(a => a.my_best_score !== null && a.my_best_score !== undefined).map(a => parseFloat(a.my_best_score));
   const avg = scores.length > 0 ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length) : null;
 
-  const totalEl = document.getElementById('statTotalAssessments');
-  const compEl = document.getElementById('statCompletedAssessments');
-  const pendEl = document.getElementById('statPendingAssessments');
-  const avgEl = document.getElementById('statAverageScore');
+  document.getElementById('statTotalAssessments').textContent = total;
+  document.getElementById('statCompletedAssessments').textContent = completed;
+  document.getElementById('statPendingAssessments').textContent = pending;
+  document.getElementById('statPendingHint').textContent = pending > 0 ? 'Open and waiting for you' : 'You’re all caught up';
+  document.getElementById('statAverageScore').textContent = avg !== null ? `${avg}%` : 'Not yet';
+  document.getElementById('quizIntro').textContent = total === 0 ? 'Quizzes appear here when your teacher publishes them.'
+    : pending === 0 ? 'You’ve passed every quiz. Retake any of them to keep your knowledge fresh.'
+    : `${plural(pending, 'quiz', 'quizzes')} still to pass. Pick one and go.`;
 
-  if (totalEl) totalEl.textContent = total;
-  if (compEl) compEl.textContent = completed;
-  if (pendEl) pendEl.textContent = pending;
-  if (avgEl) avgEl.textContent = avg !== null ? `${avg}%` : 'Not yet';
-
-  // Sync sidebar badge with pending count
+  // Keep the sidebar and tab bar badges in step with the pending count
   sessionStorage.setItem('anthropotomy_pending_assessments', String(pending));
   document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
     b.textContent = pending;
     b.style.display = pending > 0 ? 'inline-block' : 'none';
   });
+  const tabBadge = document.getElementById('tabQuizBadge');
+  if (tabBadge) { tabBadge.textContent = pending; tabBadge.hidden = !(pending > 0); }
 
-  // Update chip count indicators
-  const countAll = document.getElementById('countAll');
-  const countQuiz = document.getElementById('countQuiz');
-  const countHotspot = document.getElementById('countHotspot');
-  const countIdent = document.getElementById('countIdentification');
-  const countMixed = document.getElementById('countMixed');
-
-  if (countAll) countAll.textContent = total;
-  if (countQuiz) countQuiz.textContent = list.filter(a => (a.assessment_type || '').toLowerCase() === 'quiz').length;
-  if (countHotspot) countHotspot.textContent = list.filter(a => ['interactive', 'diagram'].includes((a.assessment_type || '').toLowerCase())).length;
-  if (countIdent) countIdent.textContent = list.filter(a => (a.assessment_type || '').toLowerCase() === 'identification').length;
-  if (countMixed) countMixed.textContent = list.filter(a => (a.assessment_type || '').toLowerCase() === 'mixed').length;
+  const countType = types => list.filter(a => types.includes((a.assessment_type || '').toLowerCase())).length;
+  document.getElementById('countAll').textContent = total;
+  document.getElementById('countQuiz').textContent = countType(['quiz']);
+  document.getElementById('countHotspot').textContent = countType(['interactive', 'diagram']);
+  document.getElementById('countIdentification').textContent = countType(['identification']);
+  document.getElementById('countMixed').textContent = countType(['mixed']);
 }
 
 function populateSystemFilterOptions(list) {
   const select = document.getElementById('assessmentSystemFilter');
-  if (!select) return;
   const systems = new Map();
-  list.forEach(a => {
-    if (a.system_code && a.system_name) {
-      systems.set(a.system_code, a.system_name);
-    }
-  });
-
-  let html = '<option value="all">All Body Systems</option>';
-  systems.forEach((name, code) => {
-    html += `<option value="${escHtml(code)}">${escHtml(name)}</option>`;
-  });
-  select.innerHTML = html;
+  list.forEach(a => { if (a.system_code && a.system_name) systems.set(a.system_code, a.system_name); });
+  select.replaceChildren(new Option('All body systems', 'all'));
+  systems.forEach((name, code) => select.add(new Option(name, code)));
 }
 
 function handleAssessmentSearch(val) {
@@ -401,7 +281,9 @@ function handleAssessmentSearch(val) {
 function setAssessmentTypeFilter(type) {
   typeFilter = type;
   document.querySelectorAll('#typeFilterChips .filter-chip-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-type') === type);
+    const on = btn.getAttribute('data-type') === type;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', String(on));
   });
   renderAssessmentCards();
 }
@@ -417,37 +299,23 @@ function handleAssessmentStatusFilter(st) {
 }
 
 function resetAssessmentFilters() {
-  typeFilter = 'all';
   systemFilter = 'all';
   statusFilter = 'all';
   searchQuery = '';
-  const searchInput = document.getElementById('assessmentSearchInput');
-  if (searchInput) searchInput.value = '';
-  const sysSelect = document.getElementById('assessmentSystemFilter');
-  if (sysSelect) sysSelect.value = 'all';
-  const stSelect = document.getElementById('assessmentStatusFilter');
-  if (stSelect) stSelect.value = 'all';
-  document.querySelectorAll('#typeFilterChips .filter-chip-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-type') === 'all');
-  });
-  renderAssessmentCards();
+  document.getElementById('assessmentSearchInput').value = '';
+  document.getElementById('assessmentSystemFilter').value = 'all';
+  document.getElementById('assessmentStatusFilter').value = 'all';
+  setAssessmentTypeFilter('all');
 }
 
 function renderAssessmentCards() {
   const grid = document.getElementById('availableAssessmentsGrid');
-  const countLabel = document.getElementById('assessmentResultsCount');
-  if (!grid) return;
 
   const filtered = allAssessments.filter(a => {
-    // Search query filter
     if (searchQuery) {
-      const matchTitle = (a.title || '').toLowerCase().includes(searchQuery);
-      const matchSys = (a.system_name || '').toLowerCase().includes(searchQuery);
-      const matchInstr = (a.instructions || '').toLowerCase().includes(searchQuery);
-      if (!matchTitle && !matchSys && !matchInstr) return false;
+      const haystack = [a.title, a.system_name, a.instructions].map(v => (v || '').toLowerCase());
+      if (!haystack.some(v => v.includes(searchQuery))) return false;
     }
-
-    // Type filter
     if (typeFilter !== 'all') {
       const aType = (a.assessment_type || '').toLowerCase();
       if (typeFilter === 'interactive') {
@@ -456,134 +324,67 @@ function renderAssessmentCards() {
         return false;
       }
     }
-
-    // System filter
-    if (systemFilter !== 'all') {
-      if (a.system_code !== systemFilter) return false;
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      const isComp = a.my_status === 'completed' || a.my_passed;
-      if (statusFilter === 'completed' && !isComp) return false;
-      if (statusFilter === 'pending' && isComp) return false;
-    }
-
+    if (systemFilter !== 'all' && a.system_code !== systemFilter) return false;
+    if (statusFilter === 'completed' && !isPassed(a)) return false;
+    if (statusFilter === 'pending' && isPassed(a)) return false;
     return true;
   });
 
-  if (countLabel) {
-    countLabel.textContent = `Showing ${filtered.length} of ${allAssessments.length} assessment${allAssessments.length !== 1 ? 's' : ''}`;
-  }
+  document.getElementById('assessmentResultsCount').textContent = `${filtered.length} of ${plural(allAssessments.length, 'quiz', 'quizzes')}`;
 
   if (!filtered.length) {
-    grid.innerHTML = `
-      <div class="assessment-browser-empty">
-        <div style="width:48px;height:48px;border-radius:50%;background:var(--bg-inset);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-3);color:var(--text-muted);">
-          <svg width="22" height="22" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
-        </div>
-        <div style="font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${allAssessments.length ? 'No assessments match your criteria' : 'No assessments published yet'}</div>
-        <p style="font-size:0.8125rem;color:var(--text-secondary);max-width:380px;margin:0 auto var(--space-4);">${allAssessments.length ? 'Try another filter or clear your search.' : 'Your teacher will publish quizzes and activities here.'}</p>
-        ${allAssessments.length ? '<button type="button" class="btn btn-secondary btn-sm" onclick="resetAssessmentFilters()">Reset All Filters</button>' : ''}
-      </div>
-    `;
+    grid.innerHTML = allAssessments.length
+      ? '<div class="sd-empty"><p class="sd-empty-title">No quizzes match</p><p>Try another filter or clear your search.</p><button type="button" class="sd-ghost" onclick="resetAssessmentFilters()">Clear filters</button></div>'
+      : `<div class="sd-empty"><p class="sd-empty-title">No quizzes yet</p><p>Your teacher will publish quizzes and activities here. Meanwhile, the 3D explorer is a good warm-up.</p><a class="sd-go sd-go--light sd-go--sm" href="anatomy.html">Explore 3D Anatomy<span class="sd-go-disc">${icon('arrow-right')}</span></a></div>`;
     return;
   }
 
   grid.innerHTML = filtered.map(a => {
-    const formatLabel = getFormatLabel(a.assessment_type);
-    const formatBadgeClass = getFormatBadgeClass(a.assessment_type);
-    const sysColor = a.color_hex || 'var(--brand)';
-    const sysBg = hexToRgba(sysColor, 0.08);
-    const sysBorder = hexToRgba(sysColor, 0.22);
-    const sysCleanName = (a.system_name || 'General').replace(/\s+System$/i, '');
-    const dueStr = a.due_date ? `Due ${fmtDate(a.due_date)}` : 'Self-paced';
-
+    const look = formatLook(a.assessment_type);
     const qCount = parseInt(a.question_count) || 0;
-    const qText = `${qCount} Question${qCount === 1 ? '' : 's'}`;
-
-    // Standardized Status Pill & Attempt Info
-    let statusPill = '';
-    let btnLabel = 'Start Assessment';
-    let btnClass = 'btn-primary';
     const usedAttempts = a.my_attempts || 0;
     const maxAttempts = a.max_attempts || 3;
-    const attemptText = `Attempts: ${usedAttempts} of ${maxAttempts}`;
-    let attemptStatusSub = '';
-
-    if (a.my_status === 'completed' || a.my_passed) {
-      statusPill = `<span class="badge badge-green">Passed</span>`;
-      btnLabel = 'Retake Assessment';
-      btnClass = 'btn-retake';
-      attemptStatusSub = `<span class="assessment-best-score">Best: ${Math.round(a.my_best_score)}% (Passed)</span>`;
+    let chip, action, standing;
+    if (isPassed(a)) {
+      chip = '<span class="sd-chip is-pass">Passed</span>';
+      action = 'Retake';
+      standing = `Best score <strong>${Math.round(a.my_best_score)}%</strong>`;
     } else if (a.my_status === 'in_progress') {
-      statusPill = `<span class="badge badge-blue">In Progress</span>`;
-      btnLabel = 'Continue Assessment';
-      btnClass = 'btn-primary';
-      attemptStatusSub = `<span class="assessment-status-sub" style="color:var(--info);">In Progress</span>`;
+      chip = '<span class="sd-chip is-info">In progress</span>';
+      action = 'Continue';
+      standing = 'Your answers are saved';
     } else if (usedAttempts > 0) {
-      statusPill = `<span class="badge badge-amber">Score: ${Math.round(a.my_best_score)}%</span>`;
-      btnLabel = 'Try Again';
-      btnClass = 'btn-primary';
-      attemptStatusSub = `<span class="assessment-status-sub" style="color:var(--warning);">Last: ${Math.round(a.my_best_score)}%</span>`;
+      chip = `<span class="sd-chip is-review">${Math.round(a.my_best_score)}%</span>`;
+      action = 'Try again';
+      standing = `Best so far <strong>${Math.round(a.my_best_score)}%</strong>`;
     } else {
-      statusPill = dueBadge(a.due_date);
-      btnLabel = 'Start Assessment';
-      btnClass = 'btn-primary';
-      attemptStatusSub = `<span class="assessment-status-sub" style="color:var(--text-muted);">Not started</span>`;
+      chip = dueChip(a.due_date);
+      action = 'Start';
+      standing = 'Not started';
     }
 
     return `
-      <div class="assessment-card" data-id="${a.assessment_id}" onclick="initiateQuiz(${a.assessment_id})" style="cursor:pointer;">
+      <article class="sd-task" data-id="${a.assessment_id}" style="--card:${CARD_COLOURS[look.tone]}">
+        <div class="sd-task-top">
+          <span class="sd-task-icon">${icon(look.glyph)}</span>
+          <span class="sd-task-chips"><span class="sd-chip">${look.label}</span>${chip}</span>
+        </div>
         <div>
-          <div class="assessment-card-header">
-            <div class="assessment-system-tag" style="background:${sysBg};color:${sysColor};border-color:${sysBorder};" title="${escHtml(a.system_name || 'General')}">
-              <span class="assessment-system-dot" style="background:${sysColor};"></span>
-              <span>${escHtml(sysCleanName)}</span>
-            </div>
-            <div class="assessment-badges-wrap">
-              <span class="badge ${formatBadgeClass}">${formatLabel}</span>
-              ${statusPill}
-            </div>
-          </div>
-
-          <div class="assessment-card-main">
-            <h3 class="assessment-card-title" title="${escHtml(a.title)}">${escHtml(a.title)}</h3>
-            <p class="assessment-card-desc">${escHtml(a.instructions || 'Answer all questions before submitting to assess your mastery.')}</p>
-
-            <div class="assessment-specs-grid">
-              <div class="spec-item" title="Question Count">
-                <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#file-text"/></svg>
-                <span>${qText}</span>
-              </div>
-              <div class="spec-item" title="Time Allowed">
-                <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg>
-                <span>${a.time_limit_mins ? a.time_limit_mins + ' mins' : 'Untimed'}</span>
-              </div>
-              <div class="spec-item" title="Passing Score">
-                <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#target"/></svg>
-                <span>${Math.round(a.passing_score)}% to Pass</span>
-              </div>
-              <div class="spec-item" title="Schedule">
-                <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#calendar"/></svg>
-                <span>${dueStr}</span>
-              </div>
-            </div>
-          </div>
+          <p class="sd-task-system">${escHtml((a.system_name || 'General').replace(/\s+System$/i, ''))}</p>
+          <h3 class="sd-task-title">${escHtml(a.title)}</h3>
+          ${a.instructions ? `<p class="sd-task-desc">${escHtml(a.instructions)}</p>` : ''}
         </div>
-
-        <div class="assessment-card-footer">
-          <div class="assessment-attempt-info">
-            <span class="assessment-attempt-count">${attemptText}</span>
-            ${attemptStatusSub}
-          </div>
-          <button type="button" class="btn ${btnClass} btn-assessment-cta" onclick="event.stopPropagation(); initiateQuiz(${a.assessment_id})">
-            <span>${btnLabel}</span>
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#caret-right"/></svg>
-          </button>
+        <div class="sd-specs">
+          <span class="sd-spec">${icon('file-text')}${plural(qCount, 'question')}</span>
+          <span class="sd-spec">${icon('clock')}${a.time_limit_mins ? a.time_limit_mins + ' min' : 'Untimed'}</span>
+          <span class="sd-spec">${icon('target')}${Math.round(a.passing_score)}% to pass</span>
+          <span class="sd-spec">${icon('calendar')}${a.due_date ? 'Due ' + fmtDate(a.due_date) : 'No due date'}</span>
         </div>
-      </div>
-    `;
+        <div class="sd-task-foot">
+          <span class="sd-task-attempts"><span>${standing}</span><span>Attempts ${usedAttempts} of ${maxAttempts}</span></span>
+          <button type="button" class="sd-go sd-go--light sd-go--sm sd-stretch" onclick="initiateQuiz(${a.assessment_id})">${action}<span class="sr-only"> ${escHtml(a.title)}</span><span class="sd-go-disc">${icon('arrow-right')}</span></button>
+        </div>
+      </article>`;
   }).join('');
 }
 
@@ -593,36 +394,37 @@ async function loadAvailableAssessments() {
   try {
     const res = await fetch(`${API_BASE}/assessments.php`, { credentials: 'same-origin' });
     const result = await res.json();
-    if (!result.success) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--error);padding:2rem;">Failed to load assessments.</div>`;
-      return;
-    }
+    if (!result.success) throw new Error(result.message);
 
     allAssessments = result.data || [];
     updateSummaryMetrics(allAssessments);
     populateSystemFilterOptions(allAssessments);
     renderAssessmentCards();
 
-    // Check if URL specifies an assessment or system
+    // A link can name an assessment or a body system to open straight away.
     const urlParams = new URLSearchParams(window.location.search);
     const targetId = urlParams.get('assessment_id');
     const targetSystem = urlParams.get('system');
-
     if (targetId) {
       initiateQuiz(parseInt(targetId));
     } else if (targetSystem) {
       const match = allAssessments.find(a => a.system_code === targetSystem);
       if (match) initiateQuiz(match.assessment_id);
     }
-
   } catch (err) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--error);padding:2rem;">Server connection failed.</div>`;
+    document.getElementById('assessmentResultsCount').textContent = 'Quizzes unavailable';
+    grid.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load your quizzes. Please refresh to try again.</div>';
   }
+}
+
+function showView(id) {
+  for (const view of ['mainPage', 'quizPage', 'resultPage']) document.getElementById(view).style.display = view === id ? '' : 'none';
+  window.scrollTo(0, 0);
 }
 
 // ── Initiate Quiz Session ───────────────────────────────────────
 async function initiateQuiz(assessmentId) {
-  showToast('Preparing assessment session…', 'info');
+  showToast('Getting your quiz ready…', 'info');
 
   try {
     // 1. Start or resume attempt via API
@@ -633,49 +435,40 @@ async function initiateQuiz(assessmentId) {
       body: JSON.stringify({ assessment_id: assessmentId })
     });
     const startData = await startRes.json();
-
     if (!startData.success) {
-      showToast(startData.message || 'Cannot start assessment.', 'error');
+      showToast(startData.message || 'Cannot start this quiz.', 'error');
       return;
     }
-
     currentSubmissionId = startData.data.submission_id;
 
     // 2. Fetch assessment details and questions
     const assessRes = await fetch(`${API_BASE}/assessments.php?id=${assessmentId}`, { credentials: 'same-origin' });
     const assessData = await assessRes.json();
-
     if (!assessData.success || !assessData.data.questions?.length) {
-      showToast('This assessment does not have any questions yet.', 'warning');
+      showToast('This quiz doesn’t have any questions yet.', 'warning');
       return;
     }
 
     activeAssessment = assessData.data;
     questions = activeAssessment.questions;
 
-    // 3. Initialize quiz session state cleanly (fixes timer bug!)
+    // 3. Restore saved answers and the time already spent
     currentQ = 0;
     userAnswers = questions.map(q => (startData.data.answers || []).find(a => Number(a.question_id) === Number(q.question_id)) || null);
     flaggedQuestions.clear();
     startTime = Date.now() - (startData.data.elapsed_seconds || 0) * 1000;
 
-    // Clean timer reset
     clearInterval(timerInterval);
     deadlineMs = startData.data.remaining_seconds === null ? null : Date.now() + startData.data.remaining_seconds * 1000;
     timeLeft = deadlineMs === null ? Infinity : startData.data.remaining_seconds;
 
-    // Setup UI
     document.getElementById('activeQuizTitle').textContent = activeAssessment.title;
-    document.getElementById('mainPage').style.display = 'none';
-    document.getElementById('resultPage').style.display = 'none';
-    document.getElementById('quizPage').style.display = 'block';
-
+    showView('quizPage');
     startTimer();
     buildQuestionMap();
     renderQuestion();
-
   } catch (err) {
-    showToast('Failed to start quiz.', 'error');
+    showToast('We couldn’t start the quiz. Please try again.', 'error');
   }
 }
 
@@ -688,7 +481,7 @@ function startTimer() {
     timeLeft = deadlineMs === null ? Infinity : Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000));
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
-      showToast('Time expired! Submitting assessment…', 'warning');
+      showToast('Time’s up. Submitting your answers…', 'warning');
       submitQuiz();
       return;
     }
@@ -697,86 +490,54 @@ function startTimer() {
 }
 
 function updateTimerDisplay() {
-  if (timeLeft === Infinity) { const timer = document.getElementById('timerDisplay'); if(timer)timer.textContent='Untimed'; return; }
-  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-  const s = (timeLeft % 60).toString().padStart(2, '0');
   const display = document.getElementById('timerDisplay');
   const timerBox = document.getElementById('quizTimer');
+  if (timeLeft === Infinity) { display.textContent = 'Untimed'; timerBox.classList.remove('is-low'); return; }
+  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const s = (timeLeft % 60).toString().padStart(2, '0');
   display.textContent = `${m}:${s}`;
-  if (timeLeft < 300) {
-    timerBox.style.color = 'var(--red-400)';
-    timerBox.style.borderColor = 'var(--red-400)';
-  } else {
-    timerBox.style.color = '';
-    timerBox.style.borderColor = '';
-  }
+  timerBox.classList.toggle('is-low', timeLeft < 300);
 }
 
 // ── Render Question ─────────────────────────────────────────────
 function renderQuestion() {
   const q = questions[currentQ];
-  document.getElementById('questionNum').textContent = `QUESTION ${currentQ + 1} OF ${questions.length}`;
+  const last = currentQ === questions.length - 1;
+  document.getElementById('questionNum').textContent = `Question ${currentQ + 1}`;
   document.getElementById('questionText').textContent = q.question_text;
   document.getElementById('questionProgress').textContent = `Question ${currentQ + 1} of ${questions.length}`;
   document.getElementById('quizProgressBar').style.width = `${((currentQ + 1) / questions.length) * 100}%`;
-  
-  document.getElementById('prevBtn').disabled = (currentQ === 0);
-  document.getElementById('nextBtn').innerHTML = (currentQ === questions.length - 1)
-    ? '<svg class="ui-icon" style="width:16px;height:16px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>Submit Assessment'
-    : 'Next<svg class="ui-icon" style="width:16px;height:16px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg>';
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+  document.getElementById('nextLabel').textContent = last ? 'Submit quiz' : 'Next';
+  document.querySelector('#nextBtn .sd-go-disc').innerHTML = icon(last ? 'check' : 'arrow-right');
 
-  const mcOptionsEl = document.getElementById('answerOptions');
+  const options = document.getElementById('answerOptions');
   const hotspotArea = document.getElementById('hotspotArea');
-  const identArea   = document.getElementById('identificationArea');
-  const typeBadge   = document.getElementById('questionTypeBadge');
+  const identArea = document.getElementById('identificationArea');
+  const typeBadge = document.getElementById('questionTypeBadge');
+  const kind = ['hotspot', 'interactive'].includes(q.question_type) ? 'hotspot'
+    : ['identification', 'fill_blank'].includes(q.question_type) ? 'identification' : 'choice';
+  options.hidden = kind !== 'choice';
+  hotspotArea.hidden = kind !== 'hotspot';
+  identArea.hidden = kind !== 'identification';
 
-  if (q.question_type === 'hotspot' || q.question_type === 'interactive') {
-    typeBadge.textContent = 'Click-to-Identify Hotspot';
-    mcOptionsEl.style.display = 'none';
-    identArea.style.display   = 'none';
-    hotspotArea.style.display = 'block';
-
+  if (kind === 'hotspot') {
+    typeBadge.textContent = 'Hotspot';
     renderHotspotQuestion(q);
-  } else if (q.question_type === 'identification' || q.question_type === 'fill_blank') {
+  } else if (kind === 'identification') {
     typeBadge.textContent = 'Identification';
-    mcOptionsEl.style.display = 'none';
-    hotspotArea.style.display = 'none';
-    identArea.style.display   = 'block';
-
     const input = document.getElementById('identificationInput');
     input.value = userAnswers[currentQ]?.response_text || '';
     setTimeout(() => input.focus(), 50);
-  } else if (q.question_type === 'true_false') {
-    typeBadge.textContent = 'True / False';
-    hotspotArea.style.display = 'none';
-    identArea.style.display   = 'none';
-    mcOptionsEl.style.display = 'flex';
-
-    mcOptionsEl.innerHTML = (q.options || []).map((opt) => {
-      const isSelected = userAnswers[currentQ]?.selected_option === opt.option_id;
-      const isTrue = opt.option_text.trim().toLowerCase() === 'true';
-      return `
-        <div class="answer-option ${isSelected ? 'selected' : ''}" onclick="selectAnswerOption(${opt.option_id})" style="border-left: 4px solid ${isTrue ? 'var(--brand)' : 'var(--error)'};">
-          <div class="answer-letter" style="background:${isTrue ? 'var(--brand-light)' : 'var(--error-light)'};color:${isTrue ? 'var(--brand)' : 'var(--error)'};">${isTrue ? 'T' : 'F'}</div>
-          <div class="answer-text" style="font-weight:600;">${escHtml(opt.option_text)}</div>
-        </div>
-      `;
-    }).join('');
   } else {
-    // Multiple Choice / Standard
-    typeBadge.textContent = 'Multiple Choice';
-    hotspotArea.style.display = 'none';
-    identArea.style.display   = 'none';
-    mcOptionsEl.style.display = 'flex';
-
-    mcOptionsEl.innerHTML = (q.options || []).map((opt, i) => {
-      const isSelected = userAnswers[currentQ]?.selected_option === opt.option_id;
-      return `
-        <div class="answer-option ${isSelected ? 'selected' : ''}" onclick="selectAnswerOption(${opt.option_id})">
-          <div class="answer-letter">${['A','B','C','D','E'][i] || i+1}</div>
-          <div class="answer-text">${escHtml(opt.option_text)}</div>
-        </div>
-      `;
+    const trueFalse = q.question_type === 'true_false';
+    typeBadge.textContent = trueFalse ? 'True or false' : 'Multiple choice';
+    options.innerHTML = (q.options || []).map((opt, i) => {
+      const selected = userAnswers[currentQ]?.selected_option === opt.option_id;
+      const isTrue = opt.option_text.trim().toLowerCase() === 'true';
+      const key = trueFalse ? `<span class="sd-opt-key ${isTrue ? 'is-true' : 'is-false'}" aria-hidden="true">${isTrue ? 'T' : 'F'}</span>`
+        : `<span class="sd-opt-key" aria-hidden="true">${'ABCDE'[i] || i + 1}</span>`;
+      return `<button type="button" class="sd-opt" aria-pressed="${selected}" onclick="selectAnswerOption(${opt.option_id})">${key}<span>${escHtml(opt.option_text)}</span></button>`;
     }).join('');
   }
 
@@ -786,57 +547,50 @@ function renderQuestion() {
 
 // ── Hotspot Interactive Renderer ────────────────────────────────
 function renderHotspotQuestion(q) {
- const wrapper=document.getElementById('hotspotSvgWrapper');wrapper.replaceChildren();
- const pin=document.getElementById('hotspotPin');pin.style.display='none';
- const url=q.hotspot_data?.image_url || q.image_url;
- if (!url) {wrapper.textContent='Your teacher has not configured a diagram for this question.';return;}
- const img=document.createElement('img');img.id='questionDiagram';img.src=url;img.alt=q.question_text;img.style.cssText='display:block;width:100%;max-width:600px;height:auto;margin:auto;';
- img.onerror=()=>{wrapper.textContent='Diagram unavailable. Please contact your teacher.';};wrapper.append(img);
- document.getElementById('hotspotFeedback').textContent='Select the requested structure on the diagram.';
- const existing=userAnswers[currentQ]?.hotspot_clicked;
- if(existing)document.getElementById('hotspotFeedback').textContent='Your previous selection is saved. Click the diagram to change it.';
+  const wrapper = document.getElementById('hotspotSvgWrapper');
+  wrapper.replaceChildren();
+  document.getElementById('hotspotPin').style.display = 'none';
+  const url = q.hotspot_data?.image_url || q.image_url;
+  if (!url) { wrapper.textContent = 'Your teacher hasn’t added a diagram for this question yet.'; return; }
+  const img = document.createElement('img');
+  img.id = 'questionDiagram'; img.src = url; img.alt = q.question_text;
+  img.style.cssText = 'display:block;width:100%;max-width:600px;height:auto;margin:auto;';
+  img.onerror = () => { wrapper.textContent = 'The diagram couldn’t load. Please tell your teacher.'; };
+  wrapper.append(img);
+  document.getElementById('hotspotFeedback').textContent = userAnswers[currentQ]?.hotspot_clicked
+    ? 'Your earlier pin is saved. Click the diagram to move it.' : 'Click the diagram to place your pin.';
 }
 function handleHotspotClick(e) {
- const img=document.getElementById('questionDiagram');if(!img)return;
- const rect=img.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width;const y=(e.clientY-rect.top)/rect.height;
- if(x<0||x>1||y<0||y>1)return;
- const container=document.getElementById('hotspotCanvasContainer').getBoundingClientRect();const pin=document.getElementById('hotspotPin');
- pin.style.left=(e.clientX-container.left)+'px';pin.style.top=(e.clientY-container.top)+'px';pin.style.display='flex';pin.style.pointerEvents='none';
- userAnswers[currentQ]={question_id:questions[currentQ].question_id,hotspot_clicked:{x,y}};
- document.getElementById('hotspotFeedback').textContent='Selection saved for this question.';updateQuestionMap();
+  const img = document.getElementById('questionDiagram'); if (!img) return;
+  const rect = img.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width, y = (e.clientY - rect.top) / rect.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return;
+  const container = document.getElementById('hotspotCanvasContainer').getBoundingClientRect();
+  const pin = document.getElementById('hotspotPin');
+  pin.style.left = (e.clientX - container.left) + 'px'; pin.style.top = (e.clientY - container.top) + 'px'; pin.style.display = 'block';
+  userAnswers[currentQ] = { question_id: questions[currentQ].question_id, hotspot_clicked: { x, y } };
+  document.getElementById('hotspotFeedback').textContent = 'Pin saved for this question.';
+  updateQuestionMap();
 }
 
 function handleIdentificationInput(val) {
-  const q = questions[currentQ];
-  userAnswers[currentQ] = {
-    question_id: q.question_id,
-    response_text: val
-  };
+  userAnswers[currentQ] = { question_id: questions[currentQ].question_id, response_text: val };
   updateQuestionMap();
 }
 
 function selectAnswerOption(optionId) {
-  userAnswers[currentQ] = {
-    question_id: questions[currentQ].question_id,
-    selected_option: optionId
-  };
+  userAnswers[currentQ] = { question_id: questions[currentQ].question_id, selected_option: optionId };
   renderQuestion();
 }
 
 function nextQuestion() {
-  if (currentQ === questions.length - 1) {
-    submitQuiz();
-    return;
-  }
+  if (currentQ === questions.length - 1) { submitQuiz(); return; }
   currentQ++;
   renderQuestion();
 }
 
 function prevQuestion() {
-  if (currentQ > 0) {
-    currentQ--;
-    renderQuestion();
-  }
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
 }
 
 function jumpTo(idx) {
@@ -847,43 +601,23 @@ function jumpTo(idx) {
 const flaggedQuestions = new Set();
 
 function toggleFlagCurrentQuestion() {
-  if (flaggedQuestions.has(currentQ)) {
-    flaggedQuestions.delete(currentQ);
-    showToast(`Unflagged Question ${currentQ + 1}`, 'info');
-  } else {
-    flaggedQuestions.add(currentQ);
-    showToast(`Question ${currentQ + 1} flagged for review`, 'warning');
-  }
+  if (flaggedQuestions.has(currentQ)) flaggedQuestions.delete(currentQ);
+  else flaggedQuestions.add(currentQ);
   updateFlagButton();
   updateQuestionMap();
 }
 
 function updateFlagButton() {
-  const isFlagged = flaggedQuestions.has(currentQ);
+  const flagged = flaggedQuestions.has(currentQ);
   const flagBtn = document.getElementById('flagBtn');
-  const flagIcon = document.getElementById('flagIcon');
-  const flagLabel = document.getElementById('flagLabel');
-  if (!flagBtn) return;
-
-  if (isFlagged) {
-    flagBtn.style.borderColor = '#d97706';
-    flagBtn.style.color = '#d97706';
-    flagIcon.innerHTML = '<svg style="width:13px;height:13px;vertical-align:-2px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#flag"/></svg>';
-    flagLabel.textContent = 'Flagged';
-  } else {
-    flagBtn.style.borderColor = 'var(--border)';
-    flagBtn.style.color = 'var(--text-secondary)';
-    flagIcon.innerHTML = '<svg style="width:13px;height:13px;vertical-align:-2px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#flag"/></svg>';
-    flagLabel.textContent = 'Flag for Review';
-  }
+  flagBtn.classList.toggle('is-flagged', flagged);
+  flagBtn.setAttribute('aria-pressed', String(flagged));
+  document.getElementById('flagLabel').textContent = flagged ? 'Flagged' : 'Flag';
 }
 
 function buildQuestionMap() {
-  document.getElementById('questionMap').innerHTML = questions.map((_, i) => `
-    <div id="qmap-${i}" onclick="jumpTo(${i})" style="position:relative;width:36px;height:36px;border-radius:var(--radius-sm);background:var(--bg-elevated);border:1px solid var(--border-default);display:flex;align-items:center;justify-content:center;font-size:0.8rem;cursor:pointer;font-weight:600;transition:all 0.2s;">
-      ${i + 1}
-    </div>
-  `).join('');
+  document.getElementById('questionMap').innerHTML = questions.map((_, i) =>
+    `<button type="button" class="sd-qdot" id="qmap-${i}" onclick="jumpTo(${i})">${i + 1}</button>`).join('');
 }
 
 function isQuestionAnswered(i) {
@@ -898,32 +632,22 @@ function isQuestionAnswered(i) {
 function updateQuestionMap() {
   clearTimeout(saveTimer);
   if (currentSubmissionId && !submitting) saveTimer = setTimeout(saveQuizDraft, 350);
+  let answered = 0;
   questions.forEach((_, i) => {
     const el = document.getElementById('qmap-' + i);
     if (!el) return;
-    const answered = isQuestionAnswered(i);
-    const isFlagged = flaggedQuestions.has(i);
-
-    const flagBadge = isFlagged ? '<span style="position:absolute;top:2px;right:2px;display:flex;align-items:center;"><svg style="width:9px;height:9px;color:#d97706;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#flag"/></svg></span>' : '';
-    el.innerHTML = `${i + 1}${flagBadge}`;
-
-    if (i === currentQ) {
-      el.style.background = 'var(--primary-600)';
-      el.style.color = '#fff';
-      el.style.borderColor = isFlagged ? '#f59e0b' : 'var(--primary-500)';
-    } else if (answered) {
-      el.style.background = 'rgba(20,184,166,0.2)';
-      el.style.color = 'var(--teal-400)';
-      el.style.borderColor = isFlagged ? '#f59e0b' : 'var(--teal-500)';
-    } else {
-      el.style.background = 'var(--bg-elevated)';
-      el.style.color = 'var(--text-secondary)';
-      el.style.borderColor = isFlagged ? '#f59e0b' : 'var(--border-default)';
-    }
+    const isAnswered = isQuestionAnswered(i), flagged = flaggedQuestions.has(i);
+    if (isAnswered) answered++;
+    el.classList.toggle('is-answered', isAnswered);
+    el.classList.toggle('is-flagged', flagged);
+    if (i === currentQ) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
+    el.innerHTML = `${i + 1}${flagged ? icon('flag') : ''}`;
+    el.setAttribute('aria-label', `Question ${i + 1}${isAnswered ? ', answered' : ''}${flagged ? ', flagged' : ''}`);
   });
+  document.getElementById('answeredCount').textContent = `${answered} of ${questions.length} answered`;
 }
 
-// ── Submit Assessment ───────────────────────────────────────────
+// ── Save and submit ─────────────────────────────────────────────
 function saveQuizDraft() {
  const id=currentSubmissionId;
  const answers=userAnswers.filter(a=>a!==null);
@@ -951,7 +675,7 @@ async function submitQuiz() {
   submitting = true;
   clearTimeout(saveTimer);
   await saveQuizDraft();
-  showToast('Grading assessment…', 'info');
+  showToast('Checking your answers…', 'info');
 
   const timeUsedSecs = Math.max(1, Math.round((Date.now() - startTime) / 1000));
   const validAnswers = userAnswers.filter(a => a !== null);
@@ -961,86 +685,61 @@ async function submitQuiz() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        submission_id:   currentSubmissionId,
-        time_taken_secs: timeUsedSecs,
-        answers:         validAnswers
-      })
+      body: JSON.stringify({ submission_id: currentSubmissionId, time_taken_secs: timeUsedSecs, answers: validAnswers })
     });
-
     const result = await res.json();
     if (!result.success) {
       showToast(result.message || 'Submission failed.', 'error');
       return;
     }
-
-    const data = result.data;
-    displayResults(data, data.time_taken_secs);
+    displayResults(result.data, result.data.time_taken_secs);
     currentSubmissionId = null;
-
   } catch (err) {
-    showToast('Failed to submit assessment to server.', 'error');
+    showToast('We couldn’t submit your answers. Check your connection and try again.', 'error');
   } finally { submitting = false; }
-
 }
 
-// ── Display Assessment Results ──────────────────────────────────
+// ── Result ──────────────────────────────────────────────────────
 function displayResults(data, timeUsedSecs) {
-  document.getElementById('quizPage').style.display = 'none';
-  document.getElementById('resultPage').style.display = 'block';
-
-  const mins = Math.floor(timeUsedSecs / 60);
-  const secs = timeUsedSecs % 60;
+  showView('resultPage');
   const score = Math.round(data.score);
+  const card = document.getElementById('resultCard');
+  card.dataset.tone = data.passed ? 'teal' : 'coral';
+  card.style.setProperty('--card', CARD_COLOURS[card.dataset.tone]);
 
-  const scoreEl = document.getElementById('resultScore');
-  scoreEl.textContent = `${score}%`;
-  scoreEl.style.color = data.passed ? 'var(--success)' : 'var(--error)';
+  document.getElementById('resultScore').textContent = `${score}%`;
+  document.getElementById('resultKicker').textContent = data.assessment_title || activeAssessment?.title || 'Your score';
+  document.getElementById('resultTitle').textContent = data.passed ? 'You passed' : 'Not quite yet';
   document.getElementById('resultMessage').textContent = data.passed
-    ? `Congratulations! You successfully passed ${escHtml(data.assessment_title)}.`
-    : `Keep practicing! You needed ${data.passing_score}% to pass. Review the material and try again.`;
-
-  document.getElementById('resultCorrect').textContent = `${data.raw_score} / ${data.max_score} pts`;
+    ? 'Nice work. Your score is saved to your progress.'
+    : `You need ${data.passing_score}% to pass. Review the questions below, then try again.`;
+  document.getElementById('resultCorrect').textContent = `${data.raw_score}/${data.max_score}`;
   document.getElementById('resultPassing').textContent = `${data.passing_score}%`;
-  document.getElementById('resultTime').textContent = `${mins}m ${secs}s`;
-
+  document.getElementById('resultTime').textContent = `${Math.floor(timeUsedSecs / 60)}m ${timeUsedSecs % 60}s`;
   if (activeAssessment?.system_code) {
-    document.getElementById('resultStudyLink').href = `anatomy.html?system=${activeAssessment.system_code}`;
+    document.getElementById('resultStudyLink').href = `anatomy.html?system=${encodeURIComponent(activeAssessment.system_code)}`;
   }
 
-  // Render question breakdown list
-  const breakdownList = document.getElementById('resultBreakdownList');
-  breakdownList.innerHTML = (data.breakdown || []).map((b, i) => {
-    const typeLabel = b.question_type === 'hotspot' ? 'Hotspot' :
-                      b.question_type === 'identification' ? 'Identification' :
-                      b.question_type === 'true_false' ? 'True / False' : 'Multiple Choice';
-    return `
-    <div style="padding:var(--space-2) var(--space-3);background:var(--bg-inset);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;border-left:3px solid ${b.is_correct ? 'var(--success)' : 'var(--error)'};">
-      <div>
-        <div style="font-size:0.7rem;color:var(--text-muted);font-weight:600;margin-bottom:2px;">${typeLabel}</div>
-        <strong>Q${i + 1}.</strong> ${escHtml(b.question_text)}
-      </div>
-      <div style="font-weight:700;color:${b.is_correct ? 'var(--success)' : 'var(--error)'};flex-shrink:0;margin-left:12px;">
-        ${b.is_correct ? `Correct (+${b.points_earned} pts)` : 'Incorrect (0 pts)'}
-      </div>
-    </div>
-  `;
-  }).join('');
-
-  showToast(`Assessment submitted! Score: ${score}%`, data.passed ? 'success' : 'warning');
+  const typeLabels = { hotspot: 'Hotspot', identification: 'Identification', true_false: 'True or false' };
+  document.getElementById('resultBreakdownList').innerHTML = (data.breakdown || []).map((b, i) => `
+    <div class="sd-review-item${b.is_correct ? '' : ' is-wrong'}">
+      <span class="sd-review-mark">${icon(b.is_correct ? 'check' : 'x')}<span class="sr-only">${b.is_correct ? 'Correct' : 'Incorrect'}</span></span>
+      <span class="sd-review-copy"><span>${typeLabels[b.question_type] || 'Multiple choice'}</span><strong>${i + 1}. ${escHtml(b.question_text)}</strong></span>
+      <span class="sd-review-points">${b.is_correct ? `+${b.points_earned} pts` : '0 pts'}</span>
+    </div>`).join('');
 }
 
+// The server fixes a timed attempt's deadline when it starts, so leaving does not pause it.
 function confirmExitQuiz() {
-  if (confirm('Exit assessment now? Any unsaved progress will be lost.')) {
-    exitQuiz();
-  }
+  const timed = deadlineMs !== null ? ' The timer keeps running while you are away.' : '';
+  if (confirm(`Leave this quiz? Your answers so far are saved, and you can come back to finish.${timed}`)) exitQuiz();
 }
 
 function exitQuiz() {
   clearInterval(timerInterval);
-  document.getElementById('quizPage').style.display = 'none';
-  document.getElementById('resultPage').style.display = 'none';
-  document.getElementById('mainPage').style.display = 'block';
+  clearTimeout(saveTimer);
+  saveQuizDraft();
+  showView('mainPage');
   loadAvailableAssessments();
 }
 
@@ -1050,4 +749,3 @@ loadAvailableAssessments();
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>
-

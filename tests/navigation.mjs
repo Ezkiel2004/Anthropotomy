@@ -11,8 +11,11 @@ function call(method,params={}){return new Promise((resolve,reject)=>{const id=+
 async function evaluate(expression){const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);return result.result.value;}
 await call('Runtime.enable');await call('Page.enable');
 await call('Network.enable');
+// Start signed out, whatever an earlier suite left in this browser profile.
+await call('Network.clearBrowserCookies');
 const explorationPosts=[];
 socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.requestWillBeSent' && data.params.request.method==='POST' && data.params.request.url.includes('/analytics/exploration.php'))explorationPosts.push(data.params.request.url);});
+async function waitFor(expression,timeout=15000){for(let waited=0;waited<timeout;waited+=200){try{if(await evaluate(expression))return true;}catch{/* The page is mid-navigation. */}await new Promise(resolve=>setTimeout(resolve,200));}return false;}
 async function navigate(path){
     await call('Page.navigate',{url:base+path});
     for(let i=0;i<60;i++){
@@ -23,13 +26,15 @@ async function navigate(path){
 }
 await navigate('/login.html');
 await evaluate(`document.getElementById('username').value=${JSON.stringify(credentials.username)};document.getElementById('password').value=${JSON.stringify(credentials.password)};handleLogin();`);
-await new Promise(resolve=>setTimeout(resolve,1200));
+await waitFor(`location.pathname.startsWith('/teacher/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
  teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','progress']
 };
+// Both sidebars start with a Home link to the public landing page.
+const menu=role=>['index.html',...expected[role].map(p=>p+'.html')];
 // Pages checked per portal. Student notifications and settings are reached from the top bar
 // (bell and account menu), not the sidebar; scores.html redirects to "My Progress & Scores".
 const pages={teacher:expected.teacher,student:[...expected.student,'notifications','settings']};
@@ -41,7 +46,7 @@ for(const page of ['assessments','monitoring','dashboard','assessments','monitor
    if(await evaluate(`location.pathname==='/teacher/${page}.html' && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav a[aria-current="page"][href*="${page}.html"]'))`))break;
  }
  assert.equal(await evaluate('location.pathname'),'/teacher/'+page+'.html','Sidebar click reaches '+page);
- assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav a')].map(a=>new URL(a.href).pathname.split('/').pop())`),expected.teacher.map(p=>p+'.html'),'Every menu remains present after clicking '+page);
+ assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav a')].map(a=>new URL(a.href).pathname.split('/').pop())`),menu('teacher'),'Every menu remains present after clicking '+page);
  for(const link of ['settings','anatomy']){
    assert.ok(await evaluate(`(()=>{const link=document.querySelector('.sidebar-nav a[href*="${link}.html"]');link.scrollIntoView({block:'center'});const r=link.getBoundingClientRect();return link.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})()`),'Lower sidebar link is reachable on '+page+': '+link);
  }
@@ -53,14 +58,14 @@ for(const role of ['teacher','student']){
    assert.ok(created.success,'Create isolated student fixture');
    await evaluate('Auth.logout()');await navigate('/login.html');
    await evaluate(`document.getElementById('username').value='navigation-student';document.getElementById('password').value='navigation-test-password';handleLogin();`);
-   await new Promise(resolve=>setTimeout(resolve,1000));
+   await waitFor(`location.pathname.startsWith('/student/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
  }
  let baseline;
  for(const page of pages[role]){
    await navigate('/'+role+'/'+page+'.html');
    assert.equal(await evaluate('location.pathname'),'/'+role+'/'+page+'.html');
    const navigation=await evaluate(`[...document.querySelectorAll('.sidebar-nav .nav-item')].map(a=>({href:new URL(a.href).pathname.split('/').pop(),label:a.querySelector('.nav-label').textContent.trim(),icon:!!a.querySelector('.nav-icon svg')}))`);
-   assert.deepEqual(navigation.map(a=>a.href),expected[role].map(p=>p+'.html'),role+'/'+page+' has every navigation link in the same order');
+   assert.deepEqual(navigation.map(a=>a.href),menu(role),role+'/'+page+' has every navigation link in the same order');
    assert.ok(navigation.every(a=>a.icon),'Every link has an icon when collapsed');
    baseline??=navigation;assert.deepEqual(navigation,baseline,'Labels and icons are consistent');
    const inMenu=expected[role].includes(page);

@@ -328,3 +328,50 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 @media (prefers-reduced-motion:reduce){
   .au-card,.au-float,.au-step,#loginView,#registerView,.au-sheet[open]{animation:none;transition:none}
 }
+
+/* ── Feature figures 2 to 4: the simplified portal drawings in the Stage look. public.css
+   paints them through a few paper colour variables; inside the figures those point at the
+   stage palette, and each item type takes one of the body-system card colours. ── */
+#features .mock,#features .demo{--color-paper-raised:#1a1a1a;--color-text-on-paper:#fff;--color-muted-on-paper:#8c8c8c;--color-rule-on-paper:#2a2a2a;--color-line-on-paper:#3a3a3a;--color-white:#1f1f1f;--color-brand:#f7c948;--color-brand-tint:rgba(247,201,72,.14)}
+#features .mock{border-radius:1.25rem}
+#features .mock-bar{padding:.875rem 1.125rem}
+#features .mock-crumb{font-weight:500}
+#features .mock-body{display:grid;gap:.75rem}
+#features .mock-body>.caption,#features .mock-label,#features .question-num{color:var(--hx-muted);font-family:var(--font-body);font-size:.8125rem;font-weight:700;letter-spacing:0;text-transform:none}
+#features .mock-skeleton-line:first-of-type{background:#3a3a3a}
+/* Fig. 2: lesson attachments, one card colour per kind */
+#features .attachment{border:0;border-radius:.875rem;background:var(--hx-raised);padding:.625rem .875rem .625rem .625rem}
+#features .attachment b{font-weight:700}
+#features .attachment small{padding:.1875rem .5rem;border-radius:999px;background:#262626;color:#cfcfcf;font:700 .6875rem/1.4 var(--font-body);letter-spacing:0;text-transform:none}
+#features .attachment-icon{border-radius:.75rem;background:var(--tone,#3fb8f5)}
+#features .attachment-icon svg{color:#121212;fill:currentColor}
+#features .attachment:nth-child(1){--tone:#3fb8f5}
+#features .attachment:nth-child(2){--tone:#2ccf9a}
+#features .attachment:nth-child(3){--tone:#f2545b}
+#features .attachment:nth-child(4){--tone:#6c63ff}
+#features .attachment:nth-child(5){--tone:#8b5cf6}
+#features .mock-tool{min-height:2.75rem;padding:0 .375rem 0 1.125rem;border:0;border-radius:999px;background:#fff;color:#121212;font-weight:700;gap:.625rem;flex-direction:row-reverse}
+#features .mock-tool svg{display:grid;width:2rem;height:2rem;padding:.5rem;border-radius:50%;background:var(--hx-blue);color:#fff;fill:currentColor;box-sizing:border-box}
+/* Fig. 3: quiz demo */
+#features .question-head .badge{background:rgba(242,84,91,.16);color:#ff9ea2;font-weight:700}
+#features .question-prompt{font-weight:700}
+#features .text-input{border:0;border-radius:1rem;background:var(--hx-raised);color:#fff;font-weight:600}
+#features .text-input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#features .answer{border:0;border-radius:1rem;background:var(--hx-raised);font-weight:600;transition:box-shadow .2s,background-color .2s}
+#features .answer:hover{box-shadow:inset 0 0 0 1.5px #3a3a3a}
+#features .answer:has(input:checked){background:rgba(247,201,72,.12);box-shadow:inset 0 0 0 2px var(--hx-yellow)}
+#features .answer:has(input:focus-visible){outline:2px solid #fff;outline-offset:2px}
+#features .answer-key{border:0;border-radius:.5rem;background:#262626;color:#cfcfcf;font-family:var(--font-body);font-weight:700}
+#features .answer:has(input:checked) .answer-key{background:var(--hx-yellow);color:#1a1a1a}
+#features .hotspot{border:1.5px dashed #3a3a3a;border-radius:1rem;background:#161616;color:var(--hx-muted)}
+#features .hotspot-pin{border-color:#121212;background:var(--hx-yellow)}
+#features .save-status.is-saved{color:#fff}
+#features .save-status.is-saved svg{color:var(--hx-yellow);fill:currentColor}
+/* Fig. 4: progress page */
+#features .donut svg circle{stroke:#2a2a2a}
+#features .donut-value>div{font-weight:700}
+#features .donut-value small{font-family:var(--font-body);font-weight:700}
+#features .tile{border:0;border-radius:1rem;background:var(--hx-raised)}
+#features .tile b{font-weight:700}
+#features .tile span{font-weight:600}
+#features .activity span{border:0;border-radius:.3125rem;background:var(--hx-raised)}

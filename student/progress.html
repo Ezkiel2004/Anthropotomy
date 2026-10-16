@@ -4,24 +4,24 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Progress &amp; Scores | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage3"/>
 </head>
-<body class="teacher-dashboard student-dashboard">
+<body class="student-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261016-stage3"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Progress &amp; Scores</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
@@ -30,13 +30,13 @@
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
-            <div class="notif-header"><span>Notifications</span><a href="notifications.html" style="font-size:0.75rem;color:var(--brand);">Mark all read</a></div>
+            <div class="notif-header"><span>Notifications</span><a href="notifications.html">Mark all read</a></div>
             <div class="notif-list"></div>
             <div class="notif-footer"><a href="notifications.html">View all</a></div>
           </div>
         </div>
         <a href="settings.html" class="topbar-user" style="text-decoration:none;color:inherit;" title="Manage Account">
-          <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;">MS</div>
+          <div class="avatar">MS</div>
           <div>
             <div class="topbar-user-name">Student</div>
             <div class="topbar-user-role">Student</div>
@@ -45,104 +45,80 @@
       </div>
     </header>
 
-    <div class="page-content">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>My Progress &amp; Scores</h1>
-          <p>Track your learning activity, lesson completion, and assessment results in one place.</p>
+    <div class="page-content sd">
+      <header class="sd-head">
+        <div>
+          <h1 class="sd-title">My progress</h1>
+          <p class="sd-sub">Lessons, study time and every quiz result in one place.</p>
         </div>
+      </header>
+
+      <div class="dashboard-empty sd-error" id="progressError" role="status" hidden></div>
+
+      <div class="sd-top">
+        <section class="sd-ring-card" aria-labelledby="overallTitle">
+          <div class="sd-ring" id="overallRing" role="img" aria-label="Lesson completion loading"><span id="overallPct">0%</span></div>
+          <div class="sd-ring-copy">
+            <p class="sd-next-kicker">Lessons finished</p>
+            <h2 class="sd-next-title" id="overallTitle">Loading…</h2>
+            <p class="sd-next-detail" id="overallExploredText"></p>
+          </div>
+        </section>
+
+        <dl class="sd-stats" aria-label="Your progress at a glance">
+          <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="statAvgQuizScore">Not yet</span><span class="sd-stat-hint">Across graded attempts</span></dd></div>
+          <div class="sd-stat"><dt>Quizzes passed</dt><dd><span class="sd-stat-value" id="statQuizzesDone">0</span><span class="sd-stat-hint" id="statQuizzesHint">Loading…</span></dd></div>
+          <div class="sd-stat"><dt>Lessons done</dt><dd><span class="sd-stat-value" id="statLessonsRatio">0</span><span class="sd-stat-hint" id="statLessonsHint">Loading…</span></dd></div>
+          <div class="sd-stat"><dt>Study time</dt><dd><span class="sd-stat-value" id="statStudyHours">0h</span><span class="sd-stat-hint">Reading lessons</span></dd></div>
+        </dl>
       </div>
 
-      <!-- Overall Progress Highlight -->
-      <div class="card" style="margin-bottom:var(--space-6);">
-        <div id="progressError" role="status" hidden></div>
-        <div class="progress-overview">
-          <div class="progress-circle-wrap">
-            <canvas id="overallDonut" width="160" height="160" style="width:160px;height:160px;" role="img" aria-label="Overall lesson completion"></canvas>
-            <div style="text-align:center;">
-              <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">Overall Progress</div>
-              <div style="font-size:0.8125rem;color:var(--text-muted);" id="overallExploredText">?</div>
-            </div>
-          </div>
-          <div style="flex:1;">
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-4);margin-bottom:var(--space-5);">
-              <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--brand);" id="statAvgQuizScore">…</div>
-                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Average Quiz Score</div>
-              </div>
-              <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);" id="statQuizzesDone">0</div>
-                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Quizzes Completed</div>
-              </div>
-              <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);" id="statLessonsRatio">…</div>
-                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Lessons Completed</div>
-              </div>
-              <div style="padding:var(--space-4);background:var(--bg-inset);border-radius:var(--radius-md);border:1px solid var(--border-light);">
-                <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);" id="statStudyHours">0.0h</div>
-                <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Total Study Time</div>
-              </div>
-            </div>
-            <div style="font-size:0.8125rem;font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3);">Learning Activity History (Last 21 Days)</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="streakGrid"></div>
-          </div>
-        </div>
-      </div>
+      <section class="sd-block" aria-labelledby="activityTitle">
+        <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Last 21 days</h2><span class="sd-count" id="activityCount"></span></div>
+        <div class="sd-days" id="streakGrid" role="list"></div>
+      </section>
 
-      <!-- Scores Table -->
-      <div class="card" id="scores">
-        <div class="monitoring-toolbar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4);flex-wrap:wrap;gap:var(--space-3);">
-          <div class="section-title" style="margin:0;font-size:1.125rem;font-weight:700;color:var(--text-primary);">All Assessment Results</div>
-          <div class="search-bar" style="width:240px;">
-            <svg style="width:16px;height:16px;" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
-            <input type="text" id="scoreSearchInput" aria-label="Search assessment results" placeholder="Search by title, system..." oninput="filterScores()"/>
-          </div>
+      <section class="sd-block" id="scores" aria-labelledby="scoresTitle">
+        <div class="sd-h">
+          <h2 id="scoresTitle" class="sd-h-title">Quiz results</h2>
+          <label class="sd-search sd-search--sm">
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
+            <span class="sr-only">Search quiz results</span>
+            <input type="search" id="scoreSearchInput" placeholder="Search results" autocomplete="off" oninput="filterScores()"/>
+          </label>
         </div>
-        <div class="table-wrapper">
+        <div class="dashboard-empty" id="scoresEmpty" role="status">Loading quiz results…</div>
+        <div class="sd-table" id="scoresWrap" hidden>
           <table class="data-table">
             <thead>
-              <tr>
-                <th>Assessment</th>
-                <th>Type</th>
-                <th>System</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Attempt</th>
-                <th>Date</th>
-                <th>Review</th>
-              </tr>
+              <tr><th>Quiz</th><th>Body system</th><th>Score</th><th>Status</th><th>Attempt</th><th>Date</th><th><span class="sr-only">Review</span></th></tr>
             </thead>
-            <tbody id="scoresTableBody">
-              <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-muted);">Loading score records…</td></tr>
-            </tbody>
+            <tbody id="scoresTableBody"></tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   </main>
 </div>
 
-<!-- Detailed Submission Review Modal -->
+<!-- One attempt, question by question -->
 <div class="modal-overlay" id="scoreReviewModal" style="display:none;" onclick="if(event.target===this)closeModal('scoreReviewModal')">
-  <div class="modal-box" style="width:min(95%,680px);max-height:90vh;display:flex;flex-direction:column;">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
     <div class="modal-header">
-      <h3 id="reviewModalTitle">Quiz Review</h3>
+      <h3 id="reviewModalTitle">Quiz review</h3>
       <button class="modal-close" onclick="closeModal('scoreReviewModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
-    <div class="modal-body" id="reviewModalBody" style="overflow-y:auto;flex:1;">
-      <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading review details…</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('scoreReviewModal')">Close</button>
-    </div>
+    <div class="modal-body" id="reviewModalBody"><div class="sd-loading">Loading review…</div></div>
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
-<script src="../assets/js/student-portal.js?v=20260915-account3"></script>
+<script src="../assets/js/app.js?v=20261016-auth1"></script>
+<script src="../assets/js/student-portal.js?v=20261016-stage3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
+
+const isoDay = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 
 async function loadProgress() {
   try {
@@ -151,49 +127,38 @@ async function loadProgress() {
     if (!result.success) throw new Error(result.message || 'Unable to load progress.');
 
     const { summary, system_progress, recent_activity } = result.data;
-
     const completed  = parseInt(summary?.completed_lessons || 0);
     const total      = parseInt(summary?.total_lessons || 0);
     const overallPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const taken = Number(summary?.quizzes_taken) || 0, passed = Number(summary?.quizzes_passed) || 0;
 
-    // Update overall donut chart
-    const canvas = document.getElementById('overallDonut');
-    canvas.setAttribute('aria-label', `${overallPct}% of lessons completed`);
-    const ctx = canvas.getContext('2d');
-    drawDonut('overallDonut', overallPct, 100, '#0da474');
-    ctx.fillStyle = '#111c2c';
-    ctx.font = '700 24px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${overallPct}%`, 80, 85);
-    ctx.fillStyle = '#65788f';
-    ctx.font = '500 11px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('Complete', 80, 103);
+    // Completion ring: CSS draws it from --p
+    const ring = document.getElementById('overallRing');
+    ring.style.setProperty('--p', overallPct);
+    ring.setAttribute('aria-label', `${overallPct}% of lessons finished`);
+    document.getElementById('overallPct').textContent = `${overallPct}%`;
+    document.getElementById('overallTitle').textContent = total === 0 ? 'No lessons published yet' : `${completed} of ${plural(total, 'lesson')}`;
+    document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${plural((system_progress || []).length, 'body system')} explored in 3D`;
 
-    // Highlights
-    document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${(system_progress || []).length} systems explored`;
     document.getElementById('statAvgQuizScore').textContent = summary?.avg_quiz_score != null ? `${Math.round(summary.avg_quiz_score)}%` : 'Not yet';
-    document.getElementById('statQuizzesDone').textContent  = `${summary?.quizzes_passed || 0} passed / ${summary?.quizzes_taken || 0} taken`;
-    document.getElementById('statLessonsRatio').textContent = `${completed} / ${total}`;
-    document.getElementById('statStudyHours').textContent   = `${parseFloat(summary?.total_time_hours || 0).toFixed(1)}h`;
+    document.getElementById('statQuizzesDone').textContent = passed;
+    document.getElementById('statQuizzesHint').textContent = taken === 0 ? 'Your first result shows here' : `Out of ${taken} taken`;
+    document.getElementById('statLessonsRatio').textContent = `${completed}/${total}`;
+    document.getElementById('statLessonsHint').textContent = total === 0 ? 'Waiting for your teacher' : `${overallPct}% finished`;
+    document.getElementById('statStudyHours').textContent = `${parseFloat(summary?.total_time_hours || 0).toFixed(1)}h`;
 
-    // Activity Streak Dots
+    // One square per day, oldest first; today has an outline
     const activeDates = new Set((recent_activity || []).map(a => a.activity_date));
-    const streakGrid = document.getElementById('streakGrid');
-    const daysArr = [];
     const today = new Date();
-    for (let i = 20; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const iso = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
-      const dayLetter = ['S','M','T','W','T','F','S'][d.getDay()];
-      daysArr.push({ iso, dayLetter, active: activeDates.has(iso) });
-    }
-    streakGrid.innerHTML = daysArr.map(d => `
-      <div title="${d.iso} ${d.active ? '(Active)' : ''}" style="width:28px;height:28px;border-radius:6px;background:${d.active ? 'var(--brand)' : 'var(--bg-inset)'};border:1px solid ${d.active ? 'var(--brand)' : 'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;color:${d.active ? '#fff' : 'var(--text-muted)'};">
-        ${d.dayLetter}
-      </div>
-    `).join('');
-
+    let activeCount = 0;
+    document.getElementById('streakGrid').innerHTML = Array.from({ length: 21 }, (_, n) => {
+      const d = new Date(today); d.setDate(d.getDate() - (20 - n));
+      const active = activeDates.has(isoDay(d));
+      if (active) activeCount++;
+      const label = d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+      return `<span role="listitem" class="sd-day${active ? ' is-active' : ''}${n === 20 ? ' is-today' : ''}" title="${label}${active ? ': studied' : ''}"><span aria-hidden="true">${'SMTWTFS'[d.getDay()]}</span><span class="sr-only">${label}${active ? ', studied' : ', no activity'}</span></span>`;
+    }).join('');
+    document.getElementById('activityCount').textContent = `Active on ${plural(activeCount, 'day')}`;
   } catch (err) {
     const error = document.getElementById('progressError');
     error.hidden = false;
@@ -201,123 +166,103 @@ async function loadProgress() {
   }
 }
 
-// ── Init ────────────────────────────────────────────────────────
 let allSubmissions = [];
 
 async function loadScores() {
   try {
     const res = await fetch(`${API_BASE}/scores.php`, { credentials: 'same-origin' });
     const result = await res.json();
-    if (!result.success) {
-      document.getElementById('scoresTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--error);padding:2rem;">Failed to load scores.</td></tr>';
-      return;
-    }
-
-    const { summary, submissions } = result.data;
-    allSubmissions = submissions || [];
-
+    if (!result.success) throw new Error(result.message);
+    allSubmissions = result.data.submissions || [];
     renderScoresTable(allSubmissions);
-
   } catch (err) {
-    document.getElementById('scoresTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--error);padding:2rem;">Server error loading scores.</td></tr>';
+    showScoresMessage('Unable to load quiz results. Please refresh to try again.');
   }
 }
 
+// Messages sit outside the table: on a phone the table scrolls sideways and would cut them off.
+function showScoresMessage(message) {
+  document.getElementById('scoresWrap').hidden = true;
+  const box = document.getElementById('scoresEmpty');
+  box.textContent = message;
+  box.hidden = false;
+}
+
 function renderScoresTable(subs) {
-  const tbody = document.getElementById('scoresTableBody');
   if (!subs.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--text-muted);">No assessment records found. Take a quiz to view your scores!</td></tr>';
+    showScoresMessage(allSubmissions.length ? 'No results match your search.' : 'No quiz results yet. Take a quiz and your score will show up here.');
     return;
   }
-
-  tbody.innerHTML = subs.map(s => {
-    const scoreColor = s.passed ? 'var(--success)' : 'var(--error)';
-
+  document.getElementById('scoresEmpty').hidden = true;
+  document.getElementById('scoresWrap').hidden = false;
+  document.getElementById('scoresTableBody').innerHTML = subs.map(s => {
+    const state = s.passed ? 'is-pass' : 'is-review';
     return `
       <tr>
-        <td style="font-weight:600;color:var(--text-primary);">${escHtml(s.assessment_title)}</td>
-        <td><span style="text-transform:capitalize;font-size:0.8125rem;">${s.assessment_type}</span></td>
-        <td><span class="badge badge-neutral">${escHtml(s.system_name || 'General')}</span></td>
-        <td style="color:${scoreColor};font-weight:700;">${Math.round(s.score)}%</td>
-        <td><span class="badge ${s.passed ? 'badge-success' : 'badge-error'}">${s.passed ? 'Passed' : 'Needs Review'}</span></td>
-        <td style="color:var(--text-muted);font-weight:500;">#${s.attempt_number}</td>
-        <td style="font-size:0.8125rem;color:var(--text-secondary);">${fmtDate(s.submitted_at)}</td>
-        <td>
-          <button class="btn btn-secondary btn-sm" onclick="viewSubmissionReview(${s.submission_id})">
-            Review
-          </button>
-        </td>
-      </tr>
-    `;
+        <td class="sd-table-title">${escHtml(s.assessment_title)}</td>
+        <td><span class="sd-chip">${escHtml((s.system_name || 'General').replace(/\s+System$/i, ''))}</span></td>
+        <td class="sd-table-score ${state}">${Math.round(s.score)}%</td>
+        <td><span class="sd-chip ${state}">${s.passed ? 'Passed' : 'Review'}</span></td>
+        <td class="sd-table-date">#${Number(s.attempt_number) || 1}</td>
+        <td class="sd-table-date">${fmtDate(s.submitted_at)}</td>
+        <td><button type="button" class="sd-mini-btn" onclick="viewSubmissionReview(${Number(s.submission_id)})">Review<span class="sr-only"> ${escHtml(s.assessment_title)}</span></button></td>
+      </tr>`;
   }).join('');
 }
 
 function filterScores() {
   const term = document.getElementById('scoreSearchInput').value.toLowerCase();
-  const filtered = allSubmissions.filter(s =>
+  renderScoresTable(allSubmissions.filter(s =>
     s.assessment_title.toLowerCase().includes(term) ||
     (s.system_name && s.system_name.toLowerCase().includes(term)) ||
-    s.assessment_type.toLowerCase().includes(term)
-  );
-  renderScoresTable(filtered);
+    (s.assessment_type || '').toLowerCase().includes(term)
+  ));
 }
 
 async function viewSubmissionReview(submissionId) {
   openModal('scoreReviewModal');
   const body = document.getElementById('reviewModalBody');
-  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading questions…</div>';
+  body.innerHTML = '<div class="sd-loading">Loading questions…</div>';
 
   try {
     const res = await fetch(`${API_BASE}/scores.php?id=${submissionId}`, { credentials: 'same-origin' });
     const result = await res.json();
     if (!result.success) {
-      body.innerHTML = `<div style="color:var(--error);">${escHtml(result.message)}</div>`;
+      body.innerHTML = `<div class="dashboard-empty sd-error">${escHtml(result.message || 'This review isn’t available.')}</div>`;
       return;
     }
 
     const sub = result.data;
-    document.getElementById('reviewModalTitle').textContent = `Review: ${sub.assessment_title}`;
-
-    const score = Math.round(sub.score);
+    document.getElementById('reviewModalTitle').textContent = sub.assessment_title;
     const pass = sub.score >= sub.passing_score;
 
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);margin-bottom:var(--space-4);">
+      <div class="sd-verdict">
         <div>
-          <div style="font-weight:600;font-size:1rem;color:var(--text-primary);">Attempt #${sub.attempt_number} Result</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Submitted: ${fmtDate(sub.submitted_at)}</div>
+          <div class="sd-review-copy"><strong>Attempt ${Number(sub.attempt_number) || 1}</strong><span>Submitted ${fmtDate(sub.submitted_at)} · pass mark ${Math.round(sub.passing_score)}%</span></div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.375rem;font-weight:700;color:${pass ? 'var(--success)' : 'var(--error)'};">${score}%</div>
-          <span class="badge ${pass ? 'badge-success' : 'badge-error'}" style="margin-top:2px;display:inline-block;">${pass ? 'Passed' : 'Failed'} (Pass: ${Math.round(sub.passing_score)}%)</span>
-        </div>
+        <span class="sd-verdict-score ${pass ? 'is-pass' : 'is-review'}">${Math.round(sub.score)}%</span>
       </div>
-
-      <div style="font-weight:600;font-size:0.8125rem;color:var(--text-secondary);margin-bottom:var(--space-2);">Question Breakdown</div>
-      <div style="display:flex;flex-direction:column;gap:var(--space-3);">
+      <div class="sd-review">
         ${(sub.responses || []).map((r, i) => `
-          <div style="padding:var(--space-3) var(--space-4);background:var(--bg-surface);border:1px solid var(--border);border-left:3px solid ${r.is_correct ? 'var(--success)' : 'var(--error)'};border-radius:var(--radius-md);">
-            <div style="display:flex;justify-content:space-between;font-size:0.8125rem;font-weight:600;margin-bottom:4px;">
-              <span style="color:var(--text-primary);">Q${i + 1}. ${escHtml(r.question_text)}</span>
-              <span style="color:${r.is_correct ? 'var(--success)' : 'var(--error)'};font-weight:600;">${r.is_correct ? 'Correct' : '0 pts'}</span>
-            </div>
-            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">
-              ${r.selected_option_text ? `Your Answer: <strong style="color:var(--text-primary);">${escHtml(r.selected_option_text)}</strong>` : ''}
-              ${!r.is_correct && r.correct_option_text ? `<div style="color:var(--success);font-weight:500;margin-top:2px;">Correct Answer: ${escHtml(r.correct_option_text)}</div>` : ''}
-              ${r.response_text ? `<div style="margin-top:2px;">Submitted text: <em>${escHtml(r.response_text)}</em></div>` : ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
+          <div class="sd-review-item${r.is_correct ? '' : ' is-wrong'}">
+            <span class="sd-review-mark">${icon(r.is_correct ? 'check' : 'x')}<span class="sr-only">${r.is_correct ? 'Correct' : 'Incorrect'}</span></span>
+            <span class="sd-review-copy">
+              <strong>${i + 1}. ${escHtml(r.question_text)}</strong>
+              ${r.selected_option_text ? `<span>Your answer: ${escHtml(r.selected_option_text)}</span>` : ''}
+              ${r.response_text ? `<span>You wrote: ${escHtml(r.response_text)}</span>` : ''}
+              ${!r.is_correct && r.correct_option_text ? `<span class="is-right">Correct answer: ${escHtml(r.correct_option_text)}</span>` : ''}
+            </span>
+            <span class="sd-review-points">${r.is_correct ? 'Correct' : '0 pts'}</span>
+          </div>`).join('')}
+      </div>`;
   } catch (err) {
-    body.innerHTML = '<div style="color:var(--error);">Failed to load review.</div>';
+    body.innerHTML = '<div class="dashboard-empty sd-error">We couldn’t load this review. Please try again.</div>';
   }
 }
 
-
-window.addEventListener('load', () => { loadProgress(); loadScores(); });
+loadProgress();
+loadScores();
 </script>
 <script src="../assets/js/site-config.js"></script>
 </body>

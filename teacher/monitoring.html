@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Student Monitoring | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard stage-portal">
 <div class="app-layout">
 
   <!-- Sidebar (same as dashboard) -->
@@ -54,7 +55,7 @@
     <div class="page-content">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Student Monitoring</h1>
+          <h1>Monitoring</h1>
           <p>Track individual learning progress, activity completion, and performance across all body system modules.</p>
         </div>
         <div class="page-header-right">
@@ -119,7 +120,7 @@
 <div class="modal-overlay" id="studentModal" style="display:none;" onclick="if(event.target===this)closeModal('studentModal')">
   <div class="modal-box" style="width:min(95%,680px);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <h3 id="modalStudentName">Student Profile</h3>
+      <h3 id="modalStudentName">Student profile</h3>
       <button class="modal-close" onclick="closeModal('studentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="modalStudentBody" style="overflow-y:auto;padding:var(--space-5);">Loading...</div>
@@ -130,7 +131,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
@@ -186,7 +187,7 @@ function renderTable(data) {
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:var(--space-2);">
-            <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;background:${avatarBg};color:#ffffff;">${initial}</div>
+            <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;background:${avatarBg};color:#121212;">${initial}</div>
             <div>
               <div style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">${escHtml(s.full_name)}</div>
               <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(s.school_id || s.username)}</div>
@@ -263,7 +264,7 @@ async function viewStudent(userId) {
     const sysProgress = result.data.system_progress || s.system_progress || [];
     const submissions = result.data.submissions || result.data.quiz_submissions || s.submissions || [];
 
-    document.getElementById('modalStudentName').textContent = s.full_name + ' – Academic Profile';
+    document.getElementById('modalStudentName').textContent = s.full_name + ' – academic profile';
 
     const initial = initials(s.full_name);
     const scoreVal = parseFloat(s.avg_quiz_score || 0);

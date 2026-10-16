@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Announcements | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard stage-portal">
 <div class="app-layout">
   <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -48,7 +49,7 @@
     <div class="page-content">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Announcements &amp; Notifications</h1>
+          <h1>Announcements</h1>
           <p>Post updates, new lesson notifications, assignment reminders, and important announcements to students.</p>
         </div>
         <div class="page-header-right">
@@ -77,12 +78,12 @@
 
       <!-- Pinned -->
       <div id="pinnedSection" style="display:none;margin-bottom:var(--space-8);">
-        <div class="section-title">Pinned Announcements</div>
+        <div class="section-title">Pinned</div>
         <div class="announcement-list" id="pinnedList"></div>
       </div>
 
       <!-- All Announcements -->
-      <div class="section-title">All Announcements</div>
+      <div class="section-title">All announcements</div>
       <div class="announcement-list" id="announcementList">
         <div style="text-align:center;padding:var(--space-8);color:var(--text-muted);">Loading announcements from database...</div>
       </div>
@@ -93,7 +94,7 @@
 <!-- Create Announcement Modal -->
 <div class="modal-overlay" id="createAnnouncementModal" style="display:none;" onclick="if(event.target===this)closeModal('createAnnouncementModal')">
   <div class="modal-box" style="width:min(95%,580px);">
-    <div class="modal-header"><h3>Create Announcement</h3><button class="modal-close" onclick="closeModal('createAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3>New announcement</h3><button class="modal-close" onclick="closeModal('createAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
     <div class="modal-body">
       <div style="display:flex;flex-direction:column;gap:var(--space-4);">
         <div class="form-group"><label>Title</label><div class="input-wrapper"><input type="text" id="annoTitle" placeholder="e.g. New Module Available: Digestive System"/></div></div>
@@ -126,7 +127,7 @@
 <!-- Edit Announcement Modal -->
 <div class="modal-overlay" id="editAnnouncementModal" style="display:none;" onclick="if(event.target===this)closeModal('editAnnouncementModal')">
   <div class="modal-box" style="width:min(95%,580px);">
-    <div class="modal-header"><h3>Edit Announcement</h3><button class="modal-close" onclick="closeModal('editAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3>Edit announcement</h3><button class="modal-close" onclick="closeModal('editAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
     <div class="modal-body">
       <input type="hidden" id="editAnnoId"/>
       <div style="display:flex;flex-direction:column;gap:var(--space-4);">
@@ -157,7 +158,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 Auth.requireAuthSync('teacher');
 

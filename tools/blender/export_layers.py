@@ -12,8 +12,8 @@ minutes; to keep the MCP call from timing out, run the exec from bpy.app.timers.
 For each system the script:
 1. collects the structures under that system's Z-Anatomy group objects (meshes with geometry and
    curves with thickness, such as vessels and nerves), leaving out text labels, helper objects
-   (.g .j .i .t), muscle-attachment overlays (.ol .or .el .er) and anatomical variants named
-   "(...)" or "[...]";
+   (.g .j .i .t), muscle-attachment overlays (.ol .or .el .er), anatomical variants named
+   "(...)" or "[...]" and the structures in LEFT_OUT (the greater omentum);
 2. briefly makes them visible, copies their evaluated geometry (modifiers applied, curves turned
    into meshes) into temporary objects, then restores every visibility setting;
 3. welds the copies, keeps about 30% of the triangles of each part over 500 triangles, adds the
@@ -52,6 +52,8 @@ SYSTEMS = {
 }
 
 HELPER_SUFFIX = re.compile(r"\.(g|j|i|t|ol|or|el|er)(\.\d{3})?$")
+# Structures left out of the web layers (lower-case names): the greater omentum hides the intestines.
+LEFT_OUT = {"greater omentum"}
 SIDE = {"l": "left", "r": "right"}
 
 
@@ -73,7 +75,8 @@ def has_geometry(o):
 
 def is_structure(o):
     return (has_geometry(o) and not HELPER_SUFFIX.search(o.name)
-            and not o.name.startswith(("(", "[")) and re.search(r"[A-Za-z]", o.name))
+            and not o.name.startswith(("(", "[")) and re.search(r"[A-Za-z]", o.name)
+            and re.sub(r"\.\d{3}$", "", o.name).lower() not in LEFT_OUT)
 
 
 def system_parts(code):

@@ -1,5 +1,23 @@
-/* Shared student account menu and notification controls. */
+/* Shared student account menu and notification controls, plus the Anthropotomy Stage
+   helpers every student page draws with (icons, card colours, body-system art). */
 'use strict';
+const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+const icon = name => `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
+const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
+
+// Card colours and renders from the landing page, one per body system.
+const CARD_COLOURS = { sky: '#3fb8f5', teal: '#2ccf9a', violet: '#6c63ff', purple: '#8b5cf6', coral: '#f2545b' };
+const SYSTEM_LOOKS = {
+  skeletal: ['sky', 'skeletal'], muscular: ['purple', 'muscular'], circulatory: ['sky', 'circulatory'],
+  nervous: ['violet', 'nervous'], lymphatic: ['coral', 'lymphatic'], respiratory: ['teal', 'respiratory'],
+  digestive: ['violet', 'digestive'], urinary: ['sky', 'urinary'], endocrine: ['teal', 'endocrine'],
+  reproductive: ['coral', null], 'reproductive-female': ['purple', null],
+};
+function systemLook(code) {
+  const [tone, art] = SYSTEM_LOOKS[code] || ['sky', null];
+  return { tone, colour: CARD_COLOURS[tone], art: art ? `../assets/img/hero/${art}.webp` : null };
+}
+
 (() => {
     if (!document.body.classList.contains('student-dashboard')) return;
 

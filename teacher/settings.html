@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings & Profile | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard stage-portal">
 <div class="app-layout">
 
   <!-- Sidebar -->
@@ -54,16 +55,16 @@
     <div class="page-content">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Teacher Account &amp; System Settings</h1>
+          <h1>Settings</h1>
           <p>Update personal credentials, subject assignments, password, and view database & platform status.</p>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-6);">
+      <div class="sd-pair">
 
         <!-- Profile Information Card -->
         <div class="card">
-          <h3 style="margin-bottom:var(--space-4);">Personal Information</h3>
+          <h3>Personal information</h3>
           <form id="profileForm" onsubmit="handleProfileUpdate(event)">
             <div style="display:flex;flex-direction:column;gap:var(--space-4);">
               <div class="form-group">
@@ -105,7 +106,7 @@
 
         <!-- Security Card -->
         <div class="card">
-          <h3 style="margin-bottom:var(--space-4);">Security & Password</h3>
+          <h3>Security and password</h3>
           <form id="passwordForm" onsubmit="handlePasswordChange(event)">
             <div style="display:flex;flex-direction:column;gap:var(--space-4);">
               <div class="form-group">
@@ -133,7 +134,7 @@
 
         <!-- System status -->
         <div class="card" style="grid-column:1/-1;">
-          <h3 style="margin-bottom:var(--space-4);">System status</h3>
+          <h3>System status</h3>
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--space-4);margin-bottom:var(--space-4);">
             <div style="padding:var(--space-4);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
               <div style="font-size:0.75rem;color:var(--text-muted);">Database Connection</div>
@@ -160,7 +161,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');

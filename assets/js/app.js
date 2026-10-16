@@ -9,6 +9,13 @@
 const API_BASE = new URL('../../api', document.currentScript.src).pathname;
 
 // ── Session Management ──────────────────────────────────────────
+// Thrown once a protected page has started redirecting to sign-in, so the rest of the
+// page script (its data loads) never runs. Expected, so it is kept out of the console.
+class AuthRedirect extends Error {
+    constructor() { super('Redirecting to sign-in'); this.name = 'AuthRedirect'; }
+}
+window.addEventListener('error', event => { if (event.error instanceof AuthRedirect) event.preventDefault(); });
+
 const Auth = {
     /**
      * Get the locally cached user object from sessionStorage.
@@ -76,9 +83,9 @@ const Auth = {
      */
     requireAuthSync(role) {
         const user = this.getUser();
-        if (!user) { this._redirectToLogin(); return null; }
-        if (role && user.role !== role && user.role !== 'admin') {
-            this._redirectToLogin(); return null;
+        if (!user || (role && user.role !== role && user.role !== 'admin')) {
+            this._redirectToLogin();
+            throw new AuthRedirect();
         }
         // Fire async validation (updates UI when done)
         this.requireAuth(role).catch(() => {});
@@ -377,9 +384,17 @@ function getGreeting() {
 }
 
 // ── Charts – Bar ────────────────────────────────────────────────
+// Chart ink follows the page's portal colours, so charts read on the dark Stage and on light pages.
+function chartInk(canvas) {
+    const css = getComputedStyle(canvas);
+    const v = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
+    return { grid: v('--border', '#e0e3e8'), axis: v('--text-muted', '#8f95a0'), label: v('--text-secondary', '#5f6672'),
+             value: v('--text-primary', '#1a1d23'), track: v('--bg-inset', '#f0f1f4'), surface: v('--bg-surface', '#ffffff') };
+}
 function drawBarChart(canvasId, data, options = {}) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    const ink = chartInk(canvas);
     const ctx = canvas.getContext('2d');
     const { labels = [], values = [], color = '#1a6b4a', maxVal } = data;
     const dpr = devicePixelRatio || 1;
@@ -398,12 +413,12 @@ function drawBarChart(canvasId, data, options = {}) {
     ctx.clearRect(0, 0, w, h);
 
     // Grid lines & Y labels
-    ctx.strokeStyle = '#e0e3e8';
+    ctx.strokeStyle = ink.grid;
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
         const y = pad.top + chartH - (chartH / 4) * i;
         ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
-        ctx.fillStyle = '#8f95a0';
+        ctx.fillStyle = ink.axis;
         ctx.font = `${10}px 'Plus Jakarta Sans', sans-serif`;
         ctx.textAlign = 'right';
         ctx.fillText(Math.round(max / 4 * i), pad.left - 6, y + 4);
@@ -428,13 +443,13 @@ function drawBarChart(canvasId, data, options = {}) {
         ctx.fill();
 
         // X Label
-        ctx.fillStyle = '#5f6672';
+        ctx.fillStyle = ink.label;
         ctx.font = `11px 'Plus Jakarta Sans', sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillText(label, x + barW / 2, pad.top + chartH + 18);
 
         // Value label
-        ctx.fillStyle = '#1a1d23';
+        ctx.fillStyle = ink.value;
         ctx.font = `600 10px 'Plus Jakarta Sans', sans-serif`;
         ctx.fillText(val, x + barW / 2, y - 6);
     });
@@ -455,7 +470,7 @@ function drawDonut(canvasId, value, max, color = '#1a6b4a') {
     // Track
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = '#f0f1f4';
+    ctx.strokeStyle = chartInk(canvas).track;
     ctx.lineWidth = lw;
     ctx.stroke();
     // Progress
@@ -471,6 +486,7 @@ function drawDonut(canvasId, value, max, color = '#1a6b4a') {
 function drawLineChart(canvasId, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    const ink = chartInk(canvas);
     const ctx = canvas.getContext('2d');
     const { labels = [], datasets = [] } = data;
     const dpr = devicePixelRatio || 1;
@@ -488,12 +504,12 @@ function drawLineChart(canvasId, data) {
     ctx.clearRect(0, 0, W, H);
 
     // Grid & Y labels
-    ctx.strokeStyle = '#e0e3e8';
+    ctx.strokeStyle = ink.grid;
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
         const y = pad.top + (cH / 4) * i;
         ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
-        ctx.fillStyle = '#8f95a0';
+        ctx.fillStyle = ink.axis;
         ctx.font = `10px 'Plus Jakarta Sans', sans-serif`;
         ctx.textAlign = 'right';
         ctx.fillText(Math.round(max - (max / 4) * i), pad.left - 6, y + 4);
@@ -531,13 +547,13 @@ function drawLineChart(canvasId, data) {
             ctx.fill();
             ctx.beginPath();
             ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = ink.surface;
             ctx.fill();
         });
     });
 
     // X labels
-    ctx.fillStyle = '#5f6672';
+    ctx.fillStyle = ink.label;
     ctx.font = `10px 'Plus Jakarta Sans', sans-serif`;
     ctx.textAlign = 'center';
     labels.forEach((l, i) => {

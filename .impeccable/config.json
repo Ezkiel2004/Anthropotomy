@@ -74,6 +74,75 @@
         ],
         "createdAt": "2026-10-15T09:10:16.025Z",
         "reason": "Agent decision: verified at 375 and 1440px; the flagged sd-table wrapper's cells have 14-16px padding"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "student/lessons.html"
+        ],
+        "createdAt": "2026-10-16T02:34:43.226Z",
+        "reason": "Claude: decorative body-system art is meant to be cropped by its card, same pattern as the shipped dashboard cards"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "student/quiz.html"
+        ],
+        "createdAt": "2026-10-16T02:37:04.326Z",
+        "reason": "Claude: result-card art is cropped by design and the hotspot pin must stay inside the diagram box"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "student/progress.html"
+        ],
+        "createdAt": "2026-10-16T02:38:09.937Z",
+        "reason": "Claude: flagged clips are screen-reader-only labels and the scrolling results table, both clipped on purpose"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "student/notifications.html"
+        ],
+        "createdAt": "2026-10-16T02:38:53.293Z",
+        "reason": "Claude: same three shared-shell clips on every student page (screen-reader-only labels, shelf and dialog scroll areas), clipped on purpose"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "student/settings.html"
+        ],
+        "createdAt": "2026-10-16T02:39:46.581Z",
+        "reason": "Claude: same three shared-shell clips reported on every student page, all intentional crops or scroll areas"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-10-16T03:06:34.383Z",
+        "reason": "Claude: the Anthropotomy Stage design system (memory: anthropotomy-stage-design-system) sets Plus Jakarta Sans as the text face"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "student/quiz.html"
+        ],
+        "createdAt": "2026-10-16T03:06:46.335Z",
+        "reason": "Claude: sd-qcard padding is clamp(1.25rem,3vw,2rem), wide inset in screenshots"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "student/progress.html"
+        ],
+        "createdAt": "2026-10-16T03:06:47.003Z",
+        "reason": "Claude: sd-table cells carry their own .875rem/1rem padding, as on the shipped dashboard"
       }
     ]
   }

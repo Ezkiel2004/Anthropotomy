@@ -11,19 +11,19 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261014-school1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261015-stage1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage3"/>
 </head>
 <body class="student-dashboard dashboard-page stage-portal">
 <div class="app-layout">
 
   <!-- Student Sidebar (desktop). Phones use the tab bar at the bottom instead. -->
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261016-stage3"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle">
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
         <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg>
       </button>
       <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
@@ -87,7 +87,7 @@
 
       <div class="sd-row" id="scoreRow">
         <section class="sd-block" aria-labelledby="scoreTitle">
-          <div class="sd-h"><h2 id="scoreTitle" class="sd-h-title">Score history</h2><span class="sd-legend"><i class="is-pass"></i>Passed<i class="is-review"></i>Review</span></div>
+          <div class="sd-h"><h2 id="scoreTitle" class="sd-h-title">Score history</h2><span class="sd-legend" id="scoreLegend" hidden><i class="is-pass"></i>Passed<i class="is-review"></i>Review</span></div>
           <div id="scoreChartEmpty" class="dashboard-empty" role="status">Loading score history…</div>
           <p class="sd-empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="sd-go sd-go--light">Try a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></span></a></p>
           <div id="scoreChartContainer" class="sd-chart" role="img" aria-label="Recent quiz scores" hidden></div>
@@ -100,49 +100,24 @@
 
       <section class="sd-block" aria-labelledby="recentTitle">
         <div class="sd-h"><h2 id="recentTitle" class="sd-h-title">Recent quiz results</h2><a class="sd-link" href="progress.html#scores">View all</a></div>
-        <div class="sd-table">
+        <div class="dashboard-empty" id="recentScoresEmpty" role="status">Loading recent quiz results…</div>
+        <div class="sd-table" id="recentScoresWrap" hidden>
           <table class="data-table">
             <thead><tr><th>Assessment</th><th>Type</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="recentScoresTable">
-              <tr><td colspan="5" class="sd-table-empty">Loading recent quiz results…</td></tr>
             </tbody>
           </table>
         </div>
       </section>
     </div>
   </main>
-
-  <nav class="sd-tabbar" aria-label="Student sections">
-    <a href="dashboard.html" aria-current="page"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#house"/></svg><span>Home</span></a>
-    <a href="anatomy.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg><span>3D</span></a>
-    <a href="lessons.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg><span>Lessons</span></a>
-    <a href="quiz.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg><span>Quizzes</span><span class="sd-tab-badge" id="tabQuizBadge" hidden></span></a>
-    <a href="progress.html"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg><span>Progress</span></a>
-  </nav>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
-<script src="../assets/js/student-portal.js?v=20260915-account3"></script>
+<script src="../assets/js/app.js?v=20261016-auth1"></script>
+<script src="../assets/js/student-portal.js?v=20261016-stage3"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
-
-const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
-const icon = name => `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
-const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
-
-// Card colours and renders from the landing page, one per body system (Anthropotomy Stage).
-const CARD_COLOURS = { sky: '#3fb8f5', teal: '#2ccf9a', violet: '#6c63ff', purple: '#8b5cf6', coral: '#f2545b' };
-const SYSTEM_LOOKS = {
-  skeletal: ['sky', 'skeletal'], muscular: ['purple', 'muscular'], circulatory: ['sky', 'circulatory'],
-  nervous: ['violet', 'nervous'], lymphatic: ['coral', 'lymphatic'], respiratory: ['teal', 'respiratory'],
-  digestive: ['violet', 'digestive'], urinary: ['sky', 'urinary'], endocrine: ['teal', 'endocrine'],
-  reproductive: ['coral', null], 'reproductive-female': ['purple', null],
-};
-function systemLook(code) {
-  const [tone, art] = SYSTEM_LOOKS[code] || ['sky', null];
-  return { tone, art: art ? `../assets/img/hero/${art}.webp` : null };
-}
 
 // A due date has passed once the whole due day is over; the quiz can still be open.
 function dueText(dueDate) {
@@ -333,11 +308,13 @@ async function loadRecentScoresAndChart() {
     const tbody = document.getElementById('recentScoresTable');
 
     if (!subs.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="sd-table-empty">No quiz submissions yet. Your first result will show up here.</td></tr>';
+      showRecentMessage('No quiz submissions yet. Your first result will show up here.');
       showScoreChartMessage('No scores yet. Your scores will chart here after your first quiz.', true);
       return;
     }
 
+    document.getElementById('recentScoresEmpty').hidden = true;
+    document.getElementById('recentScoresWrap').hidden = false;
     tbody.innerHTML = subs.slice(0, 5).map(s => {
       const hasScore = s.score !== null && s.score !== '' && Number.isFinite(Number(s.score));
       const state = hasScore ? (s.passed ? 'is-pass' : 'is-review') : '';
@@ -360,17 +337,27 @@ async function loadRecentScoresAndChart() {
     document.getElementById('scoreChartEmpty').hidden = true;
     document.getElementById('scoreChartCta').hidden = true;
     document.getElementById('scoreChartContainer').hidden = false;
+    document.getElementById('scoreLegend').hidden = false;
     renderScoreBars(chartSubs);
 
   } catch (e) {
     console.error(e);
     showScoreChartMessage('Unable to load score history. Please refresh to try again.');
-    document.getElementById('recentScoresTable').innerHTML = '<tr><td colspan="5"><div class="dashboard-empty">Unable to load recent results. Please refresh to try again.</div></td></tr>';
+    showRecentMessage('Unable to load recent results. Please refresh to try again.');
   }
+}
+
+// Messages sit outside the table: on a phone the table scrolls sideways and would cut them off.
+function showRecentMessage(message) {
+  document.getElementById('recentScoresWrap').hidden = true;
+  const box = document.getElementById('recentScoresEmpty');
+  box.textContent = message;
+  box.hidden = false;
 }
 
 function showScoreChartMessage(message, offerQuiz = false) {
   document.getElementById('scoreChartContainer').hidden = true;
+  document.getElementById('scoreLegend').hidden = true;
   document.getElementById('scoreChartCta').hidden = !offerQuiz;
   const empty = document.getElementById('scoreChartEmpty');
   empty.textContent = message;

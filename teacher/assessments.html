@@ -4,17 +4,18 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Assessments | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/teacher.css"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261014-ui2"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20260915-layout1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261016-stage4"/>
 </head>
-<body class="teacher-dashboard">
+<body class="teacher-dashboard stage-portal">
 <div class="app-layout">
   <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261014-school1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -48,7 +49,7 @@
     <div class="page-content">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Quiz &amp; Assessment Manager</h1>
+          <h1>Assessments</h1>
           <p>Create, manage, and review quizzes, identification exercises, and interactive anatomy activities.</p>
         </div>
         <div class="page-header-right">
@@ -80,7 +81,7 @@
 <div class="modal-overlay" id="createAssessModal" style="display:none;" onclick="if(event.target===this)closeModal('createAssessModal')">
   <div class="modal-box" style="width:min(95%,560px);">
     <div class="modal-header">
-      <h3>Create New Assessment</h3>
+      <h3>New assessment</h3>
       <button class="modal-close" onclick="closeModal('createAssessModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <form id="createAssessForm" onsubmit="handleCreateAssessment(event)">
@@ -148,7 +149,7 @@
 <div class="modal-overlay" id="questionBuilderModal" style="display:none;" onclick="if(event.target===this)closeModal('questionBuilderModal')">
   <div class="modal-box" style="width:min(95%,750px);max-height:90vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <h3 id="builderModalTitle">Question Bank</h3>
+      <h3 id="builderModalTitle">Question bank</h3>
       <button class="modal-close" onclick="closeModal('questionBuilderModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <div class="modal-body" style="overflow-y:auto;flex:1;" id="builderModalBody">
@@ -165,7 +166,7 @@
 <div class="modal-overlay" id="addQuestionModal" style="display:none;" onclick="if(event.target===this)closeModal('addQuestionModal')">
   <div class="modal-box" style="width:min(95%,600px);">
     <div class="modal-header">
-      <h3>Add Question to Assessment</h3>
+      <h3>Add a question</h3>
       <button class="modal-close" onclick="closeModal('addQuestionModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
     </div>
     <form id="addQuestionForm" onsubmit="handleSaveQuestion(event)">
@@ -260,7 +261,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261014-ui3"></script>
+<script src="../assets/js/app.js?v=20261016-stage4"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -270,7 +271,7 @@ let allSystems = [];
 let currentFilter = 'all';
 let activeAssessmentId = null;
 
-const typeColors = { quiz:'#3b82f6', interactive:'#8b5cf6', identification:'#10b981', diagram:'#f59e0b', exploration:'#06b6d4' };
+const typeColors = { quiz:'#f2545b', interactive:'#8b5cf6', identification:'#2ccf9a', diagram:'#3fb8f5', exploration:'#f7c948' };
 const typeIcons  = { quiz:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg>', interactive:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#map-pin"/></svg>', identification:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>', diagram:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#image"/></svg>', exploration:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg>' };
 const statusBadge = { active:'badge-success', closed:'badge-error', draft:'badge-warning', scheduled:'badge-info' };
 
@@ -461,7 +462,7 @@ async function reloadQuestions() {
       if (q.question_type === 'multiple_choice') {
         details = (q.options || []).map(opt => `
           <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;padding:2px 0;">
-            <span style="color:${opt.is_correct ? '#34d399' : 'var(--text-muted)'};font-weight:${opt.is_correct ? '700' : '400'};">
+            <span style="color:${opt.is_correct ? '#5fe3b6' : 'var(--text-muted)'};font-weight:${opt.is_correct ? '700' : '400'};">
               ${opt.is_correct ? '<svg class="ui-icon" title="Correct answer" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg> [Correct]' : '<svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#circle"/></svg>'} ${escHtml(opt.option_text)}
             </span>
           </div>
