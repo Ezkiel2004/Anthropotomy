@@ -17,7 +17,7 @@
 }
 
 /* ── Header ── */
-.hx-header{position:relative;z-index:40;background:var(--hx-bg);color:var(--hx-text)}
+.hx-header{position:relative;z-index:40;color:var(--hx-text)}
 .hx-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;min-height:4.75rem}
 .hx-left{display:flex;align-items:center;gap:1.75rem;min-width:0}
 .hx-nav{display:flex;align-items:center;gap:1.75rem}
@@ -66,7 +66,7 @@
 }
 
 /* ── Hero stage ── */
-.hx{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;padding-top:clamp(1.5rem,5vh,3.5rem);background:var(--hx-bg);color:var(--hx-text)}
+.hx{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;padding-top:clamp(1.5rem,5vh,3.5rem);color:var(--hx-text)}
 @media (min-width:48rem){.hx{min-height:max(38rem,calc(100svh - 4.75rem))}}
 .hx::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:4rem 4rem;background-position:center top;-webkit-mask-image:radial-gradient(ellipse 65% 60% at 50% 38%,transparent 30%,#000 85%);mask-image:radial-gradient(ellipse 65% 60% at 50% 38%,transparent 30%,#000 85%)}
 .hx-copy{position:relative;z-index:2;padding-inline:var(--gutter);text-align:center}
@@ -112,7 +112,11 @@
 /* ── Sections below the hero. public.css styles them through --surface, --fg, --muted,
    --accent, --line and --rule; on this page .on-dark points those at the stage palette. ── */
 .on-dark{--surface:var(--hx-bg);--surface-raised:var(--hx-raised);--fg:var(--hx-text);--muted:var(--hx-muted);--accent:var(--hx-yellow);--accent-strong:#ffd866;--on-accent:#1a1a1a;--line:#333;--rule:#262626}
+/* The fixed starfield (gravity-stars.js) sits behind the page, so html, the header, hero,
+   sections and footer leave the stage colour to body, which paints the canvas behind it. */
+html{background-color:transparent}
 body{background:var(--hx-bg);color:var(--hx-text)}
+.section,.cta-band,.footer{background-color:transparent}
 .skip-link{background:var(--hx-yellow);color:#1a1a1a}
 .section{padding-block:clamp(5rem,11vw,9rem)}
 .section-title{font-family:var(--hx-display);font-size:clamp(1.75rem,3.6vw,3rem);font-weight:400;line-height:1.1;letter-spacing:0}
@@ -168,7 +172,6 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 .hx-cta .hx-pill-label{position:static;width:auto;height:auto;overflow:visible;clip:auto}
 
 /* Footer */
-.footer{background:var(--hx-bg)}
 .footer .brand-name{font-family:var(--hx-display);font-weight:400}
 .footer-links a{color:#cfcfcf;font-weight:600;transition:color .2s}
 .footer-links a:hover{color:var(--hx-text);text-decoration:none}

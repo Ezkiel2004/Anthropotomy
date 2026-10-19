@@ -36,6 +36,8 @@
 .stage-portal .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 /* ── Shell ── */
+/* The fixed starfield (gravity-stars.js) sits behind the page: main lets body's stage colour, and the stars over it, show between the panels. */
+.stage-portal .main-content{background:transparent}
 .stage-portal .sidebar{background:var(--st-bg);border-right:1px solid var(--st-line);box-shadow:none}
 .stage-portal .sidebar::before{display:none}
 .stage-portal .sidebar-logo{border-bottom-color:var(--st-line)}
