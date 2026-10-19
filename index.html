@@ -26,7 +26,7 @@
   <link rel="preload" href="assets/fonts/plus-jakarta-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/public.css?v=20261014-school1">
-  <link rel="stylesheet" href="assets/css/hero.css?v=20261019-budge1">
+  <link rel="stylesheet" href="assets/css/hero.css?v=20261019-cmp2">
   <script>document.documentElement.classList.add('js');</script>
   <script type="module" src="assets/js/landing.js?v=20261015-hero1"></script>
   <script type="module" src="assets/js/gravity-stars.js?v=20261019-budge1"></script>
@@ -91,33 +91,35 @@
       </div>
     </section>
 
-    <!-- Why it helps: the usual struggle, and what changes -->
+    <!-- Why it helps: the usual way on the bare stage, the Anthropotomy way on a raised panel beside it -->
     <section class="section on-dark" id="why" aria-labelledby="whyTitle">
       <div class="page">
         <h2 id="whyTitle" class="section-title prose-measure">The hard parts of anatomy, made easier.</h2>
-        <ol class="swaps mt-12">
-          <li class="swap" data-reveal style="--i:0">
-            <p class="swap-from"><span class="sr-only">Instead of: </span>Staring at flat textbook diagrams</p>
-            <div class="swap-to">
-              <h3>Turn the body around in 3D</h3>
-              <p>Switch body systems on and off, then click any structure to see its name and what it does.</p>
-            </div>
-          </li>
-          <li class="swap" data-reveal style="--i:1">
-            <p class="swap-from"><span class="sr-only">Instead of: </span>Finding out what you missed on exam day</p>
-            <div class="swap-to">
-              <h3>Practise before it counts</h3>
-              <p>Quick practice in the explorer is never graded, so you can test yourself as often as you like before a real quiz.</p>
-            </div>
-          </li>
-          <li class="swap" data-reveal style="--i:2">
-            <p class="swap-from"><span class="sr-only">Instead of: </span>Losing your answers when the page reloads</p>
-            <div class="swap-to">
-              <h3>Pick up where you left off</h3>
-              <p>Quiz answers save as you go. Refresh the page and your answers and remaining time are still there.</p>
-            </div>
-          </li>
-        </ol>
+        <div class="cmp mt-12" data-reveal style="--i:0">
+          <div class="cmp-side cmp-old">
+            <h3 class="cmp-label"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg>The usual way</h3>
+            <ul class="check-list cmp-list">
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#x"/></svg><span>Staring at flat textbook diagrams</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#x"/></svg><span>Finding out what you missed on exam day</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#x"/></svg><span>Losing your answers when the page reloads</span></li>
+            </ul>
+          </div>
+          <div class="cmp-side cmp-new">
+            <h3 class="cmp-label"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#check-circle"/></svg>With Anthropotomy</h3>
+            <ul class="check-list cmp-list">
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#check"/></svg><span><strong>Turn the body around in 3D</strong> Switch body systems on and off, then click any structure to see its name and what it does.</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#check"/></svg><span><strong>Practise before it counts</strong> Quick practice in the explorer is never graded, so you can test yourself as often as you like before a real quiz.</span></li>
+              <li><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#check"/></svg><span><strong>Pick up where you left off</strong> Quiz answers save as you go. Refresh the page and your answers and remaining time are still there.</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="cmp-foot" data-reveal style="--i:1">
+          <dl class="cmp-stats">
+            <div><dt>body systems in real 3D</dt><dd>11</dd></div>
+            <div><dt>named structures, each explained</dt><dd>2,788</dd></div>
+          </dl>
+          <a class="cmp-link" href="#how-it-works">See how it works<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></a>
+        </div>
       </div>
     </section>
 

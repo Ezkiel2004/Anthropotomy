@@ -121,12 +121,40 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 .section{padding-block:clamp(5rem,11vw,9rem)}
 .section-title{font-family:var(--hx-display);font-size:clamp(1.75rem,3.6vw,3rem);font-weight:400;line-height:1.1;letter-spacing:0}
 .section h3{font-family:var(--font-body);font-weight:700;letter-spacing:-.01em}
-.lead,.body-copy,.swap-to p,.step p,.faq-item p,.note p{font-weight:500}
+.lead,.body-copy,.step p,.faq-item p,.note p{font-weight:500}
 .caption{font-family:var(--font-body);font-size:.8125rem;font-weight:600;letter-spacing:0;text-transform:none}
 
-/* Why it helps: the old way struck through in coral, the new way beside it */
-.swap-from{font-family:var(--font-body);font-style:normal;font-weight:600;font-size:clamp(1.125rem,1.8vw,1.375rem);text-decoration:line-through 2px #f2545b}
-.swap-to h3{font-size:clamp(1.5rem,2.6vw,2rem)}
+/* Why it helps: the usual way struck through in coral on the bare stage, the Anthropotomy
+   way on a raised panel. From tablets up both lists share the grid's rows (subgrid), so
+   each old way sits level with the thing that replaces it. */
+.cmp{display:grid;gap:1rem}
+.cmp-side{display:grid;align-content:start;gap:1.5rem;padding:1.75rem}
+.cmp-new{border-radius:1.25rem;background:var(--hx-raised);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1.5rem 2rem -1.25rem rgba(0,0,0,.8)}
+/* Each side carries its own colour: coral red for the usual way, teal green for the new one. */
+.section .cmp-label{display:flex;align-items:center;gap:.625rem;margin:0;font-size:1.375rem;font-weight:700;letter-spacing:0;line-height:1.3}
+.cmp-label svg,.cmp-list svg{width:1.5rem;height:1.5rem;fill:currentColor}
+.section .cmp-old .cmp-label,.cmp-old .cmp-list svg{color:#f2545b}
+.section .cmp-new .cmp-label,.cmp-new .cmp-list svg{color:#2ccf9a}
+.cmp-list{gap:1.75rem}
+.cmp-list li{color:#cfcfcf;font-size:1.25rem;font-weight:600;line-height:1.4}
+.cmp-list svg{margin-top:.125rem}
+.cmp-old li span{text-decoration:line-through 2px #f2545b}
+.cmp-new li span{font-size:1.125rem;font-weight:500;line-height:1.6}
+.cmp-new strong{display:block;margin-bottom:.375rem;color:var(--hx-text);font-size:1.375rem;font-weight:700;line-height:1.3}
+@media (min-width:48rem){
+  .cmp{grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-rows:repeat(4,auto);row-gap:0}
+  .cmp-side{grid-row:span 4;grid-template-rows:subgrid;padding:2rem}
+  .cmp-list{grid-row:span 3;grid-template-rows:subgrid}
+}
+.cmp-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem 2rem;margin-top:2.5rem}
+.cmp-stats{display:flex;flex-wrap:wrap;gap:.75rem 2.5rem;margin:0}
+.cmp-stats div{display:flex;align-items:baseline;gap:.5rem}
+.cmp-stats dd{order:-1;margin:0;color:var(--hx-text);font-size:1.75rem;font-weight:700}
+.cmp-stats dt{color:#cfcfcf;font-size:1rem;font-weight:500}
+.cmp-link{display:inline-flex;align-items:center;gap:.5rem;min-height:2.75rem;padding:0 1rem;border-radius:.75rem;background:var(--hx-raised);color:var(--hx-text);font-size:.875rem;font-weight:700;text-decoration:none}
+.cmp-link:hover{color:var(--hx-text);text-decoration:none}
+.cmp-link svg{width:1.125rem;height:1.125rem;fill:currentColor;transition:translate .2s var(--hx-ease)}
+.cmp-link:hover svg{translate:.1875rem 0}
 
 /* Features: product screens float on the stage */
 .feature-title{font-size:clamp(1.5rem,2.4vw,2rem);line-height:1.2}
