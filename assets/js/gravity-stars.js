@@ -393,4 +393,38 @@ export function gravityStars(host, {
   window.addEventListener('pointercancel', release);
 }
 
+// Budge: decorations marked data-budge (the floating models) are knocked away
+// from the pointer while it is over them, then spring back through their CSS
+// transition on translate and rotate. They keep pointer-events:none, so the hit
+// test uses each one's layout box, which ignores the budge and float animation.
+const BUDGE_PX = 26;
+const BUDGE_TILT = 0.35; // Degrees of tilt per pixel of sideways push.
+
+export function budge(elements) {
+  window.addEventListener('pointermove', event => {
+    if (reducedMotion.matches) return;
+    const pushes = elements.map(element => {
+      const parent = element.offsetParent;
+      if (!parent) return null; // Hidden, e.g. the hero's floats on phones.
+      const box = parent.getBoundingClientRect();
+      const radius = element.offsetWidth / 2;
+      const dx = box.left + element.offsetLeft + radius - event.clientX;
+      const dy = box.top + element.offsetTop + element.offsetHeight / 2 - event.clientY;
+      const distance = Math.hypot(dx, dy) || 1;
+      const push = Math.max(0, 1 - distance / radius) * BUDGE_PX;
+      return [(dx / distance) * push, (dy / distance) * push];
+    });
+    elements.forEach((element, i) => {
+      const [x, y] = pushes[i] || [0, 0];
+      element.style.translate = x || y ? `${x}px ${y}px` : '';
+      element.style.rotate = x ? `${x * BUDGE_TILT}deg` : '';
+    });
+  }, { passive: true });
+  document.addEventListener('pointerout', event => {
+    if (!event.relatedTarget) elements.forEach(element => { element.style.translate = element.style.rotate = ''; });
+  });
+}
+
 document.querySelectorAll('[data-gravity-stars]').forEach(host => gravityStars(host, JSON.parse(host.dataset.gravityStars || '{}')));
+const budgers = [...document.querySelectorAll('[data-budge]')];
+if (budgers.length) budge(budgers);
