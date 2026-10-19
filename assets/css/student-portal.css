@@ -98,38 +98,12 @@
   padding: 0 4px; border: 0; border-radius: 10px; align-items: center; justify-content: center;
   color: #fff; font-size: 10px; font-weight: 700; line-height: 1;
 }
-.student-dashboard .student-account { position: relative; min-width: 0; }
-.student-dashboard button.topbar-user { background: transparent; border: 0; border-left: 1px solid var(--border); font: inherit; text-align: left; color: inherit; }
-.student-dashboard .account-chevron { flex-shrink: 0; transition: transform .15s; }
-.student-dashboard .topbar-user[aria-expanded="true"] .account-chevron { transform: rotate(180deg); }
-.student-dashboard .account-dropdown {
-  position: absolute; top: calc(100% + 12px); right: 0;
-  display: flex; flex-direction: column; align-items: stretch; gap: 4px;
-  width: 220px; max-width: calc(100vw - 24px); padding: 8px;
-  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index: 1000;
-}
-.student-dashboard .account-dropdown[hidden] { display: none; }
-.student-dashboard .account-dropdown a,
-.student-dashboard .account-dropdown button {
-  display: flex; align-items: center; flex: 0 0 auto; width: 100%; min-height: 44px;
-  padding: 10px 12px; border: 0; border-radius: 6px;
-  background: transparent; color: var(--text-primary); font: inherit; font-size: .875rem; line-height: 1.5; text-align: left; text-decoration: none; cursor: pointer;
-}
-.student-dashboard .account-dropdown a:hover,
-.student-dashboard .account-dropdown button:hover { background: var(--bg-inset); }
-.student-dashboard .account-dropdown [data-logout] { color: var(--error); border-top: 1px solid var(--border-light); border-radius: 0; }
 .student-dashboard .notif-mark-read { border: 0; background: transparent; color: var(--brand); font: inherit; font-size: .75rem; cursor: pointer; }
 .student-dashboard .notif-btn:focus-visible,
-.student-dashboard .topbar-user:focus-visible,
-.student-dashboard .account-dropdown :focus-visible,
 .student-dashboard .notif-mark-read:focus-visible,
 .student-dashboard .notif-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.student-dashboard #scores, .student-dashboard #profile, .student-dashboard #settings { scroll-margin-top: 90px; }
+.student-dashboard #scores { scroll-margin-top: 90px; }
 .student-dashboard #progressError { color: var(--error); margin-bottom: 16px; }
-@media (max-width: 600px) {
-  .student-dashboard .topbar-user-name, .student-dashboard .topbar-user-role { display: none; }
-  .student-dashboard .account-dropdown { position: fixed; top: 62px; right: 12px; }
-}
 .student-dashboard .profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
 .student-dashboard .filter-toolbar-row { display: contents; }
 .student-dashboard .filter-search-wrap { order: 1; }

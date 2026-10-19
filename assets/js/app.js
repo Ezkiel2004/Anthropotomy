@@ -122,9 +122,6 @@ const Auth = {
 
         document.querySelectorAll('.topbar-user-name').forEach(el => el.textContent = name);
         document.querySelectorAll('.topbar-user-role').forEach(el => el.textContent = subtitle);
-        document.querySelectorAll('.user-name').forEach(el        => el.textContent = name);
-        document.querySelectorAll('.user-role').forEach(el        => el.textContent = subtitle);
-        document.querySelectorAll('.sidebar-footer .avatar').forEach(el => el.textContent = av);
         document.querySelectorAll('.topbar .avatar').forEach(el   => el.textContent = av);
 
         const pendingAssessments = sessionStorage.getItem('anthropotomy_pending_assessments');
@@ -134,6 +131,85 @@ const Auth = {
                 b.style.display = parseInt(pendingAssessments) > 0 ? 'inline-block' : 'none';
             });
         }
+    }
+};
+
+// ── Account menu ────────────────────────────────────────────────
+// The topbar's user block becomes a button that opens Profile, Settings and
+// Logout, the same on the student and teacher portals.
+const AccountMenu = {
+    init() {
+        const accountLink = document.querySelector('.topbar .topbar-user');
+        if (!accountLink) return;
+        const account = document.createElement('div');
+        account.className = 'account-menu';
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'topbar-user';
+        trigger.id = 'accountMenuButton';
+        trigger.setAttribute('aria-label', 'Account menu');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-controls', 'accountDropdown');
+        while (accountLink.firstChild) trigger.appendChild(accountLink.firstChild);
+        trigger.insertAdjacentHTML('beforeend', '<svg class="account-chevron ui-icon" width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#caret-down"/></svg>');
+        const menu = document.createElement('div');
+        menu.className = 'account-dropdown';
+        menu.id = 'accountDropdown';
+        menu.hidden = true;
+        menu.innerHTML = '<a href="settings.html#profile">Profile</a><a href="settings.html#settings">Settings</a><button type="button" data-logout>Logout</button>';
+        account.append(trigger, menu);
+        accountLink.replaceWith(account);
+
+        const bell = document.getElementById('notifBtn');
+        const notifications = document.getElementById('notifDropdown');
+        const closeAccount = () => {
+            menu.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+        };
+        const openAccount = () => {
+            if (notifications) notifications.style.display = 'none';
+            bell?.setAttribute('aria-expanded', 'false');
+            menu.hidden = false;
+            trigger.setAttribute('aria-expanded', 'true');
+        };
+        const menuItems = [...menu.querySelectorAll('a, button')];
+        trigger.addEventListener('click', () => {
+            if (menu.hidden) openAccount();
+            else closeAccount();
+        });
+        trigger.addEventListener('keydown', event => {
+            if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+            event.preventDefault();
+            openAccount();
+            menuItems[event.key === 'ArrowUp' ? menuItems.length - 1 : 0].focus();
+        });
+        menu.addEventListener('keydown', event => {
+            if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            let index = menuItems.indexOf(document.activeElement);
+            if (event.key === 'Home') index = 0;
+            else if (event.key === 'End') index = menuItems.length - 1;
+            else index = (index + (event.key === 'ArrowDown' ? 1 : -1) + menuItems.length) % menuItems.length;
+            menuItems[index].focus();
+        });
+        menu.addEventListener('click', event => {
+            if (event.target.closest('a, button')) {
+                closeAccount();
+                trigger.focus({ preventScroll: true });
+            }
+        });
+        const dismissOutside = event => {
+            if (!account.contains(event.target)) closeAccount();
+        };
+        document.addEventListener('pointerdown', dismissOutside);
+        document.addEventListener('click', dismissOutside);
+        // A pointer press on menu padding can blur the trigger without leaving the
+        // account control. Wait for an actual outside focus target before closing.
+        document.addEventListener('focusin', dismissOutside);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !menu.hidden) { closeAccount(); trigger.focus(); }
+        });
+        bell?.addEventListener('click', closeAccount);
     }
 };
 
@@ -574,6 +650,7 @@ function initChartResize(redrawFn, debounceMs = 200) {
 // ── Init on DOM Ready ───────────────────────────────────────────
 function initApp() {
     Sidebar.init();
+    AccountMenu.init();
 
     // Populate user info immediately from cache (fast path)
     const cached = Auth.getUser();

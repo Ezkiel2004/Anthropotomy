@@ -49,12 +49,27 @@
 .stage-portal .nav-item.active{background:var(--st-raised);color:#fff;box-shadow:none}
 .stage-portal .nav-item.active::before{background:var(--st-yellow)}
 .stage-portal .nav-badge{background:var(--st-yellow);color:#1a1a1a}
-.stage-portal .sidebar-footer{border-top-color:var(--st-line)}
 .stage-portal .avatar{border-radius:.75rem;background:var(--st-orange);color:#1a1a1a;font-family:var(--st-display);font-weight:400}
 .stage-portal .topbar{background:rgba(18,18,18,.92);border-bottom:1px solid var(--st-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .stage-portal .topbar-toggle,.stage-portal .notif-btn{border:0;border-radius:.75rem;background:var(--st-raised);color:#fff}
 .stage-portal .notif-dot{background:var(--st-yellow)}
 .stage-portal .topbar .avatar{width:2.25rem;height:2.25rem;font-size:.875rem}
+/* Account menu: the topbar's user block becomes a button that opens Profile, Settings and
+   Logout (built by app.js on every portal page). */
+.stage-portal .account-menu{position:relative;min-width:0}
+.stage-portal button.topbar-user{background:transparent;border:0;border-left:1px solid var(--border);font:inherit;text-align:left;color:inherit;cursor:pointer}
+.stage-portal .account-chevron{flex-shrink:0;transition:transform .15s}
+.stage-portal .topbar-user[aria-expanded="true"] .account-chevron{transform:rotate(180deg)}
+.stage-portal .account-dropdown{position:absolute;top:calc(100% + 12px);right:0;z-index:1000;display:flex;flex-direction:column;align-items:stretch;gap:4px;width:220px;max-width:calc(100vw - 24px);padding:8px}
+.stage-portal .account-dropdown[hidden]{display:none}
+.stage-portal .account-dropdown a,.stage-portal .account-dropdown button{display:flex;align-items:center;flex:0 0 auto;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--text-primary);font:inherit;font-size:.875rem;line-height:1.5;text-align:left;text-decoration:none;cursor:pointer}
+.stage-portal .account-dropdown a:hover,.stage-portal .account-dropdown button:hover{background:var(--bg-inset)}
+.stage-portal .account-dropdown [data-logout]{color:var(--error);border-top:1px solid var(--border-light);border-radius:0}
+.stage-portal #profile,.stage-portal #settings{scroll-margin-top:90px}
+@media (max-width:600px){
+  .stage-portal .topbar-user-name,.stage-portal .topbar-user-role{display:none}
+  .stage-portal .account-dropdown{position:fixed;top:62px;right:12px}
+}
 .stage-portal .notif-dropdown,.stage-portal .account-dropdown{border:1px solid #2a2a2a;border-radius:1rem;background:#1a1a1a;box-shadow:var(--shadow-lg)}
 .stage-portal .sd-brand{display:none}
 
