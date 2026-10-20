@@ -166,6 +166,7 @@ const perfect=await student('games/plays.php','POST',{game_key:'beat-the-clock',
 check(perfect.data.points===48&&titles(perfect).includes('Perfect round')&&titles(perfect).includes('Flawless'),'A perfect round of 4 cards earns the perfect-round badges');
 const inSystem=(code,tag)=>student('games/plays.php','POST',{game_key:'beat-the-clock',difficulty:'easy',duration_sec:10,system_code:code,results:roundOf(tag,3)});
 check(!titles(await inSystem('test-system','sysa')).includes('Two systems'),'Rounds with no system plus one system are not two systems');
+check(!titles(await inSystem('test-system','sysa2')).includes('Two systems'),'Two rounds in the same system are still one system');
 const extraSystem=await teacher('anatomy-content.php','POST',{system_name:'Second System',system_code:'second-system',color_hex:'#654321',description:'Second',is_active:true,key_facts:{},structures:[]});check(extraSystem.success,'Create a second system');
 check(titles(await inSystem('second-system','sysb')).includes('Two systems'),'Two different systems earn the systems goal');
 execFileSync(process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php'),['tests/database.php','drop-system','second-system'],{stdio:'pipe'});
