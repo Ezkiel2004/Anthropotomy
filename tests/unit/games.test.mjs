@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {readGlbParts} from '../../tools/build-part-index.mjs';
 import {cardKey, baseTerm, systemPool, allSystemsPool, setPool} from '../../assets/js/games/cards.js';
+import {cardWeight, pickCards, streaks, DIFFICULTIES, MULTIPLIER} from '../../assets/js/games/runner-core.js';
 
 test('readGlbParts returns described parts from a layer GLB', () => {
     const parts = readGlbParts(fs.readFileSync('system_model/layers/endocrine.glb'));
@@ -82,4 +83,40 @@ test('sided pools use curated structures only when 4 or more have a mesh_name', 
     assert.equal(systemPool(mixed, parts).length, 5);
     const fewMeshes = {...sys, structures:[...meshed.structures.slice(0,3), {name:'E', desc:'E desc.', mesh_name:''}]};
     assert.deepEqual(systemPool(fewMeshes, parts, {sided:true}).map(c => c.mesh), ['za_femur_l','za_femur_r','za_patella']);
+});
+
+test('pickCards never repeats a term and respects n', () => {
+    const pool = [{key:'a',term:'Femur'},{key:'b',term:'femur'},{key:'c',term:'Tibia'},{key:'d',term:'Ulna'}];
+    const picked = pickCards(pool, 3, {}, () => 0.5);
+    assert.equal(new Set(picked.map(c => c.term.toLowerCase())).size, picked.length);
+    assert.ok(picked.length <= 3);
+});
+test('pickCards returns fewer than n for a short pool and never throws on an empty one', () => {
+    const pool = [{key:'a',term:'Femur'},{key:'b',term:'FEMUR'},{key:'c',term:'Tibia'}];
+    assert.equal(pickCards(pool, 5).length, 2);
+    assert.deepEqual(pickCards([], 4), []);
+    assert.deepEqual(pickCards(pool, 0), []);
+});
+test('pickCards favours missed cards over known ones', () => {
+    const pool = ['a','b','c','d'].map(k => ({key:k, term:k.toUpperCase()}));
+    const stats = {a:[3,1], b:[2,2], c:[2,2], d:[2,2]};
+    let seed = 7;
+    const rng = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    let missedFirst = 0;
+    for (let i = 0; i < 400; i++) if (pickCards(pool, 1, stats, rng)[0].key === 'a') missedFirst++;
+    assert.ok(missedFirst > 400 * 0.4, 'a missed card should win well above the 25% of an even pick');
+});
+test('missed cards are weighted above unseen above known', () => {
+    assert.equal(cardWeight({key:'a'}, {a:[3,1]}), 3);
+    assert.equal(cardWeight({key:'a'}, {}), 2);
+    assert.equal(cardWeight({key:'a'}, {a:[2,2]}), 1);
+});
+test('streaks finds the longest run', () => {
+    assert.equal(streaks([true,true,false,true,true,true]), 3);
+    assert.equal(streaks([]), 0);
+    assert.equal(streaks([false,false]), 0);
+});
+test('difficulty constants', () => {
+    assert.deepEqual(DIFFICULTIES, ['easy','medium','hard']);
+    assert.deepEqual(MULTIPLIER, {easy:1, medium:1.5, hard:2});
 });
