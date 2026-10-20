@@ -1,7 +1,7 @@
 // Sort It: put every term into the bin of its group. Tap a term, then tap a bin (or drag it there).
 // The first placement decides the card; a wrong one shows the right bin, and the term moves into it.
 
-import {countTerms, pickCards, shuffled} from './runner-core.js';
+import {countTerms, normalizeAnswer, pickCards, shuffled} from './runner-core.js';
 import {el, startRound} from './play-kit.js';
 
 const REVEAL_MS = 1200;      // how long the right bin stays lit after a wrong placement
@@ -9,11 +9,23 @@ const FINISH_MS = 600;       // the last placement stays on screen this long
 
 const groupOf = card => String(card.group ?? 'Other');
 
-// The round's bins are its groups, so choose at most maxBins groups at random and draw the cards from them.
+// The round's bins are its groups. Choose at most maxBins groups, groups with two or more cards first (a lone
+// card makes a poor bin) and otherwise at random, then draw the cards from them. Each chosen group gets one card
+// before the rest are drawn, so with two groups or more in the pool a round never has a single bin.
 function choose(pool, level, stats, rng = Math.random) {
     const grouped = (pool || []).filter(card => card.group);
-    const groups = shuffled([...new Set(grouped.map(card => card.group))], rng).slice(0, level.maxBins);
-    return pickCards(grouped.filter(card => groups.includes(card.group)), level.roundSize, stats, rng);
+    const byGroup = new Map();
+    for (const card of grouped) byGroup.set(card.group, [...(byGroup.get(card.group) || []), card]);
+    const roomy = [], lone = [];
+    for (const [group, list] of byGroup) (list.length >= 2 ? roomy : lone).push(group);
+    const groups = [...shuffled(roomy, rng), ...shuffled(lone, rng)].slice(0, level.maxBins);
+    const picked = [], taken = new Set();
+    for (const group of groups) {
+        const [card] = pickCards(byGroup.get(group).filter(c => !taken.has(normalizeAnswer(c.term))), 1, stats, rng);
+        if (card && picked.length < level.roundSize) { picked.push(card); taken.add(normalizeAnswer(card.term)); }
+    }
+    const rest = grouped.filter(card => groups.includes(card.group) && !picked.includes(card) && !taken.has(normalizeAnswer(card.term)));
+    return [...picked, ...pickCards(rest, level.roundSize - picked.length, stats, rng)];
 }
 
 function play(root, cards, level, report) {

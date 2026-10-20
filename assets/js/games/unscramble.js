@@ -2,7 +2,7 @@
 // answer matches within two tries (and, on Hard, within the time). A second wrong try, Skip or a time-out
 // is a miss and the term is shown.
 
-import {countTerms, normalizeAnswer, scrambleWords} from './runner-core.js';
+import {countTerms, normalizeAnswer, pickCards, scrambleWords} from './runner-core.js';
 import {el, startRound} from './play-kit.js';
 
 const MAX_TRIES = 2;
@@ -93,5 +93,7 @@ export default {
         hard: {roundSize: 10, perCardSec: 20},
     },
     available: (cards, level) => countTerms(cards, playable) >= level.roundSize,
+    // Only terms that can be unscrambled, the same ones available() counts.
+    choose: (pool, level, stats, rng = Math.random) => pickCards((pool || []).filter(playable), level.roundSize, stats, rng),
     play,
 };

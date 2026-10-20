@@ -240,8 +240,51 @@ test('sort it choose ignores ungrouped cards, avoids repeated terms and copes wi
     assert.deepEqual(sort.choose([], sort.levels.easy, {}, seeded(1)), []);
     assert.deepEqual(sort.choose(undefined, sort.levels.easy), []);
 });
-test('only sort it needs its own card choice', () => {
-    assert.deepEqual(games.filter(g => g.choose).map(g => g.key), ['sort-it']);
+test('sort it never draws a round with a single bin when the pool has two groups or more', () => {
+    const sort = gameByKey('sort-it');
+    const lopsided = [
+        ...Array.from({length:10}, (_, i) => ({key:'big'+i, term:'Big'+i, clue:'c', group:'Big', mesh:null})),
+        ...['X', 'Y', 'Z'].map(g => ({key:'one'+g, term:'One'+g, clue:'c', group:g, mesh:null})),
+    ];
+    for (let seed = 1; seed < 60; seed++) {
+        const picked = sort.choose(lopsided, sort.levels.easy, {}, seeded(seed));
+        assert.equal(new Set(picked.map(c => c.group)).size, 2, 'seed ' + seed);
+        assert.equal(picked.length, 6);
+        assert.ok(picked.some(c => c.group === 'Big'), 'the roomy group is preferred over a lone card');
+    }
+    const duo = [...lopsided.slice(0, 5), lopsided[10]];            // 5 cards in one group, 1 in another
+    for (let seed = 1; seed < 30; seed++) assert.equal(new Set(sort.choose(duo, sort.levels.easy, {}, seeded(seed)).map(c => c.group)).size, 2);
+    const hard = sort.choose(lopsided, sort.levels.hard, {}, seeded(5));
+    assert.equal(new Set(hard.map(c => c.group)).size, 4);          // 4 groups in the pool, up to 5 bins allowed
+    assert.equal(hard.length, 13);
+});
+test('sort it choose keeps one card per chosen group and never repeats a term across groups', () => {
+    const sort = gameByKey('sort-it');
+    const pool = [
+        {key:'a1', term:'Femur', group:'A'}, {key:'a2', term:'Tibia', group:'A'}, {key:'a3', term:'Ulna', group:'A'},
+        {key:'b1', term:'femur', group:'B'}, {key:'b2', term:'Radius', group:'B'}, {key:'b3', term:'Skull', group:'B'},
+    ];
+    for (let seed = 1; seed < 40; seed++) {
+        const picked = sort.choose(pool, {roundSize:5, maxBins:2}, {}, seeded(seed));
+        assert.equal(new Set(picked.map(c => c.term.toLowerCase())).size, picked.length);
+        assert.equal(new Set(picked.map(c => c.group)).size, 2);
+    }
+});
+test('unscramble chooses only terms of 4 to 20 letters', () => {
+    const un = gameByKey('unscramble');
+    const valid = ['Femur', 'Tibia', 'Vena cava', 'Biceps brachii', 'Patella', 'Pre-central gyrus'];
+    const pool = [{key:'short', term:'Os'}, {key:'long', term:'Musculocutaneous nerves'},   // 2 and 21 letters
+        {key:'long2', term:'a'.repeat(25)}, ...valid.map(term => ({key:term, term}))];
+    for (let seed = 1; seed < 40; seed++) {
+        const picked = un.choose(pool, un.levels.easy, {}, seeded(seed));
+        assert.deepEqual(picked.map(c => c.term).sort(), [...valid].sort());
+    }
+    assert.equal(un.choose(pool, {roundSize:3}, {}, seeded(2)).length, 3);
+    assert.deepEqual(un.choose([], un.levels.easy), []);
+    assert.deepEqual(un.choose(undefined, un.levels.easy), []);
+});
+test('only sort it and unscramble supply their own card choice', () => {
+    assert.deepEqual(games.filter(g => g.choose).map(g => g.key), ['sort-it', 'unscramble']);
 });
 
 // startRound is the plumbing every play() shares: report once, resolve on the last card or on the limit.
