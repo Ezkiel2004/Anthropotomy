@@ -134,11 +134,20 @@ foreach ($systems as &$sys) {
     $sys['pct'] = $tot > 0 ? round(($cmp / $tot) * 100) : 0;
 }
 
-$achievements = [];
-foreach ($db->fetchAll('SELECT title, metric, threshold FROM achievement_rules WHERE is_active=1 ORDER BY achievement_id') as $rule) {
-    $value = $rule['metric'] === 'overall_progress' ? $overallProgress : ($profile[$rule['metric']] ?? null);
-    $achievements[] = ['name'=>$rule['title'], 'earned'=>$value !== null && (float)$value >= (float)$rule['threshold']];
-}
+// Badges: award anything newly met (the summary was refreshed above), then list active badges
+// from what the student actually holds, so an earned badge never disappears.
+awardBadges($user['user_id']);
+$achievements = array_map(
+    fn($badge) => ['name'=>$badge['title'], 'icon'=>$badge['icon'], 'earned'=>$badge['earned_at'] !== null, 'earned_at'=>$badge['earned_at']],
+    $db->fetchAll(
+        'SELECT r.title, r.icon, sb.earned_at
+         FROM achievement_rules r
+         LEFT JOIN student_badges sb ON sb.achievement_id = r.achievement_id AND sb.user_id = ?
+         WHERE r.is_active = 1
+         ORDER BY r.achievement_id',
+        [$user['user_id']]
+    )
+);
 jsonSuccess([
     'achievements' => $achievements,
     'profile' => [

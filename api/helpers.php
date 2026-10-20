@@ -17,6 +17,12 @@ require_once __DIR__ . '/../database/connection.php';
 const GRADE_LEVEL = 'Grade 11';
 const SECTIONS = ['Rizal', 'Bonifacio', 'Mabini', 'Luna'];
 
+// Metrics a badge (achievement rule) can be measured on: learning progress, then practice games.
+const BADGE_METRICS = [
+    'completed_lessons', 'avg_quiz_score', 'quizzes_taken', 'quizzes_passed', 'systems_explored', 'total_time_hours', 'overall_progress',
+    'games_played', 'perfect_rounds', 'best_game_streak', 'game_systems_played', 'total_points',
+];
+
 set_exception_handler(function (Throwable $error): void {
     error_log((string)$error);
     jsonError('The request could not be completed. Please try again or contact your teacher.', 500);
@@ -387,5 +393,87 @@ function _updateProgressSummary(int $studentId, Database $db): void {
             $totalHours,
         ]
     );
+}
+
+// ── Badges ──────────────────────────────────────────────────────
+
+/** Practice-game totals for one student, worked out in a single query over game_plays. */
+function gameMetrics(int $userId): array {
+    $row = Database::getInstance()->fetchOne(
+        "SELECT COUNT(*) AS games_played,
+                COALESCE(SUM(correct = total AND total >= 4), 0) AS perfect_rounds,
+                COALESCE(MAX(best_streak), 0) AS best_game_streak,
+                COUNT(DISTINCT system_id) AS game_systems_played,
+                COALESCE(SUM(points), 0) AS total_points
+         FROM game_plays
+         WHERE student_id = ?",
+        [$userId]
+    ) ?? [];
+    return [
+        'games_played'        => (int) ($row['games_played'] ?? 0),
+        'perfect_rounds'      => (int) ($row['perfect_rounds'] ?? 0),
+        'best_game_streak'    => (int) ($row['best_game_streak'] ?? 0),
+        'game_systems_played' => (int) ($row['game_systems_played'] ?? 0),
+        'total_points'        => (int) ($row['total_points'] ?? 0),
+    ];
+}
+
+/**
+ * Every metric a badge can be measured on: the learning-progress summary (as last synced into
+ * student_progress_summary) plus the practice-game totals. avg_quiz_score is null until a quiz is taken.
+ */
+function badgeMetrics(int $userId): array {
+    $row = Database::getInstance()->fetchOne(
+        "SELECT COALESCE(sps.completed_lessons, 0) AS completed_lessons,
+                COALESCE(sps.total_lessons, (SELECT COUNT(*) FROM lessons l JOIN modules m ON m.module_id = l.module_id AND m.status = 'published' WHERE l.status = 'published')) AS total_lessons,
+                sps.avg_quiz_score,
+                COALESCE(sps.quizzes_taken, 0)    AS quizzes_taken,
+                COALESCE(sps.quizzes_passed, 0)   AS quizzes_passed,
+                COALESCE(sps.systems_explored, 0) AS systems_explored,
+                COALESCE(sps.total_time_hours, 0) AS total_time_hours
+         FROM users u
+         LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
+         WHERE u.user_id = ?",
+        [$userId]
+    ) ?? [];
+    $completed = (int) ($row['completed_lessons'] ?? 0);
+    $total     = (int) ($row['total_lessons'] ?? 0);
+    return [
+        'completed_lessons' => $completed,
+        'avg_quiz_score'    => isset($row['avg_quiz_score']) ? (float) $row['avg_quiz_score'] : null,
+        'quizzes_taken'     => (int) ($row['quizzes_taken'] ?? 0),
+        'quizzes_passed'    => (int) ($row['quizzes_passed'] ?? 0),
+        'systems_explored'  => (int) ($row['systems_explored'] ?? 0),
+        'total_time_hours'  => (float) ($row['total_time_hours'] ?? 0),
+        'overall_progress'  => $total > 0 ? round(($completed / $total) * 100, 1) : 0.0,
+    ] + gameMetrics($userId);
+}
+
+/**
+ * Awards every active badge the student now meets and does not hold yet, and returns just those
+ * as [{achievement_id, title, icon}]. A badge counts as newly earned only when this call's
+ * INSERT IGNORE added the row, so concurrent calls award it once. Earned badges are never revoked.
+ */
+function awardBadges(int $userId): array {
+    $db = Database::getInstance();
+    $metrics = badgeMetrics($userId);
+    $earned = [];
+    $rules = $db->fetchAll(
+        'SELECT r.achievement_id, r.title, r.metric, r.threshold, r.icon
+         FROM achievement_rules r
+         LEFT JOIN student_badges sb ON sb.achievement_id = r.achievement_id AND sb.user_id = ?
+         WHERE r.is_active = 1 AND sb.achievement_id IS NULL
+         ORDER BY r.achievement_id',
+        [$userId]
+    );
+    foreach ($rules as $rule) {
+        $value = $metrics[$rule['metric']] ?? null;
+        if ($value === null || (float) $value < (float) $rule['threshold']) continue;
+        $insert = $db->query('INSERT IGNORE INTO student_badges (user_id, achievement_id) VALUES (?, ?)', [$userId, $rule['achievement_id']]);
+        if ($insert->rowCount() === 1) {
+            $earned[] = ['achievement_id' => (int) $rule['achievement_id'], 'title' => $rule['title'], 'icon' => $rule['icon']];
+        }
+    }
+    return $earned;
 }
 ?>
