@@ -196,7 +196,7 @@ check((await guest('games/leaderboard.php')).status===401&&(await student('games
 dbAction('legacy-section','Old Section');
 const legacy=await student('games/leaderboard.php');
 check(legacy.success&&legacy.data.section==='Old Section'&&legacy.data.top[0].full_name==='Test Student'&&legacy.data.me.rank===1,'A section outside the official list still works for its students');
-check((await teacher('games/leaderboard.php?section=Rizal')).data.top.length===0&&(await teacher('games/mastery.php?section=Rizal')).data.length===0,'Teachers see only the students currently in the section');
+check((await teacher('games/leaderboard.php?section=Rizal')).data.top.length===0,'Teachers see only the students currently in the section');
 dbAction('legacy-section','Rizal');
 
 // Mastery: the student map follows the rounds played so far.
@@ -212,6 +212,12 @@ check(JSON.stringify((await student('games/mastery.php')).data[keyOf('fibula')])
 const weak=(await teacher('games/mastery.php?section=Rizal')).data;
 check(weak[0].term==='fibula','Most-missed term comes first');
 check(JSON.stringify(weak.map(w=>[w.term,w.seen,w.correct,w.miss_rate]))===JSON.stringify([['fibula',3,0,1],['tibia',3,2,0.33],['femur',3,3,0]]),'Only terms seen 3+ times, as numbers, by miss rate');
+// The missed-terms list follows where the student is now: out of Rizal their terms leave it, back in they return.
+dbAction('legacy-section','Old Section');
+const movedOut=(await teacher('games/mastery.php?section=Rizal')).data;
+check(movedOut.length===0&&!movedOut.some(w=>['fibula','tibia','femur'].includes(w.term)),'A student who left the section no longer counts in its missed terms');
+dbAction('legacy-section','Rizal');
+check(JSON.stringify((await teacher('games/mastery.php?section=Rizal')).data.map(w=>w.term))===JSON.stringify(['fibula','tibia','femur']),'Back in the section, their terms count again');
 check(Array.isArray((await teacher('games/mastery.php?section=Bonifacio')).data)&&(await teacher('games/mastery.php?section=Bonifacio')).data.length===0,'Another section has no missed terms');
 check((await teacher('games/mastery.php')).status===422&&(await teacher('games/mastery.php?section=Nope')).status===422,'Teacher mastery needs an official section');
 check((await guest('games/mastery.php')).status===401&&(await student('games/mastery.php','POST',{})).status===405,'Mastery needs sign-in and is read-only');
@@ -237,6 +243,79 @@ check((await teacher('games/badges.php')).status===403&&(await guest('games/badg
 for(let i=0;i<3;i++)check((await student('games/plays.php','POST',{game_key:'sort-it',difficulty:'easy',duration_sec:30,results:roundOf('cap',25,0)})).success,'Round of 25 missed cards '+(i+1));
 const capped=(await teacher('games/mastery.php?section=Rizal')).data;
 check(capped.length===20&&capped[0].term==='cap0'&&capped.every(w=>w.miss_rate===1&&w.seen===3&&w.correct===0),'Teacher mastery lists at most 20 terms');
+
+// Ranking with real classmates: ties, the top-10 cut, students who are left out, and section isolation.
+const wait=ms=>new Promise(done=>setTimeout(done,ms));
+const addStudent=async(tag,section)=>{
+  const pass='rank-test-'+Date.now()+'-'+tag,own=client();
+  const made=await teacher('students.php','POST',{username:'rank-'+tag,full_name:'Rank '+tag,school_id:'RK-'+tag,section,school_year:'Test Year',password:pass});
+  check(made.success&&(await own('auth/login.php','POST',{username:'rank-'+tag,password:pass})).success,'Ranking fixture student: '+tag);
+  return {name:'Rank '+tag,id:made.data.user_id,own,tag,points:0,rounds:0};
+};
+// Plays one easy round of n cards through the student's own session; points follow the server's answer.
+const playFor=async(who,n,correct=1)=>{
+  const res=await who.own('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',duration_sec:60,results:roundOf('rk'+who.tag+(++who.rounds)+'-',n,correct)});
+  check(res.success,'Ranking round saved for '+who.tag);
+  who.points+=res.data.points;
+};
+const tieLate=await addStudent('tielate','Rizal'); // created first, so it would win a tie decided by id alone
+const tieEarly=await addStudent('tieearly','Rizal');
+const fillers=[];
+for(const tag of ['f1','f2','f3','f4','f5','f6','f7','f8'])fillers.push(await addStudent(tag,'Rizal'));
+const low=await addStudent('low','Rizal'),idle=await addStudent('idle','Rizal'),gone=await addStudent('gone','Rizal'),otherClass=await addStudent('bonifacio','Bonifacio');
+// Easy rounds score 12 per card when every card is right: the fillers land on both sides of the fixture student.
+for(const [who,n] of fillers.map((who,i)=>[who,[50,45,40,36,34,30,25,20][i]]))await playFor(who,n);
+await playFor(low,3);
+await playFor(gone,49);
+await playFor(otherClass,47);
+await playFor(idle,4,0);
+check(idle.points===0&&low.points===36&&gone.points===588,'Ranking rounds score as planned');
+// Tie: the earlier student plays first, the later one reaches the same score a second or more after,
+// then the earlier student plays a round that scores nothing.
+await playFor(tieEarly,32);
+await wait(1100);
+await playFor(tieLate,32);
+await wait(1100);
+await playFor(tieEarly,4,0);
+check(tieEarly.points===384&&tieLate.points===384,'Two students tie on 384 points');
+
+const names=board=>board.data.top.map(t=>t.full_name);
+const before=await student('games/leaderboard.php');
+check(names(before).includes(gone.name)&&names(before)[1]===gone.name,'A student who is still active is ranked');
+for(let i=0;i<4;i++)check((await gone.own('games/plays.php','POST',{game_key:'sort-it',difficulty:'easy',duration_sec:10,results:[{card_key:'sys:test-system:gonecard',term:'gonecard',correct:0}]})).success,'Missed-card round '+(i+1)+' for the student about to be deactivated');
+check((await teacher('games/mastery.php?section=Rizal')).data[0].term==='gonecard','An active student\'s missed terms count toward the section');
+check((await teacher('students.php?id='+gone.id,'PUT',{is_active:false})).success,'Deactivate a student with points');
+const afterGone=(await teacher('games/mastery.php?section=Rizal')).data;
+check(afterGone[0].term==='cap0'&&!afterGone.some(w=>w.term==='gonecard'),'A deactivated student\'s missed terms no longer count');
+const fixtureRow={name:'Test Student',id:uid,points:(await student('games/badges.php')).data.find(b=>b.metric==='total_points').value};
+// Expected order: points high to low; a tie keeps the order of this list, earliest to reach the score first.
+const standing=[fixtureRow,...fillers,tieEarly,tieLate,low].sort((a,b)=>b.points-a.points);
+check(standing.length===12&&new Set(standing.map(s=>s.points)).size===11&&fixtureRow.points>408&&fixtureRow.points<432,'Twelve students have points, only the tie shares a score, and the fixture student sits between the fillers');
+const aheadOf=who=>1+standing.filter(s=>s.points>who.points).length;
+const board=await student('games/leaderboard.php');
+const tieNames=names(board).filter(n=>n===tieEarly.name||n===tieLate.name);
+check(tieNames[0]===tieEarly.name&&tieNames[1]===tieLate.name&&names(board).indexOf(tieEarly.name)+1===names(board).indexOf(tieLate.name),'Whoever reached the score first stays ahead, even after a later round that scored nothing');
+check(board.data.top.length===10&&JSON.stringify(board.data.top.map(t=>[t.rank,t.user_id,t.full_name,t.points]))===JSON.stringify(standing.slice(0,10).map((s,i)=>[i+1,s.id,s.name,s.points])),'The board lists the ten best, in order, ranked 1 to 10');
+check(![gone,idle,otherClass].some(s=>names(board).includes(s.name)),'Deactivated, 0-point and other-section students are left out');
+check(board.data.me.rank===5&&aheadOf(fixtureRow)===5&&board.data.me.points===fixtureRow.points,'A student inside the top ten sees their own rank');
+const lowBoard=await low.own('games/leaderboard.php');
+check(!names(lowBoard).includes(low.name)&&lowBoard.data.me.rank===12&&lowBoard.data.me.points===36&&aheadOf(low)===12,'A student outside the top ten still sees their own rank and points');
+const lastTen=await fillers[7].own('games/leaderboard.php');
+check(!names(lastTen).includes(fillers[7].name)&&lastTen.data.me.rank===11&&lastTen.data.me.points===240,'The eleventh student is outside the board and ranked 11');
+const [earlyBoard,lateBoard]=[await tieEarly.own('games/leaderboard.php'),await tieLate.own('games/leaderboard.php')];
+check(earlyBoard.data.me.rank===7&&lateBoard.data.me.rank===7&&aheadOf(tieEarly)===7&&aheadOf(tieLate)===7,'Tied students share one rank in me');
+check(JSON.stringify(names(earlyBoard))===JSON.stringify(names(board))&&earlyBoard.data.top[6].rank===7&&earlyBoard.data.top[7].rank===8,'The board itself still counts 7 then 8 for the tied pair');
+const idleBoard=await idle.own('games/leaderboard.php');
+check(idleBoard.data.section==='Rizal'&&idleBoard.data.me===null&&names(idleBoard).length===10,'A student whose only round scored nothing is not ranked');
+const rizalTeacher=await teacher('games/leaderboard.php?section=Rizal');
+check(JSON.stringify(names(rizalTeacher))===JSON.stringify(names(board))&&rizalTeacher.data.me===null,'Teachers see the same Rizal board and no personal rank');
+// Section isolation with real data on both sides.
+const bonifacioTeacher=await teacher('games/leaderboard.php?section=Bonifacio');
+check(JSON.stringify(bonifacioTeacher.data.top.map(t=>[t.rank,t.full_name,t.points]))===JSON.stringify([[1,otherClass.name,564]]),'Bonifacio lists only its own student');
+const classBoard=await otherClass.own('games/leaderboard.php?section=Rizal');
+check(classBoard.data.section==='Bonifacio'&&JSON.stringify(names(classBoard))===JSON.stringify([otherClass.name])&&classBoard.data.me.rank===1&&classBoard.data.me.points===564,'A Bonifacio student asking for Rizal still gets only Bonifacio');
+const nosy=await student('games/leaderboard.php?section=Bonifacio');
+check(nosy.data.section==='Rizal'&&!names(nosy).includes(otherClass.name)&&JSON.stringify(names(nosy))===JSON.stringify(names(board)),'A Rizal student asking for Bonifacio still gets only Rizal');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');

@@ -6,8 +6,9 @@
  *
  * Covers the current week (from Monday 00:00 in the database's time zone). Returns
  * {section, week_start, top: [{rank, user_id, full_name, points}], me: {rank, points}|null}:
- * the 10 best by points (ties go to whoever reached the score first) and, for a student with
- * points this week, their own rank and points. Teachers get me = null.
+ * the 10 best by points (ties go to whoever reached the score first, judged by the last round that
+ * scored, so a later round worth nothing never costs a place) and, for a student with points this
+ * week, their own rank and points. Teachers get me = null.
  */
 
 require_once __DIR__ . '/../helpers.php';
@@ -40,7 +41,7 @@ $rows = $db->fetchAll(
      WHERE sp.section = ? AND g.played_at >= ?
      GROUP BY u.user_id, u.full_name
      HAVING SUM(g.points) > 0
-     ORDER BY points DESC, MAX(g.played_at) ASC, u.user_id ASC",
+     ORDER BY SUM(g.points) DESC, MAX(CASE WHEN g.points > 0 THEN g.played_at END) ASC, u.user_id ASC",
     [$section, $weekStart]
 );
 
