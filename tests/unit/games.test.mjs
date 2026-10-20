@@ -142,10 +142,11 @@ test('unscramble handles multi-word terms', () => {
     assert.equal(normalizeAnswer('  vena   CAVA '), normalizeAnswer('Vena cava'));
     assert.equal(gameByKey('unscramble').available([{term:'Vena cava'},{term:'Biceps brachii'},{term:'Ulna'},{term:'Femur'},{term:'Tibia'},{term:'Patella'}], gameByKey('unscramble').levels.easy), true);
 });
-test('the registry lists the four games in the spec order and finds them by key', () => {
+test('the registry lists the five games in the spec order and finds them by key', () => {
     assert.deepEqual(games.map(g => [g.key, g.name, g.icon]), [
         ['match-pairs', 'Match Pairs', 'stack'], ['sort-it', 'Sort It', 'hand-grabbing'],
-        ['beat-the-clock', 'Beat the Clock', 'clock'], ['unscramble', 'Unscramble', 'textbox']]);
+        ['beat-the-clock', 'Beat the Clock', 'clock'], ['unscramble', 'Unscramble', 'textbox'],
+        ['hunt-3d', '3D Hunt', 'crosshair']]);
     assert.equal(gameByKey('sort-it'), games[1]);
     assert.equal(gameByKey('nope'), null);
     for (const g of games) assert.equal(typeof g.play, 'function');
@@ -155,6 +156,7 @@ test('levels match the difficulty table', () => {
     assert.deepEqual(gameByKey('sort-it').levels, {easy:{roundSize:6, maxBins:2}, medium:{roundSize:10, maxBins:3}, hard:{roundSize:14, maxBins:5, limitSec:60}});
     assert.deepEqual(gameByKey('beat-the-clock').levels, {easy:{roundSize:6, choices:3, perCardSec:12}, medium:{roundSize:10, choices:4, perCardSec:8}, hard:{roundSize:12, choices:5, perCardSec:5}});
     assert.deepEqual(gameByKey('unscramble').levels, {easy:{roundSize:6, firstLetter:true}, medium:{roundSize:8}, hard:{roundSize:10, perCardSec:20}});
+    assert.deepEqual(gameByKey('hunt-3d').levels, {easy:{roundSize:3, tries:3}, medium:{roundSize:5, tries:2}, hard:{roundSize:7, tries:1}});
 });
 test('match pairs and beat the clock count distinct terms only', () => {
     const dupes = [...cards(3), ...cards(3).map(c => ({...c, key:c.key + 'x', term:c.term.toUpperCase()}))];
@@ -283,8 +285,50 @@ test('unscramble chooses only terms of 4 to 20 letters', () => {
     assert.deepEqual(un.choose([], un.levels.easy), []);
     assert.deepEqual(un.choose(undefined, un.levels.easy), []);
 });
-test('only sort it and unscramble supply their own card choice', () => {
-    assert.deepEqual(games.filter(g => g.choose).map(g => g.key), ['sort-it', 'unscramble']);
+test('only sort it, unscramble and 3D hunt supply their own card choice', () => {
+    assert.deepEqual(games.filter(g => g.choose).map(g => g.key), ['sort-it', 'unscramble', 'hunt-3d']);
+});
+
+// Task 8: 3D Hunt. play() needs the 3D engine, so Node covers the paths that never reach it.
+const meshed = n => cards(n).map(c => ({...c, mesh:'za_part_' + c.key}));
+test('3D hunt needs roundSize different terms that have a mesh', () => {
+    const hunt = gameByKey('hunt-3d');
+    assert.equal(hunt.available(meshed(6), hunt.levels.hard), false);       // 6 < 7
+    assert.equal(hunt.available(meshed(6), hunt.levels.medium), true);
+    assert.equal(hunt.available(meshed(3), hunt.levels.easy), true);
+    const someBare = [...meshed(4), ...cards(6).map(c => ({...c, key:c.key + 'b', term:c.term + 'b'})), {key:'blank', term:'Blank', mesh:'  '}];
+    assert.equal(hunt.available(someBare, hunt.levels.medium), false);      // only 4 cards have a mesh
+    const twice = [...meshed(4), {...meshed(1)[0], key:'again', term:'TERMA'}];
+    assert.equal(hunt.available(twice, hunt.levels.medium), false);         // a repeated term counts once
+    assert.equal(hunt.available([], hunt.levels.easy), false);
+    assert.equal(hunt.available(undefined, hunt.levels.easy), false);
+});
+test('3D hunt chooses only cards with a mesh, up to roundSize', () => {
+    const hunt = gameByKey('hunt-3d');
+    const pool = [...meshed(4), ...cards(8).map(c => ({...c, key:c.key + 'b', term:c.term + 'b'})), {key:'blank', term:'Blank', mesh:' '}];
+    for (let seed = 1; seed < 30; seed++) {
+        const picked = hunt.choose(pool, hunt.levels.easy, {}, seeded(seed));
+        assert.equal(picked.length, 3);
+        assert.ok(picked.every(c => c.mesh && c.mesh.startsWith('za_part_')), 'seed ' + seed);
+    }
+    assert.equal(hunt.choose(pool, hunt.levels.hard, {}, seeded(4)).length, 4);   // only 4 have a mesh
+    assert.deepEqual(hunt.choose([], hunt.levels.easy), []);
+    assert.deepEqual(hunt.choose(undefined, hunt.levels.easy), []);
+});
+test('3D hunt rejects with model-unavailable, reporting nothing, when there is no model to load', async () => {
+    const hunt = gameByKey('hunt-3d');
+    assert.equal(typeof globalThis.AnatomyViewer, 'undefined');
+    const noReport = () => assert.fail('no card may be reported');
+    const system = {system_code:'endocrine', system_name:'Endocrine System', model_url:'../system_model/layers/endocrine.glb'};
+    for (const ctx of [undefined, {}, {system:null}, {system:{...system, model_url:null}}, {system:{...system, model_url:'  '}}, {system:{...system, system_code:''}},
+        {system}]) {                                          // the last one has a model, but this page has no AnatomyViewer
+        await assert.rejects(hunt.play({textContent:'x'}, meshed(3), hunt.levels.easy, noReport, ctx), {message:'model-unavailable'});
+    }
+});
+test('3D hunt with no cards resolves at once without needing the model', async () => {
+    const hunt = gameByKey('hunt-3d'), root = {textContent:'x'};
+    await hunt.play(root, [], hunt.levels.easy, () => assert.fail('nothing to report'), {});
+    assert.equal(root.textContent, '');
 });
 
 // startRound is the plumbing every play() shares: report once, resolve on the last card or on the limit.
