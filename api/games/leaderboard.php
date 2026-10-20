@@ -4,7 +4,7 @@
  * GET /api/games/leaderboard.php            students: the board for their own section (any section parameter is ignored)
  * GET /api/games/leaderboard.php?section=   teachers: the board for one section; it must be one of SECTIONS
  *
- * Covers the current week (from Monday 00:00 server time). Returns
+ * Covers the current week (from Monday 00:00 in the database's time zone). Returns
  * {section, week_start, top: [{rank, user_id, full_name, points}], me: {rank, points}|null}:
  * the 10 best by points (ties go to whoever reached the score first) and, for a student with
  * points this week, their own rank and points. Teachers get me = null.
@@ -26,7 +26,10 @@ if ($isStudent) {
     if (!is_string($section) || !in_array($section, SECTIONS, true)) jsonError('Choose a section.', 422);
 }
 
-$weekStart = date('Y-m-d 00:00:00', strtotime('monday this week'));
+// Monday 00:00 of this week in the database's time zone, the same clock that stamps played_at.
+$weekStart = $db->fetchOne(
+    "SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY), '%Y-%m-%d 00:00:00') AS week_start"
+)['week_start'];
 
 // Everyone in the section who scored this week, best first. A section holds one class, so one query is enough.
 $rows = $db->fetchAll(

@@ -4,8 +4,9 @@
  * GET /api/games/badges.php   students: every active badge as
  *                             [{achievement_id, title, icon, metric, threshold, value, earned_at}]
  *
- * value is the student's current figure for the badge's metric (null when it has none yet, such as
- * an average quiz score before any quiz); earned_at is null until the badge is earned.
+ * Badges the student already meets are awarded before the list is built. value is the student's
+ * current figure for the badge's metric (null when it has none yet, such as an average quiz score
+ * before any quiz); earned_at is null until the badge is earned.
  */
 
 require_once __DIR__ . '/../helpers.php';
@@ -13,6 +14,9 @@ requireMethod('GET');
 $user = requireStudent();
 $db = Database::getInstance();
 
+// Award anything the student already meets first (a teacher may have added a goal since their last round),
+// the same way dashboard/student-stats.php does, so the list never shows a met target with no earned date.
+awardBadges($user['user_id']);
 $metrics = badgeMetrics($user['user_id']);
 $rows = $db->fetchAll(
     'SELECT r.achievement_id, r.title, r.icon, r.metric, r.threshold, sb.earned_at

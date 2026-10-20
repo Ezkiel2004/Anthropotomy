@@ -219,6 +219,10 @@ check((await guest('games/mastery.php')).status===401&&(await student('games/mas
 // Badges: every active rule with the live value and the date it was earned.
 const hiddenGoal=await teacher('achievements.php','POST',{title:'Hidden goal',metric:'games_played',threshold:1});
 check(hiddenGoal.success&&(await teacher('achievements.php?id='+hiddenGoal.data.achievement_id,'PUT',{is_active:false})).success,'Create and hide a goal');
+const metGoal=await teacher('achievements.php','POST',{title:'Already met',metric:'games_played',threshold:1});
+check(metGoal.success,'Create a goal the student already meets');
+const metBadge=(await student('games/badges.php')).data.find(b=>b.title==='Already met');
+check(metBadge&&metBadge.earned_at,'Listing badges awards a goal the student already meets');
 const badgeList=(await student('games/badges.php')).data;
 const firstGame=badgeList.find(b=>b.title==='First Game');
 check(firstGame.earned_at,'Badge list shows earned date');
