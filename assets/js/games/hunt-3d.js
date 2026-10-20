@@ -8,8 +8,11 @@
 //   system_code  the layer id, which also picks the tissue colours ('endocrine')
 //   model_url    the layer's GLB, relative to the page ('../system_model/layers/endocrine.glb')
 //   structures   optional; only models made outside the layered export use their mesh_name entries
-// Without a model, when the model can't be loaded, or when a card's part isn't in it, play() rejects with
-// Error('model-unavailable') before any card is reported, so the runner can say so and post nothing.
+// play() rejects before any card is reported, leaving root empty, so the runner can say why and post nothing:
+//   Error('model-unavailable')  no system or model_url, no AnatomyViewer, 3D could not start (no WebGL),
+//                               or the model failed to load
+//   Error('parts-missing')      the model loaded but lacks some cards' parts (a typo in a teacher set's mesh
+//                               or a curated mesh_name, say); error.meshes lists those mesh ids, each once
 //
 // The page loads the engine first, as classic scripts: assets/vendor/three/three.min.js, OrbitControls.js,
 // GLTFLoader.js and DRACOLoader.js, then assets/js/anatomy-layers-core.js and assets/js/model-viewer.js.
@@ -30,8 +33,14 @@ import {el, startRound} from './play-kit.js';
 const HIT_MS = 900;          // a found part's "Correct" stays this long
 const REVEAL_MS = 1500;      // a missed part is shown this long
 
-const hasMesh = card => String(card?.mesh ?? '').trim() !== '';
-const unavailable = () => new Error('model-unavailable');
+const meshOf = card => String(card?.mesh ?? '').trim();
+const hasMesh = card => meshOf(card) !== '';
+
+// Every rejection leaves the root empty.
+function failure(root, message, fields = {}) {
+    root.textContent = '';
+    return Object.assign(new Error(message), fields);
+}
 
 // What AnatomyViewer.setLayerVisible needs, from the anatomy-content row; null when there is no model.
 function layerFor(system) {
@@ -93,7 +102,7 @@ async function play(root, cards, level, report, ctx) {
     const list = Array.from(cards || []);
     if (!list.length) return startRound(root, list, report).done;
     const layer = layerFor(ctx?.system);
-    if (!layer || viewer === false || !engineGlobal()) throw unavailable();
+    if (!layer || viewer === false || !engineGlobal()) throw failure(root, 'model-unavailable');
 
     root.textContent = '';
     const board = el('div', 'game-board game-hunt-3d is-loading');
@@ -103,7 +112,7 @@ async function play(root, cards, level, report, ctx) {
     root.append(board);
     status.textContent = 'Loading the 3D model…';          // set once the live region is on the page, so it is read
     const view = openViewer(stage);
-    if (!view) { root.textContent = ''; throw unavailable(); }
+    if (!view) throw failure(root, 'model-unavailable');
     const percent = el('span', 'game-loading-progress', '', {'aria-hidden': 'true'});
     stage.append(percent);
 
@@ -115,13 +124,15 @@ async function play(root, cards, level, report, ctx) {
     } catch (error) {
         console.warn('3D Hunt: the model could not be loaded.', error);
     }
-    const ready = loaded?.status === 'ready' && Boolean(loaded.root);
-    const targets = ready ? list.map(card => view.engine.findPart(String(card.mesh ?? '').trim())) : [];
-    if (!ready || targets.some(part => !part)) {
-        if (ready) console.warn('3D Hunt: parts missing from the model:', list.filter((card, i) => !targets[i]).map(card => card.mesh));
+    if (loaded?.status !== 'ready' || !loaded.root) {
         closeViewer(layer);
-        root.textContent = '';
-        throw unavailable();
+        throw failure(root, 'model-unavailable');
+    }
+    const targets = list.map(card => view.engine.findPart(meshOf(card)));
+    const missing = [...new Set(list.filter((card, i) => !targets[i]).map(meshOf))];
+    if (missing.length) {
+        closeViewer(layer);
+        throw failure(root, 'parts-missing', {meshes: missing});
     }
     return hunt(root, list, level, report, view, layer, targets);
 }

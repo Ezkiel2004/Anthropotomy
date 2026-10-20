@@ -315,20 +315,83 @@ test('3D hunt chooses only cards with a mesh, up to roundSize', () => {
     assert.deepEqual(hunt.choose([], hunt.levels.easy), []);
     assert.deepEqual(hunt.choose(undefined, hunt.levels.easy), []);
 });
-test('3D hunt rejects with model-unavailable, reporting nothing, when there is no model to load', async () => {
-    const hunt = gameByKey('hunt-3d');
+const noReport = () => assert.fail('no card may be reported');
+const huntSystem = {system_code:'endocrine', system_name:'Endocrine System', model_url:'../system_model/layers/endocrine.glb'};
+test('3D hunt rejects with model-unavailable, reporting nothing and emptying the root, when there is no model to load', async () => {
+    const hunt = gameByKey('hunt-3d'), system = huntSystem;
     assert.equal(typeof globalThis.AnatomyViewer, 'undefined');
-    const noReport = () => assert.fail('no card may be reported');
-    const system = {system_code:'endocrine', system_name:'Endocrine System', model_url:'../system_model/layers/endocrine.glb'};
     for (const ctx of [undefined, {}, {system:null}, {system:{...system, model_url:null}}, {system:{...system, model_url:'  '}}, {system:{...system, system_code:''}},
         {system}]) {                                          // the last one has a model, but this page has no AnatomyViewer
-        await assert.rejects(hunt.play({textContent:'x'}, meshed(3), hunt.levels.easy, noReport, ctx), {message:'model-unavailable'});
+        const root = {textContent:'x'};
+        await assert.rejects(hunt.play(root, meshed(3), hunt.levels.easy, noReport, ctx), {message:'model-unavailable'});
+        assert.equal(root.textContent, '');
     }
 });
 test('3D hunt with no cards resolves at once without needing the model', async () => {
     const hunt = gameByKey('hunt-3d'), root = {textContent:'x'};
     await hunt.play(root, [], hunt.levels.easy, () => assert.fail('nothing to report'), {});
     assert.equal(root.textContent, '');
+});
+
+// Just enough of a page for play() to get past loading: el()'s DOM calls and an AnatomyViewer whose model
+// has the parts za_a and za_b. Each test imports a fresh copy of hunt-3d.js, which keeps the viewer per page.
+function fakePage({status = 'ready', initThrows = false} = {}) {
+    const node = tag => ({
+        tag, kids: [], attrs: {}, parent: null, className: '', text: '',
+        setAttribute(name, value) { this.attrs[name] = String(value); },
+        append(...nodes) { for (const n of nodes) { n.remove(); n.parent = this; this.kids.push(n); } },
+        remove() { if (this.parent) this.parent.kids = this.parent.kids.filter(k => k !== this); this.parent = null; },
+        get textContent() { return this.text + this.kids.map(k => k.textContent).join(''); },
+        set textContent(value) { for (const k of this.kids) k.parent = null; this.kids = []; this.text = String(value); },
+    });
+    const engine = {layers: new Map(), frame: 1, animate() {}, onPartClick: null, label: node('div'),
+        init() { if (initThrows) throw new Error('no WebGL'); },
+        async setLayerVisible(system, visible) {
+            const layer = this.layers.get(system.id) || {id: system.id, status: 'idle', root: null};
+            this.layers.set(system.id, layer);
+            if (visible && !layer.root) { layer.status = status; layer.root = status === 'ready' ? {} : null; }
+            return layer;
+        },
+        disposeLayer(id) { this.layers.delete(id); },
+        findPart(mesh) { return ['za_a', 'za_b'].includes(mesh) ? {userData:{part_id:mesh}} : null; },
+    };
+    Object.assign(globalThis, {AnatomyViewer:engine, document:{createElement:node, hidden:false}, cancelAnimationFrame() {}});
+    const root = node('div');
+    root.textContent = 'x';
+    return {engine, root};
+}
+const leavePage = () => { for (const name of ['AnatomyViewer', 'document', 'cancelAnimationFrame']) delete globalThis[name]; };
+const freshHunt = async tag => (await import(`../../assets/js/games/hunt-3d.js?${tag}`)).default;
+test('3D hunt rejects with parts-missing, naming the missing meshes, when the loaded model lacks a card part', async () => {
+    const hunt = await freshHunt('parts-missing'), {engine, root} = fakePage();
+    try {
+        const round = [{key:'a', term:'A', mesh:'za_a'}, {key:'t', term:'T', mesh:'za_typo'}, {key:'b', term:'B', mesh:' za_b '},
+            {key:'g', term:'G', mesh:'za_gone'}, {key:'t2', term:'T2', mesh:'za_typo'}];
+        await assert.rejects(hunt.play(root, round, hunt.levels.easy, noReport, {system:huntSystem}), error => {
+            assert.equal(error.message, 'parts-missing');
+            assert.deepEqual(error.meshes, ['za_typo', 'za_gone']);
+            return true;
+        });
+        assert.equal(root.kids.length, 0);
+        assert.equal(root.textContent, '');
+        assert.deepEqual([...engine.layers.keys()], [], 'the layer is released');
+        assert.equal(engine.onPartClick, null);
+        assert.equal(engine.frame, null, 'the render loop is stopped');
+    } finally { leavePage(); }
+});
+test('3D hunt rejects with model-unavailable and an empty root when the model fails to load or 3D cannot start', async () => {
+    for (const [tag, options] of [['load-error', {status:'error'}], ['init-error', {initThrows:true}]]) {
+        const hunt = await freshHunt(tag), {engine, root} = fakePage(options);
+        try {
+            await assert.rejects(hunt.play(root, meshed(3), hunt.levels.easy, noReport, {system:huntSystem}), {message:'model-unavailable'}, tag);
+            assert.equal(root.kids.length, 0, tag);
+            assert.equal(root.textContent, '', tag);
+            assert.deepEqual([...engine.layers.keys()], [], tag);
+            root.textContent = 'x';
+            await assert.rejects(hunt.play(root, meshed(3), hunt.levels.easy, noReport, {system:huntSystem}), {message:'model-unavailable'}, tag + ' again');
+            assert.equal(root.kids.length + root.textContent.length, 0, tag + ' again');
+        } finally { leavePage(); }
+    }
 });
 
 // startRound is the plumbing every play() shares: report once, resolve on the last card or on the limit.
