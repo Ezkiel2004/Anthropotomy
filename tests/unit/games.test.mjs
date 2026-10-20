@@ -71,3 +71,15 @@ test('setPool uses the clue as given and mesh or null', () => {
     assert.equal(a.mesh, 'm');
     assert.equal(b.mesh, null);
 });
+test('sided pools use curated structures only when 4 or more have a mesh_name', () => {
+    const bare = {...sys, structures:['A','B','C','D'].map(n => ({name:n, desc:n+' desc.', mesh_name:''}))};
+    assert.deepEqual(systemPool(bare, parts, {sided:true}).map(c => c.mesh), ['za_femur_l','za_femur_r','za_patella']);
+    const meshed = {...sys, structures:['A','B','C','D'].map(n => ({name:n, desc:n+' desc.', mesh_name:'m_'+n}))};
+    const pool = systemPool(meshed, parts, {sided:true});
+    assert.deepEqual(pool.map(c => [c.term, c.mesh]), [['A','m_A'],['B','m_B'],['C','m_C'],['D','m_D']]);
+    const mixed = {...sys, structures:[...meshed.structures, {name:'E', desc:'E desc.', mesh_name:''}]};
+    assert.deepEqual(systemPool(mixed, parts, {sided:true}).map(c => c.term), ['A','B','C','D']);
+    assert.equal(systemPool(mixed, parts).length, 5);
+    const fewMeshes = {...sys, structures:[...meshed.structures.slice(0,3), {name:'E', desc:'E desc.', mesh_name:''}]};
+    assert.deepEqual(systemPool(fewMeshes, parts, {sided:true}).map(c => c.mesh), ['za_femur_l','za_femur_r','za_patella']);
+});

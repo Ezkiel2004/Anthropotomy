@@ -19,12 +19,14 @@ function unique(cards) {
     });
 }
 
-// Uses the curated structures at 4 or more, else the part index. Sided pools keep every
-// left/right part and its mesh (3D Hunt); the others merge each pair into one card.
+// Uses the curated structures at 4 or more, else the part index. Sided pools (3D Hunt) need a mesh
+// on every card: they count only structures with a mesh_name, and keep every left/right part.
+// The others merge each left/right pair into one card.
 export function systemPool(system, parts, {sided = false} = {}) {
     const source = `sys:${system.system_code}`, group = system.system_name;
     const make = (term, clue, mesh) => ({key: cardKey(source, term), term, clue, group, mesh});
-    const structures = (system.structures || []).filter(s => String(s.name || '').trim());
+    const has = value => String(value || '').trim();
+    const structures = (system.structures || []).filter(s => has(s.name) && (!sided || has(s.mesh_name)));
     if (structures.length >= MIN_CURATED) {
         return unique(structures.map(s => make(String(s.name).trim(), firstSentence(s.desc), s.mesh_name || null)));
     }
