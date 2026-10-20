@@ -81,19 +81,39 @@ export default {
   key: 'match-pairs',          // [a-z0-9-], stored in game_plays.game_key
   name: 'Match Pairs',
   icon: 'stack',               // Phosphor icon ID in interface.svg
-  roundSize: 6,                // cards per round
-  available(cards) { ... },    // true when this pool can be played
-  play(root, cards, report),   // report(card, correct) once per card; resolves when the round ends
+  levels: {                    // settings for each difficulty; roundSize is required
+    easy:   { roundSize: 4, ... },
+    medium: { roundSize: 6, ... },
+    hard:   { roundSize: 8, ... },
+  },
+  available(cards, level) { ... },   // true when this pool can be played at this level
+  play(root, cards, level, report),  // report(card, correct) once per card; resolves when the round ends
 };
 ```
 
-| Game | key | Round | Available when | Play |
-|---|---|---|---|---|
-| Match Pairs | `match-pairs` | 6 | ≥ 6 distinct terms | Flip and match term ↔ clue cards |
-| Sort It | `sort-it` | 10 | ≥ 2 groups and ≥ 6 cards | Drag each term (or tap it and then a bin) into its group |
-| Beat the Clock | `beat-the-clock` | 10 | ≥ 4 distinct terms | Read the clue and pick the term from 4 choices within 8 s each |
-| Unscramble | `unscramble` | 8 | ≥ 4 terms of 4–20 letters | Type the term from shuffled letters with the clue as a hint |
-| 3D Hunt | `hunt-3d` | 5 | ≥ 5 cards with `mesh` (one system only) | Rotate the model and click the named part, using the existing `AnatomyViewer` `partAt` and `findPart` methods; a miss highlights the correct part |
+| Game | key | Available when (at the chosen level) | Play |
+|---|---|---|---|
+| Match Pairs | `match-pairs` | ≥ `roundSize` distinct terms | Flip and match term ↔ clue cards |
+| Sort It | `sort-it` | ≥ 2 groups and ≥ `roundSize` cards | Drag each term (or tap it and then a bin) into its group |
+| Beat the Clock | `beat-the-clock` | ≥ `choices` distinct terms | Read the clue and pick the term before the time runs out |
+| Unscramble | `unscramble` | ≥ `roundSize` terms of 4–20 letters | Type the term from shuffled letters with the clue as a hint |
+| 3D Hunt | `hunt-3d` | ≥ `roundSize` cards with `mesh` (one system only) | Rotate the model and click the named part, using the existing `AnatomyViewer` `partAt` and `findPart` methods; a miss highlights the correct part |
+
+### Difficulty: Easy, Medium, Hard
+
+The student picks a difficulty before each round. The default is Medium, and the last choice is remembered on that device. Difficulty changes only each game's settings, never which cards are in the pool.
+
+| Game | Easy | Medium | Hard |
+|---|---|---|---|
+| Match Pairs | 4 pairs, all cards shown face-up for 3 s first | 6 pairs | 8 pairs, 90 s limit |
+| Sort It | 6 cards, at most 2 bins | 10 cards, at most 3 bins | 14 cards, at most 5 bins, 60 s limit |
+| Beat the Clock | 6 questions, 3 choices, 12 s each | 10 questions, 4 choices, 8 s each | 12 questions, 5 choices, 5 s each |
+| Unscramble | 6 words, first letter given | 8 words | 10 words, 20 s each, no letter hints |
+| 3D Hunt | 3 parts, 3 tries each | 5 parts, 2 tries each | 7 parts, 1 try each |
+
+Unless a cell above says otherwise, there is no time limit; the timer only measures the round. A card that times out or runs out of tries counts as a miss.
+
+**Known limit:** difficulty doesn't make the *cards* harder; obscure terms can show up on Easy. Ranking cards by difficulty can come later if needed (for example, using miss rates from `game_card_stats`).
 
 - A card shown on the game list for a pool is greyed out with the reason ("Needs at least 6 terms") when `available` is false.
 - Every game must also work with a keyboard: Sort It accepts tap-to-place, and Match Pairs uses buttons.
@@ -102,7 +122,8 @@ export default {
 
 `assets/js/games/runner.js` handles everything that isn't specific to one game.
 
-- **Choosing cards.** It picks `roundSize` cards from the pool by weighted random choice:
+- **Difficulty picker:** Easy, Medium or Hard, shown before the round starts (see Section 2).
+- **Choosing cards.** It picks the level's `roundSize` cards from the pool by weighted random choice:
   - weight 3 for cards the student has missed before (`seen > correct`)
   - weight 2 for cards the student has never seen
   - weight 1 for everything else
@@ -112,7 +133,7 @@ export default {
 
 **Points are calculated on the server** from the ordered results, not trusted from the browser:
 
-- `points = 10 × correct + 2 × best_streak`
+- `points = round((10 × correct + 2 × best_streak) × multiplier)`, where the multiplier is 1 for Easy, 1.5 for Medium and 2 for Hard
 - A **perfect round** means `correct = total` and `total ≥ 4`.
 
 ## 4. Data (added by `database/migrate.php`; repeatable and non-destructive)
@@ -132,6 +153,7 @@ game_plays (
   play_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   student_id INT UNSIGNED NOT NULL,            -- FK users, ON DELETE CASCADE
   game_key VARCHAR(40) NOT NULL,
+  difficulty ENUM('easy','medium','hard') NOT NULL DEFAULT 'medium',
   set_id INT UNSIGNED NULL,                    -- FK game_sets, ON DELETE SET NULL
   system_id INT UNSIGNED NULL,                 -- FK body_systems, ON DELETE SET NULL; NULL = all systems
   correct SMALLINT UNSIGNED NOT NULL, total SMALLINT UNSIGNED NOT NULL,
@@ -211,7 +233,7 @@ It's called from two places:
 | `GET sets.php` | student | Active sets including their cards |
 | `GET sets.php` | teacher | All sets |
 | `POST` / `PUT ?id` / `DELETE ?id sets.php` | teacher | Create, edit or delete a set |
-| `POST plays.php` | student | Body: `{game_key, set_id?, system_code?, duration_sec, results:[{card_key, term, correct}]}`. Validated, saved, card stats upserted, badges awarded. Returns `{points, correct, total, best_streak, new_badges:[{title, icon}]}` |
+| `POST plays.php` | student | Body: `{game_key, difficulty, set_id?, system_code?, duration_sec, results:[{card_key, term, correct}]}`. Validated, saved, card stats upserted, badges awarded. Returns `{points, correct, total, best_streak, new_badges:[{title, icon}]}` |
 | `GET leaderboard.php` | student | Their own section only; any `section` parameter is ignored |
 | `GET leaderboard.php?section=` | teacher | Section required, and must be in `SECTIONS` |
 | `GET mastery.php` | student | Their own `{card_key: [seen, correct]}`, used for weighting |
@@ -220,6 +242,7 @@ It's called from two places:
 
 **`plays.php` rejects a round (422)** when any of these hold:
 - `game_key` doesn't match `^[a-z0-9-]{2,40}$`
+- `difficulty` isn't `easy`, `medium` or `hard`
 - `results` has fewer than 1 or more than 50 entries
 - `duration_sec` is less than the number of results or more than 3600
 - the set or system named in the round doesn't exist
@@ -260,11 +283,12 @@ Both pages follow the Stage look already used in the portals. Icons come only fr
 
 - **Unit** (`tests/unit/games.test.mjs`, `node --test`):
   - `cards.js`: building pools, merging left/right parts, curated cards replacing the part index, key format
-  - each game's `available()`
+  - each game's `available()` at every level
+  - the points multiplier for each difficulty
   - runner weighting (seeded random)
 - **Integration** (`tests/integration.mjs`):
   - set CRUD and validation
-  - a round saved with server-side points and streak
+  - a round saved with server-side points, streak and difficulty multiplier
   - impossible rounds rejected
   - a badge awarded exactly once
   - a student can't see another section's leaderboard
