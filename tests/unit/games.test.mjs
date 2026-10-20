@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {readGlbParts} from '../../tools/build-part-index.mjs';
 import {cardKey, baseTerm, systemPool, allSystemsPool, setPool} from '../../assets/js/games/cards.js';
-import {cardWeight, pickCards, streaks, DIFFICULTIES, MULTIPLIER} from '../../assets/js/games/runner-core.js';
+import {cardWeight, pickCards, streaks, normalizeAnswer, scrambleWords, DIFFICULTIES, MULTIPLIER} from '../../assets/js/games/runner-core.js';
+import {games, gameByKey} from '../../assets/js/games/registry.js';
+import {startRound} from '../../assets/js/games/play-kit.js';
 
 test('readGlbParts returns described parts from a layer GLB', () => {
     const parts = readGlbParts(fs.readFileSync('system_model/layers/endocrine.glb'));
@@ -119,4 +121,189 @@ test('streaks finds the longest run', () => {
 test('difficulty constants', () => {
     assert.deepEqual(DIFFICULTIES, ['easy','medium','hard']);
     assert.deepEqual(MULTIPLIER, {easy:1, medium:1.5, hard:2});
+});
+
+// Task 7: the four DOM games (levels, availability, Sort It's choose) and the pure round plumbing.
+const cards = n => Array.from({length:n}, (_, i) => ({key:'k'+i, term:'Term'+String.fromCharCode(65+i), clue:'c', group:i%2?'G1':'G2', mesh:null}));
+const seeded = seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+test('every game declares all three levels with roundSize', () => {
+    for (const g of games) for (const d of DIFFICULTIES) assert.ok(g.levels[d].roundSize > 0, g.key + ' ' + d);
+});
+test('availability follows the level', () => {
+    const mp = gameByKey('match-pairs');
+    assert.equal(mp.available(cards(5), mp.levels.easy), true);
+    assert.equal(mp.available(cards(5), mp.levels.medium), false);
+    const sort = gameByKey('sort-it');
+    assert.equal(sort.available(cards(10).map(c => ({...c, group:'G1'})), sort.levels.easy), false);   // one group
+});
+test('unscramble handles multi-word terms', () => {
+    const s = scrambleWords('Vena cava', () => 0.3);
+    assert.equal(s.split(' ').length, 2);
+    assert.equal(normalizeAnswer('  vena   CAVA '), normalizeAnswer('Vena cava'));
+    assert.equal(gameByKey('unscramble').available([{term:'Vena cava'},{term:'Biceps brachii'},{term:'Ulna'},{term:'Femur'},{term:'Tibia'},{term:'Patella'}], gameByKey('unscramble').levels.easy), true);
+});
+test('the registry lists the four games in the spec order and finds them by key', () => {
+    assert.deepEqual(games.map(g => [g.key, g.name, g.icon]), [
+        ['match-pairs', 'Match Pairs', 'stack'], ['sort-it', 'Sort It', 'hand-grabbing'],
+        ['beat-the-clock', 'Beat the Clock', 'clock'], ['unscramble', 'Unscramble', 'textbox']]);
+    assert.equal(gameByKey('sort-it'), games[1]);
+    assert.equal(gameByKey('nope'), null);
+    for (const g of games) assert.equal(typeof g.play, 'function');
+});
+test('levels match the difficulty table', () => {
+    assert.deepEqual(gameByKey('match-pairs').levels, {easy:{roundSize:4, previewSec:3}, medium:{roundSize:6}, hard:{roundSize:8, limitSec:90}});
+    assert.deepEqual(gameByKey('sort-it').levels, {easy:{roundSize:6, maxBins:2}, medium:{roundSize:10, maxBins:3}, hard:{roundSize:14, maxBins:5, limitSec:60}});
+    assert.deepEqual(gameByKey('beat-the-clock').levels, {easy:{roundSize:6, choices:3, perCardSec:12}, medium:{roundSize:10, choices:4, perCardSec:8}, hard:{roundSize:12, choices:5, perCardSec:5}});
+    assert.deepEqual(gameByKey('unscramble').levels, {easy:{roundSize:6, firstLetter:true}, medium:{roundSize:8}, hard:{roundSize:10, perCardSec:20}});
+});
+test('match pairs and beat the clock count distinct terms only', () => {
+    const dupes = [...cards(3), ...cards(3).map(c => ({...c, key:c.key + 'x', term:c.term.toUpperCase()}))];
+    const mp = gameByKey('match-pairs'), btc = gameByKey('beat-the-clock');
+    assert.equal(mp.available(dupes, mp.levels.easy), false);          // 3 distinct terms < 4
+    assert.equal(btc.available(dupes, btc.levels.easy), true);         // 3 choices
+    assert.equal(btc.available(dupes, btc.levels.medium), false);      // 4 choices
+    assert.equal(mp.available([], mp.levels.easy), false);
+    assert.equal(mp.available(undefined, mp.levels.easy), false);
+});
+test('sort it needs two groups and enough grouped cards, ignoring cards without a group', () => {
+    const sort = gameByKey('sort-it');
+    assert.equal(sort.available(cards(6), sort.levels.easy), true);
+    assert.equal(sort.available(cards(5), sort.levels.easy), false);                       // 5 < 6
+    assert.equal(sort.available(cards(6).map((c, i) => i < 2 ? {...c, group:null} : c), sort.levels.easy), false);   // 4 grouped
+    assert.equal(sort.available(cards(7).map((c, i) => i ? {...c, group:'G1'} : {...c, group:null}), sort.levels.easy), false);   // one group left
+});
+test('unscramble counts only terms of 4 to 20 letters, letters only', () => {
+    const un = gameByKey('unscramble');
+    const terms = t => t.map(term => ({term}));
+    const five = ['Vena cava', 'Biceps brachii', 'Ulna', 'Femur', 'Tibia'];
+    assert.equal(un.available(terms([...five, 'Rib']), un.levels.easy), false);      // 3 letters
+    assert.equal(un.available(terms([...five, 'Ab-c']), un.levels.easy), false);     // the hyphen is not a letter: 3 letters
+    assert.equal(un.available(terms([...five, 'Abcd']), un.levels.easy), true);
+    assert.equal(un.available(terms([...five, 'a'.repeat(21)]), un.levels.easy), false);
+    assert.equal(un.available(terms([...five, 'a'.repeat(20)]), un.levels.easy), true);
+    assert.equal(un.available(terms([...five, 'Pre-central gyrus']), un.levels.easy), true);   // 15 letters
+    assert.equal(un.available(terms([...five, 'FEMUR']), un.levels.easy), false);    // repeated term
+    assert.equal(un.available(terms([...five, 'Ünïcode']), un.levels.easy), true);
+});
+test('normalizeAnswer lowercases, trims and collapses whitespace', () => {
+    assert.equal(normalizeAnswer('  Biceps \t\n BRACHII '), 'biceps brachii');
+    assert.equal(normalizeAnswer(''), '');
+    assert.equal(normalizeAnswer(null), '');
+    assert.equal(normalizeAnswer(undefined), '');
+});
+test('scrambleWords shuffles letters inside each word and leaves spaces and hyphens in place', () => {
+    const isLetter = ch => /\p{L}/u.test(ch);
+    const words = s => s.split(/[\s-]+/).map(w => [...w].filter(isLetter).sort().join(''));
+    for (const term of ['Femur', 'Vena cava', 'Biceps brachii', 'Pre-central gyrus', "Golgi's organ (tendon)"]) {
+        for (let seed = 1; seed < 40; seed++) {
+            const out = scrambleWords(term, seeded(seed));
+            assert.equal(out.length, term.length, term);
+            assert.deepEqual(words(out), words(term), term);
+            [...term].forEach((ch, i) => { if (!isLetter(ch)) assert.equal(out[i], ch, `${term} @${i}`); });
+            assert.notEqual(out.toLowerCase(), term.toLowerCase(), term);
+        }
+    }
+});
+test('scrambleWords never hands back the term when it can be changed, whatever the rng says', () => {
+    for (const rng of [() => 0, () => 0.5, () => 0.9999]) {
+        for (const term of ['Ulna', 'Vena cava', 'Ab-cd']) assert.notEqual(scrambleWords(term, rng).toLowerCase(), term.toLowerCase());
+    }
+    assert.equal(scrambleWords('Aaaa', () => 0.5), 'Aaaa');        // nothing to shuffle
+    assert.equal(scrambleWords('', () => 0.5), '');
+    assert.equal(typeof scrambleWords('Radius'), 'string');         // rng defaults to Math.random
+});
+
+const sixGroups = () => Array.from({length:30}, (_, i) => ({key:'p'+i, term:'Term'+i, clue:'c', group:'Group'+(i%6), mesh:null}));
+test('sort it chooses cards from at most maxBins groups', () => {
+    const sort = gameByKey('sort-it');
+    for (let seed = 1; seed < 30; seed++) {
+        const picked = sort.choose(sixGroups(), sort.levels.easy, {}, seeded(seed));
+        assert.ok(picked.length <= 6 && picked.length > 0);
+        assert.ok(picked.every(c => c.group != null));
+        assert.ok(new Set(picked.map(c => c.group)).size <= 2);
+    }
+    const hard = sort.choose(sixGroups(), sort.levels.hard, {}, seeded(3));
+    assert.ok(new Set(hard.map(c => c.group)).size <= 5);
+    assert.ok(hard.length <= 14);
+});
+test('sort it choose ignores ungrouped cards, avoids repeated terms and copes with few groups', () => {
+    const sort = gameByKey('sort-it');
+    const pool = [...sixGroups().slice(0, 12), ...Array.from({length:6}, (_, i) => ({key:'n'+i, term:'None'+i, clue:'c', group:null, mesh:null}))];
+    for (let seed = 1; seed < 20; seed++) {
+        const picked = sort.choose(pool, sort.levels.medium, {}, seeded(seed));
+        assert.ok(picked.every(c => c.group));
+        assert.equal(new Set(picked.map(c => c.term)).size, picked.length);
+        assert.ok(new Set(picked.map(c => c.group)).size <= 3);
+    }
+    const one = sixGroups().map(c => ({...c, group:'Only'}));
+    assert.deepEqual(new Set(sort.choose(one, sort.levels.easy, {}, seeded(1)).map(c => c.group)), new Set(['Only']));
+    assert.deepEqual(sort.choose([], sort.levels.easy, {}, seeded(1)), []);
+    assert.deepEqual(sort.choose(undefined, sort.levels.easy), []);
+});
+test('only sort it needs its own card choice', () => {
+    assert.deepEqual(games.filter(g => g.choose).map(g => g.key), ['sort-it']);
+});
+
+// startRound is the plumbing every play() shares: report once, resolve on the last card or on the limit.
+const fakeRoot = () => ({textContent:'x'});
+test('a round reports each card once and resolves when every card is reported', async () => {
+    const list = cards(3), seen = [], root = fakeRoot();
+    const round = startRound(root, list, (card, ok) => seen.push([card.key, ok]));
+    root.textContent = 'game on screen';
+    assert.equal(round.report(list[0], true), true);
+    assert.equal(round.report(list[0], false), false);          // already reported
+    assert.equal(round.report({key:'stranger'}, true), false);  // not in the round
+    assert.equal(round.isOver(), false);
+    round.report(list[1], false);
+    round.report(list[2], 1);
+    await round.done;
+    assert.deepEqual(seen, [['k0', true], ['k1', false], ['k2', true]]);
+    assert.equal(round.isOver(), true);
+    assert.equal(root.textContent, '');
+    assert.equal(round.report(list[0], true), false);           // nothing after the end
+    assert.equal(seen.length, 3);
+});
+test('ending a round early reports every unreported card as missed, once', async () => {
+    const list = cards(4), seen = [];
+    const round = startRound(fakeRoot(), list, (card, ok) => seen.push([card.key, ok]));
+    round.report(list[2], true);
+    round.end();
+    round.end();
+    await round.done;
+    assert.deepEqual(seen, [['k2', true], ['k0', false], ['k1', false], ['k3', false]]);
+});
+test('a round with no cards resolves at once', async () => {
+    const root = fakeRoot();
+    const round = startRound(root, [], () => assert.fail('nothing to report'));
+    assert.equal(round.isOver(), true);
+    await round.done;
+    assert.equal(root.textContent, '');         // startRound empties the root it is given
+});
+test('a limit countdown ends the round and misses what is left; timers and listeners stop with the round', async () => {
+    const list = cards(3), seen = [], ticks = [];
+    const round = startRound(fakeRoot(), list, (card, ok) => seen.push([card.key, ok]));
+    const target = new EventTarget();
+    round.listen(target, 'ping', () => ticks.push('ping'));
+    round.later(() => ticks.push('never'), 400);
+    round.report(list[0], true);
+    round.countdown(0.05, () => round.end());
+    await round.done;
+    assert.deepEqual(seen, [['k0', true], ['k1', false], ['k2', false]]);
+    target.dispatchEvent(new Event('ping'));
+    await new Promise(resolve => setTimeout(resolve, 450));
+    assert.deepEqual(ticks, []);
+});
+test('the last report can linger so feedback stays on screen', async () => {
+    const list = cards(1), seen = [];
+    const root = fakeRoot();
+    const round = startRound(root, list, (card, ok) => seen.push(ok));
+    root.textContent = 'game on screen';
+    const started = Date.now();
+    round.report(list[0], true, 60);
+    assert.equal(round.isOver(), false);
+    assert.equal(root.textContent, 'game on screen');
+    await round.done;
+    assert.equal(root.textContent, '');
+    assert.ok(Date.now() - started >= 50);
+    assert.deepEqual(seen, [true]);
 });
