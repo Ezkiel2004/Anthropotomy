@@ -90,6 +90,85 @@ const raised=(await student('dashboard/student-stats.php')).data.achievements.fi
 check(raised.earned&&raised.icon==='target','Earned badges stay earned after the target is raised');
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{is_active:false})).success,'Teacher deactivates a badge');
 check(!(await student('dashboard/student-stats.php')).data.achievements.some(a=>a.name==='First completion'),'Inactive badges are hidden from students');
+// Practice games: teacher sets, then scored rounds, card stats and badges.
+const cardsOf=n=>Array.from({length:n},(_,i)=>({term:'Term '+i,clue:'Clue '+i}));
+const set=await teacher('games/sets.php','POST',{title:'Leg bones',system_id:null,cards:[['Femur','Thigh bone'],['Tibia','Shin bone'],['Fibula','Thin leg bone'],['Patella','Kneecap']].map(([term,clue])=>({term,clue}))});
+check(set.success,'Teacher creates a game set');
+check((await teacher('games/sets.php','POST',{title:'Dup',cards:[{term:'A',clue:'x'},{term:'a',clue:'y'},{term:'B',clue:'z'},{term:'C',clue:'w'}]})).status===422,'Terms unique ignoring case');
+check((await teacher('games/sets.php','POST',{title:'Short',cards:[{term:'A',clue:'x'}]})).status===422,'At least 4 cards');
+check((await student('games/sets.php','POST',{title:'x',cards:[]})).status===403,'Students cannot create sets');
+for(const [label,body] of [
+  ['blank title',{title:'  ',cards:cardsOf(4)}],
+  ['title over 100 characters',{title:'t'.repeat(101),cards:cardsOf(4)}],
+  ['more than 200 cards',{title:'Big',cards:cardsOf(201)}],
+  ['cards not a list',{title:'Odd',cards:'Femur'}],
+  ['card not an object',{title:'Odd',cards:[...cardsOf(3),'Femur']}],
+  ['blank term',{title:'Odd',cards:[...cardsOf(3),{term:' ',clue:'c'}]}],
+  ['term over 100 characters',{title:'Odd',cards:[...cardsOf(3),{term:'t'.repeat(101),clue:'c'}]}],
+  ['blank clue',{title:'Odd',cards:[...cardsOf(3),{term:'Plain',clue:''}]}],
+  ['clue over 300 characters',{title:'Odd',cards:[...cardsOf(3),{term:'Plain',clue:'c'.repeat(301)}]}],
+  ['group over 60 characters',{title:'Odd',cards:[...cardsOf(3),{term:'Plain',clue:'c',group:'g'.repeat(61)}]}],
+  ['mesh over 150 characters',{title:'Odd',cards:[...cardsOf(3),{term:'Plain',clue:'c',mesh:'m'.repeat(151)}]}],
+  ['unknown system',{title:'Odd',system_id:999999,cards:cardsOf(4)}],
+])check((await teacher('games/sets.php','POST',body)).status===422,'Set rejected: '+label);
+const wide=await teacher('games/sets.php','POST',{title:'t'.repeat(100),system_id:sid,cards:[{term:'t'.repeat(100),clue:'c'.repeat(300),group:'g'.repeat(60),mesh:'m'.repeat(150)},...cardsOf(199)]});
+check(wide.success,'Limits are inclusive: 100-character title, 200 cards, longest term, clue, group and mesh');
+const listed=await student('games/sets.php');
+const wideRow=listed.data.find(s=>s.set_id===wide.data.set_id);
+check(wideRow.system_id===sid&&wideRow.system_name==='Test System'&&wideRow.cards.length===200&&wideRow.is_active===true,'Students see active sets with their system name');
+check(listed.data.find(s=>s.set_id===set.data.set_id).system_name===null,'A set without a system has no system name');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'PUT',{cards:cardsOf(3)})).status===422,'Editing validates the cards too');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'PUT',{})).status===422,'Editing needs a change');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'PUT',{title:'Unicode set',cards:[...cardsOf(3),{term:'Tibia 骨 é',clue:'Shin'}]})).success,'Teacher edits a set');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'PUT',{is_active:false})).success,'Teacher hides a set');
+check(!(await student('games/sets.php')).data.some(s=>s.set_id===wide.data.set_id),'Hidden sets are not listed for students');
+const hidden=(await teacher('games/sets.php')).data.find(s=>s.set_id===wide.data.set_id);
+check(hidden&&hidden.title==='Unicode set'&&hidden.is_active===false&&hidden.cards[3].term==='Tibia 骨 é','Teachers still see hidden sets, and unicode survives');
+check((await teacher('games/sets.php?id=999999','PUT',{title:'x'})).status===404,'Editing a missing set is not found');
+check((await student('games/sets.php?id='+wide.data.set_id,'PUT',{title:'x'})).status===403&&(await student('games/sets.php?id='+wide.data.set_id,'DELETE')).status===403,'Students cannot edit or delete sets');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'DELETE')).success,'Teacher deletes a set');
+check(!(await teacher('games/sets.php')).data.some(s=>s.set_id===wide.data.set_id),'A deleted set is gone');
+check((await teacher('games/sets.php?id='+wide.data.set_id,'DELETE')).status===404,'Deleting a missing set is not found');
+
+check((await teacher('achievements.php','POST',{title:'Perfect round',metric:'perfect_rounds',threshold:1})).success,'Perfect-round goal created');
+check((await teacher('achievements.php','POST',{title:'Two systems',metric:'game_systems_played',threshold:2})).success,'Systems goal created');
+const student2=client();
+check((await student2('auth/login.php','POST',{username:'fixture-student',password})).success,'Same student signs in on a second device');
+const roundOf=(tag,n,correct=1)=>Array.from({length:n},(_,i)=>({card_key:'sys:test-system:'+tag+i,term:tag+i,correct}));
+const titles=res=>res.data.new_badges.map(b=>b.title);
+// Review Focus 5: two rounds saved at the same moment award each badge once.
+const [raceA,raceB]=await Promise.all([
+  student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',duration_sec:12,results:roundOf('racea',3)}),
+  student2('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',duration_sec:12,results:roundOf('raceb',3)}),
+]);
+check(raceA.success&&raceB.success,'Two simultaneous rounds are both saved');
+check([raceA,raceB].filter(x=>titles(x).includes('First Game')).length===1,'Exactly one of two simultaneous rounds reports First Game');
+check([raceA,raceB].filter(x=>titles(x).includes('Play 1')).length===1,'Exactly one of two simultaneous rounds reports a teacher goal');
+check((await student('dashboard/student-stats.php')).data.achievements.filter(a=>a.name==='First Game'&&a.earned_at).length===1,'First Game is held once');
+check(raceA.data.points===36&&raceB.data.points===36&&raceA.data.new_badges.concat(raceB.data.new_badges).every(b=>b.title&&b.icon&&b.achievement_id===undefined),'Easy round scores (30+6)*1 and badges carry title and icon');
+check(![raceA,raceB].some(x=>titles(x).includes('Perfect round')||titles(x).includes('Flawless')),'A perfect round of 3 cards is not a perfect round');
+
+const r=(c)=>({card_key:'set:'+set.data.set_id+':'+c[0],term:c[0],correct:c[1]});
+const play=await student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'hard',set_id:set.data.set_id,duration_sec:20,results:[['femur',1],['tibia',1],['fibula',0],['patella',1]].map(r)});
+check(play.data.correct===3&&play.data.best_streak===2&&play.data.points===Math.round((30+4)*2),'Server scores the round with the hard multiplier');
+check(play.data.total===4&&!titles(play).includes('First Game')&&!titles(play).includes('Perfect round'),'An earned badge is not awarded twice, and 3 of 4 is not perfect');
+for(const bad of [{difficulty:'insane'},{difficulty:null},{game_key:'Bad Key!'},{game_key:'x'},{game_key:'a'.repeat(41)},{duration_sec:2},{duration_sec:3601},{results:[]},{results:roundOf('many',51)},{results:[{card_key:'',term:'Femur',correct:1}]},{results:[{card_key:'a',term:' ',correct:1}]},{results:'femur'},{set_id:999999},{system_code:'no-such-system'}])
+  check((await student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',duration_sec:20,results:[r(['femur',1]),r(['tibia',1]),r(['fibula',1])],...bad})).status===422,'Impossible round rejected: '+JSON.stringify(bad).slice(0,60));
+check((await teacher('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',duration_sec:20,results:roundOf('t',3)})).status===403,'Teachers cannot post rounds');
+check((await guest('games/plays.php','POST',{})).status===401,'Anonymous rounds rejected');
+check((await student('games/plays.php')).status===405,'Rounds are posted, not fetched');
+const forms=await student('games/plays.php','POST',{game_key:'sort-it',difficulty:'medium',duration_sec:30,results:[true,0,1,'1','true','false'].map((correct,i)=>({card_key:'sys:test-system:form'+i,term:'form'+i,correct}))});
+check(forms.data.correct===4&&forms.data.total===6&&forms.data.best_streak===3&&forms.data.points===Math.round((40+6)*1.5),'Correct may be 1/0/true/false; the streak follows result order');
+const cut=await student('games/plays.php','POST',{game_key:'unscramble',difficulty:'easy',duration_sec:15,results:[{card_key:'k'.repeat(300),term:'é'.repeat(150),correct:1}]});
+check(cut.success&&cut.data.total===1,'Over-long card keys and terms are cut, not refused');
+// Task 3 carry-over: a perfect round needs 4 or more cards; only non-null systems count.
+const perfect=await student('games/plays.php','POST',{game_key:'beat-the-clock',difficulty:'easy',duration_sec:20,results:roundOf('perfect',4)});
+check(perfect.data.points===48&&titles(perfect).includes('Perfect round')&&titles(perfect).includes('Flawless'),'A perfect round of 4 cards earns the perfect-round badges');
+const inSystem=(code,tag)=>student('games/plays.php','POST',{game_key:'beat-the-clock',difficulty:'easy',duration_sec:10,system_code:code,results:roundOf(tag,3)});
+check(!titles(await inSystem('test-system','sysa')).includes('Two systems'),'Rounds with no system plus one system are not two systems');
+const extraSystem=await teacher('anatomy-content.php','POST',{system_name:'Second System',system_code:'second-system',color_hex:'#654321',description:'Second',is_active:true,key_facts:{},structures:[]});check(extraSystem.success,'Create a second system');
+check(titles(await inSystem('second-system','sysb')).includes('Two systems'),'Two different systems earn the systems goal');
+execFileSync(process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php'),['tests/database.php','drop-system','second-system'],{stdio:'pipe'});
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');

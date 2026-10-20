@@ -476,4 +476,32 @@ function awardBadges(int $userId): array {
     }
     return $earned;
 }
+
+// ── Practice games ──────────────────────────────────────────────
+
+/**
+ * Scores a finished round from its ordered results, each carrying a 'correct' flag.
+ * best_streak is the longest run of consecutive correct results and
+ * points = round((10 x correct + 2 x best_streak) x difficulty multiplier).
+ */
+function scoreRound(array $results, string $difficulty): array {
+    $multiplier = ['easy' => 1, 'medium' => 1.5, 'hard' => 2][$difficulty] ?? throw new InvalidArgumentException("Unknown difficulty: {$difficulty}");
+    $correct = 0;
+    $run = 0;
+    $best = 0;
+    foreach ($results as $result) {
+        if (empty($result['correct'])) {
+            $run = 0;
+            continue;
+        }
+        $correct++;
+        $best = max($best, ++$run);
+    }
+    return [
+        'correct'     => $correct,
+        'total'       => count($results),
+        'best_streak' => $best,
+        'points'      => (int) round((10 * $correct + 2 * $best) * $multiplier),
+    ];
+}
 ?>
