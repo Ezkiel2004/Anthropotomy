@@ -132,6 +132,13 @@ check((await teacher('games/sets.php?id='+wide.data.set_id,'DELETE')).status===4
 
 check((await teacher('achievements.php','POST',{title:'Perfect round',metric:'perfect_rounds',threshold:1})).success,'Perfect-round goal created');
 check((await teacher('achievements.php','POST',{title:'Two systems',metric:'game_systems_played',threshold:2})).success,'Systems goal created');
+// Before any round: an empty mastery map is an object, the board is empty, and no badge is earned yet.
+const noMastery=await student('games/mastery.php');
+check(noMastery.success&&!Array.isArray(noMastery.data)&&Object.keys(noMastery.data).length===0,'No rounds yet: mastery is an empty object');
+const noBoard=await student('games/leaderboard.php');
+check(noBoard.success&&noBoard.data.top.length===0&&noBoard.data.me===null,'No rounds yet: empty board and no rank');
+const noFirst=(await student('games/badges.php')).data.find(b=>b.title==='First Game');
+check(noFirst&&noFirst.earned_at===null&&noFirst.value===0,'No rounds yet: First Game is not earned and the value is 0');
 const student2=client();
 check((await student2('auth/login.php','POST',{username:'fixture-student',password})).success,'Same student signs in on a second device');
 const roundOf=(tag,n,correct=1)=>Array.from({length:n},(_,i)=>({card_key:'sys:test-system:'+tag+i,term:tag+i,correct}));
@@ -144,12 +151,13 @@ const [raceA,raceB]=await Promise.all([
 check(raceA.success&&raceB.success,'Two simultaneous rounds are both saved');
 check([raceA,raceB].filter(x=>titles(x).includes('First Game')).length===1,'Exactly one of two simultaneous rounds reports First Game');
 check([raceA,raceB].filter(x=>titles(x).includes('Play 1')).length===1,'Exactly one of two simultaneous rounds reports a teacher goal');
-check((await student('dashboard/student-stats.php')).data.achievements.filter(a=>a.name==='First Game'&&a.earned_at).length===1,'First Game is held once');
+check((await student('games/badges.php')).data.filter(b=>b.title==='First Game'&&b.earned_at).length===1,'First Game is held once');
 check(raceA.data.points===36&&raceB.data.points===36&&raceA.data.new_badges.concat(raceB.data.new_badges).every(b=>b.title&&b.icon&&b.achievement_id===undefined),'Easy round scores (30+6)*1 and badges carry title and icon');
 check(![raceA,raceB].some(x=>titles(x).includes('Perfect round')||titles(x).includes('Flawless')),'A perfect round of 3 cards is not a perfect round');
 
 const r=(c)=>({card_key:'set:'+set.data.set_id+':'+c[0],term:c[0],correct:c[1]});
-const play=await student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'hard',set_id:set.data.set_id,duration_sec:20,results:[['femur',1],['tibia',1],['fibula',0],['patella',1]].map(r)});
+const setRound=[['femur',1],['tibia',1],['fibula',0],['patella',1]];
+const play=await student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'hard',set_id:set.data.set_id,duration_sec:20,results:setRound.map(r)});
 check(play.data.correct===3&&play.data.best_streak===2&&play.data.points===Math.round((30+4)*2),'Server scores the round with the hard multiplier');
 check(play.data.total===4&&!titles(play).includes('First Game')&&!titles(play).includes('Perfect round'),'An earned badge is not awarded twice, and 3 of 4 is not perfect');
 for(const bad of [{difficulty:'insane'},{difficulty:null},{game_key:'Bad Key!'},{game_key:'x'},{game_key:'a'.repeat(41)},{duration_sec:2},{duration_sec:3601},{results:[]},{results:roundOf('many',51)},{results:[{card_key:'',term:'Femur',correct:1}]},{results:[{card_key:'a',term:' ',correct:1}]},{results:'femur'},{set_id:999999},{system_code:'no-such-system'}])
@@ -170,6 +178,61 @@ check(!titles(await inSystem('test-system','sysa2')).includes('Two systems'),'Tw
 const extraSystem=await teacher('anatomy-content.php','POST',{system_name:'Second System',system_code:'second-system',color_hex:'#654321',description:'Second',is_active:true,key_facts:{},structures:[]});check(extraSystem.success,'Create a second system');
 check(titles(await inSystem('second-system','sysb')).includes('Two systems'),'Two different systems earn the systems goal');
 execFileSync(process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php'),['tests/database.php','drop-system','second-system'],{stdio:'pipe'});
+// Task 5: leaderboard, mastery and badges.
+const dbAction=(...args)=>execFileSync(process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php'),['tests/database.php',...args],{stdio:'pipe'});
+const lb=await student('games/leaderboard.php?section=Bonifacio');
+const totalPoints=(await student('games/badges.php')).data.find(b=>b.metric==='total_points').value;
+check(lb.data.section==='Rizal'&&lb.data.top[0].full_name==='Test Student','Students only see their own section');
+check(lb.data.top.length===1&&lb.data.top[0].rank===1&&lb.data.top[0].user_id===uid&&lb.data.top[0].points===totalPoints&&totalPoints>0,'Leaderboard rows carry rank, user, name and the week\'s points');
+check(lb.data.me&&lb.data.me.rank===1&&lb.data.me.points===totalPoints,'A student always sees their own rank and points');
+check(/^\d{4}-\d{2}-\d{2} 00:00:00$/.test(lb.data.week_start)&&new Date(lb.data.week_start.replace(' ','T')).getDay()===1,'The week starts on a Monday at 00:00');
+check((await teacher('games/leaderboard.php')).status===422,'Teacher must pick a section');
+check((await teacher('games/leaderboard.php?section=Nope')).status===422,'Teacher section must be official');
+check((await teacher('games/leaderboard.php?section=Bonifacio')).data.top.length===0,'Other section is empty');
+const teacherBoard=await teacher('games/leaderboard.php?section=Rizal');
+check(teacherBoard.data.section==='Rizal'&&teacherBoard.data.top[0].full_name==='Test Student'&&teacherBoard.data.me===null,'Teachers see the chosen section and no personal rank');
+check((await guest('games/leaderboard.php')).status===401&&(await student('games/leaderboard.php','POST',{})).status===405,'Leaderboard needs sign-in and is read-only');
+// Review Focus 4: a section outside the official list still gets its own board.
+dbAction('legacy-section','Old Section');
+const legacy=await student('games/leaderboard.php');
+check(legacy.success&&legacy.data.section==='Old Section'&&legacy.data.top[0].full_name==='Test Student'&&legacy.data.me.rank===1,'A section outside the official list still works for its students');
+check((await teacher('games/leaderboard.php?section=Rizal')).data.top.length===0&&(await teacher('games/mastery.php?section=Rizal')).data.length===0,'Teachers see only the students currently in the section');
+dbAction('legacy-section','Rizal');
+
+// Mastery: the student map follows the rounds played so far.
+const keyOf=term=>'set:'+set.data.set_id+':'+term;
+const pairOf=term=>[setRound.filter(x=>x[0]===term).length,setRound.filter(x=>x[0]===term&&x[1]).length];
+const mastery=(await student('games/mastery.php?section=Bonifacio')).data;
+check(Array.isArray(mastery[keyOf('fibula')]),'Student mastery map');
+check(['femur','tibia','fibula','patella'].every(term=>JSON.stringify(mastery[keyOf(term)])===JSON.stringify(pairOf(term))),'Card stats count each card once per round and only the correct answers');
+check(Object.values(mastery).every(pair=>Array.isArray(pair)&&pair.length===2&&pair.every(Number.isInteger)),'Mastery pairs are [seen, correct] whole numbers');
+const missRound=cards=>student('games/plays.php','POST',{game_key:'match-pairs',difficulty:'easy',set_id:set.data.set_id,duration_sec:20,results:cards.map(r)});
+check((await missRound([['fibula',0],['tibia',1],['femur',1]])).success&&(await missRound([['fibula',0],['tibia',0],['femur',1]])).success,'Two more rounds miss fibula');
+check(JSON.stringify((await student('games/mastery.php')).data[keyOf('fibula')])==='[3,0]','Mastery follows the new rounds');
+const weak=(await teacher('games/mastery.php?section=Rizal')).data;
+check(weak[0].term==='fibula','Most-missed term comes first');
+check(JSON.stringify(weak.map(w=>[w.term,w.seen,w.correct,w.miss_rate]))===JSON.stringify([['fibula',3,0,1],['tibia',3,2,0.33],['femur',3,3,0]]),'Only terms seen 3+ times, as numbers, by miss rate');
+check(Array.isArray((await teacher('games/mastery.php?section=Bonifacio')).data)&&(await teacher('games/mastery.php?section=Bonifacio')).data.length===0,'Another section has no missed terms');
+check((await teacher('games/mastery.php')).status===422&&(await teacher('games/mastery.php?section=Nope')).status===422,'Teacher mastery needs an official section');
+check((await guest('games/mastery.php')).status===401&&(await student('games/mastery.php','POST',{})).status===405,'Mastery needs sign-in and is read-only');
+
+// Badges: every active rule with the live value and the date it was earned.
+const hiddenGoal=await teacher('achievements.php','POST',{title:'Hidden goal',metric:'games_played',threshold:1});
+check(hiddenGoal.success&&(await teacher('achievements.php?id='+hiddenGoal.data.achievement_id,'PUT',{is_active:false})).success,'Create and hide a goal');
+const badgeList=(await student('games/badges.php')).data;
+const firstGame=badgeList.find(b=>b.title==='First Game');
+check(firstGame.earned_at,'Badge list shows earned date');
+check(firstGame.metric==='games_played'&&firstGame.threshold===1&&firstGame.icon==='game-controller'&&firstGame.value>=1,'A badge carries its metric, target, icon and current value');
+const ace=badgeList.find(b=>b.title==='Anatomy Ace');
+check(ace.earned_at===null&&ace.threshold===10000&&ace.value>0&&ace.value<10000,'An unearned badge shows progress toward the target');
+check(badgeList.every(b=>Object.keys(b).sort().join()==='achievement_id,earned_at,icon,metric,threshold,title,value'&&(b.value===null||typeof b.value==='number')),'Every badge has the same fields, and the value is a number or null');
+check(badgeList.every((b,i)=>i===0||b.achievement_id>badgeList[i-1].achievement_id)&&!badgeList.some(b=>b.title==='Hidden goal'),'Badges are in rule order and hidden rules are left out');
+check((await teacher('games/badges.php')).status===403&&(await guest('games/badges.php')).status===401,'Badges are for signed-in students');
+
+// A long tail of missed cards: the teacher list stops at the 20 most missed, ties broken by term.
+for(let i=0;i<3;i++)check((await student('games/plays.php','POST',{game_key:'sort-it',difficulty:'easy',duration_sec:30,results:roundOf('cap',25,0)})).success,'Round of 25 missed cards '+(i+1));
+const capped=(await teacher('games/mastery.php?section=Rizal')).data;
+check(capped.length===20&&capped[0].term==='cap0'&&capped.every(w=>w.miss_rate===1&&w.seen===3&&w.correct===0),'Teacher mastery lists at most 20 terms');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');
