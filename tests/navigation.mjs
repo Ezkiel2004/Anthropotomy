@@ -54,7 +54,7 @@ for(const page of ['assessments','monitoring','dashboard','assessments','monitor
 let checked=0;
 for(const role of ['teacher','student']){
  if(role==='student'){
-   const created=await evaluate(`(async()=>{const response=await fetch('/api/students.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'navigation-student',full_name:'Navigation Student',school_id:'NAV-TEST',section:'Test',password:'navigation-test-password',grade_level:'Test',school_year:'Test'})});return response.json();})()`);
+   const created=await evaluate(`(async()=>{const response=await fetch('/api/students.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'navigation-student',full_name:'Navigation Student',school_id:'NAV-TEST',section:'Rizal',password:'navigation-test-password',school_year:'Test'})});return response.json();})()`);
    assert.ok(created.success,'Create isolated student fixture');
    await evaluate('Auth.logout()');await navigate('/login.html');
    await evaluate(`document.getElementById('username').value='navigation-student';document.getElementById('password').value='navigation-test-password';handleLogin();`);

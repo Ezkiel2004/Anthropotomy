@@ -144,13 +144,13 @@ if ($method === 'GET') {
     }
 
     // Available sections for filter dropdowns
-    $sections = $db->fetchAll(
-        "SELECT DISTINCT section FROM student_profiles WHERE section IS NOT NULL AND section != '' ORDER BY section"
-    );
+    // Official sections first, then any older section still on a student record.
+    $legacy = array_column($db->fetchAll("SELECT DISTINCT section FROM student_profiles WHERE section != '' ORDER BY section"), 'section');
+    $sections = array_values(array_unique([...SECTIONS, ...$legacy]));
 
     jsonSuccess([
         'students' => $students,
-        'sections' => array_column($sections, 'section'),
+        'sections' => $sections,
         'system_count' => (int) ($db->fetchOne('SELECT COUNT(*) AS c FROM body_systems WHERE is_active = 1')['c'] ?? 0),
     ]);
 }
@@ -165,7 +165,8 @@ if ($method === 'POST') {
     $section   = requireField($body, 'section', 'Section');
     $password  = requireField($body, 'password', 'Password');
     $email     = optionalField($body, 'email', null);
-    $grade     = requireField($body, 'grade_level', 'Grade level');
+    $grade     = GRADE_LEVEL;
+    if (!in_array($section, SECTIONS, true)) jsonError('Choose one of the class sections.', 422);
     $guardian  = optionalField($body, 'guardian_name', null);
     $contact   = optionalField($body, 'contact_no', null);
 
@@ -226,7 +227,8 @@ if ($method === 'PUT') {
     $fullName = optionalField($body, 'full_name', $student['full_name']);
     $email    = optionalField($body, 'email', $student['email']);
     $section  = optionalField($body, 'section', null);
-    $grade    = optionalField($body, 'grade_level', null);
+    $grade    = null;
+    if ($section !== null && !in_array($section, SECTIONS, true)) jsonError('Choose one of the class sections.', 422);
     $guardian = optionalField($body, 'guardian_name', null);
     $contact  = optionalField($body, 'contact_no', null);
 

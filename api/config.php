@@ -32,5 +32,6 @@ foreach ($db->fetchAll('SELECT setting_key, setting_value FROM app_settings') as
 }
 if ($settings['academic_year'] === '') $settings['academic_year'] = currentSchoolYear();
 foreach (gradingPolicy() as $key => $value) if ($settings[$key] === '') $settings[$key] = (string)(0 + $value);
+$settings['sections'] = SECTIONS;
 $settings['system_count'] = (int)$db->fetchOne('SELECT COUNT(*) AS n FROM body_systems WHERE is_active = 1')['n'];
 jsonSuccess($settings);

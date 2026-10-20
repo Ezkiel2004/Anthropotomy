@@ -13,6 +13,10 @@ ini_set('log_errors', '1');
 // ── Include Database & Auth Classes ─────────────────────────────
 require_once __DIR__ . '/../database/connection.php';
 
+// Grade 11 only. Starter sections; edit this list to rename or add sections.
+const GRADE_LEVEL = 'Grade 11';
+const SECTIONS = ['Rizal', 'Bonifacio', 'Mabini', 'Luna'];
+
 set_exception_handler(function (Throwable $error): void {
     error_log((string)$error);
     jsonError('The request could not be completed. Please try again or contact your teacher.', 500);

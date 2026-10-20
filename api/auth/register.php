@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../helpers.php';
 requireMethod('POST');
 $body = getJsonBody();
-$limits = ['full_name'=>120, 'school_id'=>20, 'email'=>150, 'contact_no'=>20, 'grade_level'=>20, 'section'=>60, 'username'=>50];
+$limits = ['full_name'=>120, 'school_id'=>20, 'email'=>150, 'contact_no'=>20, 'section'=>60, 'username'=>50];
 $data = [];
 foreach ($limits as $key => $limit) {
     if (!isset($body[$key]) || !is_string($body[$key]) || trim($body[$key]) === '' || mb_strlen(trim($body[$key])) > $limit) {
@@ -20,8 +20,7 @@ if (!is_string($body['confirm_password'] ?? null) || $password !== $body['confir
 if (($body['terms'] ?? false) !== true) jsonError('Please agree to the Terms and Conditions.', 422);
 $db = Database::getInstance();
 $settings = schoolSettings();
-$grades = array_merge(['Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12','1st Year','2nd Year','3rd Year','4th Year','5th Year','Graduate'], [$settings['grade_level'] ?? '']);
-if (!in_array($data['grade_level'], $grades, true)) jsonError('Select a valid grade or year level.', 422);
+if (!in_array($data['section'], SECTIONS, true)) jsonError('Select your section.', 422);
 $schoolYear = trim($settings['academic_year'] ?? '') ?: currentSchoolYear();
 if ($schoolYear === '' || mb_strlen($schoolYear) > 20) jsonError('Registration is not ready yet. Ask your teacher to configure the school academic year.', 409);
 // Prevent ambiguous student-ID/username identifiers. Existing usernames retain login priority.
@@ -33,7 +32,7 @@ $pdo = $db->getConnection();
 try {
     $pdo->beginTransaction();
     $id = $db->insert('users', ['username'=>$data['username'], 'password_hash'=>password_hash($password, PASSWORD_BCRYPT, ['cost'=>12]), 'role'=>'student', 'full_name'=>$data['full_name'], 'email'=>$data['email'], 'is_active'=>1]);
-    $db->insert('student_profiles', ['user_id'=>$id, 'student_id'=>$data['school_id'], 'section'=>$data['section'], 'grade_level'=>$data['grade_level'], 'contact_no'=>$data['contact_no'], 'school_year'=>$schoolYear]);
+    $db->insert('student_profiles', ['user_id'=>$id, 'student_id'=>$data['school_id'], 'section'=>$data['section'], 'grade_level'=>GRADE_LEVEL, 'contact_no'=>$data['contact_no'], 'school_year'=>$schoolYear]);
     _updateProgressSummary($id, $db);
     $pdo->commit();
     jsonSuccess(null, 'Your student account has been created. You can now sign in.', 201);

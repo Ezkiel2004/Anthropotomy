@@ -39,12 +39,12 @@ try {
  const c = CREDENTIALS;
  const req = async(path,body,method='POST') => { const r=await fetch('/api/'+path,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,...await r.json()};};
  let n=0; const check=(condition,label)=>{if(!condition)throw Error(label);n++;};
- const fixture={full_name:'Auth Test Student',school_id:'AUTH-ID-2026',email:'auth@example.com',contact_no:'09171234567',grade_level:'Grade 10',section:'Auth Section',username:'auth-student',password:'StudyWell!2026',confirm_password:'StudyWell!2026',terms:true};
+ const fixture={full_name:'Auth Test Student',school_id:'AUTH-ID-2026',email:'auth@example.com',contact_no:'09171234567',section:'Rizal',username:'auth-student',password:'StudyWell!2026',confirm_password:'StudyWell!2026',terms:true};
  check((await req('auth/register.php',fixture)).status===409,'Unconfigured school year blocked');
  check((await req('auth/login.php',c)).success,'Existing teacher login');
  check((await req('config.php',{academic_year:'2026-2027',school_name:'Anthropotomy Test School',grade_level:'Grade 10'},'PUT')).success,'Configure isolated school');
  await req('auth/logout.php',{});
- for(const [change,status,label] of [[{email:'invalid'},422,'Email validation'],[{terms:false},422,'Terms required'],[{confirm_password:'different'},422,'Password match'],[{password:'short',confirm_password:'short'},422,'Short password'],[{full_name:[]},422,'Malformed field'],[{contact_no:'hello'},422,'Phone validation'],[{grade_level:'Invalid'},422,'Grade validation']])check((await req('auth/register.php',{...fixture,...change})).status===status,label);
+ for(const [change,status,label] of [[{email:'invalid'},422,'Email validation'],[{section:'Not A Section'},422,'Only official sections'],[{terms:false},422,'Terms required'],[{confirm_password:'different'},422,'Password match'],[{password:'short',confirm_password:'short'},422,'Short password'],[{full_name:[]},422,'Malformed field'],[{contact_no:'hello'},422,'Phone validation'],[{grade_level:'Invalid'},422,'Grade validation']])check((await req('auth/register.php',{...fixture,...change})).status===status,label);
  check((await req('auth/register.php',{...fixture,role:'admin'})).status===201,'Registration succeeds');
  check((await req('auth/register.php',fixture)).status===409,'Duplicate blocked');
  check((await req('auth/login.php',{username:fixture.school_id,password:'wrong'})).status===401,'Wrong password blocked');

@@ -172,7 +172,7 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         assert.equal(await evaluate(`document.getElementById('studentCountBadge').textContent`),await evaluate(`document.getElementById('statTotal').textContent`),'Sidebar count matches loaded records');
         await evaluate(`document.getElementById('studentCountBadge').remove();loadStudents()`);
         assert.ok((await evaluate(`document.getElementById('studentListTbody').innerText`)).includes('Test Student'),'Missing optional sidebar badge cannot break the student table');
-        await evaluate(`(async()=>{openModal('addStudentModal');const values={addFullName:'Browser Created Student',addSchoolId:'BROWSER-STUDENT',addUsername:'browser-student',addPassword:'browser-password-123',addSection:'Browser Section',addGrade:'Browser Grade',addSchoolYear:'Browser Year'};Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value);await handleAddStudent({preventDefault(){}});})()`);
+        await evaluate(`(async()=>{openModal('addStudentModal');const values={addFullName:'Browser Created Student',addSchoolId:'BROWSER-STUDENT',addUsername:'browser-student',addPassword:'browser-password-123',addSection:'Rizal',addSchoolYear:'Browser Year'};Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value);await handleAddStudent({preventDefault(){}});})()`);
         await new Promise(resolve=>setTimeout(resolve,350));
         assert.ok((await evaluate('document.body.innerText')).includes('Browser Created Student'),'Student form saves and reloads the database roster');
     }

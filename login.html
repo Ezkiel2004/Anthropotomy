@@ -72,10 +72,7 @@
             <legend class="sr-only">About you</legend>
             <div class="field"><label for="fullName">Full name</label><div class="au-input"><input id="fullName" name="full_name" autocomplete="name" required maxlength="120"></div></div>
             <div class="field"><label for="studentId">Student ID</label><div class="au-input"><input id="studentId" name="school_id" required maxlength="20" aria-describedby="studentIdHint"></div><small id="studentIdHint">The ID your school issued you.</small></div>
-            <div class="au-row">
-              <div class="field"><label for="gradeLevel">Grade or year</label><div class="au-input au-select"><select id="gradeLevel" name="grade_level" required><option value="">Select</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option><option>5th Year</option><option>Graduate</option></select><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#caret-down"/></svg></div></div>
-              <div class="field"><label for="section">Section or course</label><div class="au-input"><input id="section" name="section" required maxlength="60" placeholder="e.g. Rizal"></div></div>
-            </div>
+            <div class="field"><label for="section">Section</label><div class="au-input au-select"><select id="section" name="section" required><option value="">Select your section</option></select><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#caret-down"/></svg></div></div>
             <button class="au-btn" type="button" id="regNext"><span>Continue</span><span class="au-btn-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></span></button>
           </fieldset>
           <fieldset class="au-step" id="regStep2" hidden>
@@ -117,7 +114,7 @@
     <p class="au-lead">Your account details and learning activity are stored in this system so your teachers can manage your profile and monitor academic progress. Contact your teacher to request corrections or help with your account.</p>
     <button type="button" class="au-btn au-btn--quiet dialog-close">Close</button>
   </dialog>
-  <script src="assets/js/login.js?v=20261015-auth1"></script>
+  <script src="assets/js/login.js?v=20261020-sect1"></script>
   <script src="assets/js/site-config.js"></script>
 </body>
 </html>

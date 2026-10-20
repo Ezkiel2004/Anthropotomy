@@ -109,9 +109,7 @@
           <div class="chip" onclick="setFilterStatus(this, 'inactive')">Inactive</div>
         </div>
         <div style="display:flex;gap:var(--space-3);align-items:center;">
-          <select id="sectionFilter" onchange="filterStudents()" aria-label="Filter by section">
-            <option value="">All Sections</option>
-          </select>
+          <select id="sectionFilter" onchange="filterStudents()" aria-label="Section"></select>
           <div class="search-bar">
             <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
             <input type="text" id="studentSearchInput" placeholder="Search by name, ID, username..." oninput="filterStudents()"/>
@@ -177,11 +175,9 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-3);">
             <div class="form-group">
               <label>Section *</label>
-              <div class="input-wrapper"><input type="text" id="addSection" placeholder="Student section" required/></div>
+              <div class="input-wrapper"><select id="addSection" required></select></div>
             </div>
-            <div class="form-group">
-              <label>Grade Level</label>
-              <div class="input-wrapper"><input type="text" id="addGrade" required placeholder="Grade level"/></div></div><div class="form-group"><label for="addSchoolYear">School year *</label><div class="input-wrapper"><input type="text" id="addSchoolYear" required placeholder="School year"/></div>
+            <div class="form-group"><label for="addSchoolYear">School year *</label><div class="input-wrapper"><input type="text" id="addSchoolYear" required placeholder="School year"/></div>
             </div>
           </div>
           <div class="form-group">
@@ -260,17 +256,13 @@ async function loadStudents() {
     const countBadge = document.getElementById('studentCountBadge');
     if (countBadge) countBadge.textContent = allStudents.length;
 
-    // Populate section filter
+    // One section at a time; keep the chosen section across reloads.
     const secSelect = document.getElementById('sectionFilter');
-    secSelect.innerHTML = '<option value="">All Sections</option>';
-    availableSections.forEach(sec => {
-      const opt = document.createElement('option');
-      opt.value = sec;
-      opt.textContent = sec;
-      secSelect.appendChild(opt);
-    });
+    const chosen = secSelect.value;
+    secSelect.replaceChildren(...availableSections.map(sec => new Option(sec, sec)));
+    if (availableSections.includes(chosen)) secSelect.value = chosen;
 
-    renderStudentsTable(allStudents);
+    filterStudents();
   } catch (err) {
     console.error(err);
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--error);padding:2rem;">${dataLoaded ? 'Student records loaded, but the list could not be displayed. Reload the page to try again.' : 'Unable to load student records. Check your connection and try again.'}</td></tr>`;
@@ -340,9 +332,7 @@ function filterStudents() {
 
   let filtered = [...allStudents];
 
-  if (selectedSection) {
-    filtered = filtered.filter(s => s.section === selectedSection);
-  }
+  filtered = filtered.filter(s => s.section === selectedSection);
 
   if (currentStatusFilter !== 'all') {
     filtered = filtered.filter(s => {
@@ -522,8 +512,7 @@ async function handleAddStudent(e) {
     username:      document.getElementById('addUsername').value.trim(),
     school_year: document.getElementById('addSchoolYear').value.trim(),
     password:      document.getElementById('addPassword').value,
-    section:       document.getElementById('addSection').value.trim(),
-    grade_level:   document.getElementById('addGrade').value.trim(),
+    section:       document.getElementById('addSection').value,
     email:         document.getElementById('addEmail').value.trim() || null,
     guardian_name: document.getElementById('addGuardian').value.trim() || null,
     contact_no:    document.getElementById('addContact').value.trim() || null,
@@ -541,7 +530,6 @@ async function handleAddStudent(e) {
       showToast('Student registered successfully!', 'success');
       closeModal('addStudentModal');
       document.getElementById('addStudentForm').reset();
-      document.getElementById('addGrade').value = SiteConfig.data.grade_level || '';
       document.getElementById('addSchoolYear').value = SiteConfig.data.academic_year || '';
       loadStudents();
     } else {
@@ -597,7 +585,7 @@ loadStudents();
 <script src="../assets/js/site-config.js"></script>
 <script>
 document.addEventListener('siteconfigloaded', e => {
- document.getElementById('addGrade').value ||= e.detail.grade_level || '';
+ document.getElementById('addSection').replaceChildren(...(e.detail.sections || []).map(sec => new Option(sec, sec)));
  document.getElementById('addSchoolYear').value ||= e.detail.academic_year || '';
 });
 async function resetStudentPassword() {

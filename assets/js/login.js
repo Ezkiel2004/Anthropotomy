@@ -187,10 +187,9 @@ try {
     const remembered = localStorage.getItem('anthropotomy_remember');
     if (remembered) { byId('username').value = remembered; byId('rememberMe').checked = true; }
 } catch (_) { /* Remembering a username is optional. */ }
-// Reuse the school's configured grade when it differs from the standard options.
+// Sections come from the server's single list (api/helpers.php).
 document.addEventListener('siteconfigloaded', event => {
-    const grade = event.detail.grade_level;
-    if (grade && ![...byId('gradeLevel').options].some(option => option.value === grade)) byId('gradeLevel').add(new Option(grade, grade));
+    (event.detail.sections || []).forEach(section => byId('section').add(new Option(section, section)));
 });
 fetch(API_BASE + '/auth/session.php', {credentials:'same-origin'}).then(response => response.json()).then(result => {
     if (result.success) location.replace(destination(result.data.role));
