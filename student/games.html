@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Games | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
+  <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
+  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261019-acct1"/>
+  <link rel="stylesheet" href="../assets/css/games.css?v=20261020-games1"/>
+  <script type="module" src="../assets/js/gravity-stars.js?v=20261019-stars2"></script>
+</head>
+<body class="student-dashboard stage-portal games-page" data-gravity-stars>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261020-games1"></script></aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content" id="mainContent">
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
+      <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Games</span></div>
+      <div class="topbar-actions">
+        <div style="position:relative;">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
+            <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+            <div class="notif-header"><span>Notifications</span><a href="notifications.html">Mark all read</a></div>
+            <div class="notif-list"></div>
+            <div class="notif-footer"><a href="notifications.html">View all</a></div>
+          </div>
+        </div>
+        <a href="settings.html" class="topbar-user" style="text-decoration:none;color:inherit;" title="Manage Account">
+          <div class="avatar">MS</div>
+          <div>
+            <div class="topbar-user-name">Student</div>
+            <div class="topbar-user-role">Student</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <div class="page-content sd">
+      <header class="sd-head">
+        <div>
+          <h1 class="sd-title">Games</h1>
+          <p class="sd-sub">Learn anatomy terms by playing. Earn points for this week's board and collect badges. Games never change your quiz grades.</p>
+        </div>
+      </header>
+
+      <div class="dashboard-empty sd-error" id="gamesError" role="status" hidden></div>
+
+      <section class="sd-empty" id="gamesEmpty" aria-labelledby="gamesEmptyTitle" hidden>
+        <h2 class="sd-empty-title" id="gamesEmptyTitle">No game content yet</h2>
+        <p>The games use your class's body systems and your teacher's game sets. Once either is added, you can play here.</p>
+      </section>
+
+      <section class="sd-block game-picker" id="gamesPicker" aria-labelledby="pickerTitle">
+        <div class="sd-h"><h2 id="pickerTitle" class="sd-h-title">Pick a game</h2><span class="sd-count" id="poolCount"></span></div>
+        <div class="game-controls">
+          <div class="sd-field game-pool">
+            <label for="gamePool">Cards from</label>
+            <select id="gamePool" class="sd-select"></select>
+          </div>
+          <fieldset class="game-difficulty">
+            <legend>Difficulty</legend>
+            <div class="game-seg" id="difficultyOptions"></div>
+          </fieldset>
+        </div>
+        <div class="sd-grid game-cards" id="gameCards"><div class="sd-loading">Loading games…</div></div>
+      </section>
+
+      <section class="sd-block game-play-view" id="gamePlay" aria-labelledby="gamePlayTitle" hidden>
+        <div class="sd-h"><h2 id="gamePlayTitle" class="sd-h-title" tabindex="-1">Game</h2><span class="sd-count" id="gamePlayMeta"></span></div>
+        <div class="game-run" id="gameRun"></div>
+      </section>
+
+      <div class="sd-pair game-side" id="gamesSide">
+        <section class="sd-block" aria-labelledby="leaderboardTitle">
+          <div class="sd-h"><h2 id="leaderboardTitle" class="sd-h-title">This week in your section</h2><span class="sd-count" id="leaderboardSection"></span></div>
+          <div class="sd-panel game-ranks">
+            <ol class="game-rank-list" id="leaderboardList" aria-label="Top points this week"><li class="sd-loading">Loading the leaderboard…</li></ol>
+            <p class="game-rank-me" id="leaderboardMe" hidden></p>
+            <p class="game-rank-empty" id="leaderboardEmpty" hidden></p>
+          </div>
+        </section>
+        <section class="sd-block" aria-labelledby="badgesTitle">
+          <div class="sd-h"><h2 id="badgesTitle" class="sd-h-title">Badges</h2><span class="sd-count" id="badgeCount"></span></div>
+          <ul class="sd-achievements game-badges" id="badgeList"><li class="sd-loading">Loading badges…</li></ul>
+          <p class="dashboard-empty" id="badgesEmpty" hidden></p>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/app.js?v=20261019-acct1"></script>
+<script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
+<script>
+'use strict';
+Auth.requireAuthSync('student');
+</script>
+<!-- 3D Hunt's engine: classic scripts, loaded before the games module -->
+<script src="../assets/vendor/three/three.min.js"></script>
+<script src="../assets/vendor/three/OrbitControls.js"></script>
+<script src="../assets/vendor/three/GLTFLoader.js"></script>
+<script src="../assets/vendor/three/DRACOLoader.js"></script>
+<script src="../assets/js/anatomy-layers-core.js?v=20261011-female1"></script>
+<script src="../assets/js/model-viewer.js?v=20261016-stage3"></script>
+<script type="module" src="../assets/js/games/student-page.js?v=20261020-games1"></script>
+<script src="../assets/js/site-config.js"></script>
+</body>
+</html>

@@ -87,6 +87,10 @@
         <span class="nav-label">Quizzes and Activities</span>
         <span class="nav-badge" style="display:none;">0</span>
       </a>
+      <a class="nav-item" href="games.html" data-tooltip="Games">
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg></span>
+        <span class="nav-label">Games</span>
+      </a>
       <div class="nav-section-label">My Progress</div>
       <a class="nav-item" href="progress.html" data-tooltip="Progress">
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg></span>

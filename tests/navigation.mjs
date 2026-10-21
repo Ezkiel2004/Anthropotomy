@@ -31,7 +31,7 @@ assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher l
 
 const expected={
  teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','anatomy'],
- student:['dashboard','anatomy','lessons','quiz','progress']
+ student:['dashboard','anatomy','lessons','quiz','games','progress']
 };
 // Both sidebars start with a Home link to the public landing page.
 const menu=role=>['index.html',...expected[role].map(p=>p+'.html')];
@@ -66,14 +66,21 @@ for(const role of ['teacher','student']){
    assert.equal(await evaluate('location.pathname'),'/'+role+'/'+page+'.html');
    const navigation=await evaluate(`[...document.querySelectorAll('.sidebar-nav .nav-item')].map(a=>({href:new URL(a.href).pathname.split('/').pop(),label:a.querySelector('.nav-label').textContent.trim(),icon:!!a.querySelector('.nav-icon svg')}))`);
    assert.deepEqual(navigation.map(a=>a.href),menu(role),role+'/'+page+' has every navigation link in the same order');
+   if(role==='student'){
+     assert.equal(navigation.length,7,'The student sidebar has seven links');
+     const games=navigation.findIndex(a=>a.href==='games.html');
+     assert.ok(games>0&&navigation[games-1].href==='quiz.html'&&navigation[games].label==='Games','Games sits right after Quizzes');
+     assert.equal(await evaluate(`document.querySelector('.sidebar-nav a[href*="games.html"] use').getAttribute('href').split('#').pop()`),'game-controller','Games uses the game-controller icon');
+   }
+   // A fresh database has no systems and no sets, so every pool is empty.
+   if(role==='student'&&page==='games')assert.ok(await waitFor(`!document.getElementById('gamesEmpty').hidden&&document.getElementById('gamesEmpty').textContent.includes('No game content yet')&&document.getElementById('gamesPicker').hidden`),'An empty install shows "No game content yet"');
    assert.ok(navigation.every(a=>a.icon),'Every link has an icon when collapsed');
    baseline??=navigation;assert.deepEqual(navigation,baseline,'Labels and icons are consistent');
    const inMenu=expected[role].includes(page);
    assert.deepEqual(await evaluate(`[...document.querySelectorAll('.sidebar-nav [aria-current="page"]')].map(a=>new URL(a.href).pathname.split('/').pop())`),inMenu?[page+'.html']:[],'Correct page is selected');
    assert.equal(await evaluate(`document.querySelectorAll('.sidebar-nav .active').length`),inMenu?1:0,'At most one active navigation item');
-   // Teachers open their profile from the sidebar footer; students from the top bar account menu.
-   if(role==='teacher')assert.equal(await evaluate(`document.querySelector('.sidebar-profile').getAttribute('href')`),'settings.html');
-   else assert.equal(await evaluate(`document.querySelector('#accountDropdown a')?.getAttribute('href')`),'settings.html#profile','Account menu opens the profile');
+   // Both portals open the profile from the top bar account menu (the teacher sidebar footer card is gone).
+   assert.equal(await evaluate(`document.querySelector('#accountDropdown a')?.getAttribute('href')`),'settings.html#profile','Account menu opens the profile');
    await evaluate(`document.getElementById('sidebarToggle').click()`);
    assert.equal(await evaluate(`document.getElementById('sidebar').classList.contains('collapsed')`),true,'Desktop collapse works');
    await evaluate(`document.getElementById('sidebarToggle').click()`);

@@ -67,6 +67,11 @@ await teacher('students.php?id='+uid,'PUT',{section:'Rizal'});
 await student('anatomy-content.php');
 const exploration=await student('analytics/exploration.php','POST',{system_id:sid,duration_secs:999999,interactions:999999});
 check(exploration.success && exploration.data.duration_secs<5,'Exploration time bounded by server elapsed time');
+// The Games page reads the systems with ?games=1; that must not restart the explorer's study clock.
+await new Promise(resolve=>setTimeout(resolve,2100));
+check((await student('anatomy-content.php?games=1')).success,'Games read the active systems');
+const afterGames=await student('analytics/exploration.php','POST',{system_id:sid,duration_secs:999,interactions:0});
+check(afterGames.success&&afterGames.data.duration_secs>=2,'Loading systems for the games keeps the exploration clock running');
 check((await teacher('achievements.php','POST',{title:'First completion',metric:'completed_lessons',threshold:1})).success,'Create configurable goal');
 const goalStats=await student('dashboard/student-stats.php');
 check(goalStats.data.achievements.find(a=>a.name==='First completion')?.earned,'Database goal evaluated');

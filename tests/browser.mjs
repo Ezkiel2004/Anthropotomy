@@ -15,6 +15,9 @@ await call('Network.enable');
 await call('Network.clearBrowserCookies');
 const explorationPosts=[];
 socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.requestWillBeSent' && data.params.request.method==='POST' && data.params.request.url.includes('/analytics/exploration.php'))explorationPosts.push(data.params.request.url);});
+// Every round the Games page sends, as the raw request body.
+const playPosts=[];
+socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.requestWillBeSent' && data.params.request.method==='POST' && data.params.request.url.includes('/games/plays.php'))playPosts.push(data.params.request.postData);});
 async function waitFor(expression,timeout=15000){for(let waited=0;waited<timeout;waited+=200){try{if(await evaluate(expression))return true;}catch{/* The page is mid-navigation. */}await new Promise(resolve=>setTimeout(resolve,200));}return false;}
 async function navigate(path){
     await call('Page.navigate',{url:base+path});
@@ -283,6 +286,116 @@ for(const page of ['dashboard','lessons','quiz','progress','scores','notificatio
     }
     checked++;
 }
+// Practice games. Review Focus 1: a teacher card whose term is HTML plays and shows as literal text.
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const teacherApi=(()=>{let cookie='';return async(path,method='GET',body)=>{const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');return response.json();};})();
+assert.ok((await teacherApi('auth/login.php','POST',credentials)).success,'Teacher signs in to add game content');
+const xssTerm='<img src=x onerror=window.__xss=1>';
+const setCards=[{term:xssTerm,clue:'Markup that must stay text'},{term:'Femur',clue:'Thigh bone'},{term:'Tibia',clue:'Shin bone'},{term:'Patella',clue:'Kneecap'}];
+const xssSet=await teacherApi('games/sets.php','POST',{title:'Browser <b>set</b>',system_id:null,cards:setCards});
+assert.ok(xssSet.success,'Teacher makes a set whose first term is HTML');
+assert.ok((await teacherApi('anatomy-content.php','POST',{system_name:'Endocrine System',system_code:'endocrine',color_hex:'#2ccf9a',description:'Glands',is_active:true,key_facts:{},structures:[],model_url:'/system_model/layers/endocrine.glb'})).success,'Add the endocrine system with its layered model');
+const gamesPlayed=await evaluate(`fetch('/api/games/badges.php').then(r=>r.json()).then(r=>r.data.find(b=>b.metric==='games_played').value)`);
+assert.ok((await teacherApi('achievements.php','POST',{title:'<i>Browser badge</i>',metric:'games_played',threshold:gamesPlayed+1,icon:'trophy'})).success,'Add a badge the next round earns');
+const pickPool=value=>evaluate(`(()=>{const select=document.getElementById('gamePool');select.value=${JSON.stringify(value)};select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+const gameCard=key=>`document.querySelector('#gameCards .game-card[data-game="${key}"]')`;
+// Reads every tile while Easy shows them face up, then matches the set's cards in order. With missFirst,
+// the first term is first paired with the second card's clue, so both of those cards count as missed.
+const playMatchPairs=async({missFirst})=>{
+    assert.ok(await waitFor(`document.querySelectorAll('#gameRun .game-tile.is-up').length===${setCards.length*2}`),'Easy shows every tile first');
+    const faces=await evaluate(`[...document.querySelectorAll('#gameRun .game-tile')].map(tile=>tile.textContent)`);
+    assert.ok(await waitFor(`document.querySelectorAll('#gameRun .game-tile.is-up').length===0`),'The tiles turn face down after the preview');
+    const flip=async text=>{assert.ok(faces.includes(text),'A tile shows '+text);await evaluate(`document.querySelectorAll('#gameRun .game-tile')[${faces.indexOf(text)}].click()`);await pause(150);};
+    if(missFirst){
+        await flip(setCards[0].term);await flip(setCards[1].clue);
+        assert.ok(await waitFor(`document.querySelectorAll('#gameRun .game-tile.is-up').length===0`),'A wrong pair turns back over');
+    }
+    for(const card of setCards){await flip(card.term);await flip(card.clue);}
+    return faces;
+};
+const resultStats=()=>evaluate(`Object.fromEntries([...document.querySelectorAll('#gameRun .game-results [data-stat]')].map(e=>[e.dataset.stat,e.textContent.trim()]))`);
+await evaluate(`localStorage.removeItem('anthropotomy_game_difficulty')`);
+await navigate('/student/games.html');
+assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Student stays authenticated: games');
+assert.ok(await waitFor(`document.querySelectorAll('#gameCards .game-card').length===5`),'The page shows one card per game');
+const poolNames=await evaluate(`[...document.getElementById('gamePool').options].map(o=>o.textContent)`);
+assert.ok(poolNames[0]==='All systems'&&poolNames.includes('Endocrine System')&&poolNames.includes('Leg bones')&&poolNames.includes('Browser <b>set</b>'),'The pool picker lists all systems, each system with cards and each set, titles as text: '+JSON.stringify(poolNames));
+assert.equal(await evaluate(`document.querySelector('input[name="gameDifficulty"]:checked').value`),'medium','Difficulty starts on Medium');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('input[name="gameDifficulty"]')].map(input=>input.closest('label').textContent.replace(/\\s+/g,' ').trim())`),['Easy ×1','Medium ×1.5','Hard ×2'],'Each difficulty shows its points multiplier');
+assert.equal(await evaluate(`document.getElementById('leaderboardTitle').textContent`),'This week in your section','Leaderboard heading');
+assert.ok(await waitFor(`document.querySelectorAll('#leaderboardList li').length===10&&document.querySelector('#leaderboardList li.is-me')?.textContent.includes('Test Student')&&document.getElementById('leaderboardMe').hidden`),'The board lists the top ten and highlights the student instead of repeating their rank');
+assert.equal(await evaluate(`document.getElementById('badgesTitle').textContent`),'Badges','Badges heading');
+assert.ok(await waitFor(`document.querySelectorAll('#badgeList .game-badge.is-earned').length>0&&document.querySelectorAll('#badgeList .game-badge:not(.is-earned)').length>0`),'The badges list shows earned and locked badges');
+assert.ok(await evaluate(`[...document.querySelectorAll('#badgeList .game-badge:not(.is-earned)')].some(b=>/\\d+ \\/ 10,?000/.test(b.textContent))`),'A locked badge shows progress toward its target');
+assert.ok(await evaluate(`${gameCard('hunt-3d')}.classList.contains('is-unavailable')&&${gameCard('hunt-3d')}.querySelector('.game-play').disabled`),'3D Hunt needs a single body system');
+await call('Emulation.setDeviceMetricsOverride',{width:375,height:812,deviceScaleFactor:1,mobile:true});
+await pause(400);
+assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'The Games picker fits a 375px phone');
+await call('Emulation.clearDeviceMetricsOverride');
+await pause(300);
+await pickPool('set:'+xssSet.data.set_id);
+assert.ok(await evaluate(`${gameCard('match-pairs')}.classList.contains('is-unavailable')&&${gameCard('match-pairs')}.querySelector('.game-play').disabled&&${gameCard('match-pairs')}.textContent.includes('Needs at least 6 terms')`),'Medium Match Pairs needs 6 terms, so a 4-card set greys it out with the reason');
+await evaluate(`document.querySelector('input[name="gameDifficulty"][value="easy"]').click()`);
+assert.equal(await evaluate(`localStorage.getItem('anthropotomy_game_difficulty')`),'easy','The chosen difficulty is remembered');
+assert.ok(await evaluate(`!${gameCard('match-pairs')}.classList.contains('is-unavailable')&&!${gameCard('match-pairs')}.querySelector('.game-play').disabled`),'Easy Match Pairs plays a 4-card set');
+// Round 1: one wrong pair first, then every match.
+await evaluate(`${gameCard('match-pairs')}.querySelector('.game-play').click()`);
+assert.ok(await evaluate(`document.getElementById('gamesPicker').hidden&&!document.getElementById('gamePlay').hidden`),'The game takes over the page');
+assert.equal(await evaluate(`document.querySelectorAll('#gamePlay .game-back, #gamePlay .game-again').length`),0,'A running round offers no way back');
+const faces=await playMatchPairs({missFirst:true});
+assert.ok(faces.includes(xssTerm),'The HTML term is shown on its tile as text');
+assert.ok(await waitFor(`Boolean(document.querySelector('#gameRun .game-results'))`),'The results screen appears');
+assert.equal(await evaluate('typeof window.__xss'),'undefined','A term made of HTML never runs');
+assert.equal(await evaluate(`document.querySelectorAll('#gamePlay img, .game-toasts img').length`),0,'No element is built from the term');
+assert.ok(await waitFor(`document.querySelector('#gameRun .game-save').textContent.includes('Saved')`),'The round is saved');
+assert.deepEqual(await resultStats(),{correct:'2 / 4',points:'24',streak:'2'},'Results show correct of total, the server points and the best streak');
+assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameRun .game-missed-term')].map(e=>e.textContent)`),[xssTerm,'Femur'],'The missed cards are listed, the HTML term as literal text');
+assert.ok(await evaluate(`[...document.querySelectorAll('#gameRun .game-missed li')].some(li=>li.textContent.includes('Markup that must stay text'))`),'Missed cards show their clues');
+assert.ok((await evaluate('document.body.innerText')).includes(xssTerm),'The term is visible on the page as typed');
+const firstRound=JSON.parse(playPosts.at(-1));
+assert.ok(firstRound.game_key==='match-pairs'&&firstRound.difficulty==='easy'&&firstRound.set_id===xssSet.data.set_id&&!('system_code' in firstRound)&&firstRound.duration_sec>=4,'The round posts its game, difficulty, set and duration: '+JSON.stringify(firstRound).slice(0,160));
+assert.deepEqual(firstRound.results.map(r=>[r.card_key,r.term,r.correct]),setCards.map((card,i)=>['set:'+xssSet.data.set_id+':'+card.term.toLowerCase(),card.term,i>1]),'Each card is posted once, in the order it was decided');
+assert.ok(await waitFor(`[...document.querySelectorAll('.game-toasts .game-toast')].some(t=>t.textContent.includes('<i>Browser badge</i>')&&t.querySelector('use')?.getAttribute('href').endsWith('#trophy')&&!t.querySelector('i'))`),'A new badge pops up with its icon and its title as text');
+await call('Emulation.setDeviceMetricsOverride',{width:375,height:812,deviceScaleFactor:1,mobile:true});
+await pause(400);
+assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'The results screen fits a 375px phone');
+await call('Emulation.clearDeviceMetricsOverride');
+await pause(300);
+// Round 2, from Play again, with the network down: the results still show, and Retry sends the same round.
+await call('Fetch.enable',{patterns:[{urlPattern:'*/api/games/plays.php*'}]});
+const offline=event=>{const data=JSON.parse(event.data);if(data.method==='Fetch.requestPaused')call('Fetch.failRequest',{requestId:data.params.requestId,errorReason:'InternetDisconnected'}).catch(()=>{});};
+socket.addEventListener('message',offline);
+const postsBefore=playPosts.length;
+await evaluate(`document.querySelector('#gameRun .game-again').click()`);
+await playMatchPairs({missFirst:false});
+assert.ok(await waitFor(`document.querySelector('#gameRun .game-results .game-save')?.textContent.includes("Couldn't save this round")`),'A failed save still shows the results');
+assert.equal((await resultStats()).correct,'4 / 4','The unsaved round still shows its score');
+assert.equal(await evaluate(`document.querySelector('#gameRun .game-retry').hidden`),false,'Retry is offered');
+socket.removeEventListener('message',offline);
+await call('Fetch.disable');
+await evaluate(`document.querySelector('#gameRun .game-retry').click()`);
+assert.ok(await waitFor(`document.querySelector('#gameRun .game-save').textContent.includes('Saved')`),'Retry saves the round');
+assert.equal(playPosts.length,postsBefore+2,'One failed post and one retry');
+assert.equal(playPosts.at(-1),playPosts.at(-2),'Retry resends the same request body');
+assert.deepEqual(await resultStats(),{correct:'4 / 4',points:'48',streak:'4'},'The retried round shows its points');
+assert.equal(await evaluate(`document.querySelector('#gameRun .game-retry').hidden`),true,'Retry goes away once saved');
+// Round 3: 3D Hunt on the smallest system. The engine hands onPartClick the part under a click.
+await evaluate(`document.querySelector('#gameRun .game-back').click()`);
+assert.ok(await evaluate(`!document.getElementById('gamesPicker').hidden&&document.getElementById('gamePlay').hidden`),'Choose another game returns to the picker');
+await pickPool('sys:endocrine');
+assert.ok(await evaluate(`!${gameCard('hunt-3d')}.classList.contains('is-unavailable')`),'3D Hunt is offered for one body system');
+await evaluate(`${gameCard('hunt-3d')}.querySelector('.game-play').click()`);
+assert.ok(await waitFor(`/^Find: /.test(document.querySelector('#gameRun .game-hunt-3d:not(.is-loading) .game-prompt')?.textContent||'')`,30000),'3D Hunt loads the endocrine model and names a part');
+assert.ok(await evaluate(`document.querySelector('#gameRun .game-viewer').getBoundingClientRect().height>200`),'The 3D viewer has room on the page');
+await evaluate(`(()=>{const term=document.querySelector('#gameRun .game-prompt').textContent.slice(6);AnatomyViewer.onPartClick([...AnatomyViewer.layerState('endocrine').parts.values()].find(part=>part.userData.name===term));})()`);
+for(let i=0;i<2;i++){await pause(1200);await evaluate(`document.querySelector('#gameRun .game-skip').click()`);await pause(1700);}
+assert.ok(await waitFor(`document.querySelector('#gameRun .game-results .game-save')?.textContent.includes('Saved')`),'The 3D Hunt round ends with saved results');
+const huntRound=JSON.parse(playPosts.at(-1));
+assert.ok(huntRound.game_key==='hunt-3d'&&huntRound.difficulty==='easy'&&huntRound.system_code==='endocrine'&&!('set_id' in huntRound),'A system round posts its system code: '+JSON.stringify(huntRound).slice(0,160));
+assert.deepEqual(huntRound.results.map(r=>r.correct),[true,false,false],'A found part scores; skipped parts are missed');
+assert.ok(huntRound.results.every(r=>r.card_key.startsWith('sys:endocrine:')),'3D Hunt cards are keyed to the system');
+assert.equal(await evaluate('AnatomyViewer.world.children.length'),0,'The model is released after the round');
+checked++;
 await call('Page.close');socket.close();
 assert.deepEqual(errors,[],'No uncaught browser exceptions');
 console.log(`Browser pages checked: ${checked}; real GLB load and mobile layout passed.`);

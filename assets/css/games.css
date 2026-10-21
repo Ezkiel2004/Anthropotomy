@@ -1,0 +1,204 @@
+/* Practice games on the Stage. Loaded after stage-portal.css on student/games.html, so it uses the
+   Stage tokens (--st-*) and the shared sd- parts.
+   1. The Games page: picker, game cards, leaderboard, badges, the running round and its results.
+   2. The markup the games build: the play-kit frame (div.game-board > .game-hud, .game-stage,
+      .game-feedback), then Match Pairs, Sort It, Beat the Clock, Unscramble and 3D Hunt.
+   State classes are is-*. */
+
+/* Several Stage parts set display, which would beat the hidden attribute. */
+.games-page [hidden]{display:none!important}
+
+/* ══ 1. The page ══ */
+.game-controls{display:grid;gap:1rem;margin-bottom:1.5rem}
+.game-pool .sd-select{flex:none;width:100%}
+.game-difficulty{min-width:0;margin:0;padding:0;border:0}
+.game-difficulty legend{margin:0 0 .5rem;padding:0;color:var(--st-soft);font-size:.8125rem;font-weight:700}
+.game-seg{display:inline-flex;gap:.25rem;max-width:100%;padding:.25rem;border-radius:999px;background:var(--st-raised)}
+.game-seg-option{display:inline-flex;align-items:baseline;gap:.375rem;min-height:2.5rem;padding:.625rem 1rem;border-radius:999px;color:var(--st-soft);font-size:.875rem;font-weight:700;line-height:1.25;white-space:nowrap;cursor:pointer;transition:background-color .25s,color .25s}
+.game-seg-option:hover{color:#fff}
+.game-seg-mult{color:var(--st-muted);font-size:.75rem}
+.game-seg-option:has(input:checked){background:#fff;color:var(--st-dark)}
+.game-seg-option:has(input:checked) .game-seg-mult{color:#4d4d4d}
+.game-seg-option:has(input:focus-visible){outline:2px solid #fff;outline-offset:2px}
+
+/* One card per game; a game the pool can't fill is dimmed, its reason kept readable */
+.game-card{display:flex;flex-direction:column;gap:1rem;min-width:0;padding:1.25rem;border-radius:1.5rem;background:var(--st-raised);transition:transform .6s var(--st-ease),background-color .3s}
+.game-card:not(.is-unavailable):hover{transform:translateY(-.375rem);background:#232323}
+.game-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}
+.game-card-icon{display:grid;flex-shrink:0;place-items:center;width:3.25rem;height:3.25rem;border-radius:50%;background:var(--st-raised-2);color:var(--st-yellow)}
+.game-card-icon svg{width:1.5rem;height:1.5rem;fill:currentColor}
+.game-card-title{margin:0;color:#fff;font-size:1.125rem;font-weight:700;line-height:1.25}
+.game-card-desc{margin:.375rem 0 0;color:var(--st-muted);font-size:.875rem;line-height:1.5}
+.game-card-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;margin-top:auto;padding-top:.875rem;border-top:1px solid #2e2e2e}
+.game-card-level{flex:1 1 100%;margin:0;color:var(--st-soft);font-size:.8125rem;font-weight:600;line-height:1.4}
+.game-card-reason{display:flex;align-items:center;gap:.375rem;min-width:0;margin:0;color:var(--st-soft);font-size:.8125rem;font-weight:700;line-height:1.4}
+.game-card-reason svg{flex-shrink:0;width:1rem;height:1rem;fill:currentColor}
+.game-card.is-unavailable{background:#191919}
+.game-card.is-unavailable .game-card-icon{color:var(--st-muted)}
+.game-card.is-unavailable :is(.game-card-title,.game-card-desc,.game-card-level){opacity:.6}
+
+/* This week in your section */
+.game-ranks{padding:.5rem 1.25rem}
+.game-rank-list{display:grid;margin:0;padding:0;list-style:none}
+.game-rank-row{display:flex;align-items:center;gap:.75rem;min-height:3rem;margin:0 -.75rem;padding:.625rem .75rem;border-radius:.875rem}
+.game-rank-row+.game-rank-row{box-shadow:inset 0 1px 0 var(--st-line)}
+.game-rank-pos{flex-shrink:0;width:2.5rem;color:var(--st-muted);font-family:var(--st-display);font-size:.875rem;font-variant-ligatures:none}
+.game-rank-name{flex:1;min-width:0;color:#fff;font-size:.9375rem;font-weight:700;overflow-wrap:anywhere}
+.game-rank-points{flex-shrink:0;color:var(--st-soft);font-size:.875rem;font-weight:700;font-variant-numeric:tabular-nums}
+.game-rank-row.is-me,.game-rank-row.is-me+.game-rank-row{box-shadow:none}
+.game-rank-row.is-me{background:rgba(247,201,72,.1)}
+.game-rank-row.is-me :is(.game-rank-pos,.game-rank-points){color:var(--st-yellow)}
+.game-rank-you{background:rgba(247,201,72,.16);color:var(--st-yellow)}
+.game-rank-me{margin:.5rem 0;padding-top:.875rem;border-top:1px solid var(--st-line);color:var(--st-yellow);font-size:.9375rem;font-weight:700}
+.game-rank-empty{margin:0;padding:.875rem 0;color:var(--st-soft);font-size:.9375rem;font-weight:600}
+.game-ranks .sd-loading{list-style:none}
+
+/* Badges: the dashboard's achievement tiles; locked ones dimmed, with progress */
+.game-badges{margin:0;padding:0;list-style:none}
+.game-badges .sd-loading{grid-column:1/-1}
+.game-badge:not(.is-earned){background:#191919}
+.game-badge:not(.is-earned) .sd-ach-icon{opacity:.75}
+.game-badge .sd-ach-name{overflow-wrap:anywhere}
+.game-badge-meter{margin-top:.375rem}
+.game-badge-meter i{background:var(--st-muted)}
+
+/* The running round: time and streak above the game */
+.game-play-view,.game-results,.game-problem{scroll-margin-top:calc(var(--topbar-height,56px) + 1rem)}
+/* Tall enough that the page can always scroll the round to the top, even while a model is loading. No
+   entrance slide: it would shift the box while the page scrolls to it. */
+.sd>.game-play-view{min-height:calc(100dvh - var(--topbar-height,56px) - 1rem - var(--tabbar-h,0px));animation:none}
+.game-play-view .sd-h-title:focus:not(:focus-visible){outline:none}
+.game-run{display:grid;gap:1rem;min-width:0}
+.game-run-hud{display:flex;flex-wrap:wrap;gap:.5rem}
+.game-run-stat{display:inline-flex;align-items:center;gap:.5rem;height:2.5rem;padding:0 1rem;border-radius:999px;background:var(--st-raised);color:#fff;font-size:.875rem;font-weight:700;font-variant-numeric:tabular-nums}
+.game-run-stat svg{width:1.125rem;height:1.125rem;fill:var(--st-yellow)}
+.game-root{min-width:0}
+
+/* Results */
+.game-results{display:grid;gap:1.5rem;padding:clamp(1.25rem,3vw,2rem);border-radius:1.75rem;background:#1a1a1a}
+.game-results-title{margin:0;color:#fff;font-family:var(--st-display);font-size:clamp(1.5rem,3vw,2rem);font-weight:400;line-height:1.05;text-transform:uppercase;font-variant-ligatures:none}
+.game-results-title:focus:not(:focus-visible){outline:none}
+.game-results-sub{margin:.375rem 0 0;color:var(--st-muted);font-size:.9375rem;font-weight:600;overflow-wrap:anywhere}
+.game-result-stats .sd-stat-value{font-size:clamp(1.25rem,4.5vw,1.875rem);white-space:nowrap}
+.game-result-stats .sd-stat-value.is-pending{color:var(--st-muted)}
+.game-save-row{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem 1rem}
+.game-save{margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:600}
+.game-save.is-saved{color:#5fe3b6}
+.game-save.is-failed{color:#ff9ea2}
+.game-review{display:grid;gap:.75rem}
+.game-review-title{margin:0;color:#fff;font-size:1rem;font-weight:700}
+.game-review-none{margin:0;color:var(--st-soft);font-size:.9375rem}
+.game-missed{margin:0;padding:0;list-style:none}
+.game-missed .sd-review-item{background:var(--st-raised)}
+.game-problem-text{max-width:40rem}
+
+/* Badge popups, above the phone tab bar */
+.game-toasts{position:fixed;right:1rem;bottom:calc(var(--tabbar-h,0px) + 1rem);z-index:9500;display:grid;justify-items:end;gap:.5rem;width:min(22rem,calc(100vw - 2rem));pointer-events:none}
+.game-toast{display:flex;align-items:center;gap:.875rem;width:100%;padding:.875rem 1rem;border:1px solid #2a2a2a;border-radius:1.125rem;background:#1f1f1f;color:#fff;box-shadow:var(--shadow-lg);pointer-events:auto;cursor:pointer;animation:game-toast-in .35s var(--st-ease) both;transition:opacity .25s,transform .25s}
+.game-toast.is-leaving{opacity:0;transform:translateY(.5rem)}
+.game-toast-icon{display:grid;flex-shrink:0;place-items:center;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--st-yellow);color:#1a1a1a}
+.game-toast-icon svg{width:1.25rem;height:1.25rem;fill:currentColor}
+.game-toast-copy{display:grid;gap:.125rem;min-width:0}
+.game-toast-kicker{color:var(--st-muted);font-size:.75rem;font-weight:700}
+.game-toast-title{font-size:.9375rem;font-weight:700;overflow-wrap:anywhere}
+@keyframes game-toast-in{from{opacity:0;transform:translateY(1rem)}}
+
+@media (min-width:40rem){
+  .game-controls{grid-template-columns:minmax(0,22rem) auto;align-items:end;justify-content:start;column-gap:1.5rem}
+}
+
+/* ══ 2. The games ══ */
+/* play-kit frame */
+.game-board{display:grid;gap:1rem;min-width:0;padding:clamp(1rem,3vw,1.75rem);border-radius:1.75rem;background:var(--st-raised)}
+.game-hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem}
+.game-progress{color:var(--st-muted);font-size:.875rem;font-weight:700}
+.game-timer{display:inline-flex;align-items:center;height:2.25rem;padding:0 .875rem;border-radius:999px;background:var(--st-raised-2);color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
+.game-stage{display:grid;gap:1rem;min-width:0}
+.game-feedback{min-height:1.5em;margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+
+/* Shared buttons: Skip (Unscramble, 3D Hunt) and Check */
+.game-skip,.game-check{display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;padding:0 1.25rem;border:0;border-radius:999px;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer;transition:background-color .2s,transform .1s}
+.game-skip{background:var(--st-raised-2);color:#fff}
+.game-skip:hover{background:#333}
+.game-check{background:var(--st-yellow);color:var(--st-dark)}
+.game-check:hover{background:#ffd666}
+.game-skip:active,.game-check:active{transform:scale(.97)}
+.game-skip:disabled,.game-check:disabled{opacity:.5;cursor:default;transform:none}
+
+/* Match Pairs: face-down tiles are striped, face-up ones plain, matched ones green */
+.game-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.625rem}
+.game-tile{display:flex;align-items:center;justify-content:center;min-width:0;min-height:6.5rem;padding:.75rem;border:2px solid transparent;border-radius:1.125rem;background:repeating-linear-gradient(135deg,#2a2a2a 0 .625rem,#252525 .625rem 1.25rem);color:#fff;font:inherit;font-size:.875rem;font-weight:600;line-height:1.35;text-align:center;overflow-wrap:anywhere;cursor:pointer;transition:background-color .2s,border-color .2s,transform .1s}
+.game-tile:hover{border-color:#3d3d3d}
+.game-tile:active{transform:scale(.98)}
+.game-tile.is-up{background:#303030;cursor:default}
+.game-tile[data-kind="term"]{font-size:1rem;font-weight:700}
+.game-tile[data-kind="clue"]{color:var(--st-soft);font-size:.8125rem}
+.game-tile.is-matched{border-color:rgba(44,207,154,.55);background:rgba(44,207,154,.12);color:#5fe3b6}
+
+/* Sort It: terms to place, then one bin per group */
+.game-terms{display:flex;flex-wrap:wrap;gap:.5rem;margin:0;padding:0;list-style:none}
+.game-term-item{min-width:0;max-width:100%}
+.game-term{max-width:100%;min-height:2.75rem;padding:.5rem 1rem;border:2px solid transparent;border-radius:999px;background:var(--st-raised-2);color:#fff;font:inherit;font-size:.875rem;font-weight:700;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:grab;transition:background-color .2s,border-color .2s}
+.game-term:hover{background:#303030}
+.game-term.is-selected{border-color:var(--st-yellow);background:rgba(247,201,72,.12)}
+.game-bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.75rem}
+.game-bin{display:grid;align-content:start;gap:.625rem;min-width:0;min-height:9rem;padding:.75rem;border:2px dashed #363636;border-radius:1.25rem;background:#1a1a1a;transition:border-color .2s,background-color .2s}
+.game-bin-button{width:100%;min-height:2.75rem;padding:.5rem .875rem;border:0;border-radius:.875rem;background:var(--st-raised-2);color:#fff;font:inherit;font-size:.9375rem;font-weight:700;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer}
+.game-bin-button:hover{background:#303030}
+.game-bin-items{display:flex;flex-wrap:wrap;gap:.375rem;margin:0;padding:0;list-style:none}
+.game-placed{max-width:100%;padding:.25rem .625rem;border-radius:999px;background:rgba(44,207,154,.16);color:#5fe3b6;font-size:.8125rem;font-weight:700;overflow-wrap:anywhere}
+.game-placed.is-missed{background:rgba(242,84,91,.16);color:#ff9ea2}
+.game-bin.is-over{border-color:var(--st-yellow);background:rgba(247,201,72,.06)}
+.game-bin.is-reveal{border-style:solid;border-color:var(--st-teal);background:rgba(44,207,154,.08)}
+
+/* Beat the Clock: the clue, then the choices */
+.game-question,.game-word{margin:0;color:var(--st-muted);font-size:.875rem;font-weight:700}
+.game-clue{margin:0;color:#fff;font-size:clamp(1.125rem,2.4vw,1.5rem);font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.game-choices{display:grid;gap:.625rem}
+.game-choice{display:flex;align-items:center;min-width:0;min-height:3.5rem;padding:.625rem 1rem;border:2px solid transparent;border-radius:1.125rem;background:var(--st-raised-2);color:#fff;font:inherit;font-size:1rem;font-weight:600;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer;transition:background-color .2s,border-color .2s,transform .1s}
+.game-choice:hover{background:#2e2e2e}
+.game-choice:active{transform:scale(.99)}
+.game-choice[aria-disabled="true"]{cursor:default;transform:none}
+.game-choice.is-correct{border-color:var(--st-teal);background:rgba(44,207,154,.14);color:#5fe3b6}
+.game-choice.is-wrong{border-color:var(--st-coral);background:rgba(242,84,91,.14);color:#ff9ea2}
+
+/* Unscramble: the clue as the hint, the letters large, then the answer */
+.game-unscramble .game-clue{color:var(--st-soft);font-size:1rem;font-weight:600;line-height:1.5}
+.game-hint{margin:0;color:var(--st-yellow);font-size:.875rem;font-weight:700}
+.game-hint:empty,.game-reveal:empty{display:none}
+.game-scramble{margin:0;color:#fff;font-family:var(--st-display);font-size:clamp(1.5rem,6vw,2.5rem);line-height:1.15;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:anywhere;font-variant-ligatures:none}
+.game-answer-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.75rem}
+.game-answer-label{display:grid;flex:1 1 16rem;gap:.5rem;min-width:0}
+.game-answer-text{color:var(--st-soft);font-size:.8125rem;font-weight:700}
+.game-answer{width:100%;min-width:0;height:3.25rem;padding:0 1.125rem;border:0;border-radius:1rem;background:var(--st-raised-2);color:#fff;font:600 1rem/1 var(--font-body);outline:none;transition:box-shadow .2s}
+.game-answer:focus-visible{box-shadow:0 0 0 2px var(--st-raised),0 0 0 4px #fff}
+.game-answer:read-only{color:var(--st-soft)}
+.game-answer-form :is(.game-check,.game-skip){min-height:3.25rem}
+.game-reveal{margin:0;font-size:1.125rem;font-weight:700;overflow-wrap:anywhere}
+.game-reveal.is-correct{color:#5fe3b6}
+.game-reveal.is-missed{color:#ff9ea2}
+
+/* 3D Hunt: the engine sizes only the drawing buffer, so the viewer sets the size. With the round
+   scrolled to the top, the prompt, the model, Skip and the feedback fit one screen (about 25rem
+   besides the model). */
+.game-prompt{margin:0;color:#fff;font-size:clamp(1.125rem,2.4vw,1.5rem);font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.game-viewer{--navy:#161616;position:relative;height:clamp(16rem,calc(100dvh - var(--topbar-height,56px) - var(--tabbar-h,0px) - 25rem),520px);overflow:hidden;border-radius:1.25rem;background:#161616}
+.game-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.game-hunt-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem}
+.game-tries{margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:700}
+.game-board.is-loading .game-stage{position:relative}
+.game-loading-progress{position:absolute;top:50%;left:50%;color:var(--st-soft);font-family:var(--st-display);font-size:1.5rem;transform:translate(-50%,-50%);pointer-events:none}
+
+@media (min-width:30rem){
+  .game-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (min-width:40rem){
+  .game-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:48rem){
+  .game-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  .game-card,.game-tile,.game-term,.game-bin,.game-choice,.game-skip,.game-check,.game-toast{transition:none}
+  .game-toast{animation:none}
+}
