@@ -18,6 +18,8 @@
 
 /* ── Header ── */
 .hx-header{position:relative;z-index:40;color:var(--hx-text)}
+/* The bar runs almost edge to edge rather than inside the page container. */
+.hx-bar.page{width:calc(100% - 2 * clamp(1rem,2.5vw,3rem))}
 .hx-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;min-height:4.75rem}
 .hx-left{display:flex;align-items:center;gap:1.75rem;min-width:0}
 .hx-nav{display:flex;align-items:center;gap:1.75rem}
@@ -87,8 +89,10 @@
 @media (max-width:47.99rem){.hx-decor{display:none}}
 
 /* ── Card fan. --d is each card's offset from the front card (set by landing.js; the HTML
-   carries the starting values). Hover or focus lifts a card out of the fan. ── */
-.hx-deck{--w:clamp(12.5rem,calc(21vw + 3.75rem),20rem);--step:calc(var(--w) * .74);--top:clamp(2rem,5vh,3.5rem);position:relative;z-index:1;flex:1 0 calc(var(--w) * .95 + var(--top));touch-action:pan-y}
+   carries the starting values). Hover or focus lifts a card out of the fan. The deck is
+   tall enough for the outer, lower, tilted cards to show in full (about 1.8 card widths),
+   and the card width also follows the viewport height so the whole fan sits above the fold. ── */
+.hx-deck{--w:clamp(12.5rem,min(18vw + 3rem,(100svh - 31rem) / 1.8),18rem);--step:calc(var(--w) * .74);--top:clamp(2.5rem,7vh,5rem);position:relative;z-index:1;flex:1 0 calc(var(--w) * 1.8 + var(--top) + clamp(2rem,6vh,4rem));touch-action:pan-y}
 .hx-track{margin:0;padding:0;list-style:none}
 .hx-slide{--ad:max(var(--d),calc(var(--d) * -1));--lift:0;position:absolute;top:var(--top);left:50%;width:var(--w);margin-left:calc(var(--w) / -2);z-index:calc(10 - var(--ad));transform:translateX(calc(var(--d) * var(--step))) translateY(calc(var(--ad) * var(--ad) * var(--w) * .04 + var(--ad) * var(--w) * .1 - var(--lift) * var(--w) * .3)) rotate(calc(var(--d) * 4.5deg * (1 - var(--lift)))) scale(calc(1 - var(--ad) * .05 + var(--lift) * .04));transition:transform .6s var(--hx-ease),opacity .4s}
 .hx-slide:hover,.hx-slide:focus-within{--lift:1;z-index:20}
