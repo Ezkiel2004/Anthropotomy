@@ -115,7 +115,7 @@
     });
     // Student phones get a bottom tab bar instead of the drawer (styled in stage-portal.css).
     if(host.dataset.portal!=='student')return;
-    const tabs=[['dashboard','house','Home'],['anatomy','cube','3D'],['lessons','book-open','Lessons'],['quiz','exam','Quizzes'],['progress','chart-line','Progress']];
+    const tabs=[['dashboard','house','Home'],['anatomy','cube','3D'],['lessons','book-open','Lessons'],['quiz','exam','Quizzes'],['games','game-controller','Games'],['progress','chart-line','Progress']];
     const pending=Number(sessionStorage.getItem('anthropotomy_pending_assessments'))||0;
     host.insertAdjacentHTML('afterend',`<nav class="sd-tabbar" aria-label="Student sections">${tabs.map(([page,glyph,label])=>`<a href="${page}.html"${current===page+'.html'?' aria-current="page"':''}><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#${glyph}"/></svg><span>${label}</span>${page==='quiz'?`<span class="sd-tab-badge" id="tabQuizBadge"${pending>0?'':' hidden'}>${pending}</span>`:''}</a>`).join('')}</nav>`);
 })();

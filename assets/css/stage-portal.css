@@ -226,7 +226,7 @@
   .student-dashboard.stage-portal .sd-brand img{display:block;width:2.25rem;height:2.25rem}
   .student-dashboard.stage-portal .topbar-user-name,.student-dashboard.stage-portal .topbar-user-role,.student-dashboard.stage-portal .account-chevron{display:none}
   .stage-portal .page-content.sd{gap:2.25rem;padding-bottom:7rem}
-  .sd-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:950;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:start;height:var(--tabbar-h);padding:.5rem .5rem env(safe-area-inset-bottom,0px);border-top:1px solid var(--st-line);background:rgba(18,18,18,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+  .sd-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:950;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:start;height:var(--tabbar-h);padding:.5rem .5rem env(safe-area-inset-bottom,0px);border-top:1px solid var(--st-line);background:rgba(18,18,18,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
   .sd-tabbar a{position:relative;display:grid;justify-items:center;gap:.25rem;padding:.375rem 0;border-radius:.75rem;color:var(--st-muted);font-size:.6875rem;font-weight:700;text-decoration:none}
   .sd-tabbar a:hover{color:#fff;text-decoration:none}
   .sd-tabbar svg{width:1.5rem;height:1.5rem;fill:currentColor}

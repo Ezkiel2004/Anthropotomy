@@ -94,6 +94,20 @@ for(const role of ['teacher','student']){
    await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
    assert.equal(await evaluate(`document.getElementById('sidebar').classList.contains('mobile-open')`),false,'Escape closes mobile menu');
    await call('Emulation.clearDeviceMetricsOverride');
+   // Student phones: six tabs in one row, Games after Quizzes, every label inside its own tab, the current page marked.
+   if(role==='student'){
+     const tabPages=['dashboard','anatomy','lessons','quiz','games','progress'];
+     for(const [width,height] of [[360,740],[375,812]]){
+       await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});
+       await new Promise(resolve=>setTimeout(resolve,250));
+       const tabs=await evaluate(`[...document.querySelectorAll('.sd-tabbar a')].map(a=>{const r=a.getBoundingClientRect(),l=a.querySelector('span').getBoundingClientRect();return {href:a.getAttribute('href'),current:a.getAttribute('aria-current'),fits:l.width>0&&l.left>=r.left-.5&&l.right<=r.right+.5&&l.bottom<=innerHeight+.5,top:Math.round(r.top)};})`);
+       assert.deepEqual(tabs.map(t=>t.href),tabPages.map(p=>p+'.html'),'The phone tab bar has six tabs with Games after Quizzes');
+       assert.ok(tabs.every(t=>t.fits)&&new Set(tabs.map(t=>t.top)).size===1,`All six tabs sit in one row and every label fits its tab at ${width}px on ${page}`);
+       assert.deepEqual(tabs.filter(t=>t.current==='page').map(t=>t.href),tabPages.includes(page)?[page+'.html']:[],'The current page has the marked tab');
+       assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),`No horizontal scroll at ${width}px on ${page}`);
+     }
+     await call('Emulation.clearDeviceMetricsOverride');
+   }
    if(role==='teacher' && page==='assessments'){
       await new Promise(resolve=>setTimeout(resolve,350));
       const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('.runtime/assessment-sidebar.png',Buffer.from(shot.data,'base64'));
