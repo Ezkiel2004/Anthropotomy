@@ -30,7 +30,7 @@ await waitFor(`location.pathname.startsWith('/teacher/') && document.readyState=
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
- teacher:['dashboard','modules','students','assessments','monitoring','reports','announcements','settings','anatomy'],
+ teacher:['dashboard','modules','students','assessments','games','monitoring','reports','announcements','settings','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','games','progress']
 };
 // Both sidebars start with a Home link to the public landing page.
@@ -66,6 +66,17 @@ for(const role of ['teacher','student']){
    assert.equal(await evaluate('location.pathname'),'/'+role+'/'+page+'.html');
    const navigation=await evaluate(`[...document.querySelectorAll('.sidebar-nav .nav-item')].map(a=>({href:new URL(a.href).pathname.split('/').pop(),label:a.querySelector('.nav-label').textContent.trim(),icon:!!a.querySelector('.nav-icon svg')}))`);
    assert.deepEqual(navigation.map(a=>a.href),menu(role),role+'/'+page+' has every navigation link in the same order');
+   if(role==='teacher'){
+     const games=navigation.findIndex(a=>a.href==='games.html');
+     assert.ok(games>0&&navigation[games-1].href==='assessments.html'&&navigation[games].label==='Games','Games sits right after Assessments in the teacher sidebar');
+     assert.equal(await evaluate(`document.querySelector('.sidebar-nav a[href*="games.html"] use').getAttribute('href').split('#').pop()`),'game-controller','Teacher Games uses the game-controller icon');
+   }
+   // A fresh database has no sets, plays or teacher badges: each teacher tab shows its empty state, and the built-in badges list.
+   if(role==='teacher'&&page==='games'){
+     assert.ok(await waitFor(`!document.getElementById('setsEmpty').hidden&&document.querySelectorAll('#setRows tr').length===0`),'No sets yet: the Game sets tab says so');
+     assert.ok(await waitFor(`!document.getElementById('missedEmpty').hidden&&!document.getElementById('boardEmpty').hidden`),'No plays yet: most-missed terms and the leaderboard say so');
+     assert.ok(await waitFor(`document.querySelectorAll('#badgeRows tr.is-builtin').length===11`),'The built-in badges are listed');
+   }
    if(role==='student'){
      assert.equal(navigation.length,7,'The student sidebar has seven links');
      const games=navigation.findIndex(a=>a.href==='games.html');
@@ -88,6 +99,12 @@ for(const role of ['teacher','student']){
    await evaluate(`document.getElementById('sidebarToggle').click()`);
    assert.equal(await evaluate(`document.getElementById('sidebarToggle').getAttribute('aria-expanded')`),'true','Mobile menu opens');
    assert.equal(await evaluate(`document.getElementById('sidebar').classList.contains('mobile-open')`),true);
+   // Teachers have no phone tab bar, so Games must be reachable in the open menu.
+   if(role==='teacher')for(const [width,height] of [[360,740],[375,812]]){
+     await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:true});
+     await new Promise(resolve=>setTimeout(resolve,350));
+     assert.ok(await evaluate(`(()=>{const link=document.querySelector('.sidebar-nav a[href*="games.html"]');link.scrollIntoView({block:'center'});const r=link.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&link.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));})()`),`Games is reachable in the open phone menu at ${width}px on ${page}`);
+   }
    await evaluate(`document.getElementById('sidebarOverlay').click()`);
    assert.equal(await evaluate(`document.getElementById('sidebarToggle').getAttribute('aria-expanded')`),'false','Overlay closes mobile menu');
    await evaluate(`document.getElementById('sidebarToggle').click()`);

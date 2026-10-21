@@ -43,7 +43,7 @@ await evaluate(`document.getElementById('username').value=${JSON.stringify(crede
 await waitFor(`location.pathname.startsWith('/teacher/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 let checked=0;
-for(const page of ['dashboard','students','modules','assessments','monitoring','reports','announcements','settings','anatomy']){
+for(const page of ['dashboard','students','modules','assessments','games','monitoring','reports','announcements','settings','anatomy']){
     await navigate('/teacher/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Teacher stays authenticated: '+page);
     if(page==='dashboard')assert.ok(await evaluate(`Boolean(document.querySelector('.page-content a[href="anatomy.html"]'))`),'Dashboard links to teacher explorer');
@@ -178,6 +178,89 @@ for(const page of ['dashboard','students','modules','assessments','monitoring','
         await evaluate(`(async()=>{openModal('addStudentModal');const values={addFullName:'Browser Created Student',addSchoolId:'BROWSER-STUDENT',addUsername:'browser-student',addPassword:'browser-password-123',addSection:'Rizal',addSchoolYear:'Browser Year'};Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value);await handleAddStudent({preventDefault(){}});})()`);
         await new Promise(resolve=>setTimeout(resolve,350));
         assert.ok((await evaluate('document.body.innerText')).includes('Browser Created Student'),'Student form saves and reloads the database roster');
+    }
+    if(page==='games'){
+        // Teacher Games page: a set made by pasting, turned off, the section lists and a new badge. Review Focus 1: pasted HTML stays text.
+        const api=path=>evaluate(`fetch('/api/${path}').then(r=>r.json()).then(r=>r.data)`);
+        const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+        const shown=id=>`getComputedStyle(document.getElementById('${id}')).display!=='none'`;
+        const pickSection=(id,value)=>evaluate(`(()=>{const s=document.getElementById('${id}');s.value=${JSON.stringify(value)};s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+        assert.ok(await waitFor(`document.querySelectorAll('#setRows tr[data-set-id]').length>0`),'The game sets list loads');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gamesTabs [role="tab"]')].map(t=>[t.textContent.trim(),t.getAttribute('aria-selected')])`),[['Game sets','true'],['Most-missed terms','false'],['Leaderboard','false'],['Badges','false']],'Four tabs, with Game sets selected');
+        assert.ok(await evaluate(`[...document.querySelectorAll('#gamesTabs [role="tab"]')].every(t=>{const p=document.getElementById(t.getAttribute('aria-controls'));return p&&p.getAttribute('role')==='tabpanel'&&p.getAttribute('aria-labelledby')===t.id&&p.hidden===(t.getAttribute('aria-selected')!=='true');})`),'Each tab controls its own panel, and only the selected panel shows');
+        await evaluate(`document.getElementById('tab-sets').focus()`);
+        await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
+        assert.ok(await evaluate(`document.activeElement.id==='tab-missed'&&document.getElementById('tab-missed').getAttribute('aria-selected')==='true'&&!document.getElementById('panel-missed').hidden`),'Arrow keys move between tabs');
+        await evaluate(`document.getElementById('tab-sets').click()`);
+        // A new set from four pasted lines.
+        await evaluate(`document.getElementById('newSetBtn').click()`);
+        assert.ok(await evaluate(`${shown('setModal')}&&document.getElementById('setModal').contains(document.activeElement)`),'New set opens the editor with focus inside it');
+        const pasted=['<b>Pasted</b> term, Markup stays text','Radius, Forearm bone, thumb side, Arm','Ulna, Forearm bone, Arm','Humerus, Upper arm bone, Arm'];
+        await evaluate(`(()=>{document.getElementById('setTitle').value='Browser pasted set';document.getElementById('pasteText').value=${JSON.stringify(pasted.join('\n'))};document.getElementById('pasteAdd').click();})()`);
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('#cardRows tr')].map(r=>[...r.querySelectorAll('input')].map(i=>i.value))`),[['<b>Pasted</b> term','Markup stays text',''],['Radius','Forearm bone, thumb side','Arm'],['Ulna','Forearm bone','Arm'],['Humerus','Upper arm bone','Arm']],'Four pasted lines become four editable cards, the HTML term as typed');
+        assert.equal(await evaluate(`document.querySelectorAll('#setModal b').length`),0,'No element is built from a pasted term');
+        await evaluate(`document.getElementById('setSave').click()`);
+        assert.ok(await waitFor(`!(${shown('setModal')})&&[...document.querySelectorAll('#setRows .tg-set-title')].some(e=>e.textContent==='Browser pasted set')`),'The new set appears in the list');
+        const pastedRow=`[...document.querySelectorAll('#setRows tr[data-set-id]')].find(r=>r.querySelector('.tg-set-title').textContent==='Browser pasted set')`;
+        assert.ok(await evaluate(`${pastedRow}.textContent.includes('4 cards')&&${pastedRow}.querySelector('.tg-status').textContent==='On'`),'The new set shows 4 cards and is on');
+        assert.equal(await evaluate(`document.activeElement.id`),'newSetBtn','Saving returns focus to New set');
+        assert.deepEqual((await api('games/sets.php')).find(s=>s.title==='Browser pasted set').cards,[{term:'<b>Pasted</b> term',clue:'Markup stays text'},{term:'Radius',clue:'Forearm bone, thumb side',group:'Arm'},{term:'Ulna',clue:'Forearm bone',group:'Arm'},{term:'Humerus',clue:'Upper arm bone',group:'Arm'}],'The set is saved with the pasted cards');
+        await evaluate(`${pastedRow}.querySelector('[data-action="toggle"]').click()`);
+        assert.ok(await waitFor(`${pastedRow}?.querySelector('.tg-status').textContent==='Off'`),'A set turned off shows as off');
+        assert.equal(await evaluate(`${pastedRow}.querySelector('[data-action="toggle"]').textContent.trim()`),'Turn on','Its button now turns it back on');
+        assert.equal((await api('games/sets.php')).find(s=>s.title==='Browser pasted set').is_active,false,'The set is saved as off');
+        await evaluate(`${pastedRow}.querySelector('[data-action="edit"]').click()`);
+        assert.equal(await evaluate(`document.querySelector('#cardRows .tg-term').value`),'<b>Pasted</b> term','The editor shows a saved HTML term as text');
+        await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+        assert.ok(await evaluate(`!(${shown('setModal')})&&document.activeElement===${pastedRow}.querySelector('[data-action="edit"]')`),'Escape closes the editor and focus returns to Edit');
+        // Most-missed terms and the leaderboard, one section at a time.
+        const sections=['Rizal','Bonifacio','Mabini','Luna'];
+        for(const id of ['missedSection','boardSection'])assert.deepEqual(await evaluate(`[...document.getElementById('${id}').options].map(o=>o.value)`),sections,'The section picker lists the 4 sections: '+id);
+        await evaluate(`document.getElementById('tab-missed').click()`);
+        assert.equal(await evaluate(`document.getElementById('missedSection').value`),'Rizal','The section picker starts on the first section');
+        const missed=(await api('games/mastery.php?section=Rizal')).map(row=>row.term);
+        assert.ok(missed.length>0,'The fixture has missed terms in Rizal');
+        assert.ok(await waitFor(`!document.getElementById('panel-missed').hidden&&document.querySelectorAll('#missedRows tr').length===${missed.length}`),'Most-missed terms load for the first section');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('#missedRows .tg-term-name')].map(e=>e.textContent)`),missed,'Most-missed terms keep the server order');
+        assert.equal((await api('games/mastery.php?section=Luna')).length,0,'Luna has no missed terms in the fixture');
+        await pickSection('missedSection','Luna');
+        assert.ok(await waitFor(`!document.getElementById('missedEmpty').hidden&&document.querySelectorAll('#missedRows tr').length===0`),'A section without missed terms says so');
+        await pickSection('missedSection','Rizal');
+        await evaluate(`document.getElementById('tab-leaderboard').click()`);
+        const board=(await api('games/leaderboard.php?section=Rizal')).top.map(row=>row.full_name);
+        assert.ok(board.length>0,'The fixture has points in Rizal this week');
+        assert.ok(await waitFor(`document.getElementById('boardSection').value==='Rizal'&&document.querySelectorAll('#boardRows tr').length===${board.length}`),'The leaderboard loads for the chosen section');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('#boardRows .tg-board-name')].map(e=>e.textContent)`),board,'Leaderboard names keep the server order');
+        const other=(await api('games/leaderboard.php?section=Bonifacio')).top.map(row=>row.full_name);
+        await pickSection('boardSection','Bonifacio');
+        assert.ok(await waitFor(`JSON.stringify([...document.querySelectorAll('#boardRows .tg-board-name')].map(e=>e.textContent))===${JSON.stringify(JSON.stringify(other))}`),'Changing the section reloads the leaderboard');
+        await pickSection('boardSection','Rizal');
+        // Badges: built-ins can be turned off but not deleted; a new badge with the trophy icon.
+        await evaluate(`document.getElementById('tab-badges').click()`);
+        assert.ok(await waitFor(`document.querySelectorAll('#badgeRows tr.is-builtin').length===11`),'The badges list loads with the built-in badges');
+        assert.ok(await evaluate(`[...document.querySelectorAll('#badgeRows tr.is-builtin')].every(r=>!r.querySelector('[data-action="delete"]')&&r.querySelector('[data-action="toggle"]'))`),'Built-in badges can be turned off but not deleted');
+        await evaluate(`document.getElementById('newBadgeBtn').click()`);
+        assert.ok(await evaluate(`${shown('badgeModal')}&&document.getElementById('badgeModal').contains(document.activeElement)`),'Add badge opens its dialog with focus inside it');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('input[name="badgeIcon"]')].map(i=>i.value)`),['game-controller','trophy','check-circle','target','flag','medal'],'The icon picker offers only the six badge icons');
+        await evaluate(`(()=>{document.getElementById('badgeTitle').value='<i>Teacher badge</i>';document.getElementById('badgeMetric').value='total_points';document.getElementById('badgeThreshold').value='999999';document.querySelector('input[name="badgeIcon"][value="trophy"]').click();document.getElementById('badgeSave').click();})()`);
+        const badgeRow=`[...document.querySelectorAll('#badgeRows tr[data-badge-id]')].find(r=>r.querySelector('.tg-badge-title').textContent==='<i>Teacher badge</i>')`;
+        assert.ok(await waitFor(`!(${shown('badgeModal')})&&Boolean(${badgeRow})`),'The new badge appears in the list');
+        assert.ok(await evaluate(`${badgeRow}.querySelector('use').getAttribute('href').endsWith('#trophy')&&!${badgeRow}.querySelector('i')&&Boolean(${badgeRow}.querySelector('[data-action="delete"]'))`),'It shows the trophy icon and its title as text, and can be deleted');
+        const made=(await api('achievements.php')).find(b=>b.title==='<i>Teacher badge</i>');
+        assert.ok(made&&made.icon==='trophy'&&made.metric==='total_points'&&Number(made.threshold)===999999,'The badge is saved with its metric, target and icon');
+        // Phones: every tab and the set editor fit 375px.
+        await call('Emulation.setDeviceMetricsOverride',{width:375,height:812,deviceScaleFactor:1,mobile:true});
+        for(const tab of ['sets','missed','leaderboard','badges']){
+            await evaluate(`document.getElementById('tab-${tab}').click()`);
+            await wait(250);
+            assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'The '+tab+' tab fits a 375px phone');
+        }
+        await evaluate(`document.getElementById('tab-sets').click();document.getElementById('newSetBtn').click()`);
+        await wait(250);
+        assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth+1&&document.querySelector('#setModal .modal-box').getBoundingClientRect().right<=innerWidth`),'The set editor fits a 375px phone');
+        await evaluate(`document.querySelector('#setModal .modal-close').click()`);
+        await call('Emulation.clearDeviceMetricsOverride');
+        await wait(250);
     }
     checked++;
 }

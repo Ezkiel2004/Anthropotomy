@@ -34,6 +34,10 @@
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg></span>
         <span class="nav-label">Assessments</span>
       </a>
+      <a class="nav-item" href="games.html" data-tooltip="Games">
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg></span>
+        <span class="nav-label">Games</span>
+      </a>
 
       <div class="nav-section-label">Management</div>
       <a class="nav-item" href="monitoring.html" data-tooltip="Monitoring">
