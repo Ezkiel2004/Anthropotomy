@@ -108,6 +108,11 @@
 .hx-card-icon{display:grid;place-items:center;width:1.375rem;height:1.375rem;border-radius:50%;background:color-mix(in srgb,var(--card) 22%,#fff);color:color-mix(in srgb,var(--card) 70%,#000)}
 .hx-card-icon svg{width:.8125rem;height:.8125rem;fill:currentColor}
 .hx-card-art{position:absolute;left:0;bottom:0;width:100%;height:84%;object-fit:cover;object-position:50% 0;filter:drop-shadow(0 1rem 1.25rem rgba(0,0,0,.25))}
+/* The live Skeletal card (landing-hero-3d.js): its canvas takes the still render's place and fades in over it once a frame is drawn. */
+.hx-card-3d{position:absolute;left:0;bottom:0;display:block;width:100%;height:84%;pointer-events:none;opacity:0;filter:drop-shadow(0 1rem 1.25rem rgba(0,0,0,.25));transition:opacity .6s ease}
+.hx-card-art{transition:opacity .6s ease}
+.hx-card.is-live .hx-card-3d{opacity:1}
+.hx-card.is-live .hx-card-art{opacity:0}
 
 @media (prefers-reduced-motion:reduce){
   .hx-float{animation:none}

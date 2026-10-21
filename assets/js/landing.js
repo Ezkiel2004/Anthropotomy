@@ -1,11 +1,13 @@
-// Landing page behaviour: mobile menu, signed-in state, the hero card carousel,
-// scroll reveals, school settings and the practice quiz demo.
-// Small and dependency-free; the page is complete without it.
+// Landing page behaviour: mobile menu, signed-in state, the hero card carousel and
+// its live 3D Skeletal card, scroll reveals, school settings and the practice quiz demo.
+// Small and dependency-free (the 3D card loads Three.js on demand); the page is
+// complete without it.
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const media = query => window.matchMedia(query);
 const reducedMotion = media('(prefers-reduced-motion: reduce)');
 const wideNav = media('(min-width: 72rem)');
+const wideViewport = media('(min-width: 48rem)');
 const ICONS = 'assets/icons/interface.svg?v=20261012-icons3';
 
 function setIcon(svg, name) {
@@ -120,6 +122,38 @@ function initDeck() {
   });
 }
 
+// ── Live 3D Skeletal card: only on wide screens with WebGL that have not asked for
+//    less motion or data. Anything else keeps the card's still render. ──
+function saveData() {
+  const connection = navigator.connection;
+  return Boolean(connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || '')));
+}
+function hasWebGL() {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    return Boolean(gl);
+  } catch (_) {
+    return false;
+  }
+}
+function initCard3d() {
+  const card = $('[data-card-3d]');
+  if (!card || !('IntersectionObserver' in window)) return;
+  if (!wideViewport.matches || reducedMotion.matches || saveData() || !hasWebGL()) return;
+  const observer = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting)) return;
+    observer.disconnect();
+    const start = () => import('./landing-hero-3d.js?v=20261021-card3d1')
+      .then(module => module.mountCard3d(card, { wideViewport, reducedMotion }))
+      .catch(() => { /* The still render is already a finished card. */ });
+    if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1500 });
+    else setTimeout(start, 200);
+  }, { threshold: 0.25 });
+  observer.observe(card);
+}
+
 // ── Reveal feature figures as they scroll in. Skipped entirely with reduced motion. ──
 function initReveal() {
   const items = $$('[data-reveal]');
@@ -232,6 +266,7 @@ function initQuizDemo() {
 initMenu();
 initAuth();
 initDeck();
+initCard3d();
 initReveal();
 initSchoolSettings();
 initQuizDemo();
