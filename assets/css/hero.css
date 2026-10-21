@@ -117,7 +117,7 @@
 /* ── Sections below the hero. public.css styles them through --surface, --fg, --muted,
    --accent, --line and --rule; on this page .on-dark points those at the stage palette. ── */
 .on-dark{--surface:var(--hx-bg);--surface-raised:var(--hx-raised);--fg:var(--hx-text);--muted:var(--hx-muted);--accent:var(--hx-yellow);--accent-strong:#ffd866;--on-accent:#1a1a1a;--line:#333;--rule:#262626}
-/* The fixed starfield (gravity-stars.js) sits behind the page, so html, the header, hero,
+/* The fixed cell field (cell-field.js) sits behind the page, so html, the header, hero,
    sections and footer leave the stage colour to body, which paints the canvas behind it. */
 html{background-color:transparent}
 body{background:var(--hx-bg);color:var(--hx-text)}

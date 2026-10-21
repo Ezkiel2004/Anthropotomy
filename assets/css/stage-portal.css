@@ -36,7 +36,7 @@
 .stage-portal .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 /* ── Shell ── */
-/* The fixed starfield (gravity-stars.js) sits behind the page: main lets body's stage colour, and the stars over it, show between the panels. */
+/* main lets body's stage colour show between the panels. */
 .stage-portal .main-content{background:transparent}
 .stage-portal .sidebar{background:var(--st-bg);border-right:1px solid var(--st-line);box-shadow:none}
 .stage-portal .sidebar::before{display:none}
@@ -537,4 +537,32 @@
 @media (prefers-reduced-motion:reduce){
   .sd-mod,.sd-mod-art img,.sd-task,.sd-task-icon,.sd-notif,.sd-ring,.sd-lesson-go svg{transition:none}
   .sd-loading::before{animation-duration:2s}
+}
+/* Portal motion, on every teacher and student page. Movement here reports something:
+   the page's blocks rise in one after another as it opens, rows rise in when a list or
+   table fills (portal-motion.js adds .pm-arrive), bars grow to their value and buttons
+   give under a press. Headline numbers count up in portal-motion.js. Modals are left
+   alone: they open with their own motion. */
+.stage-portal .page-content>:not(.modal-overlay):not(dialog){animation:sd-in .5s var(--st-ease) both}
+.stage-portal .page-content>:nth-child(2){animation-delay:.05s}
+.stage-portal .page-content>:nth-child(3){animation-delay:.1s}
+.stage-portal .page-content>:nth-child(4){animation-delay:.15s}
+.stage-portal .page-content>:nth-child(5){animation-delay:.2s}
+.stage-portal .page-content>:nth-child(n+6){animation-delay:.25s}
+.pm-arrive>*{animation:sd-in .45s var(--st-ease) both}
+.pm-arrive>:nth-child(2){animation-delay:.035s}
+.pm-arrive>:nth-child(3){animation-delay:.07s}
+.pm-arrive>:nth-child(4){animation-delay:.105s}
+.pm-arrive>:nth-child(5){animation-delay:.14s}
+.pm-arrive>:nth-child(6){animation-delay:.175s}
+.pm-arrive>:nth-child(7){animation-delay:.21s}
+.pm-arrive>:nth-child(n+8){animation-delay:.245s}
+/* backwards, not both: a finished fill must let go of width, or later width changes jump instead of transitioning */
+.stage-portal .progress-fill{animation:sd-fill 1s var(--st-ease) backwards;transition:width .8s var(--st-ease)}
+.stage-portal .btn:active:not(:disabled){transform:scale(.97)}
+
+@media (prefers-reduced-motion:reduce){
+  .stage-portal .page-content>*,.pm-arrive>*,.stage-portal .progress-fill{animation:none;transition:none}
+  .stage-portal .btn{transition:none}
+  .stage-portal .btn:active:not(:disabled){transform:none}
 }
