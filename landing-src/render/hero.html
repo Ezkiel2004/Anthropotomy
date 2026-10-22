@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!-- Render harness for scripts/render-hero.mjs. It draws layer models with the explorer's own renderer
+     settings, studio environment, lights and tissue looks (assets/js/model-viewer.js), on a transparent
+     background, so the hero stills match what the explorer shows. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hero renders</title>
+<style>html, body { margin: 0; background: transparent; } canvas { display: block; }</style>
+<script src="../../assets/vendor/three/three.min.js"></script>
+<script src="../../assets/vendor/three/GLTFLoader.js"></script>
+<script src="../../assets/vendor/three/DRACOLoader.js"></script>
+<script src="../../assets/js/anatomy-layers-core.js"></script>
+<script src="../../assets/js/model-viewer.js"></script>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<script>
+'use strict';
+const canvas = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: true, preserveDrawingBuffer: true});
+renderer.setPixelRatio(1);
+renderer.setClearColor(0x000000, 0);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
+
+const scene = new THREE.Scene();
+scene.environment = AnatomyViewer.studioEnvironment.call({renderer});
+scene.add(new THREE.HemisphereLight(0xffffff, 0x536077, 0.4));
+const light = new THREE.DirectionalLight(0xffffff, 1.0); light.position.set(4, 8, 6); scene.add(light);
+const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 1000);
+
+const draco = new THREE.DRACOLoader(); draco.setDecoderPath('../../assets/vendor/three/draco/');
+const loader = new THREE.GLTFLoader(); loader.setDRACOLoader(draco);
+const layers = new Map();
+
+function loadLayer(system) {
+    if (!layers.has(system)) {
+        layers.set(system, new Promise((resolve, reject) => loader.load(`../../system_model/layers/${system}.glb`, gltf => {
+            AnatomyViewer.applySystemLooks(gltf.scene, system);
+            scene.add(gltf.scene);
+            gltf.scene.updateMatrixWorld(true);
+            resolve(gltf.scene);
+        }, undefined, reject)));
+    }
+    return layers.get(system);
+}
+
+// Shows only the parts the shot asks for: `only` keeps the named parts, `hide` drops them.
+function choose(root, {only, hide}) {
+    root.traverse(node => {
+        const name = node.userData && node.userData.part_id ? node.userData.name : null;
+        if (!name) return;
+        node.visible = only ? only.includes(name) : !(hide || []).includes(name);
+    });
+}
+
+function visiblePoints(root) {
+    const points = [], v = new THREE.Vector3();
+    root.traverseVisible(node => {
+        if (!node.isMesh) return;
+        const position = node.geometry.attributes.position;
+        const step = Math.max(1, Math.floor(position.count / 4000));
+        for (let i = 0; i < position.count; i += step) points.push(v.fromBufferAttribute(position, i).applyMatrix4(node.matrixWorld).clone());
+    });
+    return points;
+}
+
+// Places the camera on the shot's yaw and pitch, then moves the target and distance until the visible
+// parts fill the frame inside the shot's margins (fractions of the image).
+function frame(points, {yaw, pitch, fov, margin}) {
+    const y = THREE.MathUtils.degToRad(yaw), p = THREE.MathUtils.degToRad(pitch);
+    const dir = new THREE.Vector3(Math.sin(y) * Math.cos(p), Math.sin(p), Math.cos(y) * Math.cos(p));
+    const box = new THREE.Box3().setFromPoints(points);
+    const target = box.getCenter(new THREE.Vector3());
+    let distance = box.getSize(new THREE.Vector3()).length() * 2;
+    camera.fov = fov; camera.updateProjectionMatrix();
+    const want = {left: -1 + 2 * margin.side, right: 1 - 2 * margin.side, bottom: -1 + 2 * margin.bottom, top: 1 - 2 * margin.top};
+    const ndc = new THREE.Vector3();
+    for (let pass = 0; pass < 12; pass++) {
+        camera.position.copy(target).addScaledVector(dir, distance);
+        camera.lookAt(target); camera.updateMatrixWorld(true);
+        let left = Infinity, right = -Infinity, bottom = Infinity, top = -Infinity;
+        for (const point of points) {
+            ndc.copy(point).project(camera);
+            left = Math.min(left, ndc.x); right = Math.max(right, ndc.x); bottom = Math.min(bottom, ndc.y); top = Math.max(top, ndc.y);
+        }
+        const scale = Math.max((right - left) / (want.right - want.left), (top - bottom) / (want.top - want.bottom));
+        const halfHeight = distance * Math.tan(THREE.MathUtils.degToRad(fov / 2));
+        const shiftX = ((left + right) - (want.left + want.right)) / 2 * halfHeight * camera.aspect;
+        const shiftY = ((bottom + top) - (want.bottom + want.top)) / 2 * halfHeight;
+        const xAxis = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+        const yAxis = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+        target.addScaledVector(xAxis, shiftX).addScaledVector(yAxis, shiftY);
+        distance *= scale;
+    }
+    camera.position.copy(target).addScaledVector(dir, distance);
+    camera.lookAt(target);
+    camera.near = distance / 100; camera.far = distance * 10; camera.updateProjectionMatrix();
+}
+
+async function renderShot(shot, width, height) {
+    for (const root of await Promise.all([...layers.values()])) root.visible = false;
+    const root = await loadLayer(shot.system);
+    root.visible = true;
+    choose(root, shot);
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    frame(visiblePoints(root), {fov: 30, ...shot});
+    renderer.render(scene, camera);
+    return canvas.toDataURL('image/png');
+}
+
+window.harness = {renderShot};
+window.harnessReady = true;
+</script>
+</body>
+</html>

@@ -102,8 +102,8 @@ const AnatomyLayersCore = (() => {
         liver: tissue('#7a3026', 0.4), gallbladder: tissue('#506b3a', 0.35), pancreas: tissue('#dcb28a', 0.5),
         gland: tissue('#c98b70', 0.5), thyroid: tissue('#9c4a3b', 0.45), adrenal: tissue('#d0a04c', 0.5),
         spleen: tissue('#6c2a37', 0.45), lymph: tissue('#c99e88', 0.5), thymus: tissue('#d6b49c', 0.5),
-        lung: tissue('#d39a95', 0.55), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#e3d6cf', 0.35),
-        kidney: tissue('#7a3429', 0.4), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
+        lung: tissue('#c4655f', 0.6), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#e3d6cf', 0.35),
+        kidney: tissue('#73291f', 0.72), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
         uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),
         fascia: tissue('#e0d9cd', 0.45)

@@ -100,7 +100,7 @@ Password recovery is teacher-managed. The public recovery form shows the configu
 
 The landing page shows only real information. The number of active body systems comes from `api/config.php` and stay hidden when the API returns nothing or is unreachable. The feature figures are simplified drawings of the real student pages with generic labels.
 
-The hero shows a fan of body-system cards (click a side card, use the arrow keys, swipe or type in the header search to bring one to the front; hovering lifts a card). The card and floating images in `assets/img/hero/` are still renders of the layered models in `system_model/layers/`, made with the explorer's own viewer and materials on a transparent background, so no 3D loads on the landing page. The two reproductive systems are left out of the hero. Re-render the images if those models change.
+The hero shows a fan of body-system cards (click a side card, use the arrow keys, swipe or type in the header search to bring one to the front; hovering lifts a card). The card and floating images in `assets/img/hero/` are still renders of the layered models in `system_model/layers/`, made with the explorer's own viewer and materials on a transparent background, so no 3D loads on the landing page. The two reproductive systems are left out of the hero. Re-render the images if those models or the tissue colours change: `npm run build:hero` in `landing-src/` redraws the Respiratory and Urinary cards and the floating kidney through `landing-src/render/hero.html` (pass shot names to redraw only some, or `--out <folder>` to compare first).
 
 ### Building the public pages
 
@@ -113,6 +113,7 @@ npm run watch:css        # rebuild on save while editing index.html or login.htm
 npm run check:contrast   # checks every colour pair in the design tokens
 npm run build:assets     # hero poster (AVIF/WebP/PNG), brand mark and favicons from uploads/images/
 npm run build:og         # assets/brand/og-image.jpg, rendered in Chromium
+npm run build:hero       # hero stills in assets/img/hero/ from the layer models, rendered in Chromium
 ~~~
 
 Design tokens live in the `@theme` block of `landing-src/src/public.css`; Tailwind's default palette, radii, shadows and type sizes are cleared so only those tokens exist. Fonts (Instrument Serif, Plus Jakarta Sans, JetBrains Mono, and Bungee for the landing headings) are self-hosted in `assets/fonts/` under the SIL Open Font License. `landing-src/node_modules/` is ignored by Git. Advance the `?v=20261005-landing1` query on the public pages' assets when you change them.
