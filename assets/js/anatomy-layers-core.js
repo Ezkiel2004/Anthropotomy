@@ -91,7 +91,7 @@ const AnatomyLayersCore = (() => {
     // Natural tissue colours (sRGB) and surface roughness. Z-Anatomy colour-codes many structures
     // (muscles by action, blue veins, cyan bursae, purple capsules); the explorer shows how they look instead.
     // An opacity below 1 makes a thin membrane see-through, as Z-Anatomy draws its pleura (85% transparent),
-    // so the organ it wraps stays visible.
+    // so the organ it wraps stays visible; the broad ligament of the uterus is a fold of the same kind.
     const tissue = (color, roughness, opacity) => (opacity === undefined ? {color, roughness, metalness: 0} : {color, roughness, metalness: 0, opacity});
     const TISSUE = {
         bone: tissue('#ddd0b3', 0.75), cartilage: tissue('#d9ddd6', 0.35), ligament: tissue('#e2dccb', 0.4),
@@ -111,6 +111,7 @@ const AnatomyLayersCore = (() => {
         kidney: tissue('#73291f', 0.72), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
         uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),
+        vagina: tissue('#c8827d', 0.45), broadLigament: tissue('#dcb4a8', 0.4, 0.45),
         fascia: tissue('#e0d9cd', 0.45)
     };
     const FIBROUS_MATERIALS = {bone: 'bone', suture: 'bone', cartilage: 'cartilage', ligament: 'ligament', tendon: 'tendon',
@@ -120,8 +121,9 @@ const AnatomyLayersCore = (() => {
         [/liver/, 'liver'], [/gallbladder|bile duct|cystic duct|hepatic duct/, 'gallbladder'], [/spleen/, 'spleen'],
         [/pancrea/, 'pancreas'], [/kidney/, 'kidney'], [/urinary bladder/, 'bladder'], [/thyroid/, 'thyroid'],
         [/suprarenal|adrenal/, 'adrenal'], [/thymus/, 'thymus'], [/hypophysis|pineal/, 'gland'],
-        [/uterine tubes?|fallopian/, 'tube'], [/cervix|cervical os/, 'cervix'], [/uter|cornua/, 'uterus'], [/\bovary\b/, 'ovary'],
-        [/testis|epididymis/, 'testis'], [/corpus cavernosum|corpus spongiosum|glans/, 'erectile'],
+        [/uterine tubes?|fallopian/, 'tube'], [/broad ligament/, 'broadLigament'], [/cervix|cervical os/, 'cervix'],
+        [/uter|cornua/, 'uterus'], [/\bovary\b/, 'ovary'], [/vagina/, 'vagina'],
+        [/testis|epididymis/, 'testis'], [/corpus cavernosum|corpus spongiosum|glans|clitoris|bulb of vestibule/, 'erectile'],
         [/lobe of (left|right) lung/, 'lung'], [/retina/, 'retina'], [/\biris\b/, 'iris'],
         [/cornea|\blens\b|anterior chamber|vitreous/, 'cornea'], [/segment of eyeball|sclera/, 'sclera'],
         [/tympanic membrane/, 'tympanic'], [/pleura/, 'pleura']
@@ -143,7 +145,7 @@ const AnatomyLayersCore = (() => {
 
     // The tissue look for one material on one part, or null for systems the palette does not cover.
     function tissueLook(systemId, materialName, partName) {
-        const material = String(materialName || '').toLowerCase().replace(/-\d+$/, '').trim();
+        const material = String(materialName || '').toLowerCase().replace(/[-.]\d+$/, '').trim(); // 'Lung-6', 'Ligament.001'
         const name = String(partName || '').toLowerCase();
         const pick = key => ({...TISSUE[key]});
         if (/\bnerves?\b/.test(name) && !/nucle|artery|vein/.test(name)) return pick('nerve');

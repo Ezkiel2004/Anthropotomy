@@ -24,6 +24,7 @@ For each system the script:
 
 All systems come from the same file, so the layers share one body frame and overlay exactly.
 """
+import contextlib
 import json
 import os
 import re
@@ -116,6 +117,8 @@ def definition(name):
     if not paragraphs:
         return ""
     body = re.sub(r"\s+", " ", paragraphs[0])
+    body = re.sub(r"\(\s*listen\s*\)", "", body)  # Wikipedia audio links: "( (listen) or (listen))"
+    body = re.sub(r"\(\s*(or\s*)?\)", "", body)
     body = re.sub(r"\(\s*[,;]\s*", "(", body)       # "( , pl. femora )" -> "(pl. femora )"
     body = re.sub(r"\s+\)", ")", body)
     body = re.sub(r"\s{2,}", " ", re.sub(r"\(\s*\)", "", body)).replace(" ,", ",").strip()  # "womb () is" -> "womb is"
@@ -207,7 +210,8 @@ def tag_part(obj, pid, code, name, description, sources):
 def export_temps(temps, path, window, view_layer, reduce=True):
     """Weld (and, with reduce, decimate) the temporary part objects, export only them, return source triangles.
 
-    The caller restores the selection and deletes the temporary objects."""
+    The caller restores the selection and deletes the temporary objects. window may be None when Blender runs
+    in the background (blender -b), which has no windows."""
     source_tris = 0
     for temp in temps:
         tris = tri_count(temp.data)
@@ -219,12 +223,12 @@ def export_temps(temps, path, window, view_layer, reduce=True):
             decimate = temp.modifiers.new("WebDecimate", 'DECIMATE')
             decimate.decimate_type = 'COLLAPSE'
             decimate.ratio = RATIO
-    for o in window.scene.objects:
+    for o in (window.scene if window else bpy.context.scene).objects:
         o.select_set(False, view_layer=view_layer)
     for temp in temps:
         temp.select_set(True, view_layer=view_layer)
     view_layer.objects.active = temps[0]
-    with bpy.context.temp_override(window=window):
+    with bpy.context.temp_override(window=window) if window else contextlib.nullcontext():
         bpy.ops.export_scene.gltf(
             filepath=path, export_format='GLB', use_selection=True, use_visible=False,
             export_apply=True, export_extras=True, export_yup=True,

@@ -56,21 +56,28 @@
     "triangles": 7287
   },
   "reproductive-female": {
-    "bytes": 118360,
+    "bytes": 108012,
     "clearance": {
-      "ovaries_inside_Hip bone.l": 0.0,
-      "ovaries_inside_Hip bone.r": 0.0,
-      "ovaries_inside_Sacrum": 0.0,
-      "uterus_inside_Hip bone.l": 0.0,
-      "uterus_inside_Hip bone.r": 0.0,
-      "uterus_inside_Sacrum": 0.0,
-      "uterus_inside_bladder": 0.0
+      "Coccyx": 0.0,
+      "Hip bone.l": 0.0,
+      "Hip bone.r": 0.0,
+      "Sacrum": 0.0,
+      "Urinary bladder": 0.018
     },
-    "described": 12,
+    "described": 13,
     "file": "reproductive-female.glb",
-    "parts": 12,
-    "source_triangles": 38017,
-    "triangles": 38017
+    "fit_median_mm": 5.2,
+    "inside_before_settling": {
+      "Coccyx": 0.0,
+      "Hip bone.l": 0.14,
+      "Hip bone.r": 0.134,
+      "Sacrum": 0.001,
+      "Urinary bladder": 0.018
+    },
+    "parts": 15,
+    "settle_max_mm": 26.5,
+    "source_triangles": 78244,
+    "triangles": 23464
   },
   "respiratory": {
     "bytes": 331764,

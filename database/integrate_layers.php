@@ -3,7 +3,9 @@
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once __DIR__ . '/connection.php';
 const LAYER_CREDIT = '3D model: Z-Anatomy (https://github.com/LluisV/Z-Anatomy), licensed CC BY-SA 4.0. Reduced for web; the reduced model files are shared under the same licence.';
-// Z-Anatomy has no female reproductive organs; that layer uses Human Reference Atlas organs (see tools/blender/sources/hra).
+// Z-Anatomy has no female reproductive organs; that layer uses the Stanford model (see tools/blender/sources/stanford).
+const FEMALE_CREDIT = '3D model: "Female Reproductive System" by stanfordedtechteam (https://sketchfab.com/3d-models/female-reproductive-system-c4d5e725198d4a1997c641d548bb20ce), licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Fitted into the Z-Anatomy pelvis, split into named parts, reduced for web and recoloured.';
+// The female layer's earlier credit, for the Human Reference Atlas organs it no longer uses; it is removed.
 const HRA_CREDIT = '3D model: Human Reference Atlas reference organs (uterus, left and right ovary; Visible Human female) from NIH 3D (https://3d.nih.gov/entries/3DPX-020996, https://3d.nih.gov/entries/3DPX-020979, https://3d.nih.gov/entries/3DPX-020980), licensed CC BY 4.0. Fitted into the Z-Anatomy pelvis with the uterus shown anteverted, and recoloured.';
 // Default text written by integrate_skeleton.php for the old single-mesh skeleton; it no longer applies.
 const OLD_SKELETON_DESCRIPTION = 'Explore the supplied human skeleton model. Rotate, zoom, and reset the view to study its overall form. This asset is a single combined mesh; individual bones cannot be selected separately.';
@@ -18,7 +20,8 @@ $layers = [
 // code => [old default name, new name]: the reproductive layer is male-only now that there is a female layer.
 // A name a teacher has changed is left alone.
 $renames = ['reproductive' => ['Reproductive System', 'Male Reproductive System']];
-$credits = ['reproductive-female' => HRA_CREDIT];
+$credits = ['reproductive-female' => FEMALE_CREDIT];
+$oldCredits = ['reproductive-female' => HRA_CREDIT];
 
 function glbJson(string $file): array {
     $stream = fopen($file, 'rb');
@@ -61,6 +64,7 @@ foreach ($layers as $code => [$name, $color, $order]) {
         $existing = $db->fetchOne('SELECT source_text FROM anatomy_content WHERE system_id=?', [$id]);
         $source = trim($existing['source_text'] ?? '');
         if ($code === 'skeletal' && $oldCredit !== '') $source = trim(str_replace($oldCredit, '', $source));
+        if (isset($oldCredits[$code])) $source = trim(preg_replace('/\n{3,}/', "\n\n", str_replace($oldCredits[$code], '', $source)));
         $credit = $credits[$code] ?? LAYER_CREDIT;
         if (!str_contains($source, $credit)) $source = $source === '' ? $credit : $source . "\n\n" . $credit;
         $db->query('INSERT INTO anatomy_content (system_id, model_url, key_facts, structures, source_text) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE model_url=VALUES(model_url), source_text=VALUES(source_text)', [$id, "../system_model/layers/$code.glb", '{}', '[]', $source]);

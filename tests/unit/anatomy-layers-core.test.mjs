@@ -162,9 +162,21 @@ test('the tissue palette has no saturated blue, cyan or purple', () => {
 test('tissueLook colours the female reproductive organs like real tissue', () => {
     const color = (material, name) => core.tissueLook('reproductive-female', material, name)?.color;
     const T = core.TISSUE;
-    for (const name of ['Body of uterus', 'Fundus of uterus', 'Uterine cornua', 'Anterior wall of uterus', 'Posterior wall of uterus', 'Lower uterine segment']) assert.equal(color('Uterus_Mat2', name), T.uterus.color, name);
-    assert.equal(color('Uterus_Mat2', 'Cervix of uterus'), T.cervix.color);
-    assert.equal(color('Uterus_Mat2', 'External os of cervix'), T.cervix.color);
-    assert.equal(color('Ovary_mat', 'Ovary (left)'), T.ovary.color);
-    assert.equal(color('Uterus_Mat2', 'Abdominal ostia of uterine tubes'), T.tube.color);
+    assert.equal(color('Uterus', 'Uterus'), T.uterus.color);
+    assert.equal(color('Vagina', 'Vagina'), T.vagina.color);
+    assert.equal(color('Tube', 'Uterine tube (left)'), T.tube.color);
+    assert.equal(color('Ovary', 'Ovary (right)'), T.ovary.color);
+    assert.equal(color('Ligament.001', 'Round ligament of uterus (left)'), T.ligament.color, 'a renamed material keeps its tissue');
+    assert.equal(color('Broad ligament', 'Broad ligament of uterus (right)'), T.broadLigament.color, 'not coloured as the uterus');
+    assert.equal(color('Erectile', 'Clitoris'), T.erectile.color);
+    assert.equal(color('Erectile', 'Bulb of vestibule'), T.erectile.color);
+    assert.equal(color('Gland.001', 'Greater vestibular gland (left)'), T.gland.color);
+    assert.equal(color('Mucosa.001', 'Labia minora'), T.mucosa.color);
+    assert.equal(color('Uterus', 'Cervix of uterus'), T.cervix.color);
+});
+
+test('the broad ligament is see-through, like the pleura', () => {
+    const broad = core.tissueLook('reproductive-female', 'Broad ligament', 'Broad ligament of uterus (left)');
+    assert.ok(broad.opacity > 0 && broad.opacity < 1);
+    assert.equal(core.tissueLook('reproductive-female', 'Uterus', 'Uterus').opacity, undefined);
 });
