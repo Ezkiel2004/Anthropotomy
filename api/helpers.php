@@ -43,6 +43,19 @@ function safeMediaUrl(string $url): bool {
     return in_array(strtolower(parse_url($url, PHP_URL_SCHEME) ?? ''), ['https', 'http'], true);
 }
 
+/**
+ * A page-relative URL of a file on this server ('../system_model/layers/x.glb') with ?v=<modified time>
+ * added, so browsers download a model again after it is re-exported instead of reusing their cached copy.
+ * Other URLs, and URLs that already have a query, are returned unchanged.
+ */
+function versionedMediaUrl(?string $url): ?string {
+    if ($url === null || !str_starts_with($url, '../') || str_contains($url, '?')) return $url;
+    $root = realpath(__DIR__ . '/..');
+    $file = realpath($root . '/' . substr($url, 3));
+    if ($file === false || !str_starts_with($file, $root . DIRECTORY_SEPARATOR) || !is_file($file)) return $url;
+    return $url . '?v=' . filemtime($file);
+}
+
 function schoolSettings(): array {
     return array_column(Database::getInstance()->fetchAll('SELECT setting_key, setting_value FROM app_settings'), 'setting_value', 'setting_key');
 }

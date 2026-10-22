@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     foreach ($rows as &$row) {
         $row['system_id'] = (int)$row['system_id'];
         $row['is_active'] = (bool)$row['is_active'];
+        $row['model_url'] = versionedMediaUrl($row['model_url']);
         $row['key_facts'] = json_decode($row['key_facts'] ?? '{}', true) ?: new stdClass();
         $row['structures'] = json_decode($row['structures'] ?? '[]', true) ?: [];
     }
@@ -23,7 +24,7 @@ $code = requireField($body, 'system_code');
 if (!is_string($code) || !preg_match('/^[a-z][a-z0-9_-]{0,29}$/', $code)) jsonError('System code must use lowercase letters, numbers, hyphens or underscores.', 422);
 $color = $body['color_hex'] ?? '#3b82f6';
 if (!is_string($color) || !preg_match('/^#[a-f0-9]{6}$/i', $color)) jsonError('Choose a valid color.', 422);
-$url = trim($body['model_url'] ?? '');
+$url = preg_replace('/\?v=\d+$/', '', trim($body['model_url'] ?? '')); // the version GET adds is not stored
 if ($url !== '' && (!preg_match('~\.glb(?:\?.*)?$~i', $url) || !safeMediaUrl($url))) jsonError('Choose a GLB model URL from your media library.', 422);
 $facts = $body['key_facts'] ?? [];
 $structures = $body['structures'] ?? [];
