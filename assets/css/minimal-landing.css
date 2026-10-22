@@ -1,0 +1,123 @@
+/* Minimal landing and sign-in: the Stage's original black, with a few quiet touches.
+   Loaded after hero.css on index.html and login.html and scoped to body.landing-minimal.
+   Colour is untouched, and nothing blurs, glows or goes translucent. The touches: a floating
+   pill header, faint wave lines in two corners, a wide calm headline, generous gaps between
+   sections, a pinned Features title, rounded cards on soft shadows and slow hover lifts.
+   Only surface styling lives here; markup, copy, colour and layout are untouched. */
+
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/geist-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/geist-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/geist-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/geist-sans-latin-700-normal.woff2) format("woff2")}
+
+body.landing-minimal {
+  --font-body: "Geist Sans", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mn-ease: cubic-bezier(.16, 1, .3, 1);
+  --mn-shadow: 0 14px 36px -10px rgba(0, 0, 0, .6);
+  --mn-shadow-lift: 0 26px 60px -14px rgba(0, 0, 0, .75);
+  --mn-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='360' viewBox='0 0 720 360' fill='none' stroke='%23ffffff' stroke-opacity='.07' stroke-width='1.2'%3E%3Cpath d='M0 40C120 0 240 80 360 40S600 0 720 40'/%3E%3Cpath d='M0 62C120 22 240 102 360 62S600 22 720 62'/%3E%3Cpath d='M0 84C120 44 240 124 360 84S600 44 720 84'/%3E%3Cpath d='M0 106C120 66 240 146 360 106S600 66 720 106'/%3E%3Cpath d='M0 128C120 88 240 168 360 128S600 88 720 128'/%3E%3Cpath d='M0 150C120 110 240 190 360 150S600 110 720 150'/%3E%3Cpath d='M0 172C120 132 240 212 360 172S600 132 720 172'/%3E%3Cpath d='M0 194C120 154 240 234 360 194S600 154 720 194'/%3E%3Cpath d='M0 216C120 176 240 256 360 216S600 176 720 216'/%3E%3Cpath d='M0 238C120 198 240 278 360 238S600 198 720 238'/%3E%3C/svg%3E");
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+body.landing-minimal :is(input, button, select, textarea) { font-family: inherit; }
+
+/* Wave lines, top right and bottom left, behind everything */
+body.landing-minimal::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--mn-wave) right top / min(52rem, 100%) auto no-repeat, var(--mn-wave) left bottom / min(52rem, 100%) auto no-repeat;
+}
+
+/* ── Floating pill header ── */
+body.landing-minimal .hx-header { position: sticky; top: .75rem; z-index: 60; margin-top: .75rem; }
+body.landing-minimal .hx-bar.page {
+  width: min(calc(100% - 2 * clamp(.75rem, 2.5vw, 2rem)), 78rem); min-height: 4.25rem; padding-inline: clamp(.75rem, 2vw, 1.5rem);
+  border-radius: 999px; background: #1a1a1a; box-shadow: var(--mn-shadow);
+}
+body.landing-minimal .hx-link { transition: color .3s var(--mn-ease); }
+body.landing-minimal .hx-pill { background: #262626; transition: transform .5s var(--mn-ease); }
+body.landing-minimal .hx-pill:hover { transform: translateY(-2px); }
+body.landing-minimal .hx-search { background: #262626; }
+body.landing-minimal .hx-menu { background: #262626; border-radius: 999px; }
+@media (max-width: 71.99rem) {
+  body.landing-minimal .hx-nav { inset: calc(100% + .5rem) 0 auto; border: 0; border-radius: 1.75rem; background: #1a1a1a; padding-bottom: 1.25rem; box-shadow: var(--mn-shadow-lift); }
+}
+
+/* ── Hero: one wide, calm headline ── */
+body.landing-minimal .hx-title { max-width: min(72rem, 100%); margin-inline: auto; font-size: clamp(2.25rem, 5.4vw, 4.75rem); line-height: 1.02; text-wrap: balance; }
+body.landing-minimal .hx-lead { max-width: 34rem; font-size: clamp(.9375rem, 1.1vw, 1.0625rem); line-height: 1.7; }
+body.landing-minimal .hx-card { box-shadow: 0 24px 50px -14px rgba(0, 0, 0, .75), inset 0 2px 0 rgba(255, 255, 255, .4); }
+
+/* ── Chapters: big, quiet gaps between sections ── */
+body.landing-minimal .section { padding-block: clamp(6.5rem, 15vw, 12.5rem); }
+body.landing-minimal .cta-band { padding-block: clamp(7rem, 16vw, 13rem); }
+body.landing-minimal .section-title { letter-spacing: -.015em; text-wrap: balance; }
+body.landing-minimal .lead,
+body.landing-minimal .body-copy { line-height: 1.75; }
+body.landing-minimal .section-title.prose-measure { max-width: 56rem; }
+body.landing-minimal .cmp { gap: clamp(1rem, 2vw, 1.75rem); }
+body.landing-minimal .steps { gap: clamp(1.25rem, 2.5vw, 2rem); }
+
+/* ── Cards: rounder, no hard edges, soft shadows ── */
+body.landing-minimal .cmp-new,
+body.landing-minimal .shot,
+body.landing-minimal .mock { border-radius: 1.75rem; box-shadow: var(--mn-shadow); }
+body.landing-minimal .shot { overflow: hidden; }
+body.landing-minimal .step { border-radius: 2rem; box-shadow: var(--mn-shadow); }
+body.landing-minimal .hx-cta { padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem); border-radius: 2rem; background: #181818; box-shadow: var(--mn-shadow); }
+body.landing-minimal .cmp-link { border-radius: 999px; }
+body.landing-minimal .demo-tab { border-radius: 999px; }
+
+/* ── Features: the title holds still on the left while the figures scroll past on the right ── */
+@media (min-width: 64rem) {
+  body.landing-minimal #features > .page { display: grid; grid-template-columns: minmax(15rem, 21rem) minmax(0, 1fr); column-gap: clamp(2.5rem, 6vw, 6rem); align-items: start; }
+  body.landing-minimal #features > .page > .prose-measure { grid-column: 1; grid-row: 1 / span 6; position: sticky; top: 7rem; max-width: none; padding-bottom: 2rem; }
+  body.landing-minimal #features > .page > .feature { grid-column: 2; grid-template-columns: minmax(0, 1fr); gap: 2rem; padding-block: clamp(3rem, 6vw, 5rem); }
+  body.landing-minimal #features > .page > .feature:first-of-type { padding-top: 0; }
+  body.landing-minimal #features .feature .feature-text,
+  body.landing-minimal #features .feature .feature-media,
+  body.landing-minimal #features .feature--flip .feature-text,
+  body.landing-minimal #features .feature--flip .feature-media,
+  body.landing-minimal #features .feature--wide .feature-text,
+  body.landing-minimal #features .feature--wide .feature-media { grid-column: 1; grid-row: auto; }
+  body.landing-minimal #features .section-title { font-size: clamp(1.75rem, 2.9vw, 2.75rem); }
+}
+
+/* ── Hover: slow, springy, inside an overflow-hidden frame ── */
+body.landing-minimal .shot,
+body.landing-minimal .mock,
+body.landing-minimal .cmp-new { transition: transform .7s var(--mn-ease), box-shadow .7s var(--mn-ease); }
+body.landing-minimal .shot img { transition: transform 1s var(--mn-ease); }
+body.landing-minimal .feature-media:hover .shot img { transform: scale(1.05); }
+body.landing-minimal .feature-media:hover .shot,
+body.landing-minimal .feature-media:hover .mock,
+body.landing-minimal .cmp-new:hover { transform: translateY(-.375rem); box-shadow: var(--mn-shadow-lift); }
+body.landing-minimal .step { transition: transform .8s var(--mn-ease), box-shadow .8s var(--mn-ease); }
+body.landing-minimal .step:hover { transform: translateY(-.875rem) scale(1.025); box-shadow: var(--mn-shadow-lift); }
+body.landing-minimal .hx-card-art { transition: transform .9s var(--mn-ease), opacity .6s ease; }
+body.landing-minimal .hx-slide:hover .hx-card-art { transform: scale(1.05); }
+body.landing-minimal .demo-tab { transition: transform .4s var(--mn-ease), background-color .3s; }
+body.landing-minimal .demo-tab:hover { transform: translateY(-2px); }
+
+/* Words dim and light up as the page scrolls (landing-motion.js adds the spans) */
+body.landing-minimal .tm-w { display: inline; }
+
+/* ── Sign-in: the form sits on a rounded card ── */
+body.landing-minimal .au-btn { transition: transform .5s var(--mn-ease); }
+body.landing-minimal .au-btn:hover { transform: translateY(-2px); }
+body.landing-minimal .au-card { box-shadow: 0 20px 44px -12px rgba(0, 0, 0, .75), inset 0 2px 0 rgba(255, 255, 255, .4); }
+body.landing-minimal .au-sheet { border-radius: 2rem; }
+@media (min-width: 64rem) {
+  body.landing-minimal .au-panel { border-radius: 2rem; background: #181818; box-shadow: var(--mn-shadow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.landing-minimal .hx-pill:hover,
+  body.landing-minimal .cmp-new:hover,
+  body.landing-minimal .step:hover,
+  body.landing-minimal .feature-media:hover .shot,
+  body.landing-minimal .feature-media:hover .mock,
+  body.landing-minimal .demo-tab:hover,
+  body.landing-minimal .au-btn:hover { transform: none; }
+  body.landing-minimal .feature-media:hover .shot img,
+  body.landing-minimal .hx-slide:hover .hx-card-art { transform: none; }
+}

@@ -12,11 +12,13 @@
     "check:contrast": "node scripts/contrast.mjs"
   },
   "devDependencies": {
+    "@fontsource/geist-sans": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@phosphor-icons/core": "^2.1.1",
     "@tailwindcss/cli": "^4.3.3",
+    "gsap": "^3.15.0",
     "playwright-core": "^1.63.0",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3"

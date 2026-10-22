@@ -1,0 +1,146 @@
+/* Minimal portal: flat black surfaces with a few quiet touches of design.
+   Loaded last on every student and teacher page and scoped to body.stage-portal. Colour is
+   the Stage's original black with its yellow and body-system accents; nothing here blurs,
+   glows or goes translucent. The touches: the app sits on a rounded sheet inside a thin
+   darker frame with faint wave lines in two corners, the active nav item is a solid pill,
+   the top bar floats as a pill, cards lose their borders and rest on soft shadows, and
+   cards lift slowly on hover. Only surface styling lives here; markup, copy, colour and
+   layout are untouched. */
+
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/geist-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/geist-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/geist-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Geist Sans";font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/geist-sans-latin-700-normal.woff2) format("woff2")}
+
+body.stage-portal {
+  --font-body: "Geist Sans", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mn-ease: cubic-bezier(.16, 1, .3, 1);
+  --mn-shadow: 0 12px 32px -10px rgba(0, 0, 0, .55);
+  --mn-shadow-lift: 0 24px 56px -14px rgba(0, 0, 0, .7);
+  --mn-wave-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='360' viewBox='0 0 720 360' fill='none' stroke='%23ffffff' stroke-opacity='.3' stroke-width='1.2'%3E%3Cpath d='M0 40C120 0 240 80 360 40S600 0 720 40'/%3E%3Cpath d='M0 62C120 22 240 102 360 62S600 22 720 62'/%3E%3Cpath d='M0 84C120 44 240 124 360 84S600 44 720 84'/%3E%3Cpath d='M0 106C120 66 240 146 360 106S600 66 720 106'/%3E%3Cpath d='M0 128C120 88 240 168 360 128S600 88 720 128'/%3E%3Cpath d='M0 150C120 110 240 190 360 150S600 110 720 150'/%3E%3Cpath d='M0 172C120 132 240 212 360 172S600 132 720 172'/%3E%3Cpath d='M0 194C120 154 240 234 360 194S600 154 720 194'/%3E%3Cpath d='M0 216C120 176 240 256 360 216S600 176 720 216'/%3E%3Cpath d='M0 238C120 198 240 278 360 238S600 198 720 238'/%3E%3C/svg%3E");
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── The sheet: the app on a rounded surface inside a thin darker frame. The frame is a
+   fixed ring (a full-screen layer with the sheet cut out by a mask) so content that scrolls
+   under its edge is hidden, and the wave lines are painted on the ring, not over the page. ── */
+@media (min-width: 1025px) {
+  body.stage-portal { --mn-d: 1rem; --mn-r: 1.5rem; }
+  body.stage-portal::before { content: none; }
+  body.stage-portal::after {
+    content: ""; position: fixed; inset: 0; z-index: 800; pointer-events: none;
+    background: var(--mn-wave-ring) right top / 46rem auto no-repeat, var(--mn-wave-ring) left bottom / 46rem auto no-repeat, #070707;
+    -webkit-mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000), linear-gradient(#000, #000), linear-gradient(#000, #000),
+      radial-gradient(circle at 100% 100%, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)), radial-gradient(circle at 0 100%, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)),
+      radial-gradient(circle at 100% 0, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)), radial-gradient(circle at 0 0, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px));
+    mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000), linear-gradient(#000, #000), linear-gradient(#000, #000),
+      radial-gradient(circle at 100% 100%, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)), radial-gradient(circle at 0 100%, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)),
+      radial-gradient(circle at 100% 0, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px)), radial-gradient(circle at 0 0, transparent var(--mn-r), #000 calc(var(--mn-r) + .5px));
+    -webkit-mask-size: 100% var(--mn-d), 100% var(--mn-d), var(--mn-d) 100%, var(--mn-d) 100%, var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r);
+    mask-size: 100% var(--mn-d), 100% var(--mn-d), var(--mn-d) 100%, var(--mn-d) 100%, var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r), var(--mn-r) var(--mn-r);
+    -webkit-mask-position: 0 0, 0 100%, 0 0, 100% 0, var(--mn-d) var(--mn-d), calc(100% - var(--mn-d)) var(--mn-d), var(--mn-d) calc(100% - var(--mn-d)), calc(100% - var(--mn-d)) calc(100% - var(--mn-d));
+    mask-position: 0 0, 0 100%, 0 0, 100% 0, var(--mn-d) var(--mn-d), calc(100% - var(--mn-d)) var(--mn-d), var(--mn-d) calc(100% - var(--mn-d)), calc(100% - var(--mn-d)) calc(100% - var(--mn-d));
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  }
+  body.stage-portal .sidebar {
+    top: var(--mn-d); bottom: var(--mn-d); left: var(--mn-d); height: auto; width: calc(var(--sidebar-width, 240px) - var(--mn-d));
+    border: 0; border-radius: var(--mn-r) 0 0 var(--mn-r); box-shadow: none;
+  }
+  body.stage-portal .sidebar.collapsed { width: calc(var(--sidebar-collapsed, 64px) - var(--mn-d)); }
+  body.stage-portal .main-content .topbar { margin: calc(var(--mn-d) + .5rem) 1.5rem 0; }
+  body.stage-portal .page-content.sd,
+  body.stage-portal .page-content { padding-top: calc(var(--topbar-height, 56px) + 3.25rem); }
+}
+
+/* ── Top bar: a flat floating pill ── */
+body.stage-portal .topbar {
+  height: 3.5rem; margin: .75rem .75rem 0; padding-inline: 1rem; border: 0; border-radius: 999px; background: #1f1f1f;
+  -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--mn-shadow);
+}
+body.stage-portal .topbar-toggle,
+body.stage-portal .notif-btn { border-radius: 50%; background: #2a2a2a; }
+body.stage-portal .topbar-user { border-left-color: #2e2e2e; }
+
+/* ── Navigation: the current page is a solid pill ── */
+body.stage-portal .nav-item { border-radius: 999px; transition: background-color .3s var(--mn-ease), color .3s var(--mn-ease); }
+body.stage-portal .nav-item:hover { background: #1c1c1c; }
+body.stage-portal .nav-item.active { background: #f7c948; color: #1a1a1a; box-shadow: none; }
+body.stage-portal .nav-item.active::before { display: none; }
+body.stage-portal .nav-item.active .nav-badge { background: #1a1a1a; color: #f7c948; }
+body.stage-portal .user-card { border-radius: 1.25rem; }
+
+/* ── Cards: no borders, soft shadows, generous radii ── */
+body.stage-portal .sd-stats,
+body.stage-portal .sd-ach,
+body.stage-portal .sd-panel,
+body.stage-portal .sd-empty,
+body.stage-portal .sd-mod,
+body.stage-portal .sd-task,
+body.stage-portal .sd-qcard,
+body.stage-portal .sd-notif,
+body.stage-portal .sd-id,
+body.stage-portal .sd-ring-card,
+body.stage-portal .sd-verdict,
+body.stage-portal .sd-review-item,
+body.stage-portal .game-card,
+body.stage-portal .game-board,
+body.stage-portal .game-results,
+body.stage-portal .tg-paste,
+body.stage-portal.teacher-dashboard .card,
+body.stage-portal.teacher-dashboard .stats-grid,
+body.stage-portal.teacher-dashboard .module-card,
+body.stage-portal.teacher-dashboard .announcement-card,
+body.stage-portal.teacher-dashboard .media-card,
+body.stage-portal.teacher-dashboard .report-chart-card,
+body.stage-portal.teacher-dashboard .content-panel,
+body.stage-portal.teacher-dashboard .portal-empty { border-radius: 1.5rem; box-shadow: var(--mn-shadow); }
+body.stage-portal .sd-next,
+body.stage-portal .sd-sys { box-shadow: var(--mn-shadow); }
+body.stage-portal .modal-box,
+body.stage-portal .notif-dropdown,
+body.stage-portal .account-dropdown { border-radius: 1.5rem; box-shadow: 0 24px 64px -12px rgba(0, 0, 0, .75); }
+body.stage-portal.teacher-dashboard .card:hover { box-shadow: var(--mn-shadow); }
+
+/* ── Space: sections breathe ── */
+body.stage-portal .page-content.sd { gap: clamp(3rem, 5.5vw, 4.5rem); }
+body.stage-portal .sd-h { margin-bottom: 1.5rem; }
+body.stage-portal.teacher-dashboard .page-header { margin-bottom: 2.5rem; }
+body.stage-portal.teacher-dashboard .dashboard-row,
+body.stage-portal.teacher-dashboard .dashboard-row-equal { gap: 1.5rem; margin-bottom: 1.5rem; }
+body.stage-portal.teacher-dashboard .stats-grid { margin-bottom: 2.5rem; }
+body.stage-portal.teacher-dashboard .card { padding: clamp(1.375rem, 2vw, 2rem); }
+body.stage-portal .sd-grid { gap: 1.5rem; }
+
+/* ── Dense grids: no dead cells ── */
+body.stage-portal .sd-grid,
+body.stage-portal .sd-achievements,
+body.stage-portal .game-badges,
+body.stage-portal.teacher-dashboard .module-grid,
+body.stage-portal.teacher-dashboard .stats-grid { grid-auto-flow: dense; }
+
+/* ── Hover: a slow lift on every clickable card ── */
+body.stage-portal :is(.sd-sys, .sd-mod, .sd-task, .game-card, .sd-notif, .sd-quiz, .sd-next),
+body.stage-portal.teacher-dashboard :is(.module-card, .announcement-card, .media-card, .row-link) { transition: transform .7s var(--mn-ease), box-shadow .7s var(--mn-ease), background-color .4s var(--mn-ease); }
+body.stage-portal :is(.sd-mod, .sd-task):hover,
+body.stage-portal .game-card:not(.is-unavailable):hover,
+body.stage-portal.teacher-dashboard :is(.module-card, .announcement-card, .media-card):hover { transform: translateY(-.5rem); box-shadow: var(--mn-shadow-lift); }
+body.stage-portal .sd-sys:hover { transform: translateY(-.5rem) rotate(-1.5deg); box-shadow: var(--mn-shadow-lift); }
+body.stage-portal .sd-next:hover { transform: translateY(-.375rem); box-shadow: var(--mn-shadow-lift); }
+body.stage-portal .sd-notif:hover { transform: translateX(.375rem); }
+body.stage-portal .sd-go,
+body.stage-portal .btn { transition: transform .5s var(--mn-ease), background-color .3s; }
+body.stage-portal .sd-go:hover { transform: translateY(-2px); }
+
+@media (max-width: 1024px) {
+  body.student-dashboard.stage-portal .sd-tabbar { margin: 0 .75rem .75rem; border: 0; border-radius: 1.75rem; background: #1f1f1f; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 -6px 32px rgba(0, 0, 0, .5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.stage-portal :is(.sd-mod, .sd-task):hover,
+  body.stage-portal .game-card:hover,
+  body.stage-portal .sd-sys:hover,
+  body.stage-portal .sd-next:hover,
+  body.stage-portal .sd-notif:hover,
+  body.stage-portal .sd-go:hover,
+  body.stage-portal.teacher-dashboard :is(.module-card, .announcement-card, .media-card):hover { transform: none; }
+}

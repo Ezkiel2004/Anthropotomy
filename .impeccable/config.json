@@ -143,6 +143,12 @@
         ],
         "createdAt": "2026-10-16T03:06:47.003Z",
         "reason": "Claude: sd-table cells carry their own .875rem/1rem padding, as on the shipped dashboard"
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist sans",
+        "createdAt": "2026-10-22T04:05:12.132Z",
+        "reason": "gpt-taste skill, invoked by the user, restricts the body font to Satoshi, Cabinet Grotesk, Outfit or Geist; Geist was its deterministic draw (disclosed in the design plan). Not a direct user choice of Geist."
       }
     ]
   }
