@@ -21,6 +21,20 @@ test('pickPart prefers the focused part, otherwise the nearest part', () => {
     assert.equal(core.pickPart([], 'b'), null);
 });
 
+test('pickPart looks through a see-through part to the solid part behind it', () => {
+    const pleura = node({part_id: 'pleura'}), lobe = node({part_id: 'lobe'});
+    const clear = object => object === pleura;
+    assert.equal(core.pickPart([{object: pleura}, {object: lobe}], null, clear), lobe);
+    assert.equal(core.pickPart([{object: pleura}], null, clear), pleura, 'with nothing behind it, the see-through part is picked');
+    assert.equal(core.pickPart([{object: pleura}, {object: lobe}], 'pleura', clear), pleura, 'a focused see-through part stays pickable');
+});
+
+test('the pleura is see-through and the lungs it wraps are solid', () => {
+    const pleura = core.tissueLook('respiratory', 'Fascia', 'Pleura');
+    assert.ok(pleura.opacity > 0 && pleura.opacity < 1);
+    assert.equal(core.tissueLook('respiratory', 'Lung-base', 'Superior lobe of left lung').opacity, undefined);
+});
+
 test('partInfo marks unidentified parts and never invents content', () => {
     const info = core.partInfo({name: 'Bone component 00123', system_id: 'skeletal', systems: ['skeletal'], identity_status: 'source_identity_required', description: '', function: ''}, {skeletal: 'Skeletal System'});
     assert.equal(info.title, 'Bone component 00123');

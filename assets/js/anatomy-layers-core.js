@@ -12,15 +12,18 @@ const AnatomyLayersCore = (() => {
         return null;
     }
 
-    function pickPart(hits, focusedPartId) {
-        let first = null;
+    // A see-through part (seeThrough(mesh) is true, like the pleura over the lungs) is picked only
+    // when no solid part lies behind it, so clicks reach what the viewer actually sees.
+    function pickPart(hits, focusedPartId, seeThrough = () => false) {
+        let first = null, clear = null;
         for (const hit of hits) {
             const part = resolvePart(hit.object);
             if (!part) continue;
             if (focusedPartId && part.userData.part_id === focusedPartId) return part;
-            if (!first) first = part;
+            if (seeThrough(hit.object)) { if (!clear) clear = part; }
+            else if (!first) first = part;
         }
-        return first;
+        return first || clear;
     }
 
     function matchStructure(structures, part) {
@@ -87,7 +90,9 @@ const AnatomyLayersCore = (() => {
 
     // Natural tissue colours (sRGB) and surface roughness. Z-Anatomy colour-codes many structures
     // (muscles by action, blue veins, cyan bursae, purple capsules); the explorer shows how they look instead.
-    const tissue = (color, roughness) => ({color, roughness, metalness: 0});
+    // An opacity below 1 makes a thin membrane see-through, as Z-Anatomy draws its pleura (85% transparent),
+    // so the organ it wraps stays visible.
+    const tissue = (color, roughness, opacity) => (opacity === undefined ? {color, roughness, metalness: 0} : {color, roughness, metalness: 0, opacity});
     const TISSUE = {
         bone: tissue('#ddd0b3', 0.75), cartilage: tissue('#d9ddd6', 0.35), ligament: tissue('#e2dccb', 0.4),
         tendon: tissue('#e8e1d2', 0.35), capsule: tissue('#ddd5c6', 0.45), bursa: tissue('#e4e0d8', 0.3),
@@ -102,7 +107,7 @@ const AnatomyLayersCore = (() => {
         liver: tissue('#7a3026', 0.4), gallbladder: tissue('#506b3a', 0.35), pancreas: tissue('#dcb28a', 0.5),
         gland: tissue('#c98b70', 0.5), thyroid: tissue('#9c4a3b', 0.45), adrenal: tissue('#d0a04c', 0.5),
         spleen: tissue('#6c2a37', 0.45), lymph: tissue('#c99e88', 0.5), thymus: tissue('#d6b49c', 0.5),
-        lung: tissue('#c4655f', 0.6), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#e3d6cf', 0.35),
+        lung: tissue('#c4655f', 0.6), bronchi: tissue('#ded5c8', 0.4), pleura: tissue('#d8958d', 0.3, 0.12),
         kidney: tissue('#73291f', 0.72), bladder: tissue('#d2a090', 0.45), duct: tissue('#d8c5a6', 0.45),
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
         uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),

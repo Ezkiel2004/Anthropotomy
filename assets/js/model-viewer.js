@@ -186,12 +186,13 @@ const AnatomyViewer = {
             const restyle = material => {
                 if (!material || !material.isMeshStandardMaterial) return material;
                 const look = AnatomyLayersCore.tissueLook(system, material.name, part?.userData.name || node.name) || AnatomyLayersCore.materialLook(system);
-                const key = `${material.uuid}|${look.color || ''}|${look.roughness}`;
+                const key = `${material.uuid}|${look.color || ''}|${look.roughness}|${look.opacity ?? 1}`;
                 if (!copies.has(key)) {
                     const copy = material.clone();
                     if (look.color) copy.color.set(look.color).convertSRGBToLinear();
                     else if (look.colorScale && look.colorScale !== 1) copy.color.multiplyScalar(look.colorScale);
                     copy.roughness = look.roughness; copy.metalness = look.metalness || 0;
+                    if (look.opacity < 1) { copy.transparent = true; copy.opacity = look.opacity; copy.depthWrite = false; copy.userData.seeThrough = true; }
                     // Z-Anatomy materials export with full white emission (and some clearcoat), which washes
                     // every part out to white; real tissue does not glow.
                     if (copy.emissive) copy.emissive.setRGB(0, 0, 0);
@@ -247,8 +248,9 @@ const AnatomyViewer = {
     partAt(x, y) {
         const roots = this.visibleRoots(); if (!roots.length) return null;
         this.rayFrom(x, y);
-        return AnatomyLayersCore.pickPart(this.raycaster.intersectObjects(roots, true), this.focusedPart?.userData.part_id);
+        return AnatomyLayersCore.pickPart(this.raycaster.intersectObjects(roots, true), this.focusedPart?.userData.part_id, mesh => this.isSeeThrough(mesh));
     },
+    isSeeThrough(mesh) { return [].concat(mesh.userData.baseMaterial || mesh.material).every(material => material?.userData.seeThrough); },
     setHover(part, x, y) {
         if (part !== this.hoveredPart) {
             const previous = this.hoveredPart; this.hoveredPart = part;
@@ -264,7 +266,8 @@ const AnatomyViewer = {
         } else if (!part) this.label.hidden = true;
     },
 
-    // ── Materials: base, hover glow, faded ghost (a focused part keeps its base material) ──
+    // ── Materials: base, hover glow, faded ghost (a focused part keeps its base material; a focused
+    //    see-through part turns mostly opaque so it stands out from the faded parts) ──
     variant(material, kind) {
         let entry = this.materialCache.get(material.uuid);
         if (!entry) { entry = {}; this.materialCache.set(material.uuid, entry); }
@@ -272,6 +275,7 @@ const AnatomyViewer = {
             const copy = material.clone();
             const glow = AnatomyLayersCore.glowFor(kind);
             if (kind === 'ghost') { copy.transparent = true; copy.opacity = 0.12; copy.depthWrite = false; }
+            else if (kind === 'focus' && material.userData.seeThrough) copy.opacity = 0.6;
             else if (glow && copy.emissive) { copy.emissive.setHex(glow.color); copy.emissiveIntensity = glow.intensity; }
             entry[kind] = copy;
         }
@@ -280,7 +284,7 @@ const AnatomyViewer = {
     materialFor(mesh, part) {
         const base = mesh.userData.baseMaterial;
         const kind = part && part === this.focusedPart ? 'focus' : this.focusedPart ? 'ghost' : part && part === this.hoveredPart ? 'hover' : null;
-        if (!kind || (kind === 'focus' && !AnatomyLayersCore.glowFor(kind))) return base;
+        if (!kind || (kind === 'focus' && !AnatomyLayersCore.glowFor(kind) && !this.isSeeThrough(mesh))) return base;
         return Array.isArray(base) ? base.map(m => this.variant(m, kind)) : this.variant(base, kind);
     },
     applyMaterials(scope) {
