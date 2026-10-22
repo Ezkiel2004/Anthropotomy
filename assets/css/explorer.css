@@ -149,6 +149,10 @@ body.explorer-page { overflow: hidden; }
 .system-chip[aria-checked="true"] .system-chip__switch { background: var(--accent); box-shadow: inset 0 0 0 1px var(--accent-ring); }
 .system-chip[aria-checked="true"] .system-chip__switch::after { transform: translateX(12px); }
 .system-chip[data-model="none"] .system-chip__switch { visibility: hidden; }
+/* Kept off by another switched-on system (male and female reproductive): dimmed, the status says why */
+.system-chip[aria-disabled="true"] { cursor: not-allowed; }
+.system-chip[aria-disabled="true"]:hover { background: transparent; }
+.system-chip[aria-disabled="true"] :is(.system-chip__dot, .system-chip__name, .system-chip__switch) { opacity: .45; }
 
 /* ── Info panel ── */
 .info-panel {

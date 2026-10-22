@@ -243,11 +243,19 @@ function createChip(system) {
     button.addEventListener('click', () => toggleSystem(system));
     return button;
 }
+// The switched-on system that keeps this one off (the male and female reproductive systems), or null.
+function blockerOf(system) {
+    if (enabledOrder.includes(system.id)) return null;
+    return AnatomyData.getSystem(AnatomyLayersCore.blockingSystem(system.id, enabledOrder)) || null;
+}
 function renderChip(system) {
     const button = chipBox.querySelector(`[data-system="${CSS.escape(system.id)}"]`);
     if (!button) return;
+    const blocker = blockerOf(system);
     button.setAttribute('aria-checked', String(enabledOrder.includes(system.id)));
-    button.querySelector('.system-chip__status').textContent = AnatomyLayersCore.toggleStatus(system, viewer.layerState(system.id));
+    // aria-disabled rather than disabled: the chip stays focusable and its status says why it is off.
+    if (blocker) button.setAttribute('aria-disabled', 'true'); else button.removeAttribute('aria-disabled');
+    button.querySelector('.system-chip__status').textContent = AnatomyLayersCore.toggleStatus(system, viewer.layerState(system.id), blocker?.name);
 }
 function renderAll() {
     AnatomyData.systems.forEach(renderChip);
@@ -268,6 +276,8 @@ function disableSystem(id) {
 async function toggleSystem(system) {
     if (!viewerReady || !system.modelUrl) { await setContext(system); return; }
     if (enabledOrder.includes(system.id)) { disableSystem(system.id); renderAll(); return; }
+    const blocker = blockerOf(system);
+    if (blocker) { announce(`Turn off the ${blocker.name} to show the ${system.name}.`); return; }
     enabledOrder.push(system.id);
     setContext(system);
     renderAll();

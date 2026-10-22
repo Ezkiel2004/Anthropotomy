@@ -80,6 +80,15 @@ test('toggleStatus reports model, loading and error states', () => {
     assert.equal(core.toggleStatus({modelUrl: 'a.glb'}, {status: 'error'}), "Couldn't load — select to retry");
     assert.equal(core.toggleStatus({modelUrl: 'a.glb'}, {status: 'ready'}), '');
     assert.equal(core.toggleStatus({modelUrl: 'a.glb'}, null), '');
+    assert.equal(core.toggleStatus({modelUrl: 'a.glb'}, null, 'Male Reproductive System'), 'Turn off Male Reproductive System first');
+    assert.equal(core.toggleStatus({modelUrl: ''}, null, 'Male Reproductive System'), 'No 3D model yet');
+});
+
+test('blockingSystem keeps the male and female reproductive systems apart, both ways', () => {
+    assert.equal(core.blockingSystem('reproductive-female', ['skeletal', 'reproductive']), 'reproductive');
+    assert.equal(core.blockingSystem('reproductive', ['reproductive-female']), 'reproductive-female');
+    assert.equal(core.blockingSystem('reproductive-female', ['skeletal', 'urinary']), null);
+    assert.equal(core.blockingSystem('skeletal', ['reproductive', 'reproductive-female']), null, 'other systems are never blocked');
 });
 
 test('fitDistance frames a sphere inside the narrower field of view', () => {
@@ -173,6 +182,14 @@ test('tissueLook colours the female reproductive organs like real tissue', () =>
     assert.equal(color('Gland.001', 'Greater vestibular gland (left)'), T.gland.color);
     assert.equal(color('Mucosa.001', 'Labia minora'), T.mucosa.color);
     assert.equal(color('Uterus', 'Cervix of uterus'), T.cervix.color);
+});
+
+test('the liver keeps its colour where Z-Anatomy marks its bare area with the ligament material', () => {
+    const T = core.TISSUE;
+    assert.equal(core.tissueLook('digestive', 'Ligament', 'Liver').color, T.liver.color);
+    assert.equal(core.tissueLook('digestive', 'Organ', 'Liver').color, T.liver.color);
+    assert.equal(core.tissueLook('digestive', 'Ligament', 'Round ligament of liver').color, T.ligament.color, 'its ligaments stay ligament');
+    assert.equal(core.tissueLook('digestive', 'Ligament', 'Free taenia').color, T.ligament.color);
 });
 
 test('the broad ligament is see-through, like the pleura', () => {

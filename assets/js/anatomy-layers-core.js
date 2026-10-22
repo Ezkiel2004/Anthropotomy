@@ -47,8 +47,10 @@ const AnatomyLayersCore = (() => {
         };
     }
 
-    function toggleStatus(system, state) {
+    // blockerName: the switched-on system that keeps this one off (see blockingSystem), if any.
+    function toggleStatus(system, state, blockerName) {
         if (!system.modelUrl) return 'No 3D model yet';
+        if (blockerName) return `Turn off ${blockerName} first`;
         if (!state) return '';
         if (state.status === 'loading') return state.progress == null ? 'Loading…' : `Loading ${state.progress}%`;
         if (state.status === 'error') return "Couldn't load — select to retry";
@@ -150,6 +152,9 @@ const AnatomyLayersCore = (() => {
         const pick = key => ({...TISSUE[key]});
         if (/\bnerves?\b/.test(name) && !/nucle|artery|vein/.test(name)) return pick('nerve');
         if (/falx|tentorium|\bdura\b/.test(name)) return pick('dura');
+        // Z-Anatomy paints the liver's bare area, where its ligaments attach, with its ligament material; it is
+        // still liver, so the whole organ keeps the liver's colour (its own ligaments are separate parts).
+        if (name === 'liver') return pick('liver');
         if (FIBROUS_MATERIALS[material]) return pick(FIBROUS_MATERIALS[material]);
         for (const [pattern, key] of [...NAME_RULES, ...(SYSTEM_NAME_RULES[systemId] || [])]) if (pattern.test(name)) return pick(key);
         for (const [pattern, key] of MATERIAL_RULES) if (pattern.test(material)) return pick(key);
@@ -164,6 +169,18 @@ const AnatomyLayersCore = (() => {
         return remaining.length ? remaining[remaining.length - 1] : current;
     }
 
-    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, materialLook, TISSUE, tissueLook, easeInOutCubic, contextAfterDisable};
+    // Systems that are never shown together: the male and female reproductive layers fill the same pelvis.
+    const EXCLUSIVE = [['reproductive', 'reproductive-female']];
+    // The switched-on system that keeps systemId from being switched on, or null.
+    function blockingSystem(systemId, enabledIds) {
+        for (const group of EXCLUSIVE) {
+            if (!group.includes(systemId)) continue;
+            const other = group.find(id => id !== systemId && enabledIds.includes(id));
+            if (other) return other;
+        }
+        return null;
+    }
+
+    return {UNIDENTIFIED_TEXT, resolvePart, pickPart, matchStructure, partInfo, toggleStatus, fitDistance, distanceLimits, glowFor, materialLook, TISSUE, tissueLook, easeInOutCubic, contextAfterDisable, blockingSystem};
 })();
 if (typeof module === 'object' && module.exports) module.exports = AnatomyLayersCore;
