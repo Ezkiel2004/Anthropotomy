@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Germ Smash menu mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+:root{--ink:#fff;--soft:#cfcfcf;--muted:#8c8c8c;--panel:#121212;--raised:#1f1f1f;--raised2:#2a2a2a;--yellow:#f7c948;--coral:#f2545b;--sky:#3fb8f5;--teal:#2ccf9a;--ease:cubic-bezier(.16,1,.3,1)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#121212;color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.top{position:fixed;top:16px;right:16px;display:flex;gap:8px;z-index:3}
+.icon-btn{width:44px;height:44px;border:0;border-radius:50%;background:rgba(18,18,18,.82);color:#fff;font-size:20px;display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{background:#262626}
+.tag{position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:3;padding:6px 12px;border-radius:999px;background:rgba(18,18,18,.82);color:var(--soft);font-size:12px;font-weight:600;white-space:nowrap}
+.panel{position:fixed;left:clamp(16px,5vw,64px);top:50%;transform:translateY(-50%);width:min(380px,calc(100vw - 32px));background:var(--panel);border-radius:28px;padding:28px;z-index:2;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.title{font-family:Bungee,sans-serif;font-size:clamp(44px,6vw,58px);line-height:.92;letter-spacing:.5px}
+.title span{display:block}
+.title .b{color:var(--yellow);transform:translateX(18px)}
+.tagline{color:var(--soft);font-size:14px;line-height:1.5;margin:12px 0 22px}
+.menu{display:grid;gap:10px}
+.btn{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 18px;border:0;border-radius:16px;background:var(--raised);color:#fff;font:700 16px "Plus Jakarta Sans",sans-serif;cursor:pointer;text-align:left;transition:background .15s,transform .15s var(--ease)}
+.btn i{font-size:20px;color:var(--soft)}
+.btn:hover{background:var(--raised2);transform:translateX(4px)}
+.btn:focus-visible,.icon-btn:focus-visible,.diff:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.btn.primary{background:var(--yellow);color:#121212;min-height:60px;font-size:18px}
+.btn.primary i{color:#121212}
+.btn.quiet{background:transparent;color:var(--muted)}
+.btn.quiet i{color:var(--muted)}
+.best{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid #262626;color:var(--soft);font-size:13px;font-weight:600}
+.best b{font-family:Bungee,sans-serif;font-weight:400;font-size:18px;color:#fff;margin-left:6px}
+.stars{color:var(--yellow);font-size:16px;letter-spacing:2px}
+.screen{display:none}.screen.on{display:block;animation:in .35s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.back{width:40px;height:40px;border:0;border-radius:50%;background:var(--raised);color:#fff;font-size:18px;display:grid;place-items:center;cursor:pointer}
+.head h2{font-family:Bungee,sans-serif;font-weight:400;font-size:24px}
+.diffs{display:grid;gap:10px}
+.diff{display:grid;grid-template-columns:1fr auto;gap:2px 12px;width:100%;padding:14px 16px;border:2px solid transparent;border-radius:16px;background:var(--raised);color:#fff;text-align:left;cursor:pointer;font-family:inherit}
+.diff:hover{background:var(--raised2)}
+.diff.sel{border-color:var(--yellow)}
+.diff strong{font-size:16px}
+.diff small{grid-column:1;color:var(--muted);font-size:13px;font-weight:600}
+.mult{grid-row:1/3;grid-column:2;align-self:center;font-family:Bungee,sans-serif;font-size:18px;color:var(--yellow)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #222;font-weight:700;font-size:15px}
+.row:last-child{border-bottom:0}
+.row label{display:flex;align-items:center;gap:10px}
+.row i{font-size:20px;color:var(--soft)}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.switch span{position:absolute;inset:0;border-radius:999px;background:#3a3a3a;transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s var(--ease)}
+.switch input:checked+span{background:var(--teal)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.switch input:focus-visible+span{outline:3px solid var(--sky);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--yellow);margin:6px 0 2px}
+.sub{color:var(--muted);font-size:12px;font-weight:600}
+.scores li{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-weight:700;font-size:15px}
+.scores ol{list-style:none;padding:0;display:grid;gap:4px}
+.scores li:nth-child(odd){background:#191919}
+.scores li.me{background:rgba(247,201,72,.14);outline:1px solid rgba(247,201,72,.5)}
+.scores .rk{font-family:Bungee,sans-serif;font-weight:400;color:var(--muted)}
+.scores .pts{font-family:Bungee,sans-serif;font-weight:400}
+.pb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.pb div{background:var(--raised);border-radius:14px;padding:12px}
+.pb b{display:block;font-family:Bungee,sans-serif;font-weight:400;font-size:22px;margin-top:2px}
+.steps{list-style:none;padding:0;display:grid;gap:12px}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;font-size:15px;line-height:1.45;color:var(--soft)}
+.steps li b{color:#fff}
+.dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:var(--raised)}
+.keys{margin-top:14px;color:var(--muted);font-size:13px;font-weight:600;line-height:1.6}
+kbd{font:700 12px "Plus Jakarta Sans";background:#2a2a2a;color:#fff;border-radius:6px;padding:2px 6px}
+@media (max-width:700px){.panel{left:16px;right:16px;top:auto;bottom:16px;transform:none;width:auto;padding:22px;border-radius:24px}.title{font-size:42px}.tag{top:22px;left:16px;transform:none}.tagline{margin-bottom:16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="tag">Mockup with placeholder germs</div>
+<div class="top">
+  <button class="icon-btn" id="shuffle" aria-label="Try another skin tone"><i class="ph ph-shuffle"></i></button>
+  <button class="icon-btn" id="mute" aria-label="Mute sound"><i class="ph ph-speaker-high"></i></button>
+</div>
+
+<main class="panel" aria-label="Germ Smash menu">
+  <section class="screen on" id="s-menu">
+    <h1 class="title"><span>Germ</span><span class="b">Smash</span></h1>
+    <p class="tagline">Smash the germs before they sink back. Leave the friendly bacteria alone.</p>
+    <nav class="menu">
+      <button class="btn primary" data-go="s-new"><i class="ph-bold ph-play"></i>New game</button>
+      <button class="btn" data-go="s-how"><i class="ph ph-question"></i>How to play</button>
+      <button class="btn" data-go="s-settings"><i class="ph ph-gear"></i>Settings</button>
+      <button class="btn" data-go="s-scores"><i class="ph ph-trophy"></i>High scores</button>
+      <button class="btn quiet"><i class="ph ph-sign-out"></i>Exit to Games</button>
+    </nav>
+    <div class="best"><span>Your best<b>1,240</b></span><span class="stars" aria-label="3 stars">★★★</span></div>
+  </section>
+
+  <section class="screen" id="s-new">
+    <div class="head"><button class="back" data-go="s-menu" aria-label="Back"><i class="ph ph-arrow-left"></i></button><h2>Pick a level</h2></div>
+    <div class="diffs" role="radiogroup" aria-label="Difficulty">
+      <button class="diff" role="radio" aria-checked="false"><strong>Easy</strong><small>3×3 pores · slower germs</small><span class="mult">×1</span></button>
+      <button class="diff sel" role="radio" aria-checked="true"><strong>Medium</strong><small>4×3 pores · tough germs appear</small><span class="mult">×1.5</span></button>
+      <button class="diff" role="radio" aria-checked="false"><strong>Hard</strong><small>4×4 pores · fast and crowded</small><span class="mult">×2</span></button>
+    </div>
+    <div style="margin-top:16px"><button class="btn primary"><i class="ph-bold ph-play"></i>Start</button></div>
+  </section>
+
+  <section class="screen" id="s-how">
+    <div class="head"><button class="back" data-go="s-menu" aria-label="Back"><i class="ph ph-arrow-left"></i></button><h2>How to play</h2></div>
+    <ol class="steps">
+      <li><span class="dot" style="color:var(--coral)"><i class="ph-bold ph-virus"></i></span><span><b>Tap a germ</b> before it sinks back into its pore. +10 each.</span></li>
+      <li><span class="dot" style="color:var(--yellow)"><i class="ph-bold ph-lightning"></i></span><span><b>Keep a streak</b> going: ×2 after 5 hits, up to ×4.</span></li>
+      <li><span class="dot" style="color:var(--sky)"><i class="ph-bold ph-smiley"></i></span><span><b>Spare the round blue bacteria.</b> Tapping one costs 15 and ends your streak.</span></li>
+      <li><span class="dot" style="color:var(--teal)"><i class="ph-bold ph-timer"></i></span><span><b>You have 60 seconds.</b> Germs speed up as time runs out.</span></li>
+    </ol>
+    <p class="keys">Keyboard: pores map to <kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> / <kbd>4</kbd><kbd>5</kbd><kbd>6</kbd> / <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>. <kbd>Esc</kbd> pauses.</p>
+  </section>
+
+  <section class="screen" id="s-settings">
+    <div class="head"><button class="back" data-go="s-menu" aria-label="Back"><i class="ph ph-arrow-left"></i></button><h2>Settings</h2></div>
+    <div class="row"><label for="sfx"><i class="ph ph-speaker-high"></i>Sound effects</label><span class="switch"><input type="checkbox" id="sfx" checked><span></span></span></div>
+    <div class="row" style="display:block"><input type="range" min="0" max="100" value="80" aria-label="Sound effects volume"><span class="sub">Volume 80</span></div>
+    <div class="row"><label for="music"><i class="ph ph-music-notes"></i>Music</label><span class="switch"><input type="checkbox" id="music" checked><span></span></span></div>
+    <div class="row" style="display:block"><input type="range" min="0" max="100" value="50" aria-label="Music volume"><span class="sub">Volume 50</span></div>
+    <div class="row"><label for="motion"><i class="ph ph-wave-sine"></i>Reduce motion</label><span class="switch"><input type="checkbox" id="motion"><span></span></span></div>
+    <div class="row"><label for="vib"><i class="ph ph-device-mobile"></i>Vibration</label><span class="switch"><input type="checkbox" id="vib" checked><span></span></span></div>
+  </section>
+
+  <section class="screen scores" id="s-scores">
+    <div class="head"><button class="back" data-go="s-menu" aria-label="Back"><i class="ph ph-arrow-left"></i></button><h2>High scores</h2></div>
+    <div class="pb"><div><span class="sub">All-time best</span><b>1,240</b></div><div><span class="sub">This week</span><b>980</b></div></div>
+    <p class="sub" style="margin-bottom:8px">This week in Rizal</p>
+    <ol>
+      <li><span class="rk">1</span><span>Andrea Cruz</span><span class="pts">1,410</span></li>
+      <li><span class="rk">2</span><span>Miguel Santos</span><span class="pts">1,120</span></li>
+      <li class="me"><span class="rk">3</span><span>You</span><span class="pts">980</span></li>
+      <li><span class="rk">4</span><span>Bea Reyes</span><span class="pts">870</span></li>
+      <li><span class="rk">5</span><span>Paolo Lim</span><span class="pts">640</span></li>
+    </ol>
+  </section>
+</main>
+
+<script>
+const tones=['#F6D9C5','#EAC2A5','#D9A47F','#C68A63','#A86F4C','#8A5A3C','#6B442B','#4A2F20'];
+let tone=tones[Math.floor(Math.random()*tones.length)];
+const cv=document.getElementById('bg'),c=cv.getContext('2d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W,H,dpr,pores=[],grain=[],parts=[],floats=[];
+function shade(hex,f){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const t=f<0?0:255,p=Math.abs(f);r=Math.round((t-r)*p+r);g=Math.round((t-g)*p+g);b=Math.round((t-b)*p+b);return `rgb(${r},${g},${b})`}
+function layout(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;c.setTransform(dpr,0,0,dpr,0,0);
+  pores=[];const cols=W>700?6:3,rows=W>700?4:3,x0=W>700?W*0.42:W*0.12,x1=W*0.92,y0=W>700?H*0.16:H*0.12,y1=W>700?H*0.88:H*0.36;
+  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){pores.push({x:x0+(x1-x0)*(k+.5)/cols+(Math.random()-.5)*20,y:y0+(y1-y0)*(r+.5)/rows+(Math.random()-.5)*16,r:W>700?34:28,g:null})}
+  grain=Array.from({length:Math.round(W*H/900)},()=>({x:Math.random()*W,y:Math.random()*H,a:Math.random()*.06}))}
+function drawSkin(){c.fillStyle=tone;c.fillRect(0,0,W,H);
+  for(const g of grain){c.fillStyle=`rgba(0,0,0,${g.a})`;c.fillRect(g.x,g.y,1.5,1.5)}
+  const v=c.createRadialGradient(W*.6,H*.45,Math.min(W,H)*.2,W*.6,H*.45,Math.max(W,H)*.8);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');c.fillStyle=v;c.fillRect(0,0,W,H)}
+function drawPore(p){c.save();c.translate(p.x,p.y);c.fillStyle=shade(tone,.18);c.beginPath();c.ellipse(0,3,p.r*1.08,p.r*.42,0,0,7);c.fill();c.fillStyle=shade(tone,-.55);c.beginPath();c.ellipse(0,0,p.r,p.r*.36,0,0,7);c.fill();c.restore()}
+function germ(x,y,s,t,col,friendly,cracked){c.save();c.translate(x,y);c.scale(s,s);c.rotate(Math.sin(t*3)*.08);
+  c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=10;
+  if(friendly){c.fillStyle='#3fb8f5';c.beginPath();c.arc(0,0,24,0,7);c.fill();c.shadowBlur=0;c.fillStyle='rgba(255,255,255,.35)';c.beginPath();c.arc(-8,-9,7,0,7);c.fill();c.fillStyle='#0b3550';c.beginPath();c.arc(-7,-2,3,0,7);c.arc(7,-2,3,0,7);c.fill();c.strokeStyle='#0b3550';c.lineWidth=2.5;c.beginPath();c.arc(0,4,7,.2,Math.PI-.2);c.stroke()}
+  else{c.fillStyle=col;c.beginPath();for(let i=0;i<24;i++){const a=i/24*Math.PI*2,rr=i%2?20:28+Math.sin(t*6+i)*1.5;c.lineTo(Math.cos(a)*rr,Math.sin(a)*rr)}c.closePath();c.fill();c.shadowBlur=0;
+    c.lineWidth=3;c.strokeStyle='rgba(0,0,0,.45)';c.stroke();c.fillStyle='rgba(255,255,255,.25)';c.beginPath();c.arc(-7,-8,6,0,7);c.fill();
+    c.fillStyle='#fff';c.beginPath();c.arc(-7,-1,5,0,7);c.arc(7,-1,5,0,7);c.fill();c.fillStyle='#121212';c.beginPath();c.arc(-6,0,2.5,0,7);c.arc(8,0,2.5,0,7);c.fill();
+    c.strokeStyle='#121212';c.lineWidth=2.5;c.beginPath();c.moveTo(-6,10);c.lineTo(0,7);c.lineTo(6,10);c.stroke();
+    if(cracked){c.strokeStyle='rgba(255,255,255,.8)';c.lineWidth=2;c.beginPath();c.moveTo(2,-18);c.lineTo(-3,-8);c.lineTo(4,-2);c.stroke()}}
+  c.restore()}
+const cols=['#7bd389','#b388f5','#ff9f43'];
+function spawn(now){const free=pores.filter(p=>!p.g);if(!free.length)return;const p=free[Math.floor(Math.random()*free.length)];const f=Math.random()<.18;p.g={born:now,life:1600+Math.random()*900,col:cols[Math.floor(Math.random()*3)],friendly:f,hit:0}}
+let last=0,nextSpawn=0;
+function frame(now){now/=1000;if(now>nextSpawn){spawn(now);nextSpawn=now+(reduce?1.2:.55)}
+  drawSkin();
+  for(const p of pores){drawPore(p);const g=p.g;if(!g)continue;const age=(now-g.born)*1000,k=age/g.life;if(k>=1){p.g=null;continue}
+    const rise=k<.18?k/.18:k>.82?(1-k)/.18:1,e=1-Math.pow(1-rise,3);
+    c.save();c.beginPath();c.rect(p.x-p.r*1.6,p.y-p.r*3,p.r*3.2,p.r*3);c.clip();germ(p.x,p.y+ (1-e)*p.r*1.6 - p.r*.55,p.r/30,now,g.col,g.friendly);c.restore()}
+  parts=parts.filter(q=>(q.t-=1/60)>0);for(const q of parts){q.x+=q.vx;q.y+=q.vy;q.vy+=.25;c.globalAlpha=Math.max(q.t*2,0);c.fillStyle=q.col;c.beginPath();c.arc(q.x,q.y,q.s,0,7);c.fill();c.globalAlpha=1}
+  floats=floats.filter(f=>(f.t-=1/60)>0);for(const f of floats){f.y-=.8;c.globalAlpha=Math.min(f.t*2,1);c.font='22px Bungee';c.textAlign='center';c.lineWidth=4;c.strokeStyle='rgba(0,0,0,.55)';c.strokeText(f.txt,f.x,f.y);c.fillStyle=f.col;c.fillText(f.txt,f.x,f.y);c.globalAlpha=1}
+  requestAnimationFrame(frame)}
+cv.addEventListener('pointerdown',e=>{for(const p of pores){const g=p.g;if(!g)continue;if(Math.hypot(e.clientX-p.x,e.clientY-(p.y-p.r*.6))<p.r*1.1){const col=g.friendly?'#3fb8f5':g.col;const n=reduce?3:12;for(let i=0;i<n;i++){const a=Math.random()*7,v=2+Math.random()*4;parts.push({x:p.x,y:p.y-p.r*.6,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,s:2+Math.random()*3,t:.6,col})}
+  floats.push({x:p.x,y:p.y-p.r*1.6,t:.9,txt:g.friendly?'-15':'+10',col:g.friendly?'#f2545b':'#f7c948'});p.g=null;return}}});
+document.getElementById('shuffle').onclick=()=>{let n;do{n=tones[Math.floor(Math.random()*tones.length)]}while(n===tone);tone=n};
+const mute=document.getElementById('mute');mute.onclick=()=>{const on=mute.firstElementChild.classList.toggle('ph-speaker-slash');mute.firstElementChild.classList.toggle('ph-speaker-high',!on);mute.setAttribute('aria-label',on?'Unmute sound':'Mute sound')};
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));const s=document.getElementById(b.dataset.go);s.classList.add('on');(s.querySelector('.back, .btn')||s).focus()});
+document.querySelectorAll('.diff').forEach(d=>d.onclick=()=>{document.querySelectorAll('.diff').forEach(x=>{x.classList.remove('sel');x.setAttribute('aria-checked','false')});d.classList.add('sel');d.setAttribute('aria-checked','true')});
+document.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>r.nextElementSibling.textContent='Volume '+r.value);
+addEventListener('resize',layout);layout();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
