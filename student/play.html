@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/play.css?v=20261025-play1"/>
+  <link rel="stylesheet" href="../assets/css/play.css?v=20261025-play2"/>
 </head>
 <body class="play-page">
 <!-- The game board. Every action on it can also be done with the keyboard (see How to play). -->
@@ -82,7 +82,17 @@
 
   <section class="screen scores" id="s-scores" hidden aria-labelledby="scoresTitle">
     <div class="head"><button class="back" type="button" aria-label="Back"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button><h2 id="scoresTitle">High scores</h2></div>
-    <p class="empty"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg>Scores appear after your first saved game.</p>
+    <div class="pick" id="scoresSectionRow" hidden><label for="scoresSection">Section</label><select id="scoresSection"></select></div>
+    <div class="result tiles" id="scoresBest" hidden>
+      <div><span class="sub">All-time best</span><b id="scoresAllTime">–</b></div>
+      <div><span class="sub">This week</span><b id="scoresWeek">–</b></div>
+    </div>
+    <h3 class="list-title" id="scoresListTitle">This week</h3>
+    <p class="sub" id="scoresStatus" role="status">Loading scores…</p>
+    <button class="btn small" id="scoresRetry" type="button" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrows-clockwise"/></svg>Retry</button>
+    <ol class="ranks" id="scoresList" aria-labelledby="scoresListTitle"></ol>
+    <p class="you" id="scoresYou" hidden></p>
+    <p class="empty" id="scoresEmpty" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg><span id="scoresEmptyText">No scores yet this week.</span></p>
   </section>
 
   <section class="screen" id="s-pause" hidden aria-labelledby="pauseTitle">
@@ -103,6 +113,15 @@
     </div>
     <div class="stars big" id="overStars" role="img" aria-label="0 of 3 stars"></div>
     <div class="save-row"><p class="save" id="saveStatus" role="status">Saving…</p><button class="btn small" id="retrySave" type="button" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrows-clockwise"/></svg>Retry</button></div>
+    <div class="leave" id="leaveConfirm" role="group" aria-labelledby="leaveText" hidden>
+      <p class="leave-title"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#warning-circle"/></svg><span id="leaveText">Leave without saving?</span></p>
+      <p class="sub">This score hasn't been saved. Retry keeps it.</p>
+      <div class="leave-actions"><button class="btn small" id="leaveStay" type="button">Stay</button><button class="btn small quiet" id="leaveGo" type="button">Leave</button></div>
+    </div>
+    <div class="rewards" aria-live="polite">
+      <p class="rank" id="overRank" hidden></p>
+      <ul class="new-badges" id="overBadges" aria-label="New badges" hidden></ul>
+    </div>
     <nav class="menu" aria-label="After the round">
       <button class="btn primary" id="playAgain" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-counter-clockwise"/></svg>Play again</button>
       <button class="btn" id="overMenu" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg>Main menu</button>
@@ -134,7 +153,7 @@
 Auth.requireAuthSync();
 </script>
 <script type="module">
-import {boot} from '../assets/js/games/shell.js?v=20261025-play1';
+import {boot} from '../assets/js/games/shell.js?v=20261025-play2';
 boot();
 </script>
 </body>

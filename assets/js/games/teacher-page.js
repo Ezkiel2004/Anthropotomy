@@ -1,11 +1,12 @@
-// Wiring for teacher/games.html: game sets (with paste-to-add), the most-missed terms and this week's
-// leaderboard for one section, and the badge rules. Set titles, terms, clues, student names and badge
-// titles are user-supplied, so they only ever reach the page through textContent, input values and
-// attribute setters, never parsed as HTML.
-// Importing this module touches no DOM (the unit tests import parsePastedCards); main() runs only in a page.
+// Wiring for teacher/games.html: this week's leaderboard for one section (all games by points, or one game
+// by each student's best score), the badge rules, and a Try link that opens each game in preview.
+// Student names and badge titles are user-supplied, so they only ever reach the page through textContent,
+// input values and attribute setters, never parsed as HTML.
+// Importing this module touches no DOM; main() runs only in a page.
 
-import {el} from './play-kit.js';
-import {iconNode} from './runner.js';
+import {GAMES} from './shell.js';
+
+const SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
 
 // The only icons a badge can use, in picker order.
 export const BADGE_ICONS = [
@@ -23,41 +24,39 @@ export const METRICS = [
     {key: 'total_time_hours', label: 'Hours spent learning', group: 'Learning', unit: 'hours'},
     {key: 'overall_progress', label: 'Overall lesson progress', group: 'Learning', unit: '%'},
     {key: 'games_played', label: 'Games played', group: 'Games', unit: 'games'},
-    {key: 'perfect_rounds', label: 'Perfect rounds', group: 'Games', unit: 'rounds'},
-    {key: 'best_game_streak', label: 'Best streak in one round', group: 'Games', unit: 'correct in a row'},
-    {key: 'game_systems_played', label: 'Body systems played in games', group: 'Games', unit: 'systems'},
+    {key: 'best_game_streak', label: 'Best combo in one round', group: 'Games', unit: 'hits in a row'},
     {key: 'total_points', label: 'Total game points', group: 'Games', unit: 'points'},
+    {key: 'games_variety', label: 'Different games played', group: 'Games', unit: 'different games'},
 ];
 
-// One card per line. Two fields give term and clue; three or more give the term, then the clue
-// (everything between the first and the last comma), then the group (after the last comma). Blank lines
-// are skipped, every field is trimmed, and an empty group is left out. A line without a comma becomes a
-// term with an empty clue, so the editor can show it to be finished rather than drop it.
-export function parsePastedCards(text) {
-    const cards = [];
-    for (const line of String(text ?? '').split(/\r\n|\r|\n/)) {
-        if (!line.trim()) continue;
-        const first = line.indexOf(','), last = line.lastIndexOf(',');
-        if (first === -1) {
-            cards.push({term: line.trim(), clue: ''});
-        } else if (first === last) {
-            cards.push({term: line.slice(0, first).trim(), clue: line.slice(first + 1).trim()});
-        } else {
-            const card = {term: line.slice(0, first).trim(), clue: line.slice(first + 1, last).trim()};
-            const group = line.slice(last + 1).trim();
-            if (group) card.group = group;
-            cards.push(card);
-        }
-    }
-    return cards;
-}
-
+const ALL_GAMES = 'all';
 const PERCENT = new Set(METRICS.filter(m => m.unit === '%').map(m => m.key));
 const metricOf = key => METRICS.find(m => m.key === key);
 const length = text => [...text].length;             // the server counts characters, not UTF-16 units
 const number = value => Number(value).toLocaleString('en-PH', {maximumFractionDigits: 2});
 const plural = (n, one, many) => `${number(n)} ${n === 1 ? one : many}`;
 const $ = id => document.getElementById(id);
+
+function el(tag, className = '', text = null, attrs = {}) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== null) node.textContent = text;
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+    return node;
+}
+
+function iconNode(id) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', 'ui-icon');
+    svg.setAttribute('viewBox', '0 0 256 256');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const use = document.createElementNS(ns, 'use');
+    use.setAttribute('href', `${SPRITE}#${String(id ?? '').replace(/[^a-z0-9-]/g, '') || 'medal'}`);
+    svg.append(use);
+    return svg;
+}
 
 // A request to the API. Resolves with the data; otherwise throws an Error whose message can be shown.
 async function request(path, {method = 'GET', body} = {}) {
@@ -111,8 +110,15 @@ function emptyText(prefix, title, text) {
 
 function main() {
     if (!Auth.getUser()) return;
-    const state = {sets: [], systems: [], badges: [], sections: [], section: ''};
-    const tokens = {missed: 0, board: 0};
+    const state = {badges: [], section: '', game: ALL_GAMES};
+    let boardToken = 0;
+
+    // ── Try links: each game opens on its own page, in preview for teachers ──
+    $('tryGames').replaceChildren(...Object.entries(GAMES).map(([key, game]) => {
+        const link = el('a', 'btn btn-secondary btn-sm tg-try', null, {href: `../student/play.html?game=${encodeURIComponent(key)}`});
+        link.append(iconNode('game-controller'), el('span', '', `Try ${game.title}`));
+        return link;
+    }));
 
     // ── Tabs: a tablist with arrow-key movement; the chosen tab is kept in the address ──
     const tabList = $('gamesTabs');
@@ -147,8 +153,8 @@ function main() {
     let dialog = null;
     const focusables = root => [...root.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])')]
         .filter(node => node.getClientRects().length > 0);
-    function openDialog(id, trigger, first, {returnTo = null, canClose = () => true} = {}) {
-        dialog = {id, trigger, returnTo, canClose};
+    function openDialog(id, trigger, first, {returnTo = null} = {}) {
+        dialog = {id, trigger, returnTo};
         openModal(id);
         (first || focusables($(id))[0])?.focus();
     }
@@ -161,16 +167,13 @@ function main() {
         const target = trigger?.isConnected ? trigger : (returnTo && document.querySelector(returnTo));
         target?.focus();
     }
-    const requestClose = () => { if (dialog && dialog.canClose()) closeDialog(); };
-    for (const id of ['setModal', 'badgeModal']) {
-        const overlay = $(id);
-        overlay.addEventListener('click', event => {
-            if (event.target === overlay || event.target.closest('[data-close]')) requestClose();
-        });
-    }
+    const badgeOverlay = $('badgeModal');
+    badgeOverlay.addEventListener('click', event => {
+        if (event.target === badgeOverlay || event.target.closest('[data-close]')) closeDialog();
+    });
     document.addEventListener('keydown', event => {
         if (!dialog) return;
-        if (event.key === 'Escape') { event.preventDefault(); requestClose(); return; }
+        if (event.key === 'Escape') { event.preventDefault(); closeDialog(); return; }
         if (event.key !== 'Tab') return;
         const items = focusables($(dialog.id).querySelector('.modal-box'));
         if (!items.length) return;
@@ -179,330 +182,62 @@ function main() {
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
 
-    // ── Game sets ──
-    function setRow(set) {
-        const row = el('tr', set.is_active ? '' : 'is-off', null, {'data-set-id': String(set.set_id)});
-        const head = el('th', 'tg-name-cell', null, {scope: 'row'});
-        head.append(el('span', 'tg-set-title', set.title), el('span', 'tg-sub', set.system_name || 'No body system'));
-        const actions = el('td', 'tg-actions-cell');
-        const group = el('div', 'tg-actions');
-        group.append(
-            button('', 'Edit', 'pencil-simple', {'data-action': 'edit', 'aria-label': `Edit ${set.title}`}),
-            button('', set.is_active ? 'Turn off' : 'Turn on', set.is_active ? 'eye-slash' : 'eye', {'data-action': 'toggle', 'aria-label': `${set.is_active ? 'Turn off' : 'Turn on'} ${set.title}`}),
-            button('tg-danger', 'Delete', 'trash', {'data-action': 'delete', 'aria-label': `Delete ${set.title}`}),
+    // ── The leaderboard: one section at a time; All games ranks total points, one game ranks weekly bests ──
+    const gameTitle = key => GAMES[key]?.title ?? key;
+    function boardRow(row, byGame) {
+        const item = el('tr');
+        item.append(
+            el('td', 'tg-rank', `#${row.rank}`),
+            el('th', 'tg-board-name', row.full_name, {scope: 'row'}),
+            el('td', 'tg-board-value', byGame ? number(row.score) : `${number(row.points)} pts`),
         );
-        actions.append(group);
-        row.append(head, el('td', 'tg-count-cell', plural(set.cards.length, 'card', 'cards')), statusCell(set.is_active), actions);
-        return row;
-    }
-    function renderSets() {
-        $('setRows').replaceChildren(...state.sets.map(setRow));
-        const on = state.sets.filter(set => set.is_active).length;
-        $('setCount').textContent = state.sets.length ? `${plural(state.sets.length, 'set', 'sets')}, ${number(on)} on.` : '';
-        if (state.sets.length) showList('sets', 'table');
-        else emptyText('sets', 'No game sets yet', 'Choose New set to make one. Paste a list of terms and clues to fill it quickly.');
-    }
-    async function loadSets() {
-        try {
-            state.sets = await request('games/sets.php');
-            renderSets();
-        } catch (error) {
-            $('setCount').textContent = '';
-            emptyText('sets', 'Game sets couldn’t load', `${error.message} Refresh the page to try again.`);
-        }
-    }
-    const setById = id => state.sets.find(set => set.set_id === Number(id));
-    $('setRows').addEventListener('click', event => {
-        const control = event.target.closest('button[data-action]');
-        const set = control && setById(control.closest('tr').dataset.setId);
-        if (!set) return;
-        if (control.dataset.action === 'edit') openSetEditor(set, control);
-        else if (control.dataset.action === 'toggle') toggleSet(set, control);
-        else if (control.dataset.action === 'delete') deleteSet(set);
-    });
-    async function toggleSet(set, control) {
-        control.disabled = true;
-        try {
-            await request(`games/sets.php?id=${set.set_id}`, {method: 'PUT', body: {is_active: !set.is_active}});
-            set.is_active = !set.is_active;
-            renderSets();
-            $('setRows').querySelector(`tr[data-set-id="${set.set_id}"] [data-action="toggle"]`)?.focus();
-            showToast(set.is_active ? `${set.title} is on. Students can play it.` : `${set.title} is off. Students no longer see it.`, 'success');
-        } catch (error) {
-            control.disabled = false;
-            showToast(error.message, 'error');
-        }
-    }
-    async function deleteSet(set) {
-        if (!confirm(`Delete the set “${set.title}”? Students can no longer play it. Points already earned are kept.`)) return;
-        try {
-            await request(`games/sets.php?id=${set.set_id}`, {method: 'DELETE'});
-            state.sets = state.sets.filter(other => other !== set);
-            renderSets();
-            $('newSetBtn').focus();
-            showToast(`${set.title} was deleted.`, 'success');
-        } catch (error) {
-            showToast(error.message, 'error');
-        }
-    }
-
-    // ── Set editor: title, optional system and a card table, filled by hand or by pasting lines ──
-    const editor = {setId: null, dirty: false};
-    const cardRows = $('cardRows');
-    const valueOf = (row, field) => row.querySelector(`.tg-${field}`).value.trim();
-    const isBlank = row => ['term', 'clue', 'group'].every(field => !valueOf(row, field));
-
-    function fillSystems(set) {
-        const options = [new Option('None', '')];
-        for (const system of state.systems) {
-            options.push(new Option(system.is_active ? system.system_name : `${system.system_name} (hidden from students)`, String(system.system_id)));
-        }
-        if (set?.system_id != null && !state.systems.some(system => system.system_id === set.system_id)) {
-            options.push(new Option(set.system_name || 'The set’s current system', String(set.system_id)));
-        }
-        $('setSystem').replaceChildren(...options);
-        $('setSystem').value = set?.system_id == null ? '' : String(set.system_id);
-    }
-
-    function addCardRow(card = {}) {
-        const row = el('tr', 'tg-card');
-        if (card.mesh) row.dataset.mesh = card.mesh;    // not edited here, but kept for 3D Hunt
-        const field = (name, value, max, hint) => {
-            const cell = el('td', `tg-cell-${name}`);
-            const input = el('input', `tg-${name}`, null, {type: 'text', maxlength: String(max), autocomplete: 'off', spellcheck: 'false', placeholder: hint});
-            input.value = value ?? '';
-            cell.append(input);
-            return cell;
-        };
-        const remove = el('td', 'tg-cell-remove');
-        const removeButton = el('button', 'tg-remove', null, {type: 'button'});
-        removeButton.append(iconNode('trash'));
-        remove.append(removeButton);
-        row.append(el('td', 'tg-card-num'), field('term', card.term, 100, 'Term'), field('clue', card.clue, 300, 'Clue'), field('group', card.group, 60, 'Group (optional)'), remove);
-        cardRows.append(row);
-        return row;
-    }
-
-    function renumberCards() {
-        const rows = [...cardRows.rows];
-        rows.forEach((row, index) => {
-            const n = index + 1;
-            row.querySelector('.tg-card-num').textContent = String(n);
-            row.querySelector('.tg-term').setAttribute('aria-label', `Card ${n} term`);
-            row.querySelector('.tg-clue').setAttribute('aria-label', `Card ${n} clue`);
-            row.querySelector('.tg-group').setAttribute('aria-label', `Card ${n} group (optional)`);
-            row.querySelector('.tg-remove').setAttribute('aria-label', `Remove card ${n}`);
-        });
-        $('cardCount').textContent = plural(rows.length, 'card', 'cards');
-        $('cardsEmpty').hidden = rows.length > 0;
-    }
-
-    function setFormError(message, field) {
-        const box = $('setError');
-        box.textContent = message;
-        box.hidden = false;
-        if (field) {
-            field.setAttribute('aria-invalid', 'true');
-            field.focus();
-        } else {
-            box.scrollIntoView({block: 'nearest'});
-        }
-    }
-    function clearFormErrors(form, box) {
-        box.hidden = true;
-        box.textContent = '';
-        form.querySelectorAll('[aria-invalid]').forEach(node => node.removeAttribute('aria-invalid'));
-    }
-
-    function openSetEditor(set, trigger) {
-        editor.setId = set ? set.set_id : null;
-        editor.dirty = false;
-        $('setModalTitle').textContent = set ? 'Edit game set' : 'New game set';
-        $('setTitle').value = set ? set.title : '';
-        fillSystems(set);
-        cardRows.replaceChildren();
-        // A new set starts with the 4 rows it needs; pasted cards take the place of rows left empty.
-        for (const card of set ? set.cards : [{}, {}, {}, {}]) addCardRow(card);
-        renumberCards();
-        $('pasteText').value = '';
-        $('pasteNote').textContent = '';
-        $('pasteBox').open = !set;
-        clearFormErrors($('setForm'), $('setError'));
-        openDialog('setModal', trigger, $('setTitle'), {
-            returnTo: set ? `#setRows tr[data-set-id="${set.set_id}"] [data-action="edit"]` : '#newSetBtn',
-            canClose: () => !editor.dirty || confirm('Close without saving? Your changes to this set will be lost.'),
-        });
-    }
-
-    $('newSetBtn').addEventListener('click', event => openSetEditor(null, event.currentTarget));
-    $('setForm').addEventListener('input', () => { editor.dirty = true; });
-    $('addCardBtn').addEventListener('click', () => {
-        const row = addCardRow();
-        renumberCards();
-        editor.dirty = true;
-        row.querySelector('.tg-term').focus();
-    });
-    cardRows.addEventListener('click', event => {
-        const remove = event.target.closest('.tg-remove');
-        if (!remove) return;
-        const row = remove.closest('tr');
-        const next = row.nextElementSibling || row.previousElementSibling;
-        row.remove();
-        renumberCards();
-        editor.dirty = true;
-        (next?.querySelector('.tg-term') || $('addCardBtn')).focus();
-    });
-    $('pasteAdd').addEventListener('click', () => {
-        const cards = parsePastedCards($('pasteText').value);
-        if (!cards.length) {
-            $('pasteNote').textContent = 'Paste at least one line: a term, a comma, then its clue.';
-            $('pasteText').focus();
-            return;
-        }
-        for (const row of [...cardRows.rows]) if (isBlank(row)) row.remove();
-        for (const card of cards) addCardRow(card);
-        renumberCards();
-        editor.dirty = true;
-        $('pasteText').value = '';
-        const unfinished = cards.filter(card => !card.clue).length;
-        $('pasteNote').textContent = `Added ${plural(cards.length, 'card', 'cards')}.` + (unfinished ? ` ${plural(unfinished, 'card needs', 'cards need')} a clue.` : '');
-    });
-
-    $('setForm').addEventListener('submit', async event => {
-        event.preventDefault();
-        const form = $('setForm');
-        clearFormErrors(form, $('setError'));
-        const title = $('setTitle').value.trim();
-        if (!title) return setFormError('Give the set a title.', $('setTitle'));
-        if (length(title) > 100) return setFormError('Keep the title to 100 characters or fewer.', $('setTitle'));
-        for (const row of [...cardRows.rows]) if (isBlank(row)) row.remove();
-        renumberCards();
-        const rows = [...cardRows.rows];
-        if (rows.length < 4) {
-            return setFormError(`A set needs at least 4 cards. This one has ${number(rows.length)}.`, null);
-        }
-        if (rows.length > 200) return setFormError(`A set can hold up to 200 cards. This one has ${number(rows.length)}.`, rows[200].querySelector('.tg-term'));
-        const cards = [], terms = new Map();
-        for (const [index, row] of rows.entries()) {
-            const n = index + 1, input = name => row.querySelector(`.tg-${name}`);
-            const term = valueOf(row, 'term'), clue = valueOf(row, 'clue'), group = valueOf(row, 'group');
-            if (!term) return setFormError(`Card ${n} needs a term.`, input('term'));
-            if (length(term) > 100) return setFormError(`Card ${n}: keep the term to 100 characters or fewer.`, input('term'));
-            if (!clue) return setFormError(`Card ${n} needs a clue.`, input('clue'));
-            if (length(clue) > 300) return setFormError(`Card ${n}: keep the clue to 300 characters or fewer.`, input('clue'));
-            if (length(group) > 60) return setFormError(`Card ${n}: keep the group to 60 characters or fewer.`, input('group'));
-            const key = term.toLowerCase();
-            if (terms.has(key)) return setFormError(`Card ${n} repeats card ${terms.get(key)}, “${term}”. Each term can appear once, whatever its capitals.`, input('term'));
-            terms.set(key, n);
-            const card = {term, clue};
-            if (group) card.group = group;
-            if (row.dataset.mesh) card.mesh = row.dataset.mesh;
-            cards.push(card);
-        }
-        const system = $('setSystem').value;
-        const body = {title, system_id: system === '' ? null : Number(system), cards};
-        const save = $('setSave');
-        save.disabled = true;
-        try {
-            const creating = editor.setId == null;
-            if (creating) await request('games/sets.php', {method: 'POST', body});
-            else await request(`games/sets.php?id=${editor.setId}`, {method: 'PUT', body});
-            editor.dirty = false;
-            await loadSets();
-            closeDialog();
-            showToast(creating ? `${title} was created. Students can play it now.` : `${title} was saved.`, 'success');
-        } catch (error) {
-            setFormError(error.message, null);
-        } finally {
-            save.disabled = false;
-        }
-    });
-
-    async function loadSystems() {
-        try { state.systems = await request('anatomy-content.php'); } catch { state.systems = []; }
-    }
-
-    // ── Most-missed terms and the leaderboard: one section at a time, the same section in both ──
-    function missedRow(row, index) {
-        const share = Math.round(Math.min(1, Math.max(0, Number(row.miss_rate) || 0)) * 100);
-        const missed = el('td', 'tg-missed-cell');
-        const meter = el('span', 'sd-meter tg-meter', null, {'aria-hidden': 'true'});
-        const fill = el('i');
-        fill.style.width = `${share}%`;
-        meter.append(fill);
-        missed.append(el('span', 'tg-pct', `${share}%`), meter);
-        const item = el('tr');
-        item.append(el('td', 'tg-rank', String(index + 1)), el('th', 'tg-term-name', row.term, {scope: 'row'}), missed,
-            el('td', 'tg-muted', `${number(row.correct)} of ${number(row.seen)}`));
-        return item;
-    }
-    async function loadMissed() {
-        const section = state.section, token = ++tokens.missed;
-        showList('missed', 'loading');
-        try {
-            const list = await request(`games/mastery.php?section=${encodeURIComponent(section)}`);
-            if (token !== tokens.missed) return;
-            $('missedRows').replaceChildren(...list.map(missedRow));
-            if (list.length) showList('missed', 'table');
-            else emptyText('missed', 'No missed terms yet', `Nothing to show for ${section}. A term is listed here once students in this section have answered it at least 3 times in the games.`);
-        } catch (error) {
-            if (token !== tokens.missed) return;
-            $('missedRows').replaceChildren();
-            emptyText('missed', 'Most-missed terms couldn’t load', `${error.message} Choose the section again to retry.`);
-        }
-    }
-
-    function boardRow(row) {
-        const item = el('tr');
-        item.append(el('td', 'tg-rank', `#${row.rank}`), el('th', 'tg-board-name', row.full_name, {scope: 'row'}), el('td', 'tg-points', `${number(row.points)} pts`));
         return item;
     }
     async function loadBoard() {
-        const section = state.section, token = ++tokens.board;
+        const {section, game} = state, token = ++boardToken;
+        const byGame = game !== ALL_GAMES;
+        $('boardValueHead').textContent = byGame ? 'Best score' : 'Points';
+        $('boardNote').textContent = byGame ? `The top 10 by best ${gameTitle(game)} score this week.` : 'The top 10 by game points this week.';
+        $('boardCaption').textContent = byGame ? `This week's best ${gameTitle(game)} scores` : 'This week\'s leaderboard';
         showList('board', 'loading');
         try {
-            const board = await request(`games/leaderboard.php?section=${encodeURIComponent(section)}`);
-            if (token !== tokens.board) return;
+            const query = `section=${encodeURIComponent(section)}` + (byGame ? `&game=${encodeURIComponent(game)}` : '');
+            const board = await request(`games/leaderboard.php?${query}`);
+            if (token !== boardToken) return;
             const since = new Date(String(board.week_start).replace(' ', 'T'));
             $('boardWeek').textContent = Number.isNaN(since.getTime()) ? '' : `The week began ${since.toLocaleDateString('en-PH', {weekday: 'long', month: 'short', day: 'numeric'})}.`;
-            $('boardRows').replaceChildren(...board.top.map(boardRow));
+            $('boardRows').replaceChildren(...board.top.map(row => boardRow(row, byGame)));
             if (board.top.length) showList('board', 'table');
+            else if (byGame) emptyText('board', 'No scores yet this week', `No one in ${section} has finished a round of ${gameTitle(game)} since the week began.`);
             else emptyText('board', 'No points yet this week', `No one in ${section} has scored points in the games since the week began.`);
         } catch (error) {
-            if (token !== tokens.board) return;
+            if (token !== boardToken) return;
             $('boardRows').replaceChildren();
             emptyText('board', 'The leaderboard couldn’t load', `${error.message} Choose the section again to retry.`);
         }
     }
 
-    const sectionPickers = [$('missedSection'), $('boardSection')];
-    for (const picker of sectionPickers) {
-        picker.addEventListener('change', () => {
-            state.section = picker.value;
-            for (const other of sectionPickers) other.value = state.section;
-            loadMissed();
-            loadBoard();
-        });
-    }
+    const sectionPicker = $('boardSection'), gamePicker = $('boardGame');
+    gamePicker.replaceChildren(new Option('All games', ALL_GAMES), ...Object.entries(GAMES).map(([key, game]) => new Option(game.title, key)));
+    gamePicker.value = ALL_GAMES;
+    gamePicker.addEventListener('change', () => { state.game = gamePicker.value; loadBoard(); });
+    sectionPicker.addEventListener('change', () => { state.section = sectionPicker.value; loadBoard(); });
     async function loadSections() {
         const config = typeof SiteConfig === 'undefined' ? {} : await SiteConfig.ready;
-        state.sections = Array.isArray(config?.sections) ? config.sections.map(String) : [];
-        state.section = state.sections[0] || '';
-        for (const picker of sectionPickers) {
-            picker.replaceChildren(...state.sections.map(section => new Option(section, section)));
-            picker.disabled = !state.sections.length;
-        }
+        const sections = Array.isArray(config?.sections) ? config.sections.map(String) : [];
+        state.section = sections[0] || '';
+        sectionPicker.replaceChildren(...sections.map(section => new Option(section, section)));
+        sectionPicker.disabled = !sections.length;
         if (!state.section) {
-            emptyText('missed', 'Sections couldn’t load', 'Refresh the page to try again.');
             emptyText('board', 'Sections couldn’t load', 'Refresh the page to try again.');
             return;
         }
-        loadMissed();
         loadBoard();
     }
 
     // ── Badges: built-in ones can be edited or turned off, never deleted (the migration would bring them
-    // back); badges the teacher adds can also be deleted ──
+    // back); badges the teacher adds can also be deleted. Rules whose goal was retired with the quiz games
+    // (perfect rounds, body systems played) can never be earned again, so they are left out. ──
     const isOn = badge => badge.is_active === true || Number(badge.is_active) === 1;
     const isBuiltIn = badge => badge.badge_key != null && badge.badge_key !== '';
     function badgeRow(badge) {
@@ -528,10 +263,11 @@ function main() {
         return row;
     }
     function renderBadges() {
-        $('badgeRows').replaceChildren(...state.badges.map(badgeRow));
-        const on = state.badges.filter(isOn).length;
-        $('badgeCount').textContent = state.badges.length ? `${plural(state.badges.length, 'badge', 'badges')}, ${number(on)} on.` : '';
-        if (state.badges.length) showList('badges', 'table');
+        const listed = state.badges.filter(badge => metricOf(badge.metric));
+        $('badgeRows').replaceChildren(...listed.map(badgeRow));
+        const on = listed.filter(isOn).length;
+        $('badgeCount').textContent = listed.length ? `${plural(listed.length, 'badge', 'badges')}, ${number(on)} on.` : '';
+        if (listed.length) showList('badges', 'table');
         else emptyText('badges', 'No badges yet', 'Choose Add badge to set a goal for students.');
     }
     async function loadBadges() {
@@ -598,6 +334,11 @@ function main() {
     };
     metricSelect.addEventListener('change', unitHint);
 
+    function clearFormErrors(form, box) {
+        box.hidden = true;
+        box.textContent = '';
+        form.querySelectorAll('[aria-invalid]').forEach(node => node.removeAttribute('aria-invalid'));
+    }
     function badgeFormError(message, field) {
         const box = $('badgeError');
         box.textContent = message;
@@ -653,8 +394,6 @@ function main() {
         }
     });
 
-    loadSets();
-    loadSystems();
     loadBadges();
     loadSections();
 }

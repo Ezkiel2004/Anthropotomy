@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261021-motion1"/>
-  <link rel="stylesheet" href="../assets/css/games.css?v=20261021-teacher1"/>
+  <link rel="stylesheet" href="../assets/css/games.css?v=20261025-boards1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261021-motion1"></script>
 </head>
@@ -53,71 +53,33 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1>Games</h1>
-          <p>Make card sets for the practice games, see which terms each section keeps missing, follow this week's leaderboard and manage badges. Games never change quiz grades.</p>
+          <p>Follow this week's leaderboard in each section, for all games or one game, and manage the badges students earn. Games never change quiz grades.</p>
         </div>
+        <div class="page-header-right" id="tryGames"></div>
       </div>
 
       <div class="tg-tabs" id="gamesTabs" role="tablist" aria-label="Games">
-        <button type="button" class="tab-btn active" role="tab" id="tab-sets" aria-controls="panel-sets" aria-selected="true">Game sets</button>
-        <button type="button" class="tab-btn" role="tab" id="tab-missed" aria-controls="panel-missed" aria-selected="false" tabindex="-1">Most-missed terms</button>
-        <button type="button" class="tab-btn" role="tab" id="tab-leaderboard" aria-controls="panel-leaderboard" aria-selected="false" tabindex="-1">Leaderboard</button>
+        <button type="button" class="tab-btn active" role="tab" id="tab-leaderboard" aria-controls="panel-leaderboard" aria-selected="true">Leaderboard</button>
         <button type="button" class="tab-btn" role="tab" id="tab-badges" aria-controls="panel-badges" aria-selected="false" tabindex="-1">Badges</button>
       </div>
 
-      <!-- Game sets -->
-      <section class="tg-panel" id="panel-sets" role="tabpanel" aria-labelledby="tab-sets">
-        <div class="tg-panel-head">
-          <div class="tg-panel-copy">
-            <h2 class="section-title">Game sets</h2>
-            <p class="tg-note">Your own cards for the games. Students can play every set that is on. A set needs 4 to 200 cards. <span id="setCount"></span></p>
-          </div>
-          <button type="button" class="btn btn-primary btn-sm" id="newSetBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg> New set</button>
-        </div>
-        <p class="sd-loading" id="setsLoading">Loading game sets…</p>
-        <div class="table-wrapper" id="setsTableWrap" hidden>
-          <table class="data-table tg-table tg-stack">
-            <caption class="sr-only">Game sets</caption>
-            <thead><tr><th scope="col">Set</th><th scope="col">Cards</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
-            <tbody id="setRows"></tbody>
-          </table>
-        </div>
-        <div class="dashboard-empty" id="setsEmpty" hidden><strong id="setsEmptyTitle">No game sets yet</strong><p id="setsEmptyText">Choose New set to make one. Paste a list of terms and clues to fill it quickly.</p></div>
-      </section>
-
-      <!-- Most-missed terms -->
-      <section class="tg-panel" id="panel-missed" role="tabpanel" aria-labelledby="tab-missed" hidden>
-        <div class="tg-panel-head">
-          <div class="tg-panel-copy">
-            <h2 class="section-title">Most-missed terms</h2>
-            <p class="tg-note">The 20 terms this section misses most in the games. A term is listed once students have answered it at least 3 times.</p>
-          </div>
-          <div class="tg-field"><label for="missedSection">Section</label><select id="missedSection"></select></div>
-        </div>
-        <p class="sd-loading" id="missedLoading">Loading most-missed terms…</p>
-        <div class="table-wrapper" id="missedTableWrap" hidden>
-          <table class="data-table tg-table tg-missed">
-            <caption class="sr-only">Most-missed terms</caption>
-            <thead><tr><th scope="col">#</th><th scope="col">Term</th><th scope="col">Missed</th><th scope="col">Correct</th></tr></thead>
-            <tbody id="missedRows"></tbody>
-          </table>
-        </div>
-        <div class="dashboard-empty" id="missedEmpty" hidden><strong id="missedEmptyTitle">No missed terms yet</strong><p id="missedEmptyText"></p></div>
-      </section>
-
       <!-- Leaderboard -->
-      <section class="tg-panel" id="panel-leaderboard" role="tabpanel" aria-labelledby="tab-leaderboard" hidden>
+      <section class="tg-panel" id="panel-leaderboard" role="tabpanel" aria-labelledby="tab-leaderboard">
         <div class="tg-panel-head">
           <div class="tg-panel-copy">
             <h2 class="section-title">This week's leaderboard</h2>
-            <p class="tg-note">The top 10 by game points this week. <span id="boardWeek"></span></p>
+            <p class="tg-note"><span id="boardNote">The top 10 by game points this week.</span> <span id="boardWeek"></span></p>
           </div>
-          <div class="tg-field"><label for="boardSection">Section</label><select id="boardSection"></select></div>
+          <div class="tg-filters">
+            <div class="tg-field"><label for="boardSection">Section</label><select id="boardSection"></select></div>
+            <div class="tg-field"><label for="boardGame">Game</label><select id="boardGame"></select></div>
+          </div>
         </div>
         <p class="sd-loading" id="boardLoading">Loading the leaderboard…</p>
         <div class="table-wrapper" id="boardTableWrap" hidden>
           <table class="data-table tg-table tg-board">
-            <caption class="sr-only">This week's leaderboard</caption>
-            <thead><tr><th scope="col">Rank</th><th scope="col">Student</th><th scope="col">Points</th></tr></thead>
+            <caption class="sr-only" id="boardCaption">This week's leaderboard</caption>
+            <thead><tr><th scope="col">Rank</th><th scope="col">Student</th><th scope="col" id="boardValueHead">Points</th></tr></thead>
             <tbody id="boardRows"></tbody>
           </table>
         </div>
@@ -145,61 +107,6 @@
       </section>
     </div>
   </main>
-</div>
-
-<!-- Set editor -->
-<div class="modal-overlay" id="setModal" style="display:none;">
-  <div class="modal-box tg-modal-wide" role="dialog" aria-modal="true" aria-labelledby="setModalTitle">
-    <div class="modal-header">
-      <h3 id="setModalTitle">New game set</h3>
-      <button type="button" class="modal-close" data-close aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button>
-    </div>
-    <form id="setForm" class="tg-form" novalidate>
-      <div class="modal-body">
-        <div class="tg-form-grid">
-          <div class="form-group">
-            <label for="setTitle">Title</label>
-            <div class="input-wrapper"><input type="text" id="setTitle" maxlength="100" autocomplete="off" required/></div>
-          </div>
-          <div class="form-group">
-            <label for="setSystem">Body system (optional)</label>
-            <div class="input-wrapper"><select id="setSystem" aria-describedby="setSystemHint"></select></div>
-            <p class="tg-hint" id="setSystemHint">Cards without a group take the system's name as their group.</p>
-          </div>
-        </div>
-
-        <details class="tg-paste" id="pasteBox">
-          <summary><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#textbox"/></svg> Paste cards</summary>
-          <div class="tg-paste-body">
-            <label for="pasteText">One card per line: the term, a comma, then the clue. To put the card in a group for Sort It, add a comma and the group at the end.</label>
-            <textarea id="pasteText" rows="5" spellcheck="false" placeholder="Femur, The thigh bone, Leg&#10;Heart, Pumps blood around the body, Circulatory"></textarea>
-            <div class="tg-paste-foot">
-              <button type="button" class="btn btn-secondary btn-sm" id="pasteAdd"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg> Add these cards</button>
-              <p class="tg-hint" id="pasteNote" role="status" aria-live="polite"></p>
-            </div>
-          </div>
-        </details>
-
-        <div class="tg-cards-head">
-          <h4 id="cardsHeading">Cards</h4>
-          <span class="tg-count" id="cardCount"></span>
-        </div>
-        <div class="table-wrapper tg-cards-wrap">
-          <table class="data-table tg-cards" aria-labelledby="cardsHeading">
-            <thead><tr><th scope="col">#</th><th scope="col">Term</th><th scope="col">Clue</th><th scope="col">Group (optional)</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead>
-            <tbody id="cardRows"></tbody>
-          </table>
-        </div>
-        <p class="tg-hint" id="cardsEmpty" hidden>No cards yet. Paste them above, or add them one at a time.</p>
-        <button type="button" class="btn btn-secondary btn-sm tg-add-card" id="addCardBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg> Add a card</button>
-        <p class="tg-error" id="setError" role="alert" hidden></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-close>Cancel</button>
-        <button type="submit" class="btn btn-primary" id="setSave"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#floppy-disk"/></svg> Save set</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <!-- Badge editor -->
@@ -247,7 +154,7 @@
 'use strict';
 Auth.requireAuthSync('teacher');
 </script>
-<script type="module" src="../assets/js/games/teacher-page.js?v=20261021-teacher1"></script>
+<script type="module" src="../assets/js/games/teacher-page.js?v=20261025-boards1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>

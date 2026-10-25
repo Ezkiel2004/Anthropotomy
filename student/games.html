@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261021-motion1"/>
-  <link rel="stylesheet" href="../assets/css/games.css?v=20261020-games1"/>
+  <link rel="stylesheet" href="../assets/css/games.css?v=20261025-gallery1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261021-motion1"></script>
 </head>
@@ -52,38 +52,16 @@
       <header class="sd-head">
         <div>
           <h1 class="sd-title">Games</h1>
-          <p class="sd-sub">Learn anatomy terms by playing. Earn points for this week's board and collect badges. Games never change your quiz grades.</p>
+          <p class="sd-sub">Quick arcade games with an anatomy theme. Every round earns points for this week's board and counts toward badges. Games never change your quiz grades.</p>
         </div>
       </header>
 
-      <div class="dashboard-empty sd-error" id="gamesError" role="status" hidden></div>
-
-      <section class="sd-empty" id="gamesEmpty" aria-labelledby="gamesEmptyTitle" hidden>
-        <h2 class="sd-empty-title" id="gamesEmptyTitle">No game content yet</h2>
-        <p>The games use your class's body systems and your teacher's game sets. Once either is added, you can play here.</p>
+      <section class="sd-block" aria-labelledby="galleryTitle">
+        <div class="sd-h"><h2 id="galleryTitle" class="sd-h-title">Pick a game</h2></div>
+        <div class="game-gallery" id="gameGallery"></div>
       </section>
 
-      <section class="sd-block game-picker" id="gamesPicker" aria-labelledby="pickerTitle">
-        <div class="sd-h"><h2 id="pickerTitle" class="sd-h-title">Pick a game</h2><span class="sd-count" id="poolCount"></span></div>
-        <div class="game-controls">
-          <div class="sd-field game-pool">
-            <label for="gamePool">Cards from</label>
-            <select id="gamePool" class="sd-select"></select>
-          </div>
-          <fieldset class="game-difficulty">
-            <legend>Difficulty</legend>
-            <div class="game-seg" id="difficultyOptions"></div>
-          </fieldset>
-        </div>
-        <div class="sd-grid game-cards" id="gameCards"><div class="sd-loading">Loading games…</div></div>
-      </section>
-
-      <section class="sd-block game-play-view" id="gamePlay" aria-labelledby="gamePlayTitle" hidden>
-        <div class="sd-h"><h2 id="gamePlayTitle" class="sd-h-title" tabindex="-1">Game</h2><span class="sd-count" id="gamePlayMeta"></span></div>
-        <div class="game-run" id="gameRun"></div>
-      </section>
-
-      <div class="sd-pair game-side" id="gamesSide">
+      <div class="sd-pair game-side">
         <section class="sd-block" aria-labelledby="leaderboardTitle">
           <div class="sd-h"><h2 id="leaderboardTitle" class="sd-h-title">This week in your section</h2><span class="sd-count" id="leaderboardSection"></span></div>
           <div class="sd-panel game-ranks">
@@ -108,14 +86,7 @@
 'use strict';
 Auth.requireAuthSync('student');
 </script>
-<!-- 3D Hunt's engine: classic scripts, loaded before the games module -->
-<script src="../assets/vendor/three/three.min.js"></script>
-<script src="../assets/vendor/three/OrbitControls.js"></script>
-<script src="../assets/vendor/three/GLTFLoader.js"></script>
-<script src="../assets/vendor/three/DRACOLoader.js"></script>
-<script src="../assets/js/anatomy-layers-core.js?v=20261022-exclusive1"></script>
-<script src="../assets/js/model-viewer.js?v=20261022-pleura1"></script>
-<script type="module" src="../assets/js/games/student-page.js?v=20261020-games1"></script>
+<script type="module" src="../assets/js/games/student-page.js?v=20261025-gallery1"></script>
 <script src="../assets/js/site-config.js"></script>
 </body>
 </html>

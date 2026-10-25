@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, boot} from '../../assets/js/games/shell.js';
+import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, bestScore, boardView, boot} from '../../assets/js/games/shell.js';
 import {STARS} from '../../assets/js/games/germ-smash.js';
 
 const KEY = 'anthropotomy_game_settings';
@@ -142,8 +142,34 @@ test('saveOutcome: saved on success, retry on network-like failures, refused on 
     assert.deepEqual(saveOutcome(201, {success: true, data: null}), {kind: 'saved', data: null});
     assert.deepEqual(saveOutcome(500, {success: false}), {kind: 'retry'});
     assert.deepEqual(saveOutcome(503, null), {kind: 'retry'});
-    assert.deepEqual(saveOutcome(200, null), {kind: 'retry'}, 'a non-JSON answer is treated as a server failure');
+    assert.deepEqual(saveOutcome(404, null), {kind: 'retry'}, 'a non-JSON refusal never reached plays.php');
     assert.deepEqual(saveOutcome(422, {success: false, message: 'bad'}), {kind: 'refused'});
     assert.deepEqual(saveOutcome(403, {success: false}), {kind: 'refused'});
     assert.deepEqual(saveOutcome(200, {success: false}), {kind: 'refused'});
+});
+
+test('saveOutcome: a 2xx answer that is not JSON is saved, never retried (a retry could save the round twice)', () => {
+    assert.deepEqual(saveOutcome(200, null), {kind: 'saved', data: null});
+    assert.deepEqual(saveOutcome(201, null), {kind: 'saved', data: null});
+    assert.deepEqual(saveOutcome(204, null), {kind: 'saved', data: null});
+});
+
+test('bestScore: the all-time best once there is a score on record, otherwise null', () => {
+    assert.equal(bestScore(null), null, 'teachers get no best');
+    assert.equal(bestScore(undefined), null);
+    assert.equal(bestScore({all_time: 0, week: null}), null, 'never played: No score yet');
+    assert.equal(bestScore({all_time: 0, week: 0}), 0, 'played this week and scored 0');
+    assert.equal(bestScore({all_time: 800, week: null}), 800, 'played before this week');
+    assert.equal(bestScore({all_time: 800, week: 400}), 800);
+});
+
+test('boardView marks the viewer\'s row, or gives their rank when they are outside the list', () => {
+    const top = [{rank: 1, user_id: 7, full_name: 'Ana', score: 900}, {rank: 2, user_id: 9, full_name: 'Ben', score: 500}];
+    assert.deepEqual(boardView({top, me: {rank: 2, score: 500}}, 9), {
+        rows: [{rank: 1, name: 'Ana', score: 900, own: false}, {rank: 2, name: 'Ben', score: 500, own: true}], you: null
+    });
+    assert.deepEqual(boardView({top, me: {rank: 11, score: 120}}, '4').you, {rank: 11, score: 120}, 'outside the list: one You line');
+    assert.equal(boardView({top, me: null}, 4).you, null, 'not ranked: no You line');
+    assert.deepEqual(boardView({top, me: null}, null).rows.map(row => row.own), [false, false], 'a teacher has no row of their own');
+    assert.deepEqual(boardView({top: [], me: null}, 4), {rows: [], you: null});
 });

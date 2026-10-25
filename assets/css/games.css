@@ -1,43 +1,47 @@
-/* Practice games on the Stage. Loaded after stage-portal.css on student/games.html and teacher/games.html,
+/* Games on the Stage. Loaded after stage-portal.css on student/games.html and teacher/games.html,
    so it uses the Stage tokens (--st-*) and the shared sd- parts.
-   1. The Games page: picker, game cards, leaderboard, badges, the running round and its results.
-   2. The markup the games build: the play-kit frame (div.game-board > .game-hud, .game-stage,
-      .game-feedback), then Match Pairs, Sort It, Beat the Clock, Unscramble and 3D Hunt.
-   3. The teacher Games page (body.teacher-games, tg- parts): tabs, the lists, the set editor and the
-      badge editor, on the teacher portal's tables, buttons, fields and dialogs.
-   State classes are is-*. */
+   1. The student Games page: the gallery of game cards, this week's points board and the badges.
+   2. The teacher Games page (body.teacher-games, tg- parts): tabs, the leaderboard and the badge list and
+      editor, on the teacher portal's tables, buttons, fields and dialogs.
+   State classes are is-* / has-*. */
 
 /* Several Stage parts set display, which would beat the hidden attribute. */
 .games-page [hidden]{display:none!important}
 
-/* ══ 1. The page ══ */
-.game-controls{display:grid;gap:1rem;margin-bottom:1.5rem}
-.game-pool .sd-select{flex:none;width:100%}
-.game-difficulty{min-width:0;margin:0;padding:0;border:0}
-.game-difficulty legend{margin:0 0 .5rem;padding:0;color:var(--st-soft);font-size:.8125rem;font-weight:700}
-.game-seg{display:inline-flex;gap:.25rem;max-width:100%;padding:.25rem;border-radius:999px;background:var(--st-raised)}
-.game-seg-option{display:inline-flex;align-items:baseline;gap:.375rem;min-height:2.5rem;padding:.625rem 1rem;border-radius:999px;color:var(--st-soft);font-size:.875rem;font-weight:700;line-height:1.25;white-space:nowrap;cursor:pointer;transition:background-color .25s,color .25s}
-.game-seg-option:hover{color:#fff}
-.game-seg-mult{color:var(--st-muted);font-size:.75rem}
-.game-seg-option:has(input:checked){background:#fff;color:var(--st-dark)}
-.game-seg-option:has(input:checked) .game-seg-mult{color:#4d4d4d}
-.game-seg-option:has(input:focus-visible){outline:2px solid #fff;outline-offset:2px}
-
-/* One card per game; a game the pool can't fill is dimmed, its reason kept readable */
-.game-card{display:flex;flex-direction:column;gap:1rem;min-width:0;padding:1.25rem;border-radius:1.5rem;background:var(--st-raised);transition:transform .6s var(--st-ease),background-color .3s}
-.game-card:not(.is-unavailable):hover{transform:translateY(-.375rem);background:#232323}
-.game-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}
-.game-card-icon{display:grid;flex-shrink:0;place-items:center;width:3.25rem;height:3.25rem;border-radius:50%;background:var(--st-raised-2);color:var(--st-yellow)}
-.game-card-icon svg{width:1.5rem;height:1.5rem;fill:currentColor}
-.game-card-title{margin:0;color:#fff;font-size:1.125rem;font-weight:700;line-height:1.25}
-.game-card-desc{margin:.375rem 0 0;color:var(--st-muted);font-size:.875rem;line-height:1.5}
-.game-card-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;margin-top:auto;padding-top:.875rem;border-top:1px solid #2e2e2e}
-.game-card-level{flex:1 1 100%;margin:0;color:var(--st-soft);font-size:.8125rem;font-weight:600;line-height:1.4}
-.game-card-reason{display:flex;align-items:center;gap:.375rem;min-width:0;margin:0;color:var(--st-soft);font-size:.8125rem;font-weight:700;line-height:1.4}
-.game-card-reason svg{flex-shrink:0;width:1rem;height:1rem;fill:currentColor}
-.game-card.is-unavailable{background:#191919}
-.game-card.is-unavailable .game-card-icon{color:var(--st-muted)}
-.game-card.is-unavailable :is(.game-card-title,.game-card-desc,.game-card-level){opacity:.6}
+/* ══ 1. The student page ══ */
+/* One large card per finished game: its art, then the title, tagline, best score and Play. */
+.game-gallery{display:grid;gap:1.5rem}
+.game-card{display:grid;min-width:0;overflow:hidden;border-radius:1.75rem;background:var(--st-raised)}
+.game-card-art{position:relative;aspect-ratio:16/9;overflow:hidden;background:#c68a63}
+.game-card-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s var(--st-ease)}
+.game-card-art.has-image img{opacity:1}
+/* Until card.webp exists (or if it fails): a patch of skin with pores, and the title as on the game's menu. */
+.game-card-fallback{position:absolute;inset:0;display:grid;place-content:center;justify-items:start;color:#fff;font-family:var(--st-display);font-size:clamp(2.75rem,8vw,4.75rem);line-height:.92;text-transform:uppercase;font-variant-ligatures:none;text-shadow:0 .2em .35em rgba(0,0,0,.28);
+  background:
+    radial-gradient(ellipse 75% 85% at 50% 45%,transparent 50%,rgba(0,0,0,.4) 100%),
+    radial-gradient(2.1rem .78rem at 50% 50%,rgba(38,20,10,.62) 0 58%,rgba(255,255,255,.16) 64% 76%,transparent 80%) 1.5rem .5rem/13rem 8.5rem,
+    radial-gradient(1.6rem .6rem at 50% 50%,rgba(38,20,10,.55) 0 58%,rgba(255,255,255,.14) 64% 76%,transparent 80%) 7.5rem 4.75rem/11rem 9.5rem,
+    radial-gradient(1.25rem .48rem at 50% 50%,rgba(38,20,10,.45) 0 58%,rgba(255,255,255,.12) 64% 76%,transparent 80%) 4rem 2rem/9.5rem 7.25rem,
+    radial-gradient(.2rem .13rem at 50% 50%,rgba(0,0,0,.14),transparent) 0 0/1.1rem .9rem,
+    radial-gradient(.16rem .11rem at 50% 50%,rgba(0,0,0,.1),transparent) .5rem .4rem/1.7rem 1.3rem,
+    linear-gradient(160deg,#d29a73,#b8794f);}
+.game-card-fallback .is-accent{color:var(--st-yellow);transform:translateX(.4em)}
+.game-card-art.has-image .game-card-fallback{visibility:hidden}
+.game-card-body{display:flex;flex-direction:column;gap:.625rem;min-width:0;padding:1.5rem}
+.game-card-title{margin:0;color:#fff;font-family:var(--st-display);font-size:clamp(1.625rem,3vw,2.125rem);font-weight:400;line-height:1.05;text-transform:uppercase;font-variant-ligatures:none}
+.game-card-desc{margin:0;color:var(--st-soft);font-size:.9375rem;line-height:1.5}
+.game-card-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem 1.5rem;margin-top:auto;padding-top:1.25rem;border-top:1px solid #2e2e2e}
+.game-card-best{display:grid;gap:.25rem;margin:0}
+.game-card-best-label{color:var(--st-muted);font-size:.8125rem;font-weight:700}
+.game-card-best-value{color:#fff;font-family:var(--st-display);font-size:1.875rem;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.game-card-best.is-empty .game-card-best-value{color:var(--st-soft);font-family:inherit;font-size:1rem;font-weight:700}
+.game-play:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media (min-width:56rem){
+  .game-card{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+  .game-card-art{aspect-ratio:auto;min-height:19rem}
+  .game-card-body{justify-content:center;padding:2.25rem}
+  .game-card-foot{margin-top:1rem}
+}
 
 /* This week in your section */
 .game-ranks{padding:.5rem 1.25rem}
@@ -64,149 +68,15 @@
 .game-badge-meter{margin-top:.375rem}
 .game-badge-meter i{background:var(--st-muted)}
 
-/* The running round: time and streak above the game */
-.game-play-view,.game-results,.game-problem{scroll-margin-top:calc(var(--topbar-height,56px) + 1rem)}
-/* Tall enough that the page can always scroll the round to the top, even while a model is loading. No
-   entrance slide: it would shift the box while the page scrolls to it. */
-.sd>.game-play-view{min-height:calc(100dvh - var(--topbar-height,56px) - 1rem - var(--tabbar-h,0px));animation:none}
-.game-play-view .sd-h-title:focus:not(:focus-visible){outline:none}
-.game-run{display:grid;gap:1rem;min-width:0}
-.game-run-hud{display:flex;flex-wrap:wrap;gap:.5rem}
-.game-run-stat{display:inline-flex;align-items:center;gap:.5rem;height:2.5rem;padding:0 1rem;border-radius:999px;background:var(--st-raised);color:#fff;font-size:.875rem;font-weight:700;font-variant-numeric:tabular-nums}
-.game-run-stat svg{width:1.125rem;height:1.125rem;fill:var(--st-yellow)}
-.game-root{min-width:0}
-
-/* Results */
-.game-results{display:grid;gap:1.5rem;padding:clamp(1.25rem,3vw,2rem);border-radius:1.75rem;background:#1a1a1a}
-.game-results-title{margin:0;color:#fff;font-family:var(--st-display);font-size:clamp(1.5rem,3vw,2rem);font-weight:400;line-height:1.05;text-transform:uppercase;font-variant-ligatures:none}
-.game-results-title:focus:not(:focus-visible){outline:none}
-.game-results-sub{margin:.375rem 0 0;color:var(--st-muted);font-size:.9375rem;font-weight:600;overflow-wrap:anywhere}
-.game-result-stats .sd-stat-value{font-size:clamp(1.25rem,4.5vw,1.875rem);white-space:nowrap}
-.game-result-stats .sd-stat-value.is-pending{color:var(--st-muted)}
-.game-save-row{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem 1rem}
-.game-save{margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:600}
-.game-save.is-saved{color:#5fe3b6}
-.game-save.is-failed{color:#ff9ea2}
-.game-review{display:grid;gap:.75rem}
-.game-review-title{margin:0;color:#fff;font-size:1rem;font-weight:700}
-.game-review-none{margin:0;color:var(--st-soft);font-size:.9375rem}
-.game-missed{margin:0;padding:0;list-style:none}
-.game-missed .sd-review-item{background:var(--st-raised)}
-.game-problem-text{max-width:40rem}
-
-/* Badge popups, above the phone tab bar */
-.game-toasts{position:fixed;right:1rem;bottom:calc(var(--tabbar-h,0px) + 1rem);z-index:9500;display:grid;justify-items:end;gap:.5rem;width:min(22rem,calc(100vw - 2rem));pointer-events:none}
-.game-toast{display:flex;align-items:center;gap:.875rem;width:100%;padding:.875rem 1rem;border:1px solid #2a2a2a;border-radius:1.125rem;background:#1f1f1f;color:#fff;box-shadow:var(--shadow-lg);pointer-events:auto;cursor:pointer;animation:game-toast-in .35s var(--st-ease) both;transition:opacity .25s,transform .25s}
-.game-toast.is-leaving{opacity:0;transform:translateY(.5rem)}
-.game-toast-icon{display:grid;flex-shrink:0;place-items:center;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--st-yellow);color:#1a1a1a}
-.game-toast-icon svg{width:1.25rem;height:1.25rem;fill:currentColor}
-.game-toast-copy{display:grid;gap:.125rem;min-width:0}
-.game-toast-kicker{color:var(--st-muted);font-size:.75rem;font-weight:700}
-.game-toast-title{font-size:.9375rem;font-weight:700;overflow-wrap:anywhere}
-@keyframes game-toast-in{from{opacity:0;transform:translateY(1rem)}}
-
-@media (min-width:40rem){
-  .game-controls{grid-template-columns:minmax(0,22rem) auto;align-items:end;justify-content:start;column-gap:1.5rem}
-}
-
-/* ══ 2. The games ══ */
-/* play-kit frame */
-.game-board{display:grid;gap:1rem;min-width:0;padding:clamp(1rem,3vw,1.75rem);border-radius:1.75rem;background:var(--st-raised)}
-.game-hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem}
-.game-progress{color:var(--st-muted);font-size:.875rem;font-weight:700}
-.game-timer{display:inline-flex;align-items:center;height:2.25rem;padding:0 .875rem;border-radius:999px;background:var(--st-raised-2);color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
-.game-stage{display:grid;gap:1rem;min-width:0}
-.game-feedback{min-height:1.5em;margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
-
-/* Shared buttons: Skip (Unscramble, 3D Hunt) and Check */
-.game-skip,.game-check{display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;padding:0 1.25rem;border:0;border-radius:999px;font:inherit;font-size:.875rem;font-weight:700;cursor:pointer;transition:background-color .2s,transform .1s}
-.game-skip{background:var(--st-raised-2);color:#fff}
-.game-skip:hover{background:#333}
-.game-check{background:var(--st-yellow);color:var(--st-dark)}
-.game-check:hover{background:#ffd666}
-.game-skip:active,.game-check:active{transform:scale(.97)}
-.game-skip:disabled,.game-check:disabled{opacity:.5;cursor:default;transform:none}
-
-/* Match Pairs: face-down tiles are striped, face-up ones plain, matched ones green */
-.game-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.625rem}
-.game-tile{display:flex;align-items:center;justify-content:center;min-width:0;min-height:6.5rem;padding:.75rem;border:2px solid transparent;border-radius:1.125rem;background:repeating-linear-gradient(135deg,#2a2a2a 0 .625rem,#252525 .625rem 1.25rem);color:#fff;font:inherit;font-size:.875rem;font-weight:600;line-height:1.35;text-align:center;overflow-wrap:anywhere;cursor:pointer;transition:background-color .2s,border-color .2s,transform .1s}
-.game-tile:hover{border-color:#3d3d3d}
-.game-tile:active{transform:scale(.98)}
-.game-tile.is-up{background:#303030;cursor:default}
-.game-tile[data-kind="term"]{font-size:1rem;font-weight:700}
-.game-tile[data-kind="clue"]{color:var(--st-soft);font-size:.8125rem}
-.game-tile.is-matched{border-color:rgba(44,207,154,.55);background:rgba(44,207,154,.12);color:#5fe3b6}
-
-/* Sort It: terms to place, then one bin per group */
-.game-terms{display:flex;flex-wrap:wrap;gap:.5rem;margin:0;padding:0;list-style:none}
-.game-term-item{min-width:0;max-width:100%}
-.game-term{max-width:100%;min-height:2.75rem;padding:.5rem 1rem;border:2px solid transparent;border-radius:999px;background:var(--st-raised-2);color:#fff;font:inherit;font-size:.875rem;font-weight:700;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:grab;transition:background-color .2s,border-color .2s}
-.game-term:hover{background:#303030}
-.game-term.is-selected{border-color:var(--st-yellow);background:rgba(247,201,72,.12)}
-.game-bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.75rem}
-.game-bin{display:grid;align-content:start;gap:.625rem;min-width:0;min-height:9rem;padding:.75rem;border:2px dashed #363636;border-radius:1.25rem;background:#1a1a1a;transition:border-color .2s,background-color .2s}
-.game-bin-button{width:100%;min-height:2.75rem;padding:.5rem .875rem;border:0;border-radius:.875rem;background:var(--st-raised-2);color:#fff;font:inherit;font-size:.9375rem;font-weight:700;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer}
-.game-bin-button:hover{background:#303030}
-.game-bin-items{display:flex;flex-wrap:wrap;gap:.375rem;margin:0;padding:0;list-style:none}
-.game-placed{max-width:100%;padding:.25rem .625rem;border-radius:999px;background:rgba(44,207,154,.16);color:#5fe3b6;font-size:.8125rem;font-weight:700;overflow-wrap:anywhere}
-.game-placed.is-missed{background:rgba(242,84,91,.16);color:#ff9ea2}
-.game-bin.is-over{border-color:var(--st-yellow);background:rgba(247,201,72,.06)}
-.game-bin.is-reveal{border-style:solid;border-color:var(--st-teal);background:rgba(44,207,154,.08)}
-
-/* Beat the Clock: the clue, then the choices */
-.game-question,.game-word{margin:0;color:var(--st-muted);font-size:.875rem;font-weight:700}
-.game-clue{margin:0;color:#fff;font-size:clamp(1.125rem,2.4vw,1.5rem);font-weight:700;line-height:1.35;overflow-wrap:anywhere}
-.game-choices{display:grid;gap:.625rem}
-.game-choice{display:flex;align-items:center;min-width:0;min-height:3.5rem;padding:.625rem 1rem;border:2px solid transparent;border-radius:1.125rem;background:var(--st-raised-2);color:#fff;font:inherit;font-size:1rem;font-weight:600;line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer;transition:background-color .2s,border-color .2s,transform .1s}
-.game-choice:hover{background:#2e2e2e}
-.game-choice:active{transform:scale(.99)}
-.game-choice[aria-disabled="true"]{cursor:default;transform:none}
-.game-choice.is-correct{border-color:var(--st-teal);background:rgba(44,207,154,.14);color:#5fe3b6}
-.game-choice.is-wrong{border-color:var(--st-coral);background:rgba(242,84,91,.14);color:#ff9ea2}
-
-/* Unscramble: the clue as the hint, the letters large, then the answer */
-.game-unscramble .game-clue{color:var(--st-soft);font-size:1rem;font-weight:600;line-height:1.5}
-.game-hint{margin:0;color:var(--st-yellow);font-size:.875rem;font-weight:700}
-.game-hint:empty,.game-reveal:empty{display:none}
-.game-scramble{margin:0;color:#fff;font-family:var(--st-display);font-size:clamp(1.5rem,6vw,2.5rem);line-height:1.15;letter-spacing:.12em;text-transform:uppercase;overflow-wrap:anywhere;font-variant-ligatures:none}
-.game-answer-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.75rem}
-.game-answer-label{display:grid;flex:1 1 16rem;gap:.5rem;min-width:0}
-.game-answer-text{color:var(--st-soft);font-size:.8125rem;font-weight:700}
-.game-answer{width:100%;min-width:0;height:3.25rem;padding:0 1.125rem;border:0;border-radius:1rem;background:var(--st-raised-2);color:#fff;font:600 1rem/1 var(--font-body);outline:none;transition:box-shadow .2s}
-.game-answer:focus-visible{box-shadow:0 0 0 2px var(--st-raised),0 0 0 4px #fff}
-.game-answer:read-only{color:var(--st-soft)}
-.game-answer-form :is(.game-check,.game-skip){min-height:3.25rem}
-.game-reveal{margin:0;font-size:1.125rem;font-weight:700;overflow-wrap:anywhere}
-.game-reveal.is-correct{color:#5fe3b6}
-.game-reveal.is-missed{color:#ff9ea2}
-
-/* 3D Hunt: the engine sizes only the drawing buffer, so the viewer sets the size. With the round
-   scrolled to the top, the prompt, the model, Skip and the feedback fit one screen (about 25rem
-   besides the model). */
-.game-prompt{margin:0;color:#fff;font-size:clamp(1.125rem,2.4vw,1.5rem);font-weight:700;line-height:1.3;overflow-wrap:anywhere}
-.game-viewer{--navy:#161616;position:relative;height:clamp(16rem,calc(100dvh - var(--topbar-height,56px) - var(--tabbar-h,0px) - 25rem),520px);overflow:hidden;border-radius:1.25rem;background:#161616}
-.game-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
-.game-hunt-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem}
-.game-tries{margin:0;color:var(--st-soft);font-size:.9375rem;font-weight:700}
-.game-board.is-loading .game-stage{position:relative}
-.game-loading-progress{position:absolute;top:50%;left:50%;color:var(--st-soft);font-family:var(--st-display);font-size:1.5rem;transform:translate(-50%,-50%);pointer-events:none}
-
-@media (min-width:30rem){
-  .game-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media (min-width:40rem){
-  .game-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (min-width:48rem){
-  .game-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
-}
 @media (prefers-reduced-motion:reduce){
-  .game-card,.game-tile,.game-term,.game-bin,.game-choice,.game-skip,.game-check,.game-toast{transition:none}
-  .game-toast{animation:none}
+  .game-card,.game-card-art img{transition:none}
 }
 
-/* ══ 3. The teacher Games page ══ */
+/* ══ 2. The teacher Games page ══ */
 .teacher-games [hidden]{display:none!important}
+.teacher-games .tg-try{display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
+.teacher-games .tg-try svg{width:1rem;height:1rem;fill:currentColor}
+.teacher-games .tg-try:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .tg-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.75rem}
 .teacher-games .tg-tabs .tab-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .tg-panel{min-width:0}
@@ -214,6 +84,7 @@
 .tg-panel-copy{flex:1 1 22rem;min-width:0}
 .teacher-games .tg-panel-head .section-title{margin:0}
 .tg-note{max-width:68ch;margin:.5rem 0 0;color:var(--st-muted);font-size:.875rem;line-height:1.55}
+.tg-filters{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem}
 .tg-field{display:flex;align-items:center;gap:.625rem}
 .tg-field label{color:var(--st-soft);font-size:.8125rem;font-weight:700}
 .tg-field select{min-width:10rem}
@@ -224,8 +95,8 @@
 .stage-portal .tg-table tr:last-child th{border-bottom:0}
 .stage-portal .tg-table tbody tr:hover th{background:#1f1f1f}
 .tg-sub{display:block;margin-top:.1875rem;color:var(--st-muted);font-size:.8125rem;font-weight:600}
-.tg-set-title,.tg-badge-title{display:block}
-.tg-table tr.is-off :is(.tg-set-title,.tg-badge-title){color:var(--st-soft)}
+.tg-badge-title{display:block}
+.tg-table tr.is-off .tg-badge-title{color:var(--st-soft)}
 .tg-count-cell{color:var(--st-soft)}
 .tg-actions-cell{width:1%;white-space:nowrap}
 .tg-actions{display:flex;justify-content:flex-end;gap:.5rem}
@@ -233,20 +104,14 @@
 .tg-actions .btn svg{width:1rem;height:1rem;fill:currentColor}
 .teacher-dashboard .tg-actions .tg-danger{color:#ff9ea2}
 .tg-rank{width:3.5rem;color:var(--st-muted);font-family:var(--st-display);font-size:.875rem;font-variant-ligatures:none}
-.tg-muted{color:var(--st-soft);white-space:nowrap}
-.tg-points{color:var(--st-soft);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.tg-missed-cell{white-space:nowrap}
-.tg-pct{display:inline-block;min-width:2.75rem;font-weight:700;font-variant-numeric:tabular-nums}
-.tg-meter{display:inline-block;width:6rem;margin-left:.5rem;vertical-align:middle}
-.tg-meter i{background:var(--st-coral)}
+.tg-board-value{color:var(--st-soft);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tg-badge{display:flex;align-items:center;gap:.75rem;min-width:0}
 .tg-badge-copy{min-width:0}
 .tg-badge-icon{display:grid;flex-shrink:0;place-items:center;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--st-raised-2);color:var(--st-yellow)}
 .tg-badge-icon svg{width:1.25rem;height:1.25rem;fill:currentColor}
 .tg-table tr.is-off .tg-badge-icon{color:var(--st-muted)}
 
-/* Dialogs */
-.teacher-games .tg-modal-wide{width:min(100%,58rem)}
+/* The badge editor */
 .teacher-games .tg-modal-narrow{width:min(100%,36rem)}
 .tg-form{display:flex;flex-direction:column;flex:1;min-height:0}
 .tg-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem}
@@ -259,42 +124,6 @@
 .tg-error{margin:1rem 0 0;padding:.75rem 1rem;border-radius:.875rem;background:rgba(242,84,91,.12);color:#ff9ea2;font-size:.875rem;font-weight:700;line-height:1.5;overflow-wrap:anywhere}
 .teacher-games [aria-invalid="true"]{box-shadow:0 0 0 2px #f2545b!important}
 
-/* Paste cards: a disclosure above the card table */
-.tg-paste{margin:1.25rem 0 0;border-radius:1rem;background:var(--st-raised)}
-.tg-paste summary{display:flex;align-items:center;gap:.5rem;min-height:2.875rem;padding:0 1rem;border-radius:1rem;color:#fff;font-size:.875rem;font-weight:700;list-style:none;cursor:pointer}
-.tg-paste summary::-webkit-details-marker{display:none}
-.tg-paste summary::after{content:"";width:.5rem;height:.5rem;margin-left:auto;border-right:2px solid var(--st-soft);border-bottom:2px solid var(--st-soft);transform:rotate(45deg) translateY(-2px);transition:transform .2s}
-.tg-paste[open] summary::after{transform:rotate(-135deg) translateY(-2px)}
-.tg-paste summary:hover{background:var(--st-raised-2)}
-.tg-paste summary svg{width:1.125rem;height:1.125rem;fill:currentColor}
-.tg-paste-body{display:grid;gap:.625rem;padding:.25rem 1rem 1rem}
-.tg-paste-body>label{color:var(--st-soft);font-size:.8125rem;font-weight:600;line-height:1.5}
-.teacher-games .tg-paste textarea{width:100%;min-height:7.5rem;background:var(--st-raised-2);font-family:var(--font-body);line-height:1.6;resize:vertical}
-.tg-paste-foot{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem}
-.tg-paste-foot .tg-hint{margin:0}
-.teacher-games :is(.tg-paste-foot .btn,.tg-add-card){display:inline-flex;align-items:center;gap:.375rem}
-.teacher-games .tg-add-card{margin-top:.75rem}
-.teacher-games :is(.tg-paste-foot .btn,.tg-add-card) svg{width:1rem;height:1rem;fill:currentColor}
-
-/* The card table: one row of inputs per card */
-.tg-cards-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:1.5rem 0 .625rem}
-.tg-cards-head h4{margin:0;color:#fff;font-size:1rem;font-weight:700}
-.tg-count{color:var(--st-muted);font-size:.8125rem;font-weight:700}
-.teacher-games .tg-cards-wrap{background:#151515}
-.tg-cards{table-layout:fixed}
-.tg-cards th:nth-child(1){width:2.75rem}
-.tg-cards th:nth-child(2){width:28%}
-.tg-cards th:nth-child(4){width:22%}
-.tg-cards th:nth-child(5){width:3.25rem}
-.teacher-dashboard .tg-cards td{padding:.375rem;vertical-align:middle}
-.teacher-dashboard .tg-cards td:first-child{padding-left:.875rem}
-.stage-portal .tg-cards tbody tr:hover td{background:none}
-.tg-card-num{color:var(--st-muted);font-size:.8125rem;font-weight:700;font-variant-numeric:tabular-nums}
-.teacher-games .tg-cards input{width:100%;min-width:0;padding:.5rem .625rem;font-size:.875rem}
-.tg-remove{display:grid;place-items:center;width:2.5rem;height:2.5rem;border:0;border-radius:50%;background:transparent;color:var(--st-muted);cursor:pointer;transition:background-color .2s,color .2s}
-.tg-remove:hover{background:var(--st-raised-2);color:#ff9ea2}
-.tg-remove svg{width:1.125rem;height:1.125rem;fill:currentColor}
-
 /* The badge icon picker: six radio buttons */
 .tg-icon-field{min-width:0;margin:0;padding:0;border:0}
 .tg-icon-field legend{margin:0 0 .5rem;padding:0;color:var(--st-soft);font-size:.8125rem;font-weight:700}
@@ -306,11 +135,12 @@
 .tg-icon-option:has(input:checked) svg{color:var(--st-yellow)}
 .tg-icon-option:has(input:focus-visible){outline:2px solid #fff;outline-offset:2px}
 
-/* Phones: list rows become stacked cards, and the card table stacks each card's fields */
+/* Phones: the filters take the full width and badge rows become stacked cards */
 @media (max-width:40rem){
-  .tg-field{flex:1 1 100%}
-  .tg-field select{flex:1}
-  .tg-stack thead,.tg-cards thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .tg-filters,.tg-field{flex:1 1 100%}
+  .tg-field label{min-width:3.75rem}
+  .tg-field select{flex:1;min-width:0}
+  .tg-stack thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .tg-stack,.tg-stack tbody{display:block}
   .tg-stack tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name status" "count count" "actions actions";gap:.375rem .75rem;padding:1rem}
   .tg-stack tr+tr{border-top:1px solid #222}
@@ -321,20 +151,8 @@
   .tg-stack .tg-count-cell{grid-area:count;font-size:.8125rem}
   .tg-stack .tg-actions-cell{grid-area:actions;width:auto;margin-top:.5rem;white-space:normal}
   .tg-stack .tg-actions{flex-wrap:wrap;justify-content:flex-start}
-  .stage-portal .tg-missed :is(td,th){padding:.75rem .5rem}
-  .tg-missed .tg-rank,.tg-board .tg-rank{width:2.25rem}
-  .tg-meter{display:none}
-  .tg-cards,.tg-cards tbody{display:block}
-  .tg-cards tr{display:grid;grid-template-columns:1.75rem minmax(0,1fr) 2.5rem;grid-template-areas:"num term remove" ". clue clue" ". group group";gap:.375rem .5rem;padding:.75rem .5rem .75rem .75rem}
-  .tg-cards tr+tr{border-top:1px solid #222}
-  .teacher-dashboard .tg-cards td{display:block;padding:0;border:0}
-  .teacher-dashboard .tg-cards td:first-child{padding:0}
-  .tg-cards .tg-card-num{grid-area:num;align-self:center}
-  .tg-cards .tg-cell-term{grid-area:term}
-  .tg-cards .tg-cell-clue{grid-area:clue}
-  .tg-cards .tg-cell-group{grid-area:group}
-  .tg-cards .tg-cell-remove{grid-area:remove}
+  .tg-board .tg-rank{width:2.25rem}
 }
 @media (prefers-reduced-motion:reduce){
-  .tg-icon-option,.tg-remove,.tg-paste summary::after{transition:none}
+  .tg-icon-option{transition:none}
 }

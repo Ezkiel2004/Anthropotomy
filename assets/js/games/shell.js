@@ -65,12 +65,31 @@ export function formatTime(seconds) {
     return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
-// What a plays.php answer means for the game over screen. Network errors (handled by the caller),
-// 5xx and non-JSON answers can be retried with the same body; any other refusal (a 422) cannot.
+// What a plays.php answer means for the game over screen. Network errors (handled by the caller), 5xx and
+// non-JSON refusals can be retried with the same body; any other refusal (a 422) cannot. A 2xx answer that
+// isn't JSON still reached the server, so it counts as saved: a retry could save the round twice.
 export function saveOutcome(status, result) {
-    if (status >= 200 && status < 300 && result && result.success) return {kind: 'saved', data: result.data ?? null};
+    const ok = status >= 200 && status < 300;
+    if (ok && result && result.success) return {kind: 'saved', data: result.data ?? null};
+    if (ok && !result) return {kind: 'saved', data: null};
     if (status >= 500 || !result) return {kind: 'retry'};
     return {kind: 'refused'};
+}
+
+// The best score to show from a game board's `best`: the all-time best once the student has a score on
+// record, otherwise null ("No score yet"). Teachers get best = null.
+export function bestScore(best) {
+    if (!best || typeof best.all_time !== 'number') return null;
+    return best.all_time > 0 || best.week !== null ? best.all_time : null;
+}
+
+// A game board ready to list: each row says whether it is the viewer's own. `you` is the viewer's rank and
+// score when they are ranked but outside the list; inside it, their row is highlighted instead.
+export function boardView(board, userId) {
+    const own = row => userId !== null && userId !== undefined && Number(row.user_id) === Number(userId);
+    const rows = ((board && board.top) || []).map(row => ({rank: row.rank, name: row.full_name, score: row.score, own: own(row)}));
+    const me = board && board.me;
+    return {rows, you: me && !rows.some(row => row.own) ? {rank: me.rank, score: me.score} : null};
 }
 
 // ── The play page (student/play.html) ─────────────────────────────
@@ -86,7 +105,11 @@ const PANEL_SCREENS = ['loading', 'tap', 'menu', 'new', 'how', 'settings', 'scor
 const BRAND_SCREENS = new Set(['loading', 'tap', 'menu']);
 const SUB_SCREENS = new Set(['new', 'how', 'settings', 'scores']);
 const LEVEL_NAMES = {easy: 'Easy', medium: 'Medium', hard: 'Hard'};
+const OVER_EXITS = ['playAgain', 'overMenu', 'overExit'];
+const SAVE_TIMEOUT_MS = 30000;            // a save still unanswered by then is offered Retry
+const PREVIEW_SECTION = 'Rizal';
 const formatScore = n => Number(n).toLocaleString('en-US');
+const iconId = id => (typeof id === 'string' && /^[a-z0-9-]+$/.test(id) ? id : 'medal');
 
 function icon(id) {
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -134,6 +157,7 @@ export function boot() {
     let screen = 'loading';
     let mode = 'none';                        // 'backdrop' (menu), 'round' (countdown and play) or 'still'
     let game = null, instance = null, round = null, roundSeq = 0, overRoundId = 0, pendingSave = null;
+    let saveState = 'none', leaveAction = null, scoresToken = 0, sections = null;
     let best = null, difficulty = 'medium', settingsFrom = 'menu', clock = 0, last = 0;
     const returnFocus = {};
     let audio = null, unlocked = false, musicBuffer = null, musicNode = null, musicGain = null;
@@ -275,10 +299,93 @@ export function boot() {
     }
 
     function renderMenuBest() {
-        $('menuBestRow').hidden = best === null;
-        if (best === null) return;
+        $('menuBestRow').hidden = best === null || !game;
+        if (best === null || !game) return;
         $('menuBest').textContent = formatScore(best);
         renderStars($('menuStars'), starsFor(best, game.stars));
+    }
+
+    // A best from the server only ever raises the one known on this page.
+    function learnBest(board) {
+        const known = bestScore(board && board.best);
+        if (known === null || (best !== null && best >= known)) return;
+        best = known;
+        renderMenuBest();
+    }
+
+    // ── Scores from the server: this game's weekly board for the student's section (teachers pick one) ──
+    async function getJson(path) {
+        const response = await fetch(`${apiBase}/${path}`, {credentials: 'same-origin'});
+        const result = await response.json();
+        if (!response.ok || !result || !result.success) throw new Error((result && result.message) || `Couldn't load ${path}`);
+        return result.data;
+    }
+
+    function fetchBoard(section) {
+        const query = `game=${encodeURIComponent(key)}` + (section ? `&section=${encodeURIComponent(section)}` : '');
+        return getJson(`games/leaderboard.php?${query}`);
+    }
+
+    // Preview only: the class sections, from the site config, with Rizal first chosen.
+    async function loadSections() {
+        let list = [PREVIEW_SECTION];
+        try {
+            const config = await getJson('config.php');
+            if (Array.isArray(config.sections) && config.sections.length) list = config.sections.map(String);
+        } catch { /* the default section still works */ }
+        const select = $('scoresSection');
+        select.replaceChildren(...list.map(name => new Option(name, name)));
+        select.value = list.includes(PREVIEW_SECTION) ? PREVIEW_SECTION : list[0];
+        return list;
+    }
+
+    function scoresStatus(text, failed = false) {
+        const status = $('scoresStatus');
+        status.hidden = !text;
+        status.textContent = text;
+        status.classList.toggle('is-failed', failed);
+        $('scoresRetry').hidden = !failed;
+    }
+
+    async function loadScores() {
+        const token = ++scoresToken;
+        $('scoresSectionRow').hidden = !preview;
+        $('scoresList').replaceChildren();
+        $('scoresYou').hidden = true;
+        $('scoresEmpty').hidden = true;
+        scoresStatus('Loading scores…');
+        try {
+            if (preview && !sections) sections = await loadSections();
+            const board = await fetchBoard(preview ? $('scoresSection').value : null);
+            if (token !== scoresToken) return;
+            renderScores(board);
+        } catch {
+            if (token !== scoresToken) return;
+            scoresStatus("Scores couldn't load.", true);
+        }
+    }
+
+    function renderScores(board) {
+        learnBest(board);
+        $('scoresBest').hidden = !board.best;
+        if (board.best) {
+            $('scoresAllTime').textContent = formatScore(board.best.all_time);
+            $('scoresWeek').textContent = board.best.week === null ? '–' : formatScore(board.best.week);
+        }
+        $('scoresListTitle').textContent = board.section ? `This week in ${board.section}` : 'This week';
+        const view = boardView(board, isStudent ? user.user_id : null);
+        $('scoresList').replaceChildren(...view.rows.map(row => {
+            const item = element('li', row.own ? 'is-me' : '');
+            item.append(element('span', 'rank-pos', `#${row.rank}`), element('span', 'rank-name', row.name));
+            if (row.own) item.append(element('span', 'sr-only', ' (you)'));
+            item.append(element('span', 'rank-score', formatScore(row.score)));
+            return item;
+        }));
+        $('scoresYou').hidden = !view.you;
+        $('scoresYou').textContent = view.you ? `You: #${view.you.rank} · ${formatScore(view.you.score)}` : '';
+        $('scoresEmptyText').textContent = isStudent ? 'No scores yet this week. Finish a round to get on the board.' : `No scores yet this week in ${board.section}.`;
+        $('scoresEmpty').hidden = view.rows.length > 0;
+        scoresStatus('');
     }
 
     function selectLevel(level) {
@@ -433,6 +540,10 @@ export function boot() {
         renderStars($('overStars'), stars);
         overRoundId = round.id;
         pendingSave = null;
+        $('overRank').hidden = true;
+        $('overBadges').hidden = true;
+        $('overBadges').replaceChildren();
+        hideLeave();
         show('over');
         announce(`Time's up. Score ${formatScore(score)}, ${stars} of 3 stars.`);
         const body = JSON.stringify({game_key: key, difficulty: round.difficulty, score, duration_sec: Math.round(round.playSeconds), stats});
@@ -443,22 +554,27 @@ export function boot() {
     // Posts a finished round once. Only a retryable failure offers Retry, which resends the same body.
     async function save(id, body) {
         pendingSave = null;
+        hideLeave();
         setSave(id, 'saving');
         let outcome;
+        const abort = typeof AbortController === 'function' ? new AbortController() : null;
+        const timer = abort ? setTimeout(() => abort.abort(), SAVE_TIMEOUT_MS) : 0;
         try {
-            const response = await fetch(`${apiBase}/games/plays.php`, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body});
+            const response = await fetch(`${apiBase}/games/plays.php`, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body, signal: abort ? abort.signal : undefined});
             let result = null;
             try { result = await response.json(); } catch { /* not JSON */ }
             outcome = saveOutcome(response.status, result);
         } catch {
             outcome = {kind: 'retry'};
         }
+        clearTimeout(timer);
         if (outcome.kind === 'retry') pendingSave = {id, body};
         setSave(id, outcome.kind, outcome.data);
     }
 
     function setSave(id, kind, data) {
         if (id !== overRoundId) return;   // a later round's game over is showing
+        saveState = kind;
         const points = data && Number.isFinite(data.points) ? data.points : null;
         const text = {
             saving: 'Saving…',
@@ -471,6 +587,47 @@ export function boot() {
         status.textContent = text;
         status.className = 'save' + (kind === 'saved' ? ' is-saved' : kind === 'retry' || kind === 'refused' ? ' is-failed' : '');
         $('retrySave').hidden = kind !== 'retry';
+        // Leaving waits for the save to settle, so Play again can never start a round over an unsettled one.
+        for (const exitId of OVER_EXITS) $(exitId).setAttribute('aria-disabled', String(kind === 'saving'));
+        if (kind === 'saved') showRewards(id, data);
+    }
+
+    // After a save: the badges it earned, then the weekly rank from the game board.
+    async function showRewards(id, data) {
+        const earned = data && Array.isArray(data.new_badges) ? data.new_badges : [];
+        $('overBadges').replaceChildren(...earned.map(badge => {
+            const item = element('li');
+            const mark = element('span', 'dot tone-yellow');
+            mark.append(icon(iconId(badge.icon)));
+            const copy = element('span', 'badge-copy');
+            copy.append(element('span', 'sub', 'New badge'), element('b', '', String(badge.title ?? '')));
+            item.append(mark, copy);
+            return item;
+        }));
+        $('overBadges').hidden = !earned.length;
+        try {
+            const board = await fetchBoard();
+            if (id !== overRoundId) return;
+            learnBest(board);
+            if (!board.me) return;   // a score of 0 is not ranked
+            $('overRank').textContent = `#${board.me.rank} this week in ${board.section}`;
+            $('overRank').hidden = false;
+        } catch { /* the score is saved; only the rank is missing */ }
+    }
+
+    // Play again, Main menu and Exit wait while a save is in flight; after a failure that Retry could fix,
+    // they ask first, so a score is only dropped when the student chooses to.
+    function leaveOver(action) {
+        if (saveState === 'saving') return;
+        if (saveState !== 'retry') { hideLeave(); action(); return; }
+        leaveAction = action;
+        $('leaveConfirm').hidden = false;
+        $('leaveStay').focus({preventScroll: true});
+    }
+
+    function hideLeave() {
+        leaveAction = null;
+        $('leaveConfirm').hidden = true;
     }
 
     // ── Canvas and the frame loop (the shell owns requestAnimationFrame) ──
@@ -520,6 +677,7 @@ export function boot() {
         try {
             if (!game) game = (await entry.load()).default;
             paintBrand();
+            renderMenuBest();
             if (mode === 'none') mode = 'backdrop';
             const base = `../assets/games/${key}/`;
             const assets = game.assets || {};
@@ -582,7 +740,10 @@ export function boot() {
         if (action === 'settings') settingsFrom = 'menu';
         returnFocus[action] = button;
         show(action);
+        if (action === 'scores') loadScores();
     });
+    $('scoresSection').addEventListener('change', loadScores);
+    $('scoresRetry').addEventListener('click', loadScores);
     for (const button of document.querySelectorAll('.panel .back')) button.addEventListener('click', back);
     for (const card of document.querySelectorAll('#s-new [data-level]')) card.addEventListener('click', () => selectLevel(card.dataset.level));
     $('startRound').addEventListener('click', () => startRound(difficulty));
@@ -591,10 +752,19 @@ export function boot() {
     $('restartBtn').addEventListener('click', () => startRound(round ? round.difficulty : difficulty));
     $('pauseSettingsBtn').addEventListener('click', () => { settingsFrom = 'pause'; show('settings'); });
     $('quitBtn').addEventListener('click', () => toMenu());
-    $('playAgain').addEventListener('click', () => startRound(round ? round.difficulty : difficulty));
-    $('overMenu').addEventListener('click', () => toMenu());
+    $('playAgain').addEventListener('click', () => leaveOver(() => startRound(round ? round.difficulty : difficulty)));
+    $('overMenu').addEventListener('click', () => leaveOver(() => toMenu()));
+    $('overExit').addEventListener('click', () => leaveOver(exit));
     $('retrySave').addEventListener('click', () => { if (pendingSave && pendingSave.id === overRoundId) save(pendingSave.id, pendingSave.body); });
-    for (const id of ['overExit', 'errorExit', 'missingExit']) $(id).addEventListener('click', exit);
+    $('leaveStay').addEventListener('click', () => { hideLeave(); $('retrySave').focus({preventScroll: true}); });
+    $('leaveGo').addEventListener('click', () => {
+        const action = leaveAction;
+        pendingSave = null;   // the student chose to drop this score
+        saveState = 'none';
+        hideLeave();
+        if (action) action();
+    });
+    for (const id of ['errorExit', 'missingExit']) $(id).addEventListener('click', exit);
     $('errorRetry').addEventListener('click', load);
     $('muteBtn').addEventListener('click', () => {
         const muted = !settings.sfx && !settings.music;
@@ -640,6 +810,7 @@ export function boot() {
             return;
         }
         if (screen === 'paused' && pauseKey) { event.preventDefault(); resume(); return; }
+        if (screen === 'over' && event.key === 'Escape' && leaveAction) { event.preventDefault(); $('leaveStay').click(); return; }
         if (event.key === 'Escape' && SUB_SCREENS.has(screen)) { event.preventDefault(); back(); }
     });
 
@@ -654,5 +825,7 @@ export function boot() {
         show('missing');
         return;
     }
+    // A student's saved best, for the menu footer and "New best!"; it never blocks the game.
+    if (isStudent) fetchBoard().then(learnBest).catch(() => {});
     load();
 }

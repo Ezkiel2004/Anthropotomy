@@ -104,7 +104,7 @@ check(raised.earned&&raised.icon==='target','Earned badges stay earned after the
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{is_active:false})).success,'Teacher deactivates a badge');
 check(!(await student('dashboard/student-stats.php')).data.achievements.some(a=>a.name==='First completion'),'Inactive badges are hidden from students');
 // Practice games: the retired quiz APIs and metrics, then arcade rounds, badges and the leaderboards.
-check((await fetch(base+'/api/games/sets.php')).status===404&&(await fetch(base+'/api/games/mastery.php')).status===404,'The card-set and mastery APIs are gone');
+check((await Promise.all(['sets','mastery'].map(name=>fetch(`${base}/api/games/${name}.php`)))).every(response=>response.status===404),'The card-set and mastery APIs are gone');
 check((await teacher('achievements.php','POST',{title:'Perfect round',metric:'perfect_rounds',threshold:1})).status===422,'The retired perfect-rounds metric is rejected');
 check((await teacher('achievements.php','POST',{title:'Systems goal',metric:'game_systems_played',threshold:2})).status===422,'The retired game-systems metric is rejected');
 check((await teacher('achievements.php','POST',{title:'Mixed bag',metric:'games_variety',threshold:2})).success,'The different-games metric is accepted');
@@ -324,6 +324,18 @@ const gClass=await otherClass.own('games/leaderboard.php?game=germ-smash&section
 check(gClass.data.section==='Bonifacio'&&JSON.stringify(names(gClass))===JSON.stringify([otherClass.name])&&gClass.data.me.rank===1,'A Bonifacio student asking for the Rizal game board still gets only Bonifacio');
 const gLuna=await teacher('games/leaderboard.php?game=germ-smash&section=Luna');
 check(JSON.stringify(gLuna.data.top.map(t=>[t.rank,t.full_name,t.score]))===JSON.stringify([[1,edge.name,20000],[2,vet.name,400]]),'The Luna game board holds only Luna students');
+// Quiz-game rounds from before Germ Smash still count as games played and points, but not as different
+// games or toward the combo badges: only keys in GAMES do.
+const legacyPlayer=await addStudent('legacy','Mabini');
+dbAction('legacy-play','rank-legacy','match-pairs','30','40');
+dbAction('legacy-play','rank-legacy','sort-it','25','40');
+await playFor(legacyPlayer,100);
+const legacyBadges=(await legacyPlayer.own('games/badges.php')).data;
+const legacyBadge=title=>legacyBadges.find(b=>b.title===title);
+check(legacyBadge('All-Rounder').value===1&&legacyBadge('All-Rounder').earned_at===null,'Legacy quiz rounds are not different games: All-Rounder counts 1 after one Germ Smash round');
+check(legacyBadge('On a Roll').value===3&&legacyBadge('On a Roll').earned_at===null,'A legacy quiz streak of 30 is not a combo: On a Roll counts the Germ Smash combo of 3');
+check(legacyBadge('First Game').value===3&&legacyBadges.find(b=>b.metric==='total_points').value===180,'Legacy quiz rounds still count as games played (3) and points (40 + 40 + 100)');
+check((await teacher('students.php?id='+legacyPlayer.id,'PUT',{is_active:false})).success,'The legacy-rounds student leaves the boards, so Mabini has no scores');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');

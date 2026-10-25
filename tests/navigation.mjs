@@ -71,10 +71,12 @@ for(const role of ['teacher','student']){
      assert.ok(games>0&&navigation[games-1].href==='assessments.html'&&navigation[games].label==='Games','Games sits right after Assessments in the teacher sidebar');
      assert.equal(await evaluate(`document.querySelector('.sidebar-nav a[href*="games.html"] use').getAttribute('href').split('#').pop()`),'game-controller','Teacher Games uses the game-controller icon');
    }
-   // A fresh database has no sets, plays or teacher badges: each teacher tab shows its empty state, and the built-in badges list.
+   // A fresh database has no rounds: both boards say so, and the built-in badges that still have a goal are listed.
    if(role==='teacher'&&page==='games'){
-     assert.ok(await waitFor(`!document.getElementById('setsEmpty').hidden&&document.querySelectorAll('#setRows tr').length===0`),'No sets yet: the Game sets tab says so');
-     assert.ok(await waitFor(`!document.getElementById('missedEmpty').hidden&&!document.getElementById('boardEmpty').hidden`),'No plays yet: most-missed terms and the leaderboard say so');
+     assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gamesTabs [role="tab"]')].map(t=>t.textContent.trim())`),['Leaderboard','Badges'],'The teacher Games page has two tabs');
+     assert.ok(await waitFor(`!document.getElementById('boardEmpty').hidden&&document.getElementById('boardEmptyTitle').textContent==='No points yet this week'`),'No rounds yet: the points board says so');
+     await evaluate(`(()=>{const s=document.getElementById('boardGame');s.value='germ-smash';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+     assert.ok(await waitFor(`!document.getElementById('boardEmpty').hidden&&document.getElementById('boardEmptyTitle').textContent==='No scores yet this week'`),'No rounds yet: the Germ Smash board says so');
      assert.ok(await waitFor(`document.querySelectorAll('#badgeRows tr.is-builtin').length===11`),'The built-in badges are listed');
    }
    if(role==='student'){
@@ -83,8 +85,12 @@ for(const role of ['teacher','student']){
      assert.ok(games>0&&navigation[games-1].href==='quiz.html'&&navigation[games].label==='Games','Games sits right after Quizzes');
      assert.equal(await evaluate(`document.querySelector('.sidebar-nav a[href*="games.html"] use').getAttribute('href').split('#').pop()`),'game-controller','Games uses the game-controller icon');
    }
-   // A fresh database has no systems and no sets, so every pool is empty.
-   if(role==='student'&&page==='games')assert.ok(await waitFor(`!document.getElementById('gamesEmpty').hidden&&document.getElementById('gamesEmpty').textContent.includes('No game content yet')&&document.getElementById('gamesPicker').hidden`),'An empty install shows "No game content yet"');
+   // A fresh database has no rounds: the gallery still offers Germ Smash, with no score yet, and the board is empty.
+   if(role==='student'&&page==='games'){
+     assert.ok(await waitFor(`document.querySelector('#gameGallery .game-card-best')?.dataset.loaded==='true'`),'The gallery loads');
+     assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-best-value').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['Germ Smash','No score yet','play.html?game=germ-smash']],'An empty install offers Germ Smash with no score yet');
+     assert.ok(await waitFor(`!document.getElementById('leaderboardEmpty').hidden&&document.getElementById('leaderboardList').hidden`),'An empty install has an empty points board');
+   }
    assert.ok(navigation.every(a=>a.icon),'Every link has an icon when collapsed');
    baseline??=navigation;assert.deepEqual(navigation,baseline,'Labels and icons are consistent');
    const inMenu=expected[role].includes(page);

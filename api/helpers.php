@@ -413,16 +413,22 @@ function _updateProgressSummary(int $studentId, Database $db): void {
 
 // ── Badges ──────────────────────────────────────────────────────
 
-/** Arcade totals for one student, worked out in a single query over game_plays. best_game_streak is the best combo. */
+/**
+ * Arcade totals for one student, worked out in a single query over game_plays. best_game_streak is the best combo.
+ * games_played and total_points count every round on record; games_variety and best_game_streak count only the games
+ * in GAMES, so the retired quiz games' rounds (and their answer streaks) never stand in for arcade games or combos.
+ */
 function gameMetrics(int $userId): array {
+    $keys = array_keys(GAMES);
+    $current = 'game_key IN (' . implode(', ', array_fill(0, count($keys), '?')) . ')';
     $row = Database::getInstance()->fetchOne(
         "SELECT COUNT(*) AS games_played,
-                COALESCE(MAX(best_streak), 0) AS best_game_streak,
+                COALESCE(MAX(CASE WHEN $current THEN best_streak END), 0) AS best_game_streak,
                 COALESCE(SUM(points), 0) AS total_points,
-                COUNT(DISTINCT game_key) AS games_variety
+                COUNT(DISTINCT CASE WHEN $current THEN game_key END) AS games_variety
          FROM game_plays
          WHERE student_id = ?",
-        [$userId]
+        [...$keys, ...$keys, $userId]
     ) ?? [];
     return [
         'games_played'     => (int) ($row['games_played'] ?? 0),
