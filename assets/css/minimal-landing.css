@@ -51,7 +51,8 @@ body.landing-minimal .hx-card { box-shadow: 0 24px 50px -14px rgba(0, 0, 0, .75)
 /* ── Chapters: big, quiet gaps between sections ── */
 body.landing-minimal .section { padding-block: clamp(6.5rem, 15vw, 12.5rem); }
 body.landing-minimal .cta-band { padding-block: clamp(7rem, 16vw, 13rem); }
-body.landing-minimal .section-title { letter-spacing: -.015em; text-wrap: balance; }
+body.landing-minimal .section-title,
+body.landing-minimal .section .feature-title { letter-spacing: -.015em; text-wrap: balance; }
 body.landing-minimal .lead,
 body.landing-minimal .body-copy { line-height: 1.75; }
 body.landing-minimal .section-title.prose-measure { max-width: 56rem; }

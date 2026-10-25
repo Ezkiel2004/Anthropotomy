@@ -167,7 +167,7 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 .cmp-link:hover svg{translate:.1875rem 0}
 
 /* Features: product screens float on the stage */
-.feature-title{font-size:clamp(1.5rem,2.4vw,2rem);line-height:1.2}
+.section .feature-title{font-family:var(--hx-display);font-size:clamp(1.5rem,2.4vw,2rem);font-weight:400;line-height:1.15;letter-spacing:0}
 .shot,.mock{border:0;border-radius:1.25rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1.5rem 2rem -1.25rem rgba(0,0,0,.8)}
 .shot img{transition:transform .7s var(--hx-ease)}
 .feature-media:hover .shot img{transform:scale(1.03)}
@@ -221,7 +221,7 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 }
 
 /* Display face: Bungee (OFL), caps only and already heavy, so it is set at weight 400. Ligatures off keeps every letter separate. */
-.hx-title,.hx-card-title,.hx-avatar,.section-title,.step-num,.footer .brand-name{font-variant-ligatures:none;text-transform:uppercase}
+.hx-title,.hx-card-title,.hx-avatar,.section-title,.feature-title,.step-num,.footer .brand-name{font-variant-ligatures:none;text-transform:uppercase}
 
 /* ── Sign-in page (login.html). Phones: the card fan above one form. From 64rem: the fan
    and three reasons on the left, the form on the right. ── */
