@@ -1,11 +1,12 @@
 <?php
 /**
- * Anthropotomy – Practice Game Rounds API
- * POST /api/games/plays.php
+ * Anthropotomy – Arcade Game Rounds API
+ * POST /api/games/plays.php   students only
  *
- * Body: {game_key, difficulty, set_id?, system_code?, duration_sec, results: [{card_key, term, correct}]}
- * Saves the round, scores it on the server, updates the student's per-card stats and awards badges.
- * Returns {points, correct, total, best_streak, new_badges: [{title, icon}]}.
+ * Body: {game_key, difficulty, score, duration_sec, stats: {hits, misses, friendly_hits, best_combo}}
+ * Saves the finished round, works out its points on the server (score x 1, 1.5 or 2 for easy, medium or hard)
+ * and awards any badge the student now meets. Returns {score, points, new_badges: [{title, icon}]}.
+ * A round that is impossible (unknown game, score or length outside the game's limits, bad stats) gets a 422.
  */
 
 require_once __DIR__ . '/../helpers.php';
@@ -16,79 +17,45 @@ $db = Database::getInstance();
 
 // ── Validate the round (422 on anything impossible) ─────────────
 $gameKey = $body['game_key'] ?? null;
-if (!is_string($gameKey) || !preg_match('/^[a-z0-9-]{2,40}$/D', $gameKey)) jsonError('Unknown game.', 422);
+if (!is_string($gameKey) || !array_key_exists($gameKey, GAMES)) jsonError('Unknown game.', 422);
+$game = GAMES[$gameKey];
 
 $difficulty = $body['difficulty'] ?? null;
 if (!is_string($difficulty) || !in_array($difficulty, ['easy', 'medium', 'hard'], true)) jsonError('Choose easy, medium or hard.', 422);
 
-$rawResults = $body['results'] ?? null;
-if (!is_array($rawResults) || !array_is_list($rawResults) || count($rawResults) < 1 || count($rawResults) > 50) jsonError('A round has 1 to 50 results.', 422);
+$score = $body['score'] ?? null;
+if (!is_int($score) || $score < 0 || $score > $game['max_score']) jsonError('That score is not possible.', 422);
 
 $duration = $body['duration_sec'] ?? null;
-if (!is_int($duration) && !is_float($duration)) jsonError('The round needs a duration in seconds.', 422);
-$duration = (int) round($duration);
-if ($duration < count($rawResults) || $duration > 3600) jsonError('That round length is not possible.', 422);
+if (!is_int($duration) || $duration < $game['min_sec'] || $duration > $game['max_sec']) jsonError('That round length is not possible.', 422);
 
-$results = [];
-foreach ($rawResults as $row) {
-    $key = is_array($row) ? ($row['card_key'] ?? null) : null;
-    $term = is_array($row) ? ($row['term'] ?? null) : null;
-    if (!is_string($key) || trim($key) === '' || !is_string($term) || trim($term) === '') jsonError('Each result needs a card key and a term.', 422);
-    $results[] = [
-        'card_key' => mb_substr($key, 0, 200),
-        'term'     => mb_substr($term, 0, 100),
-        'correct'  => filter_var($row['correct'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0,
-    ];
+$stats = $body['stats'] ?? null;
+if (!is_array($stats)) jsonError('The round needs its stats.', 422);
+foreach (['hits', 'misses', 'friendly_hits', 'best_combo'] as $field) {
+    if (!is_int($stats[$field] ?? null) || $stats[$field] < 0) jsonError('Each stat must be a whole number from 0 up.', 422);
 }
+if ($stats['best_combo'] > $stats['hits']) jsonError('The best combo cannot be longer than the hits.', 422);
+$taps = $stats['hits'] + $stats['misses'] + $stats['friendly_hits'];
+if ($taps > 65535) jsonError('Those stats are not possible.', 422); // game_plays.total is a SMALLINT
 
-$setId = null;
-if (isset($body['set_id'])) {
-    $setId = is_bool($body['set_id']) ? false : filter_var($body['set_id'], FILTER_VALIDATE_INT);
-    if ($setId === false || !$db->fetchOne('SELECT set_id FROM game_sets WHERE set_id = ?', [$setId])) jsonError('That game set does not exist.', 422);
-}
+// ── Save ─────────────────────────────────────────────────────────
+$points = gamePoints($score, $difficulty);
+$db->insert('game_plays', [
+    'student_id'   => $user['user_id'],
+    'game_key'     => $gameKey,
+    'difficulty'   => $difficulty,
+    'set_id'       => null,
+    'system_id'    => null,
+    'correct'      => $stats['hits'],
+    'total'        => $taps,
+    'best_streak'  => $stats['best_combo'],
+    'points'       => $points,
+    'score'        => $score,
+    'duration_sec' => $duration,
+]);
 
-$systemId = null;
-if (isset($body['system_code'])) {
-    $system = is_string($body['system_code']) ? $db->fetchOne('SELECT system_id FROM body_systems WHERE system_code = ?', [$body['system_code']]) : null;
-    if (!$system) jsonError('That body system does not exist.', 422);
-    $systemId = (int) $system['system_id'];
-}
-
-// ── Score and save ───────────────────────────────────────────────
-$score = scoreRound($results, $difficulty);
-
-// Upsert the cards in key order, so two rounds from the same student never lock rows in opposite orders.
-$cardRows = $results;
-usort($cardRows, fn($a, $b) => strcmp($a['card_key'], $b['card_key']));
-
-$pdo = $db->getConnection();
-$pdo->beginTransaction();
-try {
-    $db->insert('game_plays', [
-        'student_id'   => $user['user_id'],
-        'game_key'     => $gameKey,
-        'difficulty'   => $difficulty,
-        'set_id'       => $setId,
-        'system_id'    => $systemId,
-        'correct'      => $score['correct'],
-        'total'        => $score['total'],
-        'best_streak'  => $score['best_streak'],
-        'points'       => $score['points'],
-        'duration_sec' => $duration,
-    ]);
-    $upsert = $pdo->prepare(
-        'INSERT INTO game_card_stats (user_id, card_key, term, seen, correct) VALUES (?, ?, ?, 1, ?)
-         ON DUPLICATE KEY UPDATE seen = seen + 1, correct = correct + VALUES(correct), last_seen = NOW()'
-    );
-    foreach ($cardRows as $card) $upsert->execute([$user['user_id'], $card['card_key'], $card['term'], $card['correct']]);
-    $pdo->commit();
-} catch (Throwable $error) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-    throw $error;
-}
-
-// After the commit, so the new round counts. awardBadges only reports rows this call inserted,
+// After the insert, so the new round counts. awardBadges only reports rows this call inserted,
 // which keeps the answer right when two rounds finish at the same moment.
 $newBadges = array_map(fn($badge) => ['title' => $badge['title'], 'icon' => $badge['icon']], awardBadges($user['user_id']));
 
-jsonSuccess($score + ['new_badges' => $newBadges], 'Round saved.', 201);
+jsonSuccess(['score' => $score, 'points' => $points, 'new_badges' => $newBadges], 'Round saved.', 201);

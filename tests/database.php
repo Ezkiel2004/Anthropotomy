@@ -7,7 +7,8 @@ $action = $argv[1] ?? 'setup';
 if ($action === 'cleanup') { $root->exec("DROP DATABASE IF EXISTS `$name`"); echo "Test database removed.\n"; exit; }
 if ($action === 'expire') { $root->exec("UPDATE `$name`.assessment_submissions SET deadline_at=DATE_SUB(NOW(),INTERVAL 1 SECOND) WHERE status='in_progress'"); exit; }
 if ($action === 'legacy-section') { $move = $root->prepare("UPDATE `$name`.student_profiles SET section = ? WHERE student_id='TEST-STUDENT'"); $move->execute([$argv[2] ?? '']); exit; }
-if ($action === 'drop-system') { $drop = $root->prepare("DELETE FROM `$name`.body_systems WHERE system_code=?"); $drop->execute([$argv[2] ?? '']); exit; }
+if ($action === 'backdate-plays') { $age = $root->prepare("UPDATE `$name`.game_plays SET played_at = DATE_SUB(played_at, INTERVAL ? DAY) WHERE student_id = (SELECT user_id FROM `$name`.users WHERE username = ?)"); $age->execute([(int) ($argv[3] ?? 0), $argv[2] ?? '']); exit; }
+if ($action === 'last-play') { $last = $root->prepare("SELECT * FROM `$name`.game_plays WHERE student_id = ? ORDER BY play_id DESC LIMIT 1"); $last->execute([(int) ($argv[2] ?? 0)]); echo json_encode($last->fetch(PDO::FETCH_ASSOC)); exit; }
 $root->exec("CREATE DATABASE `$name` CHARACTER SET utf8mb4");
 require __DIR__ . '/../database/schema.php';
 $db = Database::getInstance();

@@ -4,8 +4,7 @@ requireMethod('GET', 'POST', 'PUT');
 $user = requireLogin();
 $db = Database::getInstance();
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // The explorer's study clock starts here; the Games page (?games) reads the same rows without starting it.
-    if ($user['role'] === 'student' && !isset($_GET['games'])) $_SESSION['exploration_checkpoint'] = time();
+    if ($user['role'] === 'student') $_SESSION['exploration_checkpoint'] = time();
     $where = $user['role'] === 'student' ? 'WHERE bs.is_active = 1' : '';
     $rows = $db->fetchAll("SELECT bs.*, ac.model_url, ac.key_facts, ac.structures, ac.source_text FROM body_systems bs LEFT JOIN anatomy_content ac ON ac.system_id = bs.system_id $where ORDER BY bs.sort_order, bs.system_id");
     foreach ($rows as &$row) {

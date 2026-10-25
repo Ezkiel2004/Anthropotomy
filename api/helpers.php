@@ -17,11 +17,14 @@ require_once __DIR__ . '/../database/connection.php';
 const GRADE_LEVEL = 'Grade 11';
 const SECTIONS = ['Rizal', 'Bonifacio', 'Mabini', 'Luna'];
 
-// Metrics a badge (achievement rule) can be measured on: learning progress, then practice games.
+// Metrics a badge (achievement rule) can be measured on: learning progress, then the arcade games.
 const BADGE_METRICS = [
     'completed_lessons', 'avg_quiz_score', 'quizzes_taken', 'quizzes_passed', 'systems_explored', 'total_time_hours', 'overall_progress',
-    'games_played', 'perfect_rounds', 'best_game_streak', 'game_systems_played', 'total_points',
+    'games_played', 'best_game_streak', 'total_points', 'games_variety',
 ];
+
+// The arcade games. A round is rejected unless its score and length fit its game's limits.
+const GAMES = ['germ-smash' => ['title' => 'Germ Smash', 'max_score' => 20000, 'min_sec' => 55, 'max_sec' => 75]];
 
 set_exception_handler(function (Throwable $error): void {
     error_log((string)$error);
@@ -410,24 +413,22 @@ function _updateProgressSummary(int $studentId, Database $db): void {
 
 // ── Badges ──────────────────────────────────────────────────────
 
-/** Practice-game totals for one student, worked out in a single query over game_plays. */
+/** Arcade totals for one student, worked out in a single query over game_plays. best_game_streak is the best combo. */
 function gameMetrics(int $userId): array {
     $row = Database::getInstance()->fetchOne(
         "SELECT COUNT(*) AS games_played,
-                COALESCE(SUM(correct = total AND total >= 4), 0) AS perfect_rounds,
                 COALESCE(MAX(best_streak), 0) AS best_game_streak,
-                COUNT(DISTINCT system_id) AS game_systems_played,
-                COALESCE(SUM(points), 0) AS total_points
+                COALESCE(SUM(points), 0) AS total_points,
+                COUNT(DISTINCT game_key) AS games_variety
          FROM game_plays
          WHERE student_id = ?",
         [$userId]
     ) ?? [];
     return [
-        'games_played'        => (int) ($row['games_played'] ?? 0),
-        'perfect_rounds'      => (int) ($row['perfect_rounds'] ?? 0),
-        'best_game_streak'    => (int) ($row['best_game_streak'] ?? 0),
-        'game_systems_played' => (int) ($row['game_systems_played'] ?? 0),
-        'total_points'        => (int) ($row['total_points'] ?? 0),
+        'games_played'     => (int) ($row['games_played'] ?? 0),
+        'best_game_streak' => (int) ($row['best_game_streak'] ?? 0),
+        'total_points'     => (int) ($row['total_points'] ?? 0),
+        'games_variety'    => (int) ($row['games_variety'] ?? 0),
     ];
 }
 
@@ -490,31 +491,11 @@ function awardBadges(int $userId): array {
     return $earned;
 }
 
-// ── Practice games ──────────────────────────────────────────────
+// ── Arcade games ────────────────────────────────────────────────
 
-/**
- * Scores a finished round from its ordered results, each carrying a 'correct' flag.
- * best_streak is the longest run of consecutive correct results and
- * points = round((10 x correct + 2 x best_streak) x difficulty multiplier).
- */
-function scoreRound(array $results, string $difficulty): array {
+/** The points a finished round is worth: its score times 1 (easy), 1.5 (medium) or 2 (hard), rounded. */
+function gamePoints(int $score, string $difficulty): int {
     $multiplier = ['easy' => 1, 'medium' => 1.5, 'hard' => 2][$difficulty] ?? throw new InvalidArgumentException("Unknown difficulty: {$difficulty}");
-    $correct = 0;
-    $run = 0;
-    $best = 0;
-    foreach ($results as $result) {
-        if (empty($result['correct'])) {
-            $run = 0;
-            continue;
-        }
-        $correct++;
-        $best = max($best, ++$run);
-    }
-    return [
-        'correct'     => $correct,
-        'total'       => count($results),
-        'best_streak' => $best,
-        'points'      => (int) round((10 * $correct + 2 * $best) * $multiplier),
-    ];
+    return (int) round($score * $multiplier);
 }
 ?>

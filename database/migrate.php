@@ -27,7 +27,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS notification_receipts (
  PRIMARY KEY(user_id, notification_key),
  FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-// Practice games: custom card sets, finished rounds, per-card recall and earned badges.
+// Practice games: custom card sets and per-card recall (kept from the quiz games, no longer used), finished rounds and earned badges.
 $pdo->exec("CREATE TABLE IF NOT EXISTS game_sets (
  set_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(100) NOT NULL,
  system_id INT UNSIGNED NULL, cards LONGTEXT NOT NULL, is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -51,6 +51,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS game_plays (
  FOREIGN KEY(system_id) REFERENCES body_systems(system_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 addColumnIfMissing($pdo, 'game_plays', 'difficulty', "ENUM('easy','medium','hard') NOT NULL DEFAULT 'medium'");
+// The arcade score of a round (the quiz rounds before it have none, so 0).
+addColumnIfMissing($pdo, 'game_plays', 'score', 'INT UNSIGNED NOT NULL DEFAULT 0');
 $pdo->exec("CREATE TABLE IF NOT EXISTS game_card_stats (
  user_id INT UNSIGNED NOT NULL, card_key VARCHAR(200) NOT NULL, term VARCHAR(100) NOT NULL,
  seen INT UNSIGNED NOT NULL DEFAULT 0, correct INT UNSIGNED NOT NULL DEFAULT 0,
@@ -81,5 +83,17 @@ foreach ([
  ['points-500', 'Rising Star', 'total_points', 500, 'medal'],
  ['points-2000', 'High Scorer', 'total_points', 2000, 'medal'],
  ['points-10000', 'Anatomy Ace', 'total_points', 10000, 'trophy'],
+ ['combo-20', 'On a Roll', 'best_game_streak', 20, 'target'],
+ ['combo-40', 'Unstoppable', 'best_game_streak', 40, 'target'],
+ ['all-rounder', 'All-Rounder', 'games_variety', 3, 'flag'],
 ] as $badge) $seed->execute($badge);
+// The arcade games replaced the quiz games, so the quiz-only badges are switched off, once. Nothing is deleted and earned
+// badges stay in student_badges; the app_settings flag keeps a teacher who turns one back on from being overruled.
+$retired = $pdo->query("SELECT setting_value FROM app_settings WHERE setting_key = 'games_v2_badges'")->fetchColumn();
+if ($retired !== '1') {
+ $pdo->beginTransaction();
+ $pdo->exec("UPDATE achievement_rules SET is_active = 0 WHERE badge_key IN ('perfect-1', 'explorer-3', 'explorer-6', 'streak-10', 'streak-25') OR metric IN ('perfect_rounds', 'game_systems_played')");
+ $pdo->exec("INSERT INTO app_settings (setting_key, setting_value) VALUES ('games_v2_badges', '1') ON DUPLICATE KEY UPDATE setting_value = '1'");
+ $pdo->commit();
+}
 echo "Schema migration complete. Existing accounts and learning records preserved.\n";
