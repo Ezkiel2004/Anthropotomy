@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Play | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="stylesheet" href="../assets/css/play.css?v=20261025-play1"/>
+</head>
+<body class="play-page">
+<!-- The game board. Every action on it can also be done with the keyboard (see How to play). -->
+<canvas class="play-canvas" id="playCanvas" aria-hidden="true"></canvas>
+<p class="play-tag" id="previewTag" hidden>Preview: scores aren't saved</p>
+
+<div class="hud" id="hud" hidden>
+  <div class="hud-score"><span class="hud-label">Score</span><b id="hudScore">0</b></div>
+  <span class="hud-combo" id="hudCombo"><span class="sr-only">Combo </span><span id="hudComboText">×1</span></span>
+</div>
+<div class="play-top">
+  <div class="hud-time" id="hudTime" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg><b id="hudTimeText">1:00</b><span class="sr-only"> left</span></div>
+  <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pause"/></svg></button>
+  <button class="icon-btn mute-btn" id="muteBtn" type="button" aria-label="Mute sound" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#speaker-high"/></svg></button>
+</div>
+
+<div class="countdown" id="countdown" aria-hidden="true"></div>
+<p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+
+<main class="panel" id="panel" aria-label="Game menu">
+  <header class="brand" id="brand">
+    <h1 class="title" id="gameTitle"><span></span><span class="b"></span></h1>
+    <p class="tagline" id="gameTagline"></p>
+  </header>
+
+  <section class="screen" id="s-loading" aria-label="Loading">
+    <div class="progress" role="progressbar" aria-label="Loading the game" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progressFill"></span></div>
+    <p class="sub" id="loadingText">Loading…</p>
+  </section>
+
+  <section class="screen" id="s-tap" hidden>
+    <button class="btn primary" id="tapStart" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#play"/></svg>Tap to start</button>
+  </section>
+
+  <section class="screen" id="s-menu" hidden>
+    <nav class="menu" aria-label="Main menu">
+      <button class="btn primary" type="button" data-action="new"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#play"/></svg>New game</button>
+      <button class="btn" type="button" data-action="how"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#question"/></svg>How to play</button>
+      <button class="btn" type="button" data-action="settings"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#gear"/></svg>Settings</button>
+      <button class="btn" type="button" data-action="scores"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg>High scores</button>
+      <button class="btn quiet" type="button" data-action="exit"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#sign-out"/></svg>Exit to Games</button>
+    </nav>
+    <div class="best" id="menuBestRow" hidden><span>Your best<b id="menuBest">0</b></span><span class="stars" id="menuStars"></span></div>
+  </section>
+
+  <section class="screen" id="s-new" hidden aria-labelledby="newTitle">
+    <div class="head"><button class="back" type="button" aria-label="Back"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button><h2 id="newTitle">Pick a level</h2></div>
+    <div class="diffs" role="radiogroup" aria-labelledby="newTitle">
+      <button class="diff" type="button" role="radio" aria-checked="false" data-level="easy"><strong>Easy</strong><small></small><span class="mult">×1</span></button>
+      <button class="diff" type="button" role="radio" aria-checked="false" data-level="medium"><strong>Medium</strong><small></small><span class="mult">×1.5</span></button>
+      <button class="diff" type="button" role="radio" aria-checked="false" data-level="hard"><strong>Hard</strong><small></small><span class="mult">×2</span></button>
+    </div>
+    <button class="btn primary start" id="startRound" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#play"/></svg>Start</button>
+  </section>
+
+  <section class="screen" id="s-how" hidden aria-labelledby="howTitle">
+    <div class="head"><button class="back" type="button" aria-label="Back"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button><h2 id="howTitle">How to play</h2></div>
+    <ol class="steps" id="howSteps"></ol>
+    <div class="keys" id="howKeys"></div>
+  </section>
+
+  <section class="screen" id="s-settings" hidden aria-labelledby="settingsTitle">
+    <div class="head"><button class="back" type="button" aria-label="Back"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button><h2 id="settingsTitle">Settings</h2></div>
+    <div class="row"><label for="setSfx"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#speaker-high"/></svg>Sound effects</label><span class="switch"><input type="checkbox" role="switch" id="setSfx"/><span></span></span></div>
+    <div class="row slider"><input type="range" min="0" max="100" step="1" id="setSfxVolume" aria-label="Sound effects volume"/><span class="sub" id="sfxVolumeText">Volume 80</span></div>
+    <div class="row"><label for="setMusic"><span class="no-icon" aria-hidden="true"></span>Music</label><span class="switch"><input type="checkbox" role="switch" id="setMusic"/><span></span></span></div>
+    <div class="row slider"><input type="range" min="0" max="100" step="1" id="setMusicVolume" aria-label="Music volume"/><span class="sub" id="musicVolumeText">Volume 50</span></div>
+    <div class="row"><label for="setMotion"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#eye-slash"/></svg>Reduce motion</label><span class="switch"><input type="checkbox" role="switch" id="setMotion"/><span></span></span></div>
+    <div class="row" id="vibrationRow" hidden><label for="setVibration"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pulse"/></svg>Vibration</label><span class="switch"><input type="checkbox" role="switch" id="setVibration"/><span></span></span></div>
+  </section>
+
+  <section class="screen scores" id="s-scores" hidden aria-labelledby="scoresTitle">
+    <div class="head"><button class="back" type="button" aria-label="Back"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button><h2 id="scoresTitle">High scores</h2></div>
+    <p class="empty"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trophy"/></svg>Scores appear after your first saved game.</p>
+  </section>
+
+  <section class="screen" id="s-pause" hidden aria-labelledby="pauseTitle">
+    <div class="head"><h2 id="pauseTitle">Paused</h2></div>
+    <nav class="menu" aria-label="Pause menu">
+      <button class="btn primary" id="resumeBtn" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#play"/></svg>Resume</button>
+      <button class="btn" id="restartBtn" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-counter-clockwise"/></svg>Restart</button>
+      <button class="btn" id="pauseSettingsBtn" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#gear"/></svg>Settings</button>
+      <button class="btn quiet" id="quitBtn" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x"/></svg>Quit to menu</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="s-over" hidden aria-labelledby="overTitle">
+    <div class="head"><h2 id="overTitle">Time's up</h2></div>
+    <div class="result">
+      <div><span class="sub">Score</span><b id="overScore">0</b></div>
+      <div><span class="sub">Best</span><b id="overBest">0</b><span class="new-best" id="overNewBest" hidden>New best!</span></div>
+    </div>
+    <div class="stars big" id="overStars" role="img" aria-label="0 of 3 stars"></div>
+    <div class="save-row"><p class="save" id="saveStatus" role="status">Saving…</p><button class="btn small" id="retrySave" type="button" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrows-clockwise"/></svg>Retry</button></div>
+    <nav class="menu" aria-label="After the round">
+      <button class="btn primary" id="playAgain" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-counter-clockwise"/></svg>Play again</button>
+      <button class="btn" id="overMenu" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg>Main menu</button>
+      <button class="btn quiet" id="overExit" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#sign-out"/></svg>Exit to Games</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="s-error" hidden aria-labelledby="errorTitle">
+    <div class="head"><h2 id="errorTitle">Couldn't load the game</h2></div>
+    <p class="note">Check your connection, then try again.</p>
+    <nav class="menu" aria-label="Loading failed">
+      <button class="btn primary" id="errorRetry" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrows-clockwise"/></svg>Retry</button>
+      <button class="btn quiet" id="errorExit" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#sign-out"/></svg>Exit to Games</button>
+    </nav>
+  </section>
+
+  <section class="screen" id="s-missing" hidden aria-labelledby="missingTitle">
+    <div class="head"><h2 id="missingTitle">That game doesn't exist</h2></div>
+    <p class="note">The link may be old. Pick a game from the Games page.</p>
+    <nav class="menu" aria-label="Missing game">
+      <button class="btn primary" id="missingExit" type="button"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg>Back to Games</button>
+    </nav>
+  </section>
+</main>
+
+<script src="../assets/js/app.js?v=20261019-acct1"></script>
+<script>
+'use strict';
+Auth.requireAuthSync();
+</script>
+<script type="module">
+import {boot} from '../assets/js/games/shell.js?v=20261025-play1';
+boot();
+</script>
+</body>
+</html>

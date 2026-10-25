@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, boot} from '../../assets/js/games/shell.js';
+import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, boot} from '../../assets/js/games/shell.js';
 import {STARS} from '../../assets/js/games/germ-smash.js';
 
 const KEY = 'anthropotomy_game_settings';
@@ -124,4 +124,26 @@ test('starsFor counts the thresholds reached', () => {
     assert.equal(starsFor(1200, STARS), 3);
     assert.equal(starsFor(99999, STARS), 3);
     assert.equal(starsFor(0, STARS), 0);
+});
+
+test('formatTime shows whole seconds left as m:ss, rounding up', () => {
+    assert.equal(formatTime(60), '1:00');
+    assert.equal(formatTime(59.2), '1:00');
+    assert.equal(formatTime(59), '0:59');
+    assert.equal(formatTime(9.01), '0:10');
+    assert.equal(formatTime(0.2), '0:01');
+    assert.equal(formatTime(0), '0:00');
+    assert.equal(formatTime(-3), '0:00');
+    assert.equal(formatTime(125), '2:05');
+});
+
+test('saveOutcome: saved on success, retry on network-like failures, refused on any other answer', () => {
+    assert.deepEqual(saveOutcome(200, {success: true, data: {points: 12}}), {kind: 'saved', data: {points: 12}});
+    assert.deepEqual(saveOutcome(201, {success: true, data: null}), {kind: 'saved', data: null});
+    assert.deepEqual(saveOutcome(500, {success: false}), {kind: 'retry'});
+    assert.deepEqual(saveOutcome(503, null), {kind: 'retry'});
+    assert.deepEqual(saveOutcome(200, null), {kind: 'retry'}, 'a non-JSON answer is treated as a server failure');
+    assert.deepEqual(saveOutcome(422, {success: false, message: 'bad'}), {kind: 'refused'});
+    assert.deepEqual(saveOutcome(403, {success: false}), {kind: 'refused'});
+    assert.deepEqual(saveOutcome(200, {success: false}), {kind: 'refused'});
 });

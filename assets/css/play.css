@@ -1,0 +1,166 @@
+/* The full-screen game page (student/play.html): the shell's panel, screens, HUD and countdown over
+   the game canvas. Matches docs/superpowers/specs/assets/2026-10-25-germ-smash-menu-mockup.html:
+   the panel sits left on wide screens and becomes a bottom sheet on phones. */
+@font-face{font-family:"Bungee";font-style:normal;font-weight:400;font-display:swap;src:url(../fonts/bungee-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-style:normal;font-weight:500;font-display:swap;src:url(../fonts/plus-jakarta-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-style:normal;font-weight:600;font-display:swap;src:url(../fonts/plus-jakarta-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-style:normal;font-weight:700;font-display:swap;src:url(../fonts/plus-jakarta-sans-latin-700-normal.woff2) format("woff2")}
+
+:root{
+  --ink:#fff;--soft:#cfcfcf;--muted:#8c8c8c;--panel:#121212;--raised:#1f1f1f;--raised-2:#2a2a2a;--line:#262626;
+  --chip:rgba(18,18,18,.82);--yellow:#f7c948;--coral:#f2545b;--sky:#3fb8f5;--teal:#2ccf9a;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{height:100%;background:#121212;color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif;overflow:hidden;overscroll-behavior:none}
+body{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.ui-icon{display:inline-block;width:20px;height:20px;flex-shrink:0;fill:currentColor;stroke:none;pointer-events:none}
+
+/* The board fills the viewport; taps on it never scroll or zoom the page. */
+.play-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+body.is-dim::after{content:"";position:fixed;inset:0;z-index:1;background:rgba(18,18,18,.4);pointer-events:none}
+
+.play-tag{position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:3;padding:6px 12px;border-radius:999px;background:var(--chip);color:var(--soft);font-size:12px;font-weight:600;white-space:nowrap;pointer-events:none}
+
+/* Top-right controls: time left (during a round), Pause and the mute toggle. */
+.play-top{position:fixed;top:16px;right:16px;display:flex;align-items:center;gap:8px;z-index:3}
+.icon-btn{position:relative;width:44px;height:44px;border:0;border-radius:50%;background:var(--chip);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s}
+.icon-btn:hover{background:#262626}
+/* Muted: a diagonal strike over the speaker (no separate muted icon in the sprite). */
+.mute-btn[aria-pressed="true"]{color:var(--muted)}
+.mute-btn[aria-pressed="true"]::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:3px;border-radius:2px;background:var(--coral);transform:translate(-50%,-50%) rotate(-45deg);box-shadow:0 0 0 2px #121212}
+
+/* Heads-up display. */
+.hud{position:fixed;top:16px;left:16px;display:flex;align-items:center;gap:8px;z-index:3;pointer-events:none}
+.hud-score{display:grid;min-width:96px;padding:6px 16px 8px;border-radius:18px;background:var(--chip)}
+.hud-label{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hud-score b{font-family:Bungee,sans-serif;font-weight:400;font-size:24px;line-height:1.05}
+.hud-combo{padding:9px 13px;border-radius:999px;background:var(--chip);color:var(--muted);font-family:Bungee,sans-serif;font-size:18px;line-height:1}
+.hud-combo.is-hot{background:var(--yellow);color:#121212}
+.hud-combo.pulse{animation:pulse .4s var(--ease)}
+.hud-time{display:flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:999px;background:var(--chip);pointer-events:none}
+.hud-time b{font-family:Bungee,sans-serif;font-weight:400;font-size:20px;min-width:2.6ch;text-align:right}
+.hud-time .ui-icon{color:var(--soft)}
+.hud-time.is-low{color:var(--coral)}
+.hud-time.is-low .ui-icon{color:var(--coral)}
+.hud-time.is-low b{animation:tick 1s ease-in-out infinite}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+@keyframes tick{0%,100%{transform:scale(1)}15%{transform:scale(1.18)}}
+
+.countdown{position:fixed;inset:0;z-index:4;display:grid;place-items:center;pointer-events:none;font-family:Bungee,sans-serif;font-size:clamp(96px,24vw,210px);line-height:1;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 48px rgba(0,0,0,.35)}
+.countdown .go{color:var(--yellow)}
+
+/* The panel and its screens. */
+.panel{position:fixed;left:clamp(16px,5vw,64px);top:50%;transform:translateY(-50%);z-index:2;width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:28px;border-radius:28px;background:var(--panel);box-shadow:0 24px 60px rgba(0,0,0,.45);-webkit-user-select:text;user-select:text}
+.title{font-family:Bungee,sans-serif;font-weight:400;font-size:clamp(44px,6vw,58px);line-height:.92;letter-spacing:.5px}
+.title span{display:block}
+.title .b{color:var(--yellow);transform:translateX(18px)}
+.tagline{color:var(--soft);font-size:14px;line-height:1.5;margin:12px 0 22px}
+.screen:not([hidden]){display:block;animation:in .35s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.menu{display:grid;gap:10px}
+.btn{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 18px;border:0;border-radius:16px;background:var(--raised);color:#fff;font:700 16px "Plus Jakarta Sans",sans-serif;text-align:left;cursor:pointer;transition:background .15s,transform .15s var(--ease)}
+.btn .ui-icon{color:var(--soft)}
+.btn:hover{background:var(--raised-2);transform:translateX(4px)}
+.btn.primary{min-height:60px;background:var(--yellow);color:#121212;font-size:18px}
+.btn.primary .ui-icon{color:#121212}
+.btn.primary:hover{background:#f9d466}
+.btn.quiet{background:transparent;color:var(--muted)}
+.btn.quiet .ui-icon{color:var(--muted)}
+.btn.quiet:hover{background:var(--raised);color:#fff}
+.btn.small{width:auto;min-height:40px;padding:0 14px;font-size:14px;flex:none}
+.btn.start{margin-top:16px}
+.btn:focus-visible,.icon-btn:focus-visible,.diff:focus-visible,.back:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+
+.progress{height:10px;margin:4px 0 12px;border-radius:999px;background:var(--raised);overflow:hidden}
+.progress span{display:block;width:0;height:100%;border-radius:inherit;background:var(--yellow);transition:width .25s var(--ease)}
+.sub{color:var(--muted);font-size:12px;font-weight:600}
+.note{color:var(--soft);font-size:14px;line-height:1.5;margin:-6px 0 20px}
+
+.best{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);color:var(--soft);font-size:13px;font-weight:600}
+.best b{margin-left:6px;font-family:Bungee,sans-serif;font-weight:400;font-size:18px;color:#fff}
+.stars{display:flex;gap:2px;color:#3a3a3a}
+.stars .ui-icon{width:18px;height:18px}
+.stars .ui-icon.on{color:var(--yellow)}
+.stars.big{gap:6px;margin:14px 0 2px}
+.stars.big .ui-icon{width:30px;height:30px}
+
+.head{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.head h2{font-family:Bungee,sans-serif;font-weight:400;font-size:24px;line-height:1.1}
+.back{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:var(--raised);color:#fff;display:grid;place-items:center;cursor:pointer}
+.back:hover{background:var(--raised-2)}
+.back .ui-icon{width:18px;height:18px}
+
+.diffs{display:grid;gap:10px}
+.diff{display:grid;grid-template-columns:1fr auto;gap:2px 12px;width:100%;padding:14px 16px;border:2px solid transparent;border-radius:16px;background:var(--raised);color:#fff;text-align:left;cursor:pointer;font-family:inherit}
+.diff:hover{background:var(--raised-2)}
+.diff.sel{border-color:var(--yellow)}
+.diff strong{font-size:16px}
+.diff small{grid-column:1;color:var(--muted);font-size:13px;font-weight:600}
+.mult{grid-row:1/3;grid-column:2;align-self:center;font-family:Bungee,sans-serif;font-size:18px;color:var(--yellow)}
+
+.steps{list-style:none;padding:0;display:grid;gap:12px}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;color:var(--soft);font-size:15px;line-height:1.45}
+.steps li b{color:#fff}
+.dot{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--raised)}
+.dot .ui-icon{width:22px;height:22px}
+.tone-coral{color:var(--coral)}.tone-yellow{color:var(--yellow)}.tone-sky{color:var(--sky)}.tone-teal{color:var(--teal)}
+.keys{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;line-height:1.6}
+.keys-title{color:#fff;font-weight:700}
+.keys-sets{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:6px}
+.keys-set{display:grid;gap:4px;justify-items:start}
+.keys-level{color:var(--soft);font-size:12px}
+.keys-grid{display:grid;gap:3px}
+.keys-note{margin-top:10px}
+kbd{display:inline-block;min-width:20px;padding:1px 5px;border-radius:6px;background:var(--raised-2);color:#fff;font:700 12px "Plus Jakarta Sans",sans-serif;text-align:center}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #222;font-size:15px;font-weight:700}
+.row:last-child{border-bottom:0}
+.row label{display:flex;align-items:center;gap:10px;cursor:pointer}
+.row label .ui-icon{color:var(--soft)}
+.no-icon{display:inline-block;width:20px;height:20px}
+.row.slider{display:block}
+.switch{position:relative;flex:none;width:48px;height:28px}
+.switch input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:999px;background:#3a3a3a;transition:background .2s;pointer-events:none}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s var(--ease)}
+.switch input:checked+span{background:var(--teal)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.switch input:focus-visible+span{outline:3px solid var(--sky);outline-offset:2px}
+input[type=range]{display:block;width:100%;margin:6px 0 2px;accent-color:var(--yellow);cursor:pointer}
+input[type=range]:focus-visible{outline:3px solid var(--sky);outline-offset:4px;border-radius:4px}
+
+.empty{display:flex;align-items:center;gap:12px;padding:18px;border-radius:16px;background:var(--raised);color:var(--soft);font-size:15px;font-weight:600;line-height:1.45}
+.empty .ui-icon{color:var(--muted)}
+
+.result{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result>div{position:relative;padding:12px 14px;border-radius:14px;background:var(--raised)}
+.result b{display:block;margin-top:2px;font-family:Bungee,sans-serif;font-weight:400;font-size:30px;line-height:1.1}
+.new-best{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:999px;background:var(--yellow);color:#121212;font-size:12px;font-weight:700}
+.save-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;margin:10px 0 16px}
+.save{color:var(--soft);font-size:14px;font-weight:600;line-height:1.4}
+.save.is-saved{color:var(--teal)}
+.save.is-failed{color:var(--coral)}
+
+/* Phones: the panel becomes a bottom sheet; during a round the preview tag sits under the HUD. */
+@media (max-width:700px){
+  .panel{left:16px;right:16px;top:auto;bottom:16px;transform:none;width:auto;max-height:calc(100dvh - 88px);padding:22px;border-radius:24px}
+  .title{font-size:42px}
+  .tagline{margin-bottom:16px}
+  .play-tag{left:16px;transform:none}
+  body.is-round .play-tag{top:72px;left:50%;transform:translateX(-50%)}
+}
+@media (max-width:480px){
+  .hud{flex-direction:column;align-items:flex-start;gap:6px}
+  .hud-combo{padding:6px 10px;font-size:15px}
+}
+@media (max-width:360px){
+  .hud-score{min-width:0;padding:6px 12px 8px}
+  .hud-time{padding:0 10px}
+}
+/* Reduce motion: the device setting, or the game's own Reduce motion switch. */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+body.reduce-motion *,body.reduce-motion *::before,body.reduce-motion *::after{animation:none!important;transition:none!important}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LEVELS, SKIN_TONES, STARS, ROUND_SECONDS, comboMultiplier, ramp, keyToPore, pickSkinTone, createRound} from '../../assets/js/games/germ-smash.js';
+import game, {LEVELS, SKIN_TONES, STARS, ROUND_SECONDS, comboMultiplier, ramp, keyToPore, pickSkinTone, createRound} from '../../assets/js/games/germ-smash.js';
 
 const seq = (...values) => { let i = 0; return () => values[Math.min(i++, values.length - 1)]; };
 const germ = (upFor = 99) => ({kind: 'germ', variant: 0, cracked: false, age: 0, upFor});
@@ -71,7 +71,7 @@ test('a new round starts empty', () => {
 test('spawning waits for the interval and carries the remainder', () => {
     const round = createRound('easy', seq(0.99, 0.5, 0.7));
     assert.deepEqual(round.tick(0.5), []);
-    assert.deepEqual(round.tick(0.5), [{type: 'spawn', pore: 8}]);
+    assert.deepEqual(round.tick(0.5), [{type: 'spawn', pore: 8, kind: 'germ'}]);
     const spawned = round.state.pores[8];
     assert.deepEqual([spawned.kind, spawned.variant, spawned.cracked, spawned.age], ['germ', 2, false, 0]);
     assert.equal(spawned.upFor, ramp(1.4, round.state.time));
@@ -91,6 +91,27 @@ test('spawn draws the pore first, then the kind, then the variant', () => {
     const easy = createRound('easy', seq(0, 0.1, 0.5));
     easy.tick(0.9);
     assert.deepEqual([easy.state.pores[0].kind, easy.state.pores[0].variant], ['germ', 1]);
+});
+
+test('spawn events name the kind that appeared', () => {
+    const medium = createRound('medium', seq(0, 0.12, 0.99, 0.2, 0.5, 0.5, 0.9));
+    assert.deepEqual(medium.tick(0.7), [{type: 'spawn', pore: 0, kind: 'friendly'}]);
+    assert.deepEqual(medium.tick(0.7), [{type: 'spawn', pore: 11, kind: 'tough'}]);
+    assert.deepEqual(medium.tick(0.7).map(e => [e.type, e.pore, e.kind]), [['escape', 0, 'friendly'], ['spawn', 5, 'germ']]);
+});
+
+test('tick ignores a zero, negative or non-finite dt', () => {
+    let calls = 0;
+    const round = createRound('easy', () => { calls++; return 0.5; });
+    round.state.pores[4] = germ(1);
+    for (const dt of [0, -0.5, NaN, Infinity, -Infinity, undefined, null, '0.5']) {
+        assert.deepEqual(round.tick(dt), [], 'dt ' + String(dt));
+    }
+    assert.equal(round.state.time, 0);
+    assert.equal(round.state.pores[4].age, 0);
+    assert.equal(round.state.over, false);
+    assert.equal(calls, 0);
+    assert.equal(round.tick(0.9).filter(e => e.type === 'spawn').length, 1, 'a normal dt still works afterwards');
 });
 
 test('spawn skips when every pore is occupied and draws nothing', () => {
@@ -152,7 +173,7 @@ test('an escaping germ is a miss and breaks the combo; a friendly leaving is fre
     round.state.pores[5] = friendly(0.4);
     round.state.pores[6] = {...tough(0.4), cracked: true};
     const events = round.tick(0.5);
-    assert.deepEqual(events, [{type: 'escape', pore: 2}, {type: 'escape', pore: 5}, {type: 'escape', pore: 6}]);
+    assert.deepEqual(events, [{type: 'escape', pore: 2, kind: 'germ'}, {type: 'escape', pore: 5, kind: 'friendly'}, {type: 'escape', pore: 6, kind: 'tough'}]);
     assert.deepEqual([round.state.misses, round.state.streak, round.state.bestCombo, round.state.score, round.state.friendlyHits], [2, 0, 6, 0, 0]);
     assert.ok(round.state.pores.every(p => p.kind === null));
 });
@@ -161,7 +182,7 @@ test('a friendly leaving alone changes no stat', () => {
     const round = createRound('easy', () => 0.5);
     round.state.streak = 3;
     round.state.pores[0] = friendly(0.2);
-    assert.deepEqual(round.tick(0.3), [{type: 'escape', pore: 0}]);
+    assert.deepEqual(round.tick(0.3), [{type: 'escape', pore: 0, kind: 'friendly'}]);
     assert.deepEqual([round.state.misses, round.state.streak], [0, 3]);
 });
 
@@ -229,4 +250,31 @@ test('the same seed script gives the same easy round', () => {
     assert.equal(a.hits, b.hits);
     assert.equal(a.misses, b.misses);
     assert.ok(a.score > 0 && a.misses > 0);
+});
+
+test('the default export follows the game module contract', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const sprite = await readFile(new URL('../../assets/icons/interface.svg', import.meta.url), 'utf8');
+    assert.equal(game.key, 'germ-smash');
+    assert.equal(game.title, 'Germ Smash');
+    assert.equal(game.tagline, 'Smash the germs, spare the good bacteria.');
+    assert.equal(game.theme.accent, '#2ccf9a');
+    assert.equal(game.stars, STARS);
+    assert.equal(game.roundSeconds, ROUND_SECONDS);
+    assert.deepEqual(game.settings, []);
+    assert.ok(game.howToPlay.length >= 3 && game.howToPlay.length <= 4, 'How to Play has 3 or 4 steps');
+    for (const step of game.howToPlay) {
+        assert.ok(sprite.includes(`<symbol id="${step.icon}"`), 'How to Play icon is in the sprite: ' + step.icon);
+        assert.ok(typeof step.text === 'string' && step.text.length > 0);
+    }
+    assert.deepEqual(Object.keys(game.levels), ['easy', 'medium', 'hard'], 'Each difficulty has a description');
+    assert.deepEqual(Object.keys(game.keys), ['easy', 'medium', 'hard'], 'Each difficulty lists its keys');
+    for (const [level, rows] of Object.entries(game.keys)) {
+        const {cols, rows: count} = LEVELS[level];
+        assert.equal(rows.length, count, level + ' key rows');
+        rows.forEach((row, r) => row.forEach((code, c) => assert.equal(keyToPore(code, cols, count), r * cols + c, level + ' ' + code)));
+    }
+    assert.ok(game.assets && typeof game.assets.images === 'object' && typeof game.assets.sounds === 'object');
+    assert.equal(typeof game.drawBackdrop, 'function');
+    assert.equal(typeof game.create, 'function');
 });

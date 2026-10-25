@@ -18,7 +18,11 @@ socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(d
 // Every round the Games page sends, as the raw request body.
 const playPosts=[];
 socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.requestWillBeSent' && data.params.request.method==='POST' && data.params.request.url.includes('/games/plays.php'))playPosts.push(data.params.request.postData);});
+// The HTTP status of every plays.php answer, in order.
+const playResponses=[];
+socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Network.responseReceived' && data.params.response.url.includes('/games/plays.php'))playResponses.push(data.params.response.status);});
 async function waitFor(expression,timeout=15000){for(let waited=0;waited<timeout;waited+=200){try{if(await evaluate(expression))return true;}catch{/* The page is mid-navigation. */}await new Promise(resolve=>setTimeout(resolve,200));}return false;}
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function navigate(path){
     await call('Page.navigate',{url:base+path});
     for(let i=0;i<60;i++){
@@ -264,6 +268,26 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
     }
     checked++;
 }
+// Germ Smash preview: a teacher plays a full Easy round. The tag stays up, and nothing is posted.
+{
+    const postsBeforePreview=playPosts.length;
+    await navigate('/student/play.html?game=germ-smash&seed=2');
+    assert.ok(await waitFor(`window.__gameDebug?.screen==='tap'`),'Germ Smash opens for a teacher');
+    const tagShown=`(()=>{const tag=document.getElementById('previewTag');return !tag.hidden&&tag.textContent.trim()==="Preview: scores aren't saved"&&tag.getBoundingClientRect().width>0;})()`;
+    assert.ok(await evaluate(tagShown),'A teacher sees the "Preview: scores aren\'t saved" tag');
+    await evaluate(`document.getElementById('tapStart').click();document.querySelector('#s-menu [data-action="new"]').click()`);
+    await evaluate(`document.querySelector('[data-level="easy"]').click();document.getElementById('startRound').click()`);
+    assert.ok(await waitFor(`window.__gameDebug.screen==='playing'`,8000),'The teacher preview round starts');
+    assert.ok(await evaluate(tagShown),'The preview tag stays visible during the round');
+    assert.ok(await waitFor(`window.__gameDebug.screen==='over'`,75000),'The teacher preview round reaches game over');
+    assert.ok(await evaluate(tagShown),'The preview tag is still visible at game over');
+    assert.equal(await evaluate(`document.getElementById('saveStatus').textContent.trim()`),"Preview: scores aren't saved",'Game over in preview says the score is not saved');
+    assert.equal(await evaluate(`document.getElementById('retrySave').hidden`),true,'Preview offers no Retry');
+    await pause(500);
+    assert.equal(playPosts.length,postsBeforePreview,'A teacher preview round posts nothing');
+    await evaluate(`document.getElementById('overExit').click()`);
+    assert.ok(await waitFor(`location.pathname==='/teacher/games.html'`),'Exit takes a teacher back to the teacher Games page');
+}
 // Prepare the existing isolated fixture for student browser checks.
 const studentPassword='browser-test-'+Date.now();
 const glb=fs.readdirSync('system_model').find(name=>name.endsWith('.glb'));
@@ -282,6 +306,146 @@ return quiz.data.assessment_id;
 await new Promise(resolve=>setTimeout(resolve,700));
 await evaluate(`document.getElementById('username').value='fixture-student';document.getElementById('password').value=${JSON.stringify(studentPassword)};handleLogin();`);
 await waitFor(`location.pathname.startsWith('/student/') && document.readyState==='complete' && Boolean(document.querySelector('.sidebar-nav .nav-item'))`);
+// Germ Smash on its own page. ?seed= makes the round reproducible and exposes window.__gameDebug.
+{
+    const screen=()=>evaluate(`window.__gameDebug?.screen`);
+    const onScreen=name=>waitFor(`window.__gameDebug?.screen===${JSON.stringify(name)}`);
+    // Enter needs its text ('\r') for the browser to press the focused button, as a real key would.
+    const press=(key,code,keyCode)=>call('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:keyCode,...(key==='Enter'?{text:'\r'}:{})}).then(()=>call('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:keyCode}));
+    const tap=async(x,y)=>{for(const type of ['mousePressed','mouseReleased'])await call('Input.dispatchMouseEvent',{type,x,y,button:'left',clickCount:1});};
+    const focused=()=>evaluate('document.activeElement.textContent.trim()');
+    const visibleButtons=id=>evaluate(`[...document.querySelectorAll('#${id} button')].filter(b=>b.getClientRects().length).map(b=>b.textContent.trim())`);
+    const seconds=text=>{const [m,s]=text.split(':').map(Number);return m*60+s;};
+    // Taps a fully risen germ through the real page (CDP mouse events at poreCenter) until the score goes up.
+    const smashGerm=async()=>{
+        for(let tries=0;tries<20;tries++){
+            const target=await evaluate(`(()=>{const d=window.__gameDebug;const i=d.state.pores.findIndex(p=>p.kind==='germ'&&p.age>0.2&&p.upFor-p.age>0.45);return i<0?null:{i,score:d.state.score,...d.poreCenter(i)};})()`);
+            if(target){await tap(target.x,target.y);if(await waitFor(`window.__gameDebug.state.score>${target.score}`,1000))return true;}
+            await pause(150);
+        }
+        return false;
+    };
+    const setHidden=hidden=>evaluate(hidden?`Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>'hidden'});Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'))`:`delete document.visibilityState;delete document.hidden;document.dispatchEvent(new Event('visibilitychange'))`);
+    await navigate('/student/play.html?game=germ-smash&seed=1');
+    assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'A student can open the play page');
+    assert.ok(await onScreen('tap'),'The loading screen gives way to Tap to start');
+    assert.ok(await evaluate(`document.getElementById('s-loading').hidden&&document.querySelector('#s-loading [role="progressbar"]').getAttribute('aria-valuenow')==='100'`),'Loading filled its progress bar and closed');
+    await evaluate(`document.getElementById('tapStart').click()`);
+    assert.ok(await onScreen('menu'),'Tap to start opens the menu');
+    assert.deepEqual(await visibleButtons('s-menu'),['New game','How to play','Settings','High scores','Exit to Games'],'The menu shows its five buttons');
+    assert.equal(await focused(),'New game','Focus starts on New game');
+    await press('ArrowDown','ArrowDown',40);
+    assert.equal(await focused(),'How to play','Arrow Down moves through the menu');
+    await press('Enter','Enter',13);
+    assert.ok(await onScreen('how'),'Enter opens How to play');
+    assert.ok(await evaluate(`document.querySelectorAll('#s-how .steps li').length>=3&&[...document.querySelectorAll('#s-how .steps use')].every(u=>/interface\\.svg\\?v=[^#]+#[a-z-]+$/.test(u.getAttribute('href')))`),'How to play lists its steps with sprite icons');
+    assert.ok(await evaluate(`(()=>{const t=document.querySelector('#s-how .keys').textContent;return ['7','Q','V','1'].every(k=>t.includes(k));})()`),'How to play shows the keys for every grid');
+    await evaluate(`document.querySelector('#s-how .back').click()`);
+    assert.ok(await onScreen('menu'),'Back returns to the menu');
+    assert.equal(await focused(),'How to play','Focus returns to the button that opened the screen');
+    await evaluate(`document.querySelector('#s-menu [data-action="scores"]').click()`);
+    assert.ok(await onScreen('scores'),'High scores opens');
+    assert.ok((await evaluate(`document.getElementById('s-scores').textContent`)).includes('Scores appear after your first saved game'),'High scores waits for a first saved game');
+    await press('Escape','Escape',27);
+    assert.ok(await onScreen('menu'),'Escape goes back to the menu');
+    // Settings: Music off survives a reload.
+    await evaluate(`document.querySelector('#s-menu [data-action="settings"]').click()`);
+    assert.ok(await onScreen('settings'),'Settings opens');
+    assert.equal(await evaluate(`document.getElementById('setMusic').checked`),true,'Music starts on');
+    await evaluate(`document.getElementById('setMusic').click()`);
+    assert.equal(await evaluate(`JSON.parse(localStorage.getItem('anthropotomy_game_settings')).music`),false,'Turning Music off is stored');
+    await navigate('/student/play.html?game=germ-smash&seed=1');
+    assert.ok(await onScreen('tap'));
+    await evaluate(`document.getElementById('tapStart').click();document.querySelector('#s-menu [data-action="settings"]').click()`);
+    assert.ok(await onScreen('settings'));
+    assert.equal(await evaluate(`document.getElementById('setMusic').checked`),false,'Music stays off after a reload');
+    await evaluate(`document.getElementById('setMusic').click()`);
+    assert.equal(await evaluate(`JSON.parse(localStorage.getItem('anthropotomy_game_settings')).music`),true,'Music can be turned back on');
+    await evaluate(`document.querySelector('#s-settings .back').click()`);
+    assert.ok(await onScreen('menu'));
+    // New game, Easy, the countdown, then the HUD.
+    await evaluate(`document.querySelector('#s-menu [data-action="new"]').click()`);
+    assert.ok(await onScreen('new'),'New game opens the difficulty cards');
+    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#s-new [data-level]')].map(c=>c.querySelector('.mult').textContent)`),['×1','×1.5','×2'],'Each difficulty shows its points multiplier');
+    await evaluate(`document.querySelector('[data-level="easy"]').click()`);
+    assert.equal(await evaluate(`document.querySelector('[data-level="easy"]').getAttribute('aria-checked')`),'true','Easy is selected');
+    await evaluate(`document.getElementById('startRound').click()`);
+    assert.equal(await screen(),'countdown','Start begins the countdown');
+    assert.ok(await onScreen('playing'),'The countdown ends and the round starts');
+    assert.equal(await evaluate(`document.getElementById('hudScore').textContent`),'0','The HUD starts at 0');
+    assert.equal(await evaluate(`document.getElementById('hudTimeText').textContent`),'1:00','The HUD starts at 1:00');
+    assert.ok(await smashGerm(),'Tapping a germ where it is drawn raises the score');
+    assert.equal(await evaluate(`document.getElementById('hudScore').textContent`),String(await evaluate('window.__gameDebug.state.score')),'The HUD shows the new score');
+    await press('p','KeyP',80);
+    assert.ok(await onScreen('paused'),'P pauses');
+    assert.deepEqual(await visibleButtons('s-pause'),['Resume','Restart','Settings','Quit to menu'],'Pause offers Resume, Restart, Settings and Quit to menu');
+    await press('Escape','Escape',27);
+    assert.ok(await onScreen('playing'),'Escape resumes');
+    // Review Focus 1: a hidden tab pauses the round and the paused time does not count.
+    const timeBefore=await evaluate('window.__gameDebug.state.time');
+    const hudBefore=seconds(await evaluate(`document.getElementById('hudTimeText').textContent`));
+    await setHidden(true);
+    assert.equal(await screen(),'paused','Hiding the page pauses the round');
+    await pause(3000);
+    await setHidden(false);
+    assert.equal(await screen(),'paused','Coming back keeps the round paused until Resume');
+    await evaluate(`document.getElementById('resumeBtn').click()`);
+    assert.ok(await onScreen('playing'),'Resume returns to the round');
+    const timeAfter=await evaluate('window.__gameDebug.state.time');
+    assert.ok(timeAfter>=timeBefore&&timeAfter-timeBefore<1,`The round clock barely moved across a 3 s pause: ${timeBefore} -> ${timeAfter}`);
+    assert.ok(Math.abs(hudBefore-seconds(await evaluate(`document.getElementById('hudTimeText').textContent`)))<=1,'The HUD time left changed by under a second');
+    // Review Focus 2: a phone-sized viewport mid-round re-lays out the board, and a tap at a germ's new position hits it.
+    const wideCenter=await evaluate('window.__gameDebug.poreCenter(0)');
+    await call('Emulation.setDeviceMetricsOverride',{width:375,height:812,deviceScaleFactor:1,mobile:true});
+    await pause(400);
+    const phoneCenter=await evaluate('window.__gameDebug.poreCenter(0)');
+    assert.ok(phoneCenter.x!==wideCenter.x&&phoneCenter.x>0&&phoneCenter.x<375,'The board is laid out again for the phone: '+JSON.stringify([wideCenter,phoneCenter]));
+    assert.equal(await screen(),'playing','Resizing keeps the round going');
+    assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'The round fits a 375px phone');
+    const scoreBeforePhone=await evaluate('window.__gameDebug.state.score');
+    assert.ok(await smashGerm(),'A tap at a germ\'s new position still hits it');
+    assert.ok(await evaluate('window.__gameDebug.state.score')>scoreBeforePhone);
+    await call('Emulation.clearDeviceMetricsOverride');
+    // The round runs out; the shell posts the new body once (the server takes it from Task 4 on).
+    const postsBeforeEnd=playPosts.length;
+    assert.ok(await waitFor(`window.__gameDebug.screen==='over'`,75000),'The round reaches game over');
+    const final=await evaluate('JSON.parse(JSON.stringify(window.__gameDebug.state))');
+    assert.equal(await evaluate(`document.getElementById('overScore').textContent`),final.score.toLocaleString('en-US'),'Game over shows the score');
+    assert.ok(await waitFor(`document.getElementById('saveStatus').textContent.trim()!=='Saving…'`),'The save settles');
+    assert.equal(playPosts.length,postsBeforeEnd+1,'The round is posted once');
+    const posted=JSON.parse(playPosts.at(-1));
+    assert.deepEqual(Object.keys(posted).sort(),['difficulty','duration_sec','game_key','score','stats'],'The new plays body: '+playPosts.at(-1));
+    assert.deepEqual([posted.game_key,posted.difficulty,posted.score,posted.duration_sec],['germ-smash','easy',final.score,60],'Game, difficulty, score and playing seconds (pause and countdown excluded)');
+    assert.deepEqual(posted.stats,{hits:final.hits,misses:final.misses,friendly_hits:final.friendlyHits,best_combo:final.bestCombo},'The round stats');
+    const saveStatus=await evaluate(`document.getElementById('saveStatus').textContent.trim()`);
+    if(playResponses.at(-1)===422){
+        assert.equal(saveStatus,"This score couldn't be saved",'A 422 says the score could not be saved');
+        assert.equal(await evaluate(`document.getElementById('retrySave').hidden`),true,'A 422 offers no Retry');
+    }else{
+        assert.ok(playResponses.at(-1)<300&&saveStatus.startsWith('Saved'),'A saved round says so: '+saveStatus);
+    }
+    assert.deepEqual(await visibleButtons('s-over'),['Play again','Main menu','Exit to Games'],'Game over offers Play again, Main menu and Exit');
+    assert.match(await evaluate(`document.getElementById('overStars').getAttribute('aria-label')`),/^[0-3] of 3 stars$/,'Game over shows the stars');
+    await evaluate(`document.getElementById('overMenu').click()`);
+    assert.ok(await onScreen('menu'),'Main menu returns to the menu');
+    assert.equal(await evaluate(`document.getElementById('menuBest').textContent`),final.score.toLocaleString('en-US'),'The menu shows the best score');
+    await call('Emulation.setDeviceMetricsOverride',{width:375,height:812,deviceScaleFactor:1,mobile:true});
+    await pause(300);
+    assert.ok(await evaluate(`document.documentElement.scrollWidth<=innerWidth+1&&document.getElementById('panel').getBoundingClientRect().right<=innerWidth`),'The menu fits a 375px phone');
+    await call('Emulation.clearDeviceMetricsOverride');
+    // No debug hook without a seed; an unknown game says so.
+    await navigate('/student/play.html?game=germ-smash');
+    assert.ok(await waitFor(`!document.getElementById('s-tap').hidden`),'The game loads without a seed');
+    assert.equal(await evaluate('typeof window.__gameDebug'),'undefined','No debug hook without ?seed=');
+    for(const key of ['nope','constructor','']){
+        await navigate('/student/play.html?game='+key);
+        assert.ok(await waitFor(`!document.getElementById('s-missing').hidden`),'An unknown game shows its own screen: '+key);
+        assert.ok((await evaluate('document.body.innerText')).includes("That game doesn't exist"),'It says the game does not exist');
+        assert.ok(await evaluate(`document.getElementById('missingExit').getClientRects().length>0`),'It offers a way back to the Games page');
+    }
+    await evaluate(`document.getElementById('missingExit').click()`);
+    assert.ok(await waitFor(`location.pathname==='/student/games.html'`),'Back to Games takes a student to the student Games page');
+}
 for(const page of ['dashboard','lessons','quiz','progress','scores','notifications','settings','anatomy']){
     await navigate('/student/'+page+'.html');
     assert.ok(!(await evaluate('location.pathname')).includes('login.html'),'Student stays authenticated: '+page);
@@ -370,7 +534,6 @@ for(const page of ['dashboard','lessons','quiz','progress','scores','notificatio
     checked++;
 }
 // Practice games. Review Focus 1: a teacher card whose term is HTML plays and shows as literal text.
-const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const teacherApi=(()=>{let cookie='';return async(path,method='GET',body)=>{const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');return response.json();};})();
 assert.ok((await teacherApi('auth/login.php','POST',credentials)).success,'Teacher signs in to add game content');
 const xssTerm='<img src=x onerror=window.__xss=1>';
