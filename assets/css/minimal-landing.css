@@ -64,7 +64,6 @@ body.landing-minimal .cmp-new,
 body.landing-minimal .shot,
 body.landing-minimal .mock { border-radius: 1.75rem; box-shadow: var(--mn-shadow); }
 body.landing-minimal .shot { overflow: hidden; }
-body.landing-minimal .step { border-radius: 2rem; box-shadow: var(--mn-shadow); }
 body.landing-minimal .hx-cta { padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 4rem); border-radius: 2rem; background: #181818; box-shadow: var(--mn-shadow); }
 body.landing-minimal .cmp-link { border-radius: 999px; }
 body.landing-minimal .demo-tab { border-radius: 999px; }
@@ -93,8 +92,7 @@ body.landing-minimal .feature-media:hover .shot img { transform: scale(1.05); }
 body.landing-minimal .feature-media:hover .shot,
 body.landing-minimal .feature-media:hover .mock,
 body.landing-minimal .cmp-new:hover { transform: translateY(-.375rem); box-shadow: var(--mn-shadow-lift); }
-body.landing-minimal .step { transition: transform .8s var(--mn-ease), box-shadow .8s var(--mn-ease); }
-body.landing-minimal .step:hover { transform: translateY(-.875rem) scale(1.025); box-shadow: var(--mn-shadow-lift); }
+body.landing-minimal .step { transition: transform .8s var(--mn-ease); }
 body.landing-minimal .hx-card-art { transition: transform .9s var(--mn-ease), opacity .6s ease; }
 body.landing-minimal .hx-slide:hover .hx-card-art { transform: scale(1.05); }
 body.landing-minimal .demo-tab { transition: transform .4s var(--mn-ease), background-color .3s; }

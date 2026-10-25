@@ -177,17 +177,24 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 .marker{background:var(--hx-yellow);color:#1a1a1a}
 .note:before{background:var(--hx-yellow)}
 
-/* How it works: three steps as tilted cards that straighten on hover. Dark ink on these three
-   card colours passes AA (coral 5.5:1, sky 8.4:1, teal 9.4:1). */
+/* How it works: each step is a pixel-art monitor with the step on its screen. --px is one
+   art pixel; the outlines are four hard shadows, which leave the corner pixels out. The
+   screen carries the step's colour with a stepped highlight; dark ink passes AA on both
+   tones (coral 5.5:1, sky 8.4:1, teal 9.4:1, more on the lighter tone). */
 .steps{gap:1.5rem}
-.step{padding:5.75rem 1.75rem 2rem;border-radius:1.75rem;background:linear-gradient(180deg,color-mix(in srgb,var(--step) 70%,#fff),var(--step) 55%);color:#121212;box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 1.25rem 2rem -1rem rgba(0,0,0,.7);transform:rotate(var(--tilt));transition:transform .6s var(--hx-ease)}
-.step:hover{transform:translateY(-.75rem) scale(1.02)}
-.step:nth-child(1){--step:#f2545b;--tilt:-2deg}
-.step:nth-child(2){--step:#3fb8f5;--tilt:1.5deg}
-.step:nth-child(3){--step:#2ccf9a;--tilt:-1deg}
-.step:not(:last-child)::after{display:none}
-.step-num{top:1.5rem;left:1.75rem;width:auto;height:auto;border:0;background:none;color:#121212;font:400 2.75rem/1 var(--hx-display)}
-.step h3{color:#121212;font-size:1.375rem}
+.step{--px:.25rem;--ink:#0d0d14;--bezel:#383a4f;--outline:0 calc(var(--px) * -1) var(--ink),0 var(--px) var(--ink),calc(var(--px) * -1) 0 var(--ink),var(--px) 0 var(--ink);display:flex;flex-direction:column;width:100%;max-width:30rem;margin-bottom:calc(var(--px) * 12);padding:calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 7);background:linear-gradient(var(--ink),var(--ink)) right calc(var(--px) * 4) bottom calc(var(--px) * 2.75)/calc(var(--px) * 1.5) calc(var(--px) * 1.5) no-repeat,linear-gradient(var(--ink),var(--ink)) right calc(var(--px) * 7) bottom calc(var(--px) * 2.75)/calc(var(--px) * 1.5) calc(var(--px) * 1.5) no-repeat,linear-gradient(var(--ink),var(--ink)) right calc(var(--px) * 10) bottom calc(var(--px) * 2.75)/calc(var(--px) * 1.5) calc(var(--px) * 1.5) no-repeat,linear-gradient(90deg,#2b2c3d 0 22%,var(--bezel) 22% 48%,#44465d 48%);color:#121212;box-shadow:var(--outline);transition:transform .6s var(--hx-ease)}
+.step:hover{transform:translateY(-.5rem)}
+.step:nth-child(1){--step:#f2545b}
+.step:nth-child(2){--step:#3fb8f5}
+.step:nth-child(3){--step:#2ccf9a}
+/* The stand: a neck under the bezel's outline, then a base */
+.steps .step::before,.steps .step::after{content:"";position:absolute;translate:-50% 0;background:linear-gradient(90deg,#2b2c3d 0 30%,var(--bezel) 30%)}
+.steps .step::before{inset:calc(100% + var(--px)) auto auto 50%;width:20%;height:calc(var(--px) * 7);box-shadow:calc(var(--px) * -1) 0 var(--ink),var(--px) 0 var(--ink)}
+.steps .step::after{inset:calc(100% + var(--px) * 7) auto auto 50%;width:48%;height:calc(var(--px) * 3);box-shadow:var(--outline)}
+.step-screen{position:relative;isolation:isolate;flex:1;display:grid;align-content:start;gap:.625rem;min-height:12rem;padding:1.375rem 1.5rem 1.625rem;border:var(--px) solid var(--ink);background:color-mix(in srgb,var(--step) 72%,#fff)}
+.step-screen::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--step);clip-path:polygon(0 0,0 6.25%,6.25% 6.25%,6.25% 12.5%,12.5% 12.5%,12.5% 18.75%,18.75% 18.75%,18.75% 25%,25% 25%,25% 31.25%,31.25% 31.25%,31.25% 37.5%,37.5% 37.5%,37.5% 43.75%,43.75% 43.75%,43.75% 50%,50% 50%,50% 56.25%,56.25% 56.25%,56.25% 62.5%,62.5% 62.5%,62.5% 68.75%,68.75% 68.75%,68.75% 75%,75% 75%,75% 81.25%,81.25% 81.25%,81.25% 87.5%,87.5% 87.5%,87.5% 93.75%,93.75% 93.75%,93.75% 100%,0 100%)}
+.step-num{position:static;display:block;width:auto;height:auto;margin-bottom:.25rem;border:0;background:none;color:#121212;font:400 2.25rem/1 var(--hx-display)}
+.step h3{margin:0;color:#121212;font-size:1.375rem}
 .step p{color:#121212}
 
 /* FAQ: a raised disc that turns blue and rotates into an x when open; answers slide open where supported */
