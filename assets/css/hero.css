@@ -73,9 +73,8 @@
 .hx::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:4rem 4rem;background-position:center top;-webkit-mask-image:radial-gradient(ellipse 65% 60% at 50% 38%,transparent 30%,#000 85%);mask-image:radial-gradient(ellipse 65% 60% at 50% 38%,transparent 30%,#000 85%)}
 .hx-copy{position:relative;z-index:2;padding-inline:var(--gutter);text-align:center}
 .hx-eyebrow{display:inline-flex;align-items:center;gap:.5rem;margin:0;color:var(--hx-muted);font-size:.8125rem;font-weight:500}
-.hx-eyebrow strong{color:var(--hx-text);font-weight:700}
-.hx-eyebrow svg{width:1rem;height:1rem;fill:var(--hx-yellow)}
 .hx-title{margin:1rem 0 0;font-family:var(--hx-display);font-size:clamp(1.875rem,5vw,4.25rem);font-weight:400;line-height:1.05;letter-spacing:0}
+.hx-eyebrow[hidden]+.hx-title{margin-top:0}
 .hx-lead{max-width:31rem;margin:1rem auto 0;color:var(--hx-muted);font-size:.875rem;font-weight:500;line-height:1.65}
 
 /* Floating models: decoration only. */
