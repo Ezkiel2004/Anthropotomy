@@ -278,3 +278,13 @@ test('the default export follows the game module contract', async () => {
     assert.equal(typeof game.drawBackdrop, 'function');
     assert.equal(typeof game.create, 'function');
 });
+
+test('every character uses its Blender render, and the gallery card exists', async () => {
+    const {existsSync} = await import('node:fs');
+    assert.deepEqual(game.assets.images, {
+        germ1: 'germ-1.webp', germ2: 'germ-2.webp', germ3: 'germ-3.webp',
+        tough: 'tough.webp', toughCracked: 'tough-cracked.webp', friendly: 'friendly.webp'
+    });
+    for (const file of [...Object.values(game.assets.images), 'card.webp'])
+        assert.ok(existsSync(new URL('../../assets/games/germ-smash/' + file, import.meta.url)), 'missing ' + file);
+});

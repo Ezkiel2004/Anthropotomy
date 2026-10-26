@@ -709,7 +709,10 @@ export default {
     levels: {easy: '3×3 pores · slower germs', medium: '4×3 pores · tough germs appear', hard: '4×4 pores · fast and crowded'},
     keys: KEY_ROWS,
     // Filled in when the Blender renders (Task 6) and the Kenney sounds (Task 7) are added.
-    assets: {images: {}, sounds: {}},
+    assets: {
+        images: {germ1: 'germ-1.webp', germ2: 'germ-2.webp', germ3: 'germ-3.webp', tough: 'tough.webp', toughCracked: 'tough-cracked.webp', friendly: 'friendly.webp'},
+        sounds: {}
+    },
     stars: STARS,
     roundSeconds: ROUND_SECONDS,
     settings: [],
