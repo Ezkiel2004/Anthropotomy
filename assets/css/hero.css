@@ -263,6 +263,11 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 .au-form small,.au-hint{margin:0;color:var(--hx-muted);font-size:.8125rem;font-weight:500;line-height:1.5}
 .au-input{display:flex;align-items:center;gap:.75rem;min-height:3.5rem;padding:0 1.125rem;border-radius:1rem;background:var(--hx-raised);color:var(--hx-muted);transition:box-shadow .2s}
 .au-input:focus-within{box-shadow:0 0 0 2px var(--hx-bg),0 0 0 4px #fff}
+/* The field box draws the ring, so the page's ring and the browser's autofill tint stay off the input inside it */
+.au-input input:focus-visible,.au-input select:focus-visible{outline:none}
+/* The show-password button keeps its own ring, so the field's goes while it has focus */
+.au-input:has(.password-toggle:focus-visible):not(:has([aria-invalid="true"])){box-shadow:none}
+.au-input input:-webkit-autofill{-webkit-box-shadow:0 0 0 100vmax var(--hx-raised) inset;-webkit-text-fill-color:#fff;caret-color:#fff}
 .au-input:has([aria-invalid="true"]){box-shadow:0 0 0 2px var(--hx-bg),0 0 0 4px #f2545b}
 .au-input>svg{flex-shrink:0;width:1.25rem;height:1.25rem;fill:currentColor}
 .au-input input,.au-input select{flex:1;min-width:0;height:3.5rem;padding:0;border:0;background:none;color:#fff;font:600 1rem/1 var(--font-body);outline:none}
