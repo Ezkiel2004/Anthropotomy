@@ -11,9 +11,9 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261021-motion1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261026-layer6"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
-  <script type="module" src="../assets/js/portal-motion.js?v=20261021-motion1"></script>
+  <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard dashboard-page stage-portal">
 <div class="app-layout">
@@ -69,12 +69,6 @@
           <div class="sd-next-copy"><p class="sd-next-kicker">Your next step</p><h2 id="nextStepTitle" class="sd-next-title">Finding your next step…</h2></div>
         </section>
 
-        <dl class="sd-stats" aria-label="Your progress at a glance">
-          <div class="sd-stat"><dt>Lessons finished</dt><dd><span class="sd-stat-value" id="dashOverallProgress">0%</span><span class="sd-stat-hint" id="dashCompletedCount">Loading…</span></dd></div>
-          <div class="sd-stat"><dt>Systems explored</dt><dd><span class="sd-stat-value" id="dashSystemsExplored">0</span><span class="sd-stat-hint" id="dashSystemsHint">In the 3D explorer</span></dd></div>
-          <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="dashAvgScore">Not yet</span><span class="sd-stat-hint" id="dashQuizzesTaken">Loading…</span></dd></div>
-          <div class="sd-stat"><dt>Quizzes to try</dt><dd><span class="sd-stat-value" id="dashPendingCount">0</span><span class="sd-stat-hint" id="dashPendingHint">Loading…</span></dd></div>
-        </dl>
       </div>
 
       <section class="sd-block" aria-labelledby="quizzesTitle">
@@ -174,7 +168,8 @@ function renderNextStep(step) {
   const progress = step.progress
     ? `<div class="sd-next-bar" role="progressbar" aria-label="${escHtml(step.progress.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${step.progress.pct}"><i style="width:${step.progress.pct}%"></i></div><p class="sd-next-detail">${escHtml(step.progress.label)}</p>` : '';
   card.innerHTML = `
-    ${step.art ? `<img class="sd-next-art${step.kind === 'quiz' ? ' sd-next-art--organ' : ''}" src="${step.art}" alt="">` : `<span class="sd-next-icon">${icon(step.icon)}</span>`}
+    ${step.kind === 'explore' ? `<div class="sd-next-lineup" aria-hidden="true">${['circulatory', 'muscular', 'skeletal'].map(n => `<img src="../assets/img/hero/${n}.webp" alt="">`).join('')}</div>`
+    : step.art ? `<img class="sd-next-art${step.kind === 'quiz' ? ' sd-next-art--organ' : ''}" src="${step.art}" alt="">` : `<span class="sd-next-icon">${icon(step.icon)}</span>`}
     <div class="sd-next-copy">
       <p class="sd-next-kicker">${escHtml(step.kicker)}</p>
       <h2 id="nextStepTitle" class="sd-next-title">${escHtml(step.title)}</h2>
@@ -206,19 +201,7 @@ async function loadStudentDashboard() {
     document.getElementById('welcomeGreeting').textContent = firstName ? `${getGreeting()}, ${firstName}` : getGreeting();
     document.getElementById('dashboardEncouragement').textContent = encouragement(p);
 
-    // Overview stats, each with a hint that points somewhere useful
-    document.getElementById('dashOverallProgress').textContent = `${p.overall_progress}%`;
-    document.getElementById('dashCompletedCount').textContent = totalLessons === 0 ? 'Lessons appear when your teacher publishes them'
-      : completedLessons === 0 ? 'Your first one is a click away'
-      : `${completedLessons} of ${plural(totalLessons, 'lesson')}`;
-    document.getElementById('dashSystemsExplored').textContent = `${explored}/${systemCount}`;
-    document.getElementById('dashSystemsHint').textContent = explored === 0 ? 'Switch one on in the 3D explorer' : 'In the 3D explorer';
-    document.getElementById('dashAvgScore').textContent = p.avg_quiz_score !== null ? `${Math.round(p.avg_quiz_score)}%` : 'Not yet';
-    document.getElementById('dashQuizzesTaken').textContent = quizzesTaken === 0 ? 'Your first score will show here'
-      : `${quizzesTaken} taken, ${p.quizzes_passed} passed`;
     const pendingCount = (data.pending_assessments_count !== undefined) ? data.pending_assessments_count : (data.upcoming_assessments || []).length;
-    document.getElementById('dashPendingCount').textContent = pendingCount;
-    document.getElementById('dashPendingHint').textContent = pendingCount > 0 ? 'Open and waiting for you' : 'You’re all caught up';
     sessionStorage.setItem('anthropotomy_pending_assessments', String(pendingCount));
     document.querySelectorAll('.sidebar-nav a[href*="quiz"] .nav-badge').forEach(b => {
       b.textContent = pendingCount;

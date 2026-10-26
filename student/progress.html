@@ -11,9 +11,9 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261012-buttons1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261021-motion1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261026-layer6"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
-  <script type="module" src="../assets/js/portal-motion.js?v=20261021-motion1"></script>
+  <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
 <div class="app-layout">
@@ -76,8 +76,8 @@
       </div>
 
       <section class="sd-block" aria-labelledby="activityTitle">
-        <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Last 21 days</h2><span class="sd-count" id="activityCount"></span></div>
-        <div class="sd-days" id="streakGrid" role="list"></div>
+        <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Progress, last 21 days</h2><span class="sd-count" id="activityCount"></span></div>
+        <div class="sd-line" id="streakGrid"></div>
       </section>
 
       <section class="sd-block" id="scores" aria-labelledby="scoresTitle">
@@ -153,13 +153,23 @@ async function loadProgress() {
     const activeDates = new Set((recent_activity || []).map(a => a.activity_date));
     const today = new Date();
     let activeCount = 0;
-    document.getElementById('streakGrid').innerHTML = Array.from({ length: 21 }, (_, n) => {
-      const d = new Date(today); d.setDate(d.getDate() - (20 - n));
-      const active = activeDates.has(isoDay(d));
-      if (active) activeCount++;
-      const label = d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
-      return `<span role="listitem" class="sd-day${active ? ' is-active' : ''}${n === 20 ? ' is-today' : ''}" title="${label}${active ? ': studied' : ''}"><span aria-hidden="true">${'SMTWTFS'[d.getDay()]}</span><span class="sr-only">${label}${active ? ', studied' : ', no activity'}</span></span>`;
-    }).join('');
+    // Line chart: cumulative % of lessons finished over the last 21 days
+    const perDay = new Map((recent_activity || []).map(a => [a.activity_date, Number(a.lessons_done) || 0]));
+    const days = Array.from({ length: 21 }, (_, n) => { const d = new Date(today); d.setDate(d.getDate() - (20 - n)); return d; });
+    let cum = completed - days.reduce((t, d) => t + (perDay.get(isoDay(d)) || 0), 0);
+    const pts = days.map((d, n) => {
+      const v = perDay.get(isoDay(d)) || 0;
+      if (v) activeCount++;
+      cum += v;
+      return { d, x: 40 + n * 29, y: 110 - (total ? Math.max(0, Math.min(100, cum / total * 100)) : 0), pct: total ? Math.round(cum / total * 100) : 0 };
+    });
+    const line = pts.map(q => `${q.x},${q.y}`).join(' ');
+    const fmt = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    document.getElementById('streakGrid').innerHTML = `<svg viewBox="0 0 640 150" role="img" aria-label="Lesson progress over the last 21 days, now ${overallPct}%">
+      ${[0, 50, 100].map(v => `<line x1="40" x2="620" y1="${110 - v}" y2="${110 - v}" class="grid"/><text x="32" y="${114 - v}" text-anchor="end">${v}%</text>`).join('')}
+      <polygon points="40,110 ${line} 620,110" class="area"/><polyline points="${line}" class="line"/>
+      ${pts.map(q => `<circle cx="${q.x}" cy="${q.y}" r="${q === pts[20] ? 5 : 3}" class="dot"><title>${fmt(q.d)}: ${q.pct}%</title></circle>`).join('')}
+      ${[0, 10, 20].map(n => `<text x="${pts[n].x}" y="135" text-anchor="${n ? (n === 20 ? 'end' : 'middle') : 'start'}">${fmt(pts[n].d)}</text>`).join('')}</svg>`;
     document.getElementById('activityCount').textContent = `Active on ${plural(activeCount, 'day')}`;
   } catch (err) {
     const error = document.getElementById('progressError');
