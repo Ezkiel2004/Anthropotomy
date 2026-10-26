@@ -60,6 +60,8 @@ The database holds the description, key facts (shown as extra "Did you know?" fa
 
 Games are quick arcade games with an anatomy theme. They never ask quiz questions or change grades. Each game opens full screen at `student/play.html?game=<key>`. The shared shell (`assets/js/games/shell.js`, styled by `assets/css/play.css`) handles loading, the menu, How to play, Settings (kept in the browser), High scores, pause and game over, and posts each finished round to `api/games/plays.php`. Germ Smash (`assets/js/games/germ-smash.js`) is the first game. `GAMES` in `shell.js` lists the finished games, and `GAMES` in `api/helpers.php` holds each game's score and duration limits. The student Games page shows a card per game with the student's best score, this week's points board for their section, and their badges. The teacher Games page shows each section's leaderboard (all games by points, or one game by each student's best score this week), manages badges, and opens each game in preview, where nothing is saved.
 
+Germ Smash's characters and gallery card are Blender renders in `assets/games/germ-smash/`. Credits: sound effects by Kenney.nl (Interface Sounds, Impact Sounds and Music Jingles), CC0.
+
 ## Database behavior
 
 - The requested cleanup removed 10 sample student accounts and 36 lessons, with dependent student progress and submissions removed by foreign keys. Both teacher accounts were preserved.

@@ -176,7 +176,8 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
     }
     if(page==='students'){
         assert.ok((await evaluate(`document.getElementById('studentListTbody').innerText`)).includes('Test Student'),'Student table loaded');
-        assert.equal(await evaluate(`document.getElementById('studentCountBadge').textContent`),await evaluate(`document.getElementById('statTotal').textContent`),'Sidebar count matches loaded records');
+        // The stat tiles count up (portal-motion.js), so compare once the count has settled.
+        assert.ok(await waitFor(`document.getElementById('studentCountBadge').textContent===document.getElementById('statTotal').textContent`),'Sidebar count matches loaded records');
         await evaluate(`document.getElementById('studentCountBadge').remove();loadStudents()`);
         assert.ok((await evaluate(`document.getElementById('studentListTbody').innerText`)).includes('Test Student'),'Missing optional sidebar badge cannot break the student table');
         await evaluate(`(async()=>{openModal('addStudentModal');const values={addFullName:'Browser Created Student',addSchoolId:'BROWSER-STUDENT',addUsername:'browser-student',addPassword:'browser-password-123',addSection:'Rizal',addSchoolYear:'Browser Year'};Object.entries(values).forEach(([id,value])=>document.getElementById(id).value=value);await handleAddStudent({preventDefault(){}});})()`);
@@ -377,6 +378,10 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     assert.ok(await evaluate(`document.getElementById('s-loading').hidden&&document.querySelector('#s-loading [role="progressbar"]').getAttribute('aria-valuenow')==='100'`),'Loading filled its progress bar and closed');
     await evaluate(`document.getElementById('tapStart').click()`);
     assert.ok(await onScreen('menu'),'Tap to start opens the menu');
+    assert.deepEqual(await evaluate(`window.__gameDebug.sounds.slice().sort()`),['beep','buzz','chime','gameover','pop','thud','tick'],'Every Germ Smash sound loads and decodes');
+    assert.ok(await evaluate(`document.getElementById('musicRow').hidden&&document.getElementById('musicVolumeRow').hidden`),'A game without music hides the Music setting');
+    assert.equal(await evaluate(`document.getElementById('setSfx').click();document.getElementById('muteBtn').getAttribute('aria-pressed')`),'true','Without music, turning sound effects off shows the game as muted');
+    await evaluate(`document.getElementById('setSfx').click()`);
     const startBoard=await gameBoard();
     startBest=startBoard.best.all_time;
     assert.ok(startBest>0,'The fixture student has a saved best');

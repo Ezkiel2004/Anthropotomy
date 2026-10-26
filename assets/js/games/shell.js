@@ -161,6 +161,9 @@ export function boot() {
     let best = null, difficulty = 'medium', settingsFrom = 'menu', clock = 0, last = 0;
     const returnFocus = {};
     let audio = null, unlocked = false, musicBuffer = null, musicNode = null, musicGain = null;
+    // A game without music has no Music setting, so its sound effects alone decide whether it is muted.
+    const hasMusic = () => !!(game && game.assets && game.assets.music);
+    const isMuted = () => !settings.sfx && (!hasMusic() || !settings.music);
     const buffers = {};
 
     // ── Sound and vibration (both follow the settings) ──
@@ -417,8 +420,8 @@ export function boot() {
         $('setMotion').checked = settings.reduceMotion;
         $('setVibration').checked = settings.vibration;
         $('vibrationRow').hidden = !canVibrate;
-        const muted = !settings.sfx && !settings.music;
-        $('muteBtn').setAttribute('aria-pressed', String(muted));
+        $('musicRow').hidden = $('musicVolumeRow').hidden = !hasMusic();
+        $('muteBtn').setAttribute('aria-pressed', String(isMuted()));
         document.body.classList.toggle('reduce-motion', settings.reduceMotion);
     }
 
@@ -681,6 +684,7 @@ export function boot() {
             if (mode === 'none') mode = 'backdrop';
             const base = `../assets/games/${key}/`;
             const assets = game.assets || {};
+            renderSettings();
             const images = Object.entries(assets.images || {});
             const sounds = Object.entries(assets.sounds || {});
             const total = 1 + images.length + sounds.length + (assets.music ? 1 : 0);
@@ -722,7 +726,8 @@ export function boot() {
         window.__gameDebug = {
             get state() { return instance ? instance.state : null; },
             poreCenter: i => (instance && instance.poreCenter ? instance.poreCenter(i) : null),
-            get screen() { return screen; }
+            get screen() { return screen; },
+            get sounds() { return Object.keys(buffers); }
         };
     }
 
@@ -767,7 +772,7 @@ export function boot() {
     for (const id of ['errorExit', 'missingExit']) $(id).addEventListener('click', exit);
     $('errorRetry').addEventListener('click', load);
     $('muteBtn').addEventListener('click', () => {
-        const muted = !settings.sfx && !settings.music;
+        const muted = isMuted();
         changeSettings({sfx: muted, music: muted});
     });
     $('setSfx').addEventListener('change', event => changeSettings({sfx: event.target.checked}));

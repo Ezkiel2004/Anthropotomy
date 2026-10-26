@@ -711,7 +711,7 @@ export default {
     // Filled in when the Blender renders (Task 6) and the Kenney sounds (Task 7) are added.
     assets: {
         images: {germ1: 'germ-1.webp', germ2: 'germ-2.webp', germ3: 'germ-3.webp', tough: 'tough.webp', toughCracked: 'tough-cracked.webp', friendly: 'friendly.webp'},
-        sounds: {}
+        sounds: {pop: 'pop.ogg', thud: 'thud.ogg', buzz: 'buzz.ogg', chime: 'chime.ogg', beep: 'beep.ogg', tick: 'tick.ogg', gameover: 'gameover.ogg'}
     },
     stars: STARS,
     roundSeconds: ROUND_SECONDS,

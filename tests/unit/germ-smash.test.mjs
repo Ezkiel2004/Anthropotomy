@@ -288,3 +288,13 @@ test('every character uses its Blender render, and the gallery card exists', asy
     for (const file of [...Object.values(game.assets.images), 'card.webp'])
         assert.ok(existsSync(new URL('../../assets/games/germ-smash/' + file, import.meta.url)), 'missing ' + file);
 });
+
+test('every sound the game plays is a Kenney CC0 file on disk, and there is no music loop', async () => {
+    const {existsSync} = await import('node:fs');
+    assert.deepEqual(game.assets.sounds, {
+        pop: 'pop.ogg', thud: 'thud.ogg', buzz: 'buzz.ogg', chime: 'chime.ogg', beep: 'beep.ogg', tick: 'tick.ogg', gameover: 'gameover.ogg'
+    });
+    for (const file of Object.values(game.assets.sounds))
+        assert.ok(existsSync(new URL('../../assets/games/germ-smash/' + file, import.meta.url)), 'missing ' + file);
+    assert.equal(game.assets.music, undefined, 'No CC0 loop fits, so the game ships without music');
+});
