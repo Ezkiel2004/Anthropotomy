@@ -128,3 +128,12 @@ test('the male and female reproductive systems each describe their own organs', 
     assert.doesNotMatch(JSON.stringify(female), /sperm are produced|testis|testes|prostate/i, 'female content mentions no male organs');
     assert.ok(female.trivia.some(t => /primary oocytes/.test(t)) && female.trivia.some(t => /uterine tube/.test(t)));
 });
+
+test('factsFor gives the everyday name, keeps the side in the scientific name, and falls back to the name alone', async () => {
+    const {factsFor} = await import('../../assets/js/explorer/part-facts.js');
+    const humerus = factsFor('Humerus (left)');
+    assert.equal(humerus.title, 'Upper arm bone');
+    assert.equal(humerus.subtitle, 'Humerus (left)');
+    assert.ok(humerus.trivia);
+    assert.deepEqual(factsFor('Angular artery (right)'), {title: 'Angular artery (right)', subtitle: '', trivia: ''});
+});

@@ -185,35 +185,9 @@ body.explorer-page { overflow: hidden; }
 .info-panel a:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; border-radius: 2px; }
 .source-note { margin-top: 10px; color: var(--text-muted); font-size: .78rem; }
 
-/* Selected part or structure */
+/* Selected part: its name only */
 .selected-card { padding: 14px; border: 1px solid rgba(79, 209, 151, .35); border-radius: 12px; background: rgba(79, 209, 151, .08); }
-.selected-card__title { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-.selected-card__system { color: var(--text-muted); font-size: .78rem; margin-bottom: 8px; }
-.selected-card__badge {
-  display: inline-block; margin-bottom: 8px; padding: 2px 8px; border-radius: 999px;
-  background: rgba(245, 158, 11, .16); border: 1px solid rgba(245, 158, 11, .5); color: #fcd34d; font-size: .72rem; font-weight: 700;
-}
-.selected-card > p + p, .selected-card > a { margin-top: 6px; display: block; }
-.selected-card__also { color: var(--text-muted); font-size: .8rem; }
-.selected-card #exitFocus { margin-top: 12px; }
-
-/* Structure chips: pressed state shows a check mark as well as the outline */
-.structure-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.structure-chip {
-  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; background: rgba(255, 255, 255, .06);
-  color: var(--text); font: 600 .8rem/1.2 var(--font-body, system-ui, sans-serif); cursor: pointer; text-align: left;
-}
-.structure-chip:hover { background: rgba(255, 255, 255, .14); }
-.structure-chip:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
-.structure-chip__check { display: none; }
-.structure-chip__check svg { width: 14px; height: 14px; }
-.structure-chip[aria-pressed="true"] { border-color: var(--accent-ring); background: rgba(79, 209, 151, .16); }
-.structure-chip[aria-pressed="true"] .structure-chip__check { display: inline-flex; color: var(--accent-ring); }
-
-/* Did you know? */
-.trivia-card { padding: 14px; border-radius: 12px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); }
-.trivia-card #triviaText { margin-bottom: 10px; font-size: .9rem; }
+.selected-card__title { margin: 0; font-size: 1rem; font-weight: 700; }
 
 /* Quick practice and related lessons */
 #practicePrompt:not(:empty) { margin-top: 10px; }

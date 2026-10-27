@@ -4,7 +4,7 @@ import {icon} from './icons.js';
 import {panelDefault, splitLinks, safeUrl} from './format.js';
 
 const STORAGE_KEY = 'anatomy.panelOpen';
-let els = null, trivia = [], triviaIndex = 0, practiceEntries = [];
+let els = null, practiceEntries = [];
 const byId = id => els.panel.querySelector('#' + id);
 
 function readPreference() {
@@ -25,30 +25,15 @@ function section(id, heading) {
     return node;
 }
 
-function buildSkeleton(body, onBack) {
-    const exit = create('button', {type: 'button', id: 'exitFocus', className: 'panel-btn', textContent: 'Back to full body'});
-    exit.addEventListener('click', onBack);
+function buildSkeleton(body) {
+    // The selected card shows only the part's name; details live in the hover and trivia bubbles.
     const selected = section('selectedPart');
     selected.classList.add('selected-card');
     selected.setAttribute('aria-live', 'polite');
-    selected.append(
-        create('h3', {id: 'selectedPartTitle', className: 'selected-card__title'}),
-        create('p', {id: 'selectedPartSystem', className: 'selected-card__system'}),
-        create('span', {id: 'selectedPartBadge', className: 'selected-card__badge', textContent: 'Awaiting identification', hidden: true}),
-        create('p', {id: 'selectedPartDescription'}),
-        create('p', {id: 'selectedPartFunction', hidden: true}),
-        create('p', {id: 'selectedPartAlso', className: 'selected-card__also', hidden: true}),
-        create('a', {id: 'selectedPartReference', target: '_blank', rel: 'noopener noreferrer', textContent: 'Reference', hidden: true}),
-        exit
-    );
+    selected.append(create('h3', {id: 'selectedPartTitle', className: 'selected-card__title'}));
     const description = section('sysDescription', 'Description');
     const functions = section('sysFunctions', 'Functions');
     functions.append(create('ul', {className: 'info-list'}));
-    const structures = section('sysStructures', 'Structures');
-    structures.append(create('div', {className: 'structure-list'}));
-    const trivia = section('sysTrivia', 'Did you know?');
-    trivia.classList.add('trivia-card');
-    trivia.append(create('p', {id: 'triviaText'}), create('button', {type: 'button', id: 'triviaNext', className: 'panel-btn', textContent: 'Next fact'}));
     const practice = section('practice', 'Quick practice');
     practice.append(
         create('p', {className: 'info-hint', textContent: "Practice with your teacher's structure descriptions. This activity is ungraded."}),
@@ -64,18 +49,11 @@ function buildSkeleton(body, onBack) {
     );
     const sources = section('sysSources', 'Sources');
     sources.append(create('ul', {className: 'info-list info-list--links'}), create('p', {className: 'source-note', hidden: true}));
-    body.replaceChildren(section('teacherTools'), selected, description, functions, structures, trivia, practice, related, sources);
-    body.querySelector('#triviaNext').addEventListener('click', nextFact);
+    body.replaceChildren(section('teacherTools'), selected, description, functions, practice, related, sources);
     body.querySelector('#practiceButton').addEventListener('click', startPractice);
 }
 
 const externalLink = (href, text) => create('a', {href, target: '_blank', rel: 'noopener noreferrer', textContent: text});
-
-function nextFact() {
-    if (!trivia.length) return;
-    triviaIndex = (triviaIndex + 1) % trivia.length;
-    byId('triviaText').textContent = trivia[triviaIndex];
-}
 
 // Quick practice (ungraded): show one structure's description and pick its name from up to four choices.
 function startPractice() {
@@ -96,8 +74,8 @@ function startPractice() {
     }));
 }
 
-// Fills every section for a system (ExplorerSystem from data.js). Empty sections hide, except Structures.
-export function renderPanel(system, {onStructure}) {
+// Fills every section for a system (ExplorerSystem from data.js). Empty sections hide.
+export function renderPanel(system) {
     renderHeader(system.name, system.summary);
 
     const description = byId('sysDescription');
@@ -107,27 +85,6 @@ export function renderPanel(system, {onStructure}) {
 
     byId('sysFunctions').querySelector('ul').replaceChildren(...system.functions.map(text => create('li', {textContent: text})));
     byId('sysFunctions').hidden = !system.functions.length;
-
-    const list = byId('sysStructures').querySelector('.structure-list');
-    list.replaceChildren(...system.structures.map(structure => {
-        const check = create('span', {className: 'structure-chip__check'});
-        check.innerHTML = icon('check');
-        const button = create('button', {type: 'button', className: 'structure-chip'}, check, document.createTextNode(structure.name));
-        button.dataset.structure = structure.id;
-        button.setAttribute('aria-pressed', 'false');
-        button.addEventListener('click', () => onStructure(structure));
-        return button;
-    }));
-    if (!system.structures.length) list.append(create('p', {className: 'info-hint', textContent: 'No structures added yet.'}));
-    byId('sysStructures').hidden = false;
-
-    trivia = system.trivia;
-    byId('sysTrivia').hidden = !trivia.length;
-    if (trivia.length) {
-        triviaIndex = Math.floor(Math.random() * trivia.length);
-        byId('triviaText').textContent = trivia[triviaIndex];
-    }
-    byId('triviaNext').hidden = trivia.length < 2;
 
     practiceEntries = system.structures.filter(structure => structure.description);
     byId('practice').hidden = practiceEntries.length < 2;
@@ -145,33 +102,16 @@ export function renderPanel(system, {onStructure}) {
     sources.hidden = links.hidden && note.hidden;
 }
 
-// Shows the selected part or structure card, or hides it with null.
+// Shows the selected part's name, or hides the card with null.
 export function renderSelection(info) {
     const card = byId('selectedPart');
     if (!info) {
         const hadFocus = card.contains(document.activeElement);
         card.hidden = true;
-        setPressedStructure(null);
         if (hadFocus) byId('sysName').focus(); // keep keyboard users in the panel, not back at the page start
         return;
     }
     byId('selectedPartTitle').textContent = info.title;
-    const system = byId('selectedPartSystem');
-    system.textContent = info.systemName ? 'System: ' + info.systemName : '';
-    system.hidden = !info.systemName;
-    byId('selectedPartBadge').hidden = !info.unidentified;
-    byId('selectedPartDescription').textContent = info.description;
-    const func = byId('selectedPartFunction');
-    func.replaceChildren(create('strong', {textContent: 'Function: '}), document.createTextNode(info.func || ''));
-    func.hidden = !info.func;
-    const also = byId('selectedPartAlso');
-    also.textContent = info.alsoPartOf.length ? 'Also part of: ' + info.alsoPartOf.join(', ') : '';
-    also.hidden = !info.alsoPartOf.length;
-    const reference = byId('selectedPartReference');
-    const url = safeUrl(info.reference);
-    if (url) reference.href = url; else reference.removeAttribute('href');
-    reference.hidden = !url;
-    byId('exitFocus').hidden = !info.focused;
     card.hidden = false;
     // Scroll only the panel (never its overflow-hidden ancestors) so the card is visible below the sticky header.
     const header = els.panel.querySelector('.info-panel__header');
@@ -180,13 +120,9 @@ export function renderSelection(info) {
     }
 }
 
-export function setPressedStructure(id) {
-    els.panel.querySelectorAll('.structure-chip').forEach(button => button.setAttribute('aria-pressed', String(id != null && button.dataset.structure === id)));
-}
-
-export function initPanel({panel, toggle, explorer, onBack, onChange}) {
+export function initPanel({panel, toggle, explorer, onChange}) {
     els = {panel, toggle, explorer, onChange};
-    buildSkeleton(panel.querySelector('#infoBody'), onBack);
+    buildSkeleton(panel.querySelector('#infoBody'));
     panel.querySelector('#sysName').tabIndex = -1; // focus target when the selected card closes
     const close = panel.querySelector('[data-action="info-close"]');
     close.innerHTML = icon('x');

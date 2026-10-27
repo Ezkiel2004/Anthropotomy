@@ -102,11 +102,15 @@ export function exitPseudoFullscreen(el) {
 }
 
 // ── Highlight ──
-export function highlightStructure(meshName) {
-    const part = viewerReady ? engine.findPart(meshName) : null;
-    if (part) engine.focusPart(part);
-    return part;
-}
 export const focusPart = part => engine.focusPart(part);
+// Calls `place` every frame with where the part's centre now sits on screen, so a bubble can stay on
+// it while the camera moves (focusing a part brings its centre into view). Returns a stop function.
+export function followPart(part, place) {
+    const center = new THREE.Box3().setFromObject(part).getCenter(new THREE.Vector3());
+    let frame;
+    const tick = () => { place(engine.screenPoint(center)); frame = requestAnimationFrame(tick); };
+    tick();
+    return () => cancelAnimationFrame(frame);
+}
 export const clearHighlight = () => { if (viewerReady) engine.clearFocus(); };
 export const focusedPart = () => (viewerReady ? engine.focusedPart : null);

@@ -250,6 +250,11 @@ const AnatomyViewer = {
         this.rayFrom(x, y);
         return AnatomyLayersCore.pickPart(this.raycaster.intersectObjects(roots, true), this.focusedPart?.userData.part_id, mesh => this.isSeeThrough(mesh));
     },
+    // Where a world point sits on screen, in pixels from the canvas parent's top left.
+    screenPoint(point) {
+        const p = point.clone().project(this.camera), canvas = this.canvas.getBoundingClientRect(), box = this.canvas.parentElement.getBoundingClientRect();
+        return {x: canvas.left - box.left + (p.x + 1) / 2 * canvas.width, y: canvas.top - box.top + (1 - p.y) / 2 * canvas.height, behind: p.z > 1};
+    },
     isSeeThrough(mesh) { return [].concat(mesh.userData.baseMaterial || mesh.material).every(material => material?.userData.seeThrough); },
     setHover(part, x, y) {
         if (part !== this.hoveredPart) {
@@ -260,9 +265,13 @@ const AnatomyViewer = {
         }
         if (part && x !== undefined) {
             const rect = this.canvas.parentElement.getBoundingClientRect();
-            this.label.textContent = this.labelFor?.(part) || part.userData.name || '';
-            this.label.style.left = (x - rect.left + 14) + 'px'; this.label.style.top = (y - rect.top + 14) + 'px';
-            this.label.hidden = !this.label.textContent;
+            // labelFor may return a plain name or {title, subtitle}; the subtitle shows on a second line.
+            const text = this.labelFor?.(part) || part.userData.name || '';
+            const {title = text, subtitle = ''} = typeof text === 'object' ? text : {};
+            const small = document.createElement('small'); small.textContent = subtitle;
+            this.label.replaceChildren(title, ...(subtitle ? [small] : []));
+            this.label.style.left = (x - rect.left + 22) + 'px'; this.label.style.top = (y - rect.top) + 'px';
+            this.label.hidden = !title;
         } else if (!part) this.label.hidden = true;
     },
 

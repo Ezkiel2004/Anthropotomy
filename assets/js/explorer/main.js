@@ -3,10 +3,11 @@
 // shows the viewer's state overlay, records student exploration analytics, and connects the viewer
 // (viewer.js) to the info panel (panel.js). Relies on the classic-script globals AnatomyData,
 // AnatomyLayersCore, AnatomyViewer, API_BASE and Auth that the page loads before this module.
-import * as viewer from './viewer.js';
-import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection, setPressedStructure} from './panel.js';
+import * as viewer from './viewer.js?v=20261027-card1';
+import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection} from './panel.js?v=20261027-card1';
 import {icon} from './icons.js';
 import {mergeSystem} from './data.js';
+import {factsFor} from './part-facts.js?v=20261027-card1';
 import {shortcutAction, stageState, panelDefault} from './format.js';
 
 const $ = id => document.getElementById(id);
@@ -149,43 +150,64 @@ function structureFor(part) {
     if (part.userData.structure) return part.userData.structure;
     return AnatomyLayersCore.matchStructure(AnatomyData.getSystem(part.userData.system_id)?.structures, part);
 }
-// Matches the id mergeSystem() gives a database structure, so the right structure chip shows as pressed.
-function structureId(structure) {
-    if (!structure) return null;
-    if (structure.mesh_name) return structure.mesh_name;
-    const owner = AnatomyData.systems.find(system => system.structures.includes(structure));
-    return owner ? `structure-${owner.structures.indexOf(structure)}` : null;
-}
 const systemNames = () => Object.fromEntries(AnatomyData.systems.map(system => [system.id, system.name]));
 function recordView(name) { if (name) { viewed.add(name); interactions++; } }
-// `chosen` is the structure chip the user clicked; it wins over matching by the part's own system,
-// and keeps the panel on the current system.
-async function afterFocus(part, chosen = null) {
+async function afterFocus(part) {
     const version = ++focusVersion;
     const system = AnatomyData.getSystem(part.userData.system_id);
-    if (!chosen && system && system.id !== contextSystem?.id) await setContext(system);
+    if (system && system.id !== contextSystem?.id) await setContext(system);
     if (version !== focusVersion) return;
-    const structure = chosen ? {name: chosen.name, desc: chosen.description} : structureFor(part);
-    renderSelection({...AnatomyLayersCore.partInfo(part.userData, systemNames(), structure), focused: true});
-    setPressedStructure(chosen ? chosen.id : structureId(structure));
+    const structure = structureFor(part);
+    renderSelection(AnatomyLayersCore.partInfo(part.userData, systemNames(), structure));
     recordView(structure?.name || part.userData.name);
 }
 function exitFocus() {
     focusVersion++;
+    hideTrivia();
     viewer.clearHighlight();
     renderSelection(null);
 }
-// A structure chip focuses its 3D part when that part is loaded; otherwise it only shows the description.
-function showStructure(structure) {
-    const part = viewer.highlightStructure(structure.meshName);
-    if (part) { afterFocus(part, structure); return; }
-    focusVersion++;
-    viewer.clearHighlight();
-    renderSelection({title: structure.name, description: structure.description || 'No description provided.', systemName: contextSystem?.name || '', func: '', alsoPartOf: [], reference: '', unidentified: false, focused: false});
-    setPressedStructure(structure.id);
-    recordView(structure.name);
+// Everyday name, scientific name and trivia; the part's own name keeps its "(left)"/"(right)".
+function partFacts(part) {
+    const facts = factsFor(part.userData.name);
+    return facts?.trivia ? facts : factsFor(structureFor(part)?.name || part.userData.name);
+}
+// The comic trivia bubble pinned to the clicked point; it follows the point while the camera moves.
+const triviaBubble = document.createElement('div');
+triviaBubble.className = 'part-trivia'; triviaBubble.hidden = true; triviaBubble.setAttribute('role', 'status');
+triviaBubble.innerHTML = '<button type="button" class="part-trivia__close" aria-label="Close trivia">✕</button><strong>Did you know?!</strong><p></p>';
+let stopTrivia = () => {};
+function hideTrivia() { stopTrivia(); triviaBubble.hidden = true; }
+triviaBubble.querySelector('button').addEventListener('click', hideTrivia);
+// The part of the viewer the info panel does not cover: a side panel on wide screens, a bottom sheet on narrow ones.
+function freeArea(box) {
+    const area = {right: box.clientWidth, bottom: box.clientHeight};
+    const panel = $('infoPanel');
+    if (!isOpen() || !panel) return area;
+    const p = panel.getBoundingClientRect(), b = box.getBoundingClientRect();
+    if (p.left - b.left > b.width / 2) area.right = p.left - b.left;
+    else if (p.top - b.top > b.height / 3) area.bottom = p.top - b.top;
+    return area;
+}
+function showTrivia(part) {
+    hideTrivia();
+    const trivia = part && partFacts(part)?.trivia;
+    if (!trivia) return;
+    if (!triviaBubble.isConnected) $('anatomyCanvas').parentElement.append(triviaBubble);
+    triviaBubble.querySelector('p').textContent = trivia;
+    triviaBubble.hidden = false;
+    stopTrivia = viewer.followPart(part, ({x, y, behind}) => {
+        const area = freeArea(triviaBubble.parentElement), w = triviaBubble.offsetWidth, h = triviaBubble.offsetHeight;
+        // Sit right of the part, flip left when that runs past the free area, and keep the whole bubble inside it.
+        const flip = x + 28 + w > area.right && x - 28 - w >= 0;
+        triviaBubble.classList.toggle('is-flipped', flip);
+        triviaBubble.style.left = Math.max(8, Math.min(flip ? x - 28 - w : x + 28, area.right - w - 8)) + 'px';
+        triviaBubble.style.top = Math.max(8, Math.min(y - h + 40, area.bottom - h - 8)) + 'px';
+        triviaBubble.style.visibility = behind ? 'hidden' : '';
+    });
 }
 function handlePartClick(part) {
+    showTrivia(part);
     if (part) {
         viewer.focusPart(part);
         if (!isOpen()) setOpen(true, {persist: false});
@@ -208,7 +230,7 @@ async function setContext(raw) {
     await flushExploration();
     if (version !== contextVersion) return;
     contextSystem = merged.get(raw.id);
-    renderPanel(contextSystem, {onStructure: showStructure});
+    renderPanel(contextSystem);
     if (!viewer.focusedPart()) renderSelection(null);
     teacherHooks.onContext(contextSystem);
     updateStage();
@@ -320,7 +342,7 @@ window.AnatomyExplorer = {
 
 // ── Start ──
 Object.entries(TOOL_ICONS).forEach(([action, name]) => { tool(action).innerHTML = icon(name); });
-initPanel({panel: $('infoPanel'), toggle: tool('info'), explorer, onBack: exitFocus, onChange: updateViewInset});
+initPanel({panel: $('infoPanel'), toggle: tool('info'), explorer, onChange: updateViewInset});
 syncOrientation();
 updateStage();
 (async () => {
@@ -337,7 +359,7 @@ updateStage();
             updateStage();
             return;
         }
-        viewerReady = viewer.init($('anatomyCanvas'), {onPartClick: handlePartClick, labelFor: part => structureFor(part)?.name || part.userData.name});
+        viewerReady = viewer.init($('anatomyCanvas'), {onPartClick: handlePartClick, labelFor: partFacts});
         updateViewInset();
         const params = new URLSearchParams(location.search);
         const lessonId = studentPreview ? null : params.get('lesson_id');

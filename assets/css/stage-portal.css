@@ -528,8 +528,24 @@
 .stage-portal .explorer .info-panel__header{background:var(--st-raised)}
 .stage-portal .explorer .info-panel__header h2{font-family:var(--st-display);font-weight:400;text-transform:uppercase;font-variant-ligatures:none}
 .stage-portal .explorer .info-panel a:hover{color:#ffe08a}
-.stage-portal .explorer .structure-chip[aria-pressed="true"]{background:rgba(247,201,72,.14)}
-.stage-portal .part-hover-label{position:absolute;max-width:15rem;padding:.375rem .75rem;border-radius:999px;background:rgba(18,18,18,.92);color:#fff;font-size:.8125rem;font-weight:700;pointer-events:none}
+.stage-portal .explorer .selected-card__title{font-family:var(--st-display);font-size:1.125rem;font-weight:400;text-transform:uppercase;font-variant-ligatures:none}
+/* Hover name bubble: everyday name, scientific name below, tail and dot on the hovered point */
+.stage-portal .part-hover-label{position:absolute;max-width:16rem;padding:.5rem .875rem;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(24,24,24,.92);box-shadow:0 8px 24px rgba(0,0,0,.45);color:#fff;font-size:.9375rem;font-weight:700;line-height:1.3;transform:translateY(-50%);pointer-events:none}
+.stage-portal .part-hover-label small{display:block;margin-top:2px;color:var(--st-yellow);font-size:.75rem;font-weight:500;font-style:italic}
+.stage-portal .part-hover-label::before{content:"";position:absolute;left:-9px;top:50%;margin-top:-9px;border:9px solid transparent;border-left:0;border-right-color:rgba(24,24,24,.92)}
+.stage-portal .part-hover-label::after{content:"";position:absolute;left:-27px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--st-yellow);box-shadow:0 0 0 4px rgba(247,201,72,.3)}
+/* Click trivia bubble: comic style, tail on the clicked point (flips to the left near the right edge) */
+.part-trivia{position:absolute;z-index:12;width:min(300px,calc(100% - 32px));padding:.875rem 1.125rem 1rem;border:3px solid #111;border-radius:22px;background:#fff8d6;box-shadow:6px 6px 0 #111;color:#1b1b1b;font-size:.9375rem;font-weight:500;line-height:1.4}
+.part-trivia[hidden]{display:none}
+.part-trivia strong{display:block;margin:0 1.5rem .25rem 0;font-family:var(--st-display,inherit);font-size:1.125rem;font-weight:400;color:#e0412f;text-transform:uppercase}
+.part-trivia p{margin:0}
+.part-trivia__close{position:absolute;right:8px;top:6px;padding:4px 6px;border:0;background:none;color:#111;font-size:.9375rem;font-weight:700;line-height:1;cursor:pointer}
+.part-trivia__close:focus-visible{outline:2px solid #111;outline-offset:1px;border-radius:6px}
+.part-trivia::after,.part-trivia::before{content:"";position:absolute;bottom:26px;border-style:solid;border-color:transparent}
+.part-trivia::after{left:-26px;border-width:14px 26px 14px 0;border-right-color:#111}
+.part-trivia::before{z-index:1;left:-19px;bottom:29px;border-width:11px 21px 11px 0;border-right-color:#fff8d6}
+.part-trivia.is-flipped::after{left:auto;right:-26px;border-width:14px 0 14px 26px;border-color:transparent transparent transparent #111}
+.part-trivia.is-flipped::before{left:auto;right:-19px;border-width:11px 0 11px 21px;border-color:transparent transparent transparent #fff8d6}
 @media (max-width:1024px){
   .student-dashboard.stage-portal .explorer:not(.is-pseudo-fullscreen):not(:fullscreen){height:calc(100dvh - var(--topbar-h) - var(--tabbar-h))}
 }
