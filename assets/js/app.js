@@ -422,6 +422,29 @@ function removeToast(el) {
     setTimeout(() => el.remove(), 260);
 }
 
+// Comic-style yes/no prompt in the centre of the screen. A modal <dialog> dims the page behind it and
+// blocks every click outside its two buttons. Resolves true for the confirm button, false for the
+// other button or Escape.
+function confirmToast({title, message, confirmText, cancelText}) {
+    const open = document.querySelector('dialog.toast-confirm[open]');
+    if (open) { open.querySelector('button').focus(); return Promise.resolve(false); }
+    const d = document.createElement('dialog');
+    d.className = 'toast-confirm';
+    d.setAttribute('aria-labelledby', 'toastConfirmTitle');
+    d.setAttribute('aria-describedby', 'toastConfirmText');
+    d.innerHTML = `<h2 id="toastConfirmTitle">${escHtml(title)}</h2><p id="toastConfirmText">${escHtml(message)}</p>`
+        + `<div class="toast-confirm__row"><button type="button" class="toast-confirm__stay" autofocus>${escHtml(cancelText)}</button>`
+        + `<button type="button" class="toast-confirm__go">${escHtml(confirmText)}</button></div>`;
+    document.body.appendChild(d);
+    d.showModal();
+    return new Promise(resolve => {
+        const close = answer => { d.close(); d.remove(); resolve(answer); };
+        d.querySelector('.toast-confirm__stay').addEventListener('click', () => close(false));
+        d.querySelector('.toast-confirm__go').addEventListener('click', () => close(true));
+        d.addEventListener('cancel', e => { e.preventDefault(); close(false); }); // Escape
+    });
+}
+
 // ── Modal Helpers ───────────────────────────────────────────────
 function openModal(id) {
     const m = document.getElementById(id);
@@ -677,7 +700,7 @@ function initApp() {
     // Logout button (all pages)
     document.querySelectorAll('.logout-btn, [data-logout]').forEach(el => {
         el.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to sign out?')) {
+            if (await confirmToast({title: 'Leaving already?!', message: "Come back soon. There's more to explore!", confirmText: 'Sign out', cancelText: 'Keep exploring'})) {
                 await Auth.logout();
             }
         });

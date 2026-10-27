@@ -439,6 +439,21 @@ a.btn:hover { text-decoration: none; }
 .toast-error   { border-left: 3px solid var(--error); }
 .toast-info    { border-left: 3px solid var(--info); }
 
+/* Comic yes/no prompt (sign-out), centred over a dark backdrop, in the style of the explorer's trivia bubbles */
+.toast-confirm { margin: auto; width: min(380px, calc(100vw - 32px)); padding: 16px 20px 18px; border: 3px solid #111; border-radius: 22px; background: #fff8d6; box-shadow: 6px 6px 0 #111; color: #1b1b1b; animation: toast-confirm-in .25s cubic-bezier(.16, 1, .3, 1); }
+.toast-confirm::backdrop { background: rgba(0, 0, 0, .72); }
+.toast-confirm h2 { margin: 0 0 6px; font-family: "Bungee", system-ui, sans-serif; font-size: 1.375rem; font-weight: 400; line-height: 1.2; color: #e0412f; text-transform: uppercase; font-variant-ligatures: none; }
+.toast-confirm p { margin: 0 0 14px; font-size: .9375rem; font-weight: 500; line-height: 1.45; color: #1b1b1b; }
+.toast-confirm__row { display: flex; flex-wrap: wrap; gap: 10px; }
+.toast-confirm__row button { padding: 10px 18px; border: 2.5px solid #111; border-radius: 12px; box-shadow: 3px 3px 0 #111; color: #111; font-family: inherit; font-size: .875rem; font-weight: 700; line-height: 1.2; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+.toast-confirm__row button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #111; }
+.toast-confirm__row button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #111; }
+.toast-confirm__row button:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
+.toast-confirm__stay { background: #fff; }
+.toast-confirm__go { background: #f7c948; }
+@keyframes toast-confirm-in { from { opacity: 0; transform: scale(.94); } }
+@media (prefers-reduced-motion: reduce) { .toast-confirm { animation: none; } .toast-confirm__row button { transition: none; } }
+
 /* ── Form Controls ── */
 .form-group {
   display: flex;
