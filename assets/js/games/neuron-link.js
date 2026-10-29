@@ -160,10 +160,10 @@ const TILE_COLOR = '#1b1f3a', DIM = '#8a8fb5', LIT = '#f7c948', BRIGHT = '#fff3b
 const TURN_SECONDS = 0.12, SIGNAL_SECONDS = 0.5, FLEX_SECONDS = 0.4, FADE_SECONDS = 0.3;
 const OPENINGS = [[N, 0, -1], [E, 1, 0], [S, 0, 1], [W, -1, 0]];
 
-// Where an n×n board goes: under the HUD row, with 1.1 tiles above it for the brain and below it for the muscle.
+// Where an n×n board goes: under the HUD row and above the status line, with 1.1 tiles above it for the brain and below it for the muscle.
 function layoutOf(w, h, n) {
-    const tile = Math.min(96, Math.floor(Math.min((w - 32) / n, (h - 88) / (n + 2.2))));
-    const slack = Math.max(0, (h - 88 - (n + 2.2) * tile) / 2);
+    const tile = Math.min(96, Math.floor(Math.min((w - 32) / n, (h - 112) / (n + 2.2))));
+    const slack = Math.max(0, (h - 112 - (n + 2.2) * tile) / 2);   // 72 px for the HUD on top, 40 px for the status line below
     return {w, h, n, tile, left: (w - n * tile) / 2, top: 72 + 1.1 * tile + slack};
 }
 
