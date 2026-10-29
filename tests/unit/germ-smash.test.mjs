@@ -298,3 +298,9 @@ test('every sound the game plays is a Kenney CC0 file on disk, and there is no m
         assert.ok(existsSync(new URL('../../assets/games/germ-smash/' + file, import.meta.url)), 'missing ' + file);
     assert.equal(game.assets.music, undefined, 'No CC0 loop fits, so the game ships without music');
 });
+
+test('every Ogg sound has an AAC (.m4a) copy for browsers without Ogg Vorbis', async () => {
+    const {existsSync} = await import('node:fs');
+    for (const file of Object.values(game.assets.sounds))
+        assert.ok(existsSync(new URL('../../assets/games/germ-smash/' + file.replace(/\.ogg$/, '.m4a'), import.meta.url)), 'missing m4a for ' + file);
+});

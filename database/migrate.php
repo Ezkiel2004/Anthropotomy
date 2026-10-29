@@ -53,6 +53,11 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS game_plays (
 addColumnIfMissing($pdo, 'game_plays', 'difficulty', "ENUM('easy','medium','hard') NOT NULL DEFAULT 'medium'");
 // The arcade score of a round (the quiz rounds before it have none, so 0).
 addColumnIfMissing($pdo, 'game_plays', 'score', 'INT UNSIGNED NOT NULL DEFAULT 0');
+// A round's own id, sent again by Retry, so a save whose answer got lost is never stored twice.
+addColumnIfMissing($pdo, 'game_plays', 'round_uid', 'VARCHAR(64) NULL');
+$hasRoundKey = $pdo->prepare("SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'game_plays' AND index_name = 'uq_round_uid'");
+$hasRoundKey->execute();
+if (!$hasRoundKey->fetchColumn()) $pdo->exec('ALTER TABLE game_plays ADD UNIQUE KEY uq_round_uid (student_id, round_uid)');
 $pdo->exec("CREATE TABLE IF NOT EXISTS game_card_stats (
  user_id INT UNSIGNED NOT NULL, card_key VARCHAR(200) NOT NULL, term VARCHAR(100) NOT NULL,
  seen INT UNSIGNED NOT NULL DEFAULT 0, correct INT UNSIGNED NOT NULL DEFAULT 0,

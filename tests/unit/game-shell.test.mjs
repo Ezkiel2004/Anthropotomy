@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, bestScore, boardView, boot} from '../../assets/js/games/shell.js';
+import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, bestScore, boardView, boot, gameEntry, soundUrl, wakeAudio, newRoundId} from '../../assets/js/games/shell.js';
 import {STARS} from '../../assets/js/games/germ-smash.js';
 
 const KEY = 'anthropotomy_game_settings';
@@ -172,4 +172,36 @@ test('boardView marks the viewer\'s row, or gives their rank when they are outsi
     assert.equal(boardView({top, me: null}, 4).you, null, 'not ranked: no You line');
     assert.deepEqual(boardView({top, me: null}, null).rows.map(row => row.own), [false, false], 'a teacher has no row of their own');
     assert.deepEqual(boardView({top: [], me: null}, 4), {rows: [], you: null});
+});
+
+test('gameEntry finds a game without Object.hasOwn (iOS before 15.4) and ignores inherited keys', () => {
+    const saved = Object.hasOwn;
+    try {
+        delete Object.hasOwn;
+        assert.equal(gameEntry('germ-smash').title, 'Germ Smash');
+        assert.equal(gameEntry('constructor'), null);
+        assert.equal(gameEntry('nope'), null);
+    } finally { Object.hasOwn = saved; }
+});
+
+test('soundUrl swaps .ogg for the .m4a copy when the browser cannot play Ogg Vorbis', () => {
+    assert.equal(soundUrl('../assets/games/germ-smash/', 'pop.ogg', true), '../assets/games/germ-smash/pop.ogg');
+    assert.equal(soundUrl('../assets/games/germ-smash/', 'pop.ogg', false), '../assets/games/germ-smash/pop.m4a');
+    assert.equal(soundUrl('x/', 'loop.mp3', false), 'x/loop.mp3');
+});
+
+test('wakeAudio resumes a suspended or interrupted context and leaves a running one alone', async () => {
+    const ctx = state => ({state, resumed: 0, resume() { this.resumed++; return Promise.resolve(); }});
+    for (const [state, woke] of [['suspended', true], ['interrupted', true], ['running', false], ['closed', false]]) {
+        const c = ctx(state);
+        assert.equal(wakeAudio(c), woke, state);
+        assert.equal(c.resumed, woke ? 1 : 0, state);
+    }
+    assert.equal(wakeAudio(null), false);
+});
+
+test('newRoundId makes a 32-character lowercase hex id that differs each round', () => {
+    const a = newRoundId(), b = newRoundId();
+    assert.match(a, /^[a-f0-9]{32}$/);
+    assert.notEqual(a, b);
 });

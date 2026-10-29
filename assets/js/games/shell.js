@@ -78,6 +78,28 @@ export function saveOutcome(status, result) {
 
 // The best score to show from a game board's `best`: the all-time best once the student has a score on
 // record, otherwise null ("No score yet"). Teachers get best = null.
+// The game for a ?game= key, ignoring inherited keys such as "constructor".
+export function gameEntry(key) {
+    return Object.prototype.hasOwnProperty.call(GAMES, key) ? GAMES[key] : null;
+}
+
+// Safari has not always decoded Ogg Vorbis, so each .ogg sound ships with an .m4a (AAC) copy.
+export function soundUrl(base, file, canPlayOgg) {
+    return base + (canPlayOgg ? file : file.replace(/\.ogg$/, '.m4a'));
+}
+
+// iOS suspends audio until a tap and "interrupts" it after a lock or a call; each start and resume wakes it.
+export function wakeAudio(ctx) {
+    if (!ctx || ctx.state === 'running' || ctx.state === 'closed') return false;
+    ctx.resume().catch(() => {});
+    return true;
+}
+
+// A round's id for plays.php: Retry resends it, so a save whose answer got lost is never stored twice.
+export function newRoundId() {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
 export function bestScore(best) {
     if (!best || typeof best.all_time !== 'number') return null;
     return best.all_time > 0 || best.week !== null ? best.all_time : null;
@@ -136,7 +158,7 @@ export function boot() {
     if (typeof Auth !== 'undefined' && !user) return;   // Auth.requireAuthSync() is already redirecting to sign-in
     const params = new URLSearchParams(location.search);
     const key = params.get('game') || '';
-    const entry = Object.hasOwn(GAMES, key) ? GAMES[key] : null;
+    const entry = gameEntry(key);
     const isStudent = !!user && user.role === 'student';
     const preview = !isStudent;               // teachers and admins play, but nothing is saved
     const exitUrl = isStudent ? 'games.html' : '../teacher/games.html';
@@ -488,9 +510,10 @@ export function boot() {
     }
 
     function startRound(level) {
+        wakeAudio(audio);
         selectLevel(level);
         if (!instance) instance = game.create(canvas, api);
-        round = {id: ++roundSeq, difficulty: level, phase: 'countdown', paused: false, step: 0, countdown: COUNT_SECONDS, playSeconds: 0, hud: {}};
+        round = {id: ++roundSeq, uid: newRoundId(), difficulty: level, phase: 'countdown', paused: false, step: 0, countdown: COUNT_SECONDS, playSeconds: 0, hud: {}};
         $('hudTime').classList.remove('is-low');
         instance.start(level);
         mode = 'round';
@@ -510,6 +533,7 @@ export function boot() {
 
     function resume() {
         if (!round || !round.paused) return;
+        wakeAudio(audio);
         round.paused = false;
         if (round.phase === 'countdown') {
             show('countdown');
@@ -549,7 +573,7 @@ export function boot() {
         hideLeave();
         show('over');
         announce(`Time's up. Score ${formatScore(score)}, ${stars} of 3 stars.`);
-        const body = JSON.stringify({game_key: key, difficulty: round.difficulty, score, duration_sec: Math.round(round.playSeconds), stats});
+        const body = JSON.stringify({game_key: key, difficulty: round.difficulty, score, duration_sec: Math.round(round.playSeconds), stats, round_id: round.uid});
         if (preview) setSave(round.id, 'preview');
         else save(round.id, body);
     }
@@ -683,6 +707,8 @@ export function boot() {
             renderMenuBest();
             if (mode === 'none') mode = 'backdrop';
             const base = `../assets/games/${key}/`;
+            let canPlayOgg = false;
+            try { canPlayOgg = new Audio().canPlayType('audio/ogg; codecs="vorbis"') !== ''; } catch { /* no media element: use the .m4a copies */ }
             const assets = game.assets || {};
             renderSettings();
             const images = Object.entries(assets.images || {});
@@ -705,8 +731,12 @@ export function boot() {
                     loaded[name] = image;
                     tick();
                 }),
-                ...sounds.map(async ([name, file]) => { buffers[name] = await fetchAudio(base + file); tick(); }),
-                ...(assets.music ? [fetchAudio(base + assets.music).then(buffer => { musicBuffer = buffer; tick(); })] : [])
+                // A sound that won't load or decode is skipped: the game plays without it rather than not at all.
+                ...sounds.map(async ([name, file]) => {
+                    try { buffers[name] = await fetchAudio(soundUrl(base, file, canPlayOgg)); } catch { delete buffers[name]; }
+                    tick();
+                }),
+                ...(assets.music ? [fetchAudio(soundUrl(base, assets.music, canPlayOgg)).then(buffer => { musicBuffer = buffer; }, () => {}).then(tick)] : [])
             ]);
             api.images = loaded;
             show('tap');
@@ -733,7 +763,7 @@ export function boot() {
 
     $('tapStart').addEventListener('click', () => {
         unlocked = true;
-        if (audio && audio.state === 'suspended') audio.resume().catch(() => {});
+        wakeAudio(audio);
         syncMusic();
         show('menu');
     });

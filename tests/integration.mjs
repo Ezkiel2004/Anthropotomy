@@ -336,6 +336,16 @@ check(legacyBadge('All-Rounder').value===1&&legacyBadge('All-Rounder').earned_at
 check(legacyBadge('On a Roll').value===3&&legacyBadge('On a Roll').earned_at===null,'A legacy quiz streak of 30 is not a combo: On a Roll counts the Germ Smash combo of 3');
 check(legacyBadge('First Game').value===3&&legacyBadges.find(b=>b.metric==='total_points').value===180,'Legacy quiz rounds still count as games played (3) and points (40 + 40 + 100)');
 check((await teacher('students.php?id='+legacyPlayer.id,'PUT',{is_active:false})).success,'The legacy-rounds student leaves the boards, so Mabini has no scores');
+{
+    const playedCount=async()=>(await student('games/badges.php')).data.find(b=>b.metric==='games_played').value;
+    const before=await playedCount(), roundId='a1b2c3d4e5f60718293a4b5c6d7e8f90';
+    const first=await student('games/plays.php','POST',round({round_id:roundId,difficulty:'easy',score:640}));
+    const again=await student('games/plays.php','POST',round({round_id:roundId,difficulty:'easy',score:640}));
+    check(first.success&&again.success&&again.data.points===first.data.points&&again.data.new_badges.length===0,'Resending a round with the same round_id answers like the first save');
+    check(await playedCount()===before+1,'A round resent with the same round_id is saved once');
+    check((await student('games/plays.php','POST',round({round_id:'f'.repeat(32)}))).success&&await playedCount()===before+2,'A different round_id is a new round');
+    for(const bad of ['short','Z'.repeat(32),123])check((await student('games/plays.php','POST',round({round_id:bad}))).status===422,'Malformed round_id rejected: '+JSON.stringify(bad));
+}
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');
