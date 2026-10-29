@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LEVELS, STARS, MAX_LIVES, MAX_OXYGEN, GATE_EVERY, SPAWN_Z, INVULNERABLE, deliveryMultiplier, createRun} from '../../assets/js/games/cell-runner.js';
+import {LEVELS, STARS, MAX_LIVES, MAX_OXYGEN, GATE_EVERY, SPAWN_Z, INVULNERABLE, MAX_SECONDS, deliveryMultiplier, drawOrder, createRun} from '../../assets/js/games/cell-runner.js';
 
 const still = () => 0.99;                       // rows block lane 2 only and never hold a bubble
 const lcg = seed => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
@@ -196,4 +196,24 @@ test('the cell, clot and card art and the 6 sounds are on disk, each sound with 
         assert.ok(existsSync(new URL(file, dir)), 'sound ' + file);
         assert.ok(existsSync(new URL(file.replace(/\.ogg$/, '.m4a'), dir)), 'iPhone copy of ' + file);
     }
+});
+
+test('review fix: a run ends at 899 s, inside the server\'s 900 s limit, and emits end once', () => {
+    assert.equal(MAX_SECONDS, 899);
+    const run = createRun('easy', lcg(1));
+    const ends = [];
+    for (let i = 0; i < 20000 && !run.state.over; i++) {
+        run.state.invulnerable = 1e9;
+        ends.push(...run.tick(0.05).filter(e => e.type === 'end'));
+    }
+    assert.equal(run.state.over, true);
+    assert.ok(run.state.time >= MAX_SECONDS && run.state.time < 900, String(run.state.time));
+    assert.equal(run.state.lives, MAX_LIVES);
+    assert.equal(ends.length, 1);
+});
+
+test('review fix: gates are drawn first, so they never hide the hazards behind them', () => {
+    const objects = [{kind: 'clot', z: 30}, {kind: 'gate', z: 10}, {kind: 'bubble', z: 50}, {kind: 'virus', z: 5}];
+    assert.deepEqual(drawOrder(objects).map(o => o.kind + o.z), ['gate10', 'bubble50', 'clot30', 'virus5']);
+    assert.equal(objects[0].kind, 'clot', 'the run\'s own list is left alone');
 });

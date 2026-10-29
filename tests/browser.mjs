@@ -198,11 +198,11 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
         await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
         assert.ok(await evaluate(`document.activeElement.id==='tab-badges'&&document.getElementById('tab-badges').getAttribute('aria-selected')==='true'&&!document.getElementById('panel-badges').hidden`),'Arrow keys move between tabs');
         await evaluate(`document.getElementById('tab-leaderboard').click()`);
-        assert.deepEqual(await evaluate(`[...document.querySelectorAll('a.tg-try')].map(a=>[a.textContent.trim(),a.getAttribute('href')])`),[['Try Germ Smash','../student/play.html?game=germ-smash'],['Try Cell Runner','../student/play.html?game=cell-runner']],'A Try link for each game opens it on the play page');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('a.tg-try')].map(a=>[a.textContent.trim(),a.getAttribute('href')])`),[['Try Germ Smash','../student/play.html?game=germ-smash'],['Try Cell Runner','../student/play.html?game=cell-runner'],['Try Neuron Link','../student/play.html?game=neuron-link']],'A Try link for each game opens it on the play page');
         // The leaderboard: a section and a game filter. All games is the points board; one game ranks weekly best scores.
         const sections=['Rizal','Bonifacio','Mabini','Luna'];
         assert.deepEqual(await evaluate(`[...document.getElementById('boardSection').options].map(o=>o.value)`),sections,'The section picker lists the 4 sections');
-        assert.deepEqual(await evaluate(`[...document.getElementById('boardGame').options].map(o=>[o.value,o.textContent])`),[['all','All games'],['germ-smash','Germ Smash'],['cell-runner','Cell Runner']],'The game filter offers All games and each game');
+        assert.deepEqual(await evaluate(`[...document.getElementById('boardGame').options].map(o=>[o.value,o.textContent])`),[['all','All games'],['germ-smash','Germ Smash'],['cell-runner','Cell Runner'],['neuron-link','Neuron Link']],'The game filter offers All games and each game');
         assert.equal(await evaluate(`document.getElementById('boardSection').value+'/'+document.getElementById('boardGame').value`),'Rizal/all','The board starts on the first section and All games');
         const board=(await api('games/leaderboard.php?section=Rizal')).top;
         assert.ok(board.length>0,'The fixture has points in Rizal this week');
@@ -568,8 +568,12 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     assert.ok(await on('menu'),'Cell Runner opens its menu');
     await evaluate(`document.querySelector('#s-menu [data-action="settings"]').click()`);
     assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameSettings [role="radio"]')].map(b=>[b.textContent,b.getAttribute('aria-checked')])`),[['Swipe','true'],['On-screen buttons','false']],'Settings shows Controls with Swipe chosen');
+    // Up from Back wraps onto a Controls option; that must not clear the chosen level.
+    await evaluate(`document.querySelector('#s-settings .back').focus()`);
+    await key('ArrowUp','ArrowUp',38);
     await evaluate(`document.querySelector('#s-settings .back').click()`);
     await evaluate(`document.querySelector('#s-menu [data-action="new"]').click()`);
+    assert.equal(await evaluate(`document.querySelectorAll('#s-new [data-level][aria-checked="true"]').length`),1,'Review fix: arrow keys in Settings keep a level chosen');
     await evaluate(`document.querySelector('[data-level="easy"]').click();document.getElementById('startRound').click()`);
     assert.ok(await on('playing'),'The run starts after the countdown');
     assert.ok(await evaluate(`document.getElementById('hudTime').hidden&&!document.getElementById('hudLives').hidden&&!document.getElementById('hudDistance').hidden&&document.querySelectorAll('#hudLives .heart:not(.is-empty)').length===3`),'The HUD shows 3 hearts and a distance, and no timer');
@@ -580,6 +584,13 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     assert.equal(await st('s.lane'),lane+1,'The right arrow moves one lane right');
     await swipe(-160);
     assert.equal(await st('s.lane'),lane,'A swipe left moves one lane left');
+    // Two fingers: the right one goes down, the left one rests, the right one swipes left and lifts, then the left lifts.
+    await evaluate(`(()=>{const c=document.querySelector('canvas'),r=c.getBoundingClientRect(),y=r.top+r.height*0.6;
+        const fire=(type,id,x)=>c.dispatchEvent(new PointerEvent(type,{pointerId:id,clientX:r.left+x,clientY:y,bubbles:true,pointerType:'touch'}));
+        fire('pointerdown',2,300);fire('pointerdown',1,60);fire('pointerup',2,140);fire('pointerup',1,60);})()`);
+    assert.equal(await st('s.lane'),lane-1,'Review fix: each finger\'s swipe is judged from its own start');
+    await key('ArrowRight','ArrowRight',39);
+    assert.equal(await st('s.lane'),lane,'The right arrow moves back');
     await key('Escape','Escape',27);
     assert.ok(await on('paused'),'Escape pauses the run');
     await swipe(-160);
@@ -611,12 +622,64 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     assert.ok(await waitFor(`document.getElementById('saveStatus').textContent.trim().startsWith('Saved')`),'The run saves');
     await evaluate(`document.getElementById('overExit').click()`);
 }
+// Neuron Link: tiles turn by click and by keyboard, the solve pause ignores clicks, an 8x8 board fits a 360x640
+// phone, clicks still land after a resize, and a full 2-minute round of solved boards saves.
+{
+    const on=name=>waitFor(`window.__gameDebug?.screen===${JSON.stringify(name)}`);
+    const st=expr=>evaluate(`(()=>{const s=window.__gameDebug.state;return ${expr};})()`);
+    const key=(k,code,vk)=>call('Input.dispatchKeyEvent',{type:'keyDown',key:k,code,windowsVirtualKeyCode:vk}).then(()=>call('Input.dispatchKeyEvent',{type:'keyUp',key:k,code,windowsVirtualKeyCode:vk}));
+    const click=async(r,c)=>{const p=await evaluate(`window.__gameDebug.tileCenter(${r},${c})`);
+        await call('Input.dispatchMouseEvent',{type:'mousePressed',x:p.x,y:p.y,button:'left',clickCount:1});
+        await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:p.x,y:p.y,button:'left',clickCount:1});};
+    // The next path tile not yet as the solved board has it, as [r, c] (a straight looks the same either way up).
+    const nextTap=()=>st(`(()=>{const b=s.board,i=b.path.find(p=>b.tiles[p]!==b.want[p]);return i===undefined?null:[Math.floor(i/b.n),i%b.n];})()`);
+    const solveBoard=async()=>{const before=await st('s.boardsSolved');
+        for(let k=0;k<300&&await st('s.pause')===0&&!await st('s.over');k++){const t=await nextTap();if(!t)break;await click(...t);}
+        return (await st('s.boardsSolved'))>before;};
+    await evaluate(`localStorage.removeItem('anthropotomy_game_settings')`);
+    await navigate('/student/play.html?game=neuron-link&seed=1');
+    assert.ok(await on('tap'),'Neuron Link loads');
+    await evaluate(`document.getElementById('tapStart').click()`);
+    assert.ok(await on('menu'),'Neuron Link opens its menu');
+    await evaluate(`document.querySelector('#s-menu [data-action="new"]').click()`);
+    await evaluate(`document.querySelector('[data-level="easy"]').click();document.getElementById('startRound').click()`);
+    assert.ok(await on('playing'),'The round starts after the countdown');
+    assert.ok(await evaluate(`!document.getElementById('hudTime').hidden&&document.getElementById('hudLives').hidden&&document.getElementById('hudDistance').hidden&&document.getElementById('hudCombo').hidden`),'The HUD shows the timer, and no hearts, distance or combo');
+    const first=await st('s.board.tiles[1]');
+    await key('ArrowRight','ArrowRight',39);
+    await key(' ','Space',32);
+    assert.equal(await st('s.board.tiles[1]'),((first<<1)|(first>>3))&15,'ArrowRight then Space turns the top row\'s second tile');
+    assert.ok(await solveBoard(),'Clicking the path tiles solves the first board');
+    const frozen=await st('JSON.stringify([s.board.tiles,s.moves])');
+    await click(0,0);
+    assert.equal(await st('JSON.stringify([s.board.tiles,s.moves])'),frozen,'Review Focus 1: a click during the solve pause changes nothing');
+    assert.ok(await waitFor(`window.__gameDebug.state.pause===0`),'The next board follows the pause');
+    await call('Emulation.setDeviceMetricsOverride',{width:360,height:640,deviceScaleFactor:1,mobile:true});
+    await pause(400);
+    await evaluate(`import('/assets/js/games/neuron-link.js').then(m=>{const s=window.__gameDebug.state;s.board=m.generateBoard(8,Math.random);s.lit=m.litTiles(s.board);s.size=8;s.moves=0;})`);
+    await pause(200);
+    const fit=await evaluate(`(()=>{const t=window.__gameDebug.tileCenter,a=t(0,0),b=t(0,1),z=t(7,7),tile=b.x-a.x,hud=document.querySelector('.hud').getBoundingClientRect().bottom;
+        return {tile,brainTop:a.y-tile/2-1.1*tile,hud,muscleBottom:z.y+tile/2+1.1*tile,left:a.x-tile/2,right:z.x+tile/2};})()`);
+    assert.ok(fit.tile>=40&&fit.left>=0&&fit.right<=360,`Review Focus 5: an 8x8 board fits 360 px with tiles of at least 40 px (${fit.tile})`);
+    assert.ok(fit.brainTop>=fit.hud&&fit.muscleBottom<=640,'Review Focus 5: the brain is below the HUD and the muscle on screen');
+    assert.ok(await solveBoard(),'Review Focus 2: after a resize, clicks still land on their tiles and solve the board');
+    await call('Emulation.clearDeviceMetricsOverride');
+    await pause(400);
+    for(let k=0;k<4000&&!await st('s.over');k++){
+        if(await st('s.pause')>0){await pause(150);continue;}
+        const t=await nextTap();if(t)await click(...t);
+    }
+    assert.ok(await on('over'),'The round ends when the 2 minutes are up');
+    assert.ok(await st('s.boardsSolved')>=3,'Several boards were solved');
+    assert.ok(await waitFor(`document.getElementById('saveStatus').textContent.trim().startsWith('Saved')`),'The round saves');
+    await evaluate(`document.getElementById('overExit').click()`);
+}
 // The Games page: one card per finished game (only Germ Smash) with the student's best, this week's points and the badges.
 {
     assert.ok(await waitFor(`location.pathname==='/student/games.html'&&document.readyState==='complete'`),'Exit to Games opens the student Games page');
     const data=await gameBoard();
     assert.ok(await waitFor(`document.querySelector('#gameGallery .game-card-best')?.dataset.loaded==='true'`),'The gallery loads the best score');
-    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.dataset.game,c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-desc').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['germ-smash','Germ Smash','Smash the germs, spare the good bacteria.','play.html?game=germ-smash'],['cell-runner','Cell Runner','Race through the bloodstream and deliver oxygen.','play.html?game=cell-runner']],'The gallery shows a card for each finished game, whose Play button opens its play page');
+    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.dataset.game,c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-desc').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['germ-smash','Germ Smash','Smash the germs, spare the good bacteria.','play.html?game=germ-smash'],['cell-runner','Cell Runner','Race through the bloodstream and deliver oxygen.','play.html?game=cell-runner'],['neuron-link','Neuron Link','Connect the brain to the muscle and fire the signal.','play.html?game=neuron-link']],'The gallery shows a card for each finished game, whose Play button opens its play page');
     assert.equal(data.best.all_time,Math.max(startBest,...roundScores),'The saved best is the best round');
     assert.equal(await evaluate(`document.querySelector('#gameGallery .game-card-best-value').textContent`),fmt(data.best.all_time),'The card shows the best score just saved');
     assert.ok(await evaluate(`!/match pairs|sort it|beat the clock|unscramble|3d hunt/i.test(document.body.innerText+' '+[...document.querySelectorAll('*')].flatMap(e=>[...e.attributes].map(a=>a.value)).join(' '))`),'No element mentions Match Pairs, Sort It, Beat the Clock, Unscramble or 3D Hunt');

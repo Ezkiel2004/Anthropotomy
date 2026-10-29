@@ -186,3 +186,21 @@ test('a bot tapping par moves 10 times a second stays under the server cap on ev
         assert.ok(round.state.score < 100000, `${level}: ${round.state.score}`);
     }
 });
+
+test('the default export follows the game module contract', async () => {
+    const {default: game} = await import('../../assets/js/games/neuron-link.js');
+    const {readFile} = await import('node:fs/promises');
+    const sprite = await readFile(new URL('../../assets/icons/interface.svg', import.meta.url), 'utf8');
+    assert.equal(game.key, 'neuron-link');
+    assert.equal(game.title, 'Neuron Link');
+    assert.equal(game.tagline, 'Connect the brain to the muscle and fire the signal.');
+    assert.equal(game.roundSeconds, 120);
+    assert.equal(game.stars, STARS);
+    assert.deepEqual(Object.keys(game.levels), ['easy', 'medium', 'hard']);
+    assert.equal(game.howToPlay.length, 4);
+    for (const step of game.howToPlay) assert.ok(sprite.includes(`<symbol id="${step.icon}"`), 'How to Play icon is in the sprite: ' + step.icon);
+    assert.equal(game.assets.images.brain, 'brain.webp');
+    for (const absent of ['maxLives', 'touchButtons', 'settings']) assert.equal(game[absent], undefined, absent);
+    assert.equal(typeof game.create, 'function');
+    assert.equal(typeof game.drawBackdrop, 'function');
+});

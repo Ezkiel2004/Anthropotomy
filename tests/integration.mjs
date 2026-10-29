@@ -355,6 +355,15 @@ check((await teacher('students.php?id='+legacyPlayer.id,'PUT',{is_active:false})
     const board=await student('games/leaderboard.php?game=cell-runner');
     check(board.success&&board.data.game==='cell-runner'&&board.data.best.all_time===250000,'Cell Runner has its own board and best');
 }
+{
+    const round=(over={})=>({game_key:'neuron-link',difficulty:'easy',score:3000,duration_sec:120,stats:{hits:6,misses:9,friendly_hits:0,best_combo:2},...over});
+    const saved=await student('games/plays.php','POST',round());
+    check(saved.success&&saved.data.points===3000,'A Neuron Link round saves');
+    for(const ok of [{duration_sec:115},{duration_sec:135},{score:100000}])check((await student('games/plays.php','POST',round(ok))).success,'Neuron Link accepts '+JSON.stringify(ok));
+    for(const bad of [{duration_sec:114},{duration_sec:136},{score:100001}])check((await student('games/plays.php','POST',round(bad))).status===422,'Neuron Link rejects '+JSON.stringify(bad));
+    const board=await student('games/leaderboard.php?game=neuron-link');
+    check(board.success&&board.data.game==='neuron-link'&&board.data.best.all_time===100000,'Neuron Link has its own board and best');
+}
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');

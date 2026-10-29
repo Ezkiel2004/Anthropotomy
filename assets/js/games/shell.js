@@ -14,6 +14,12 @@ export const GAMES = {
         tagline: 'Race through the bloodstream and deliver oxygen.',
         card: '../assets/games/cell-runner/card.webp',
         load: () => import('./cell-runner.js')
+    },
+    'neuron-link': {
+        title: 'Neuron Link',
+        tagline: 'Connect the brain to the muscle and fire the signal.',
+        card: '../assets/games/neuron-link/card.webp',
+        load: () => import('./neuron-link.js')
     }
 };
 
@@ -840,6 +846,7 @@ export function boot() {
             get state() { return instance ? instance.state : null; },
             poreCenter: i => (instance && instance.poreCenter ? instance.poreCenter(i) : null),
             cellBox: () => (instance && instance.cellBox ? instance.cellBox() : null),
+            tileCenter: (r, c) => (instance && instance.tileCenter ? instance.tileCenter(r, c) : null),
             get screen() { return screen; },
             get sounds() { return Object.keys(buffers); }
         };
@@ -901,18 +908,20 @@ export function boot() {
     $('setMusicVolume').addEventListener('input', event => changeSettings({musicVolume: Number(event.target.value)}));
 
     // A game with swipe() decides on release whether a press was a swipe or a tap; other games get taps at once.
-    let press = null;
+    // Each finger's press is kept by its pointer id, so a second finger never borrows another's start.
+    const presses = new Map();
     canvas.addEventListener('pointerdown', event => {
         if (screen !== 'playing' || !instance) return;
         event.preventDefault();
         const box = canvas.getBoundingClientRect();
         const x = event.clientX - box.left, y = event.clientY - box.top;
-        if (instance.swipe) press = {x, y, at: performance.now()};
+        if (instance.swipe) presses.set(event.pointerId, {x, y, at: performance.now()});
         else instance.pointer(x, y);
     });
+    window.addEventListener('pointercancel', event => presses.delete(event.pointerId));
     window.addEventListener('pointerup', event => {
-        const start = press;
-        press = null;
+        const start = presses.get(event.pointerId);
+        presses.delete(event.pointerId);
         if (!start || screen !== 'playing' || !instance) return;
         const box = canvas.getBoundingClientRect();
         const direction = swipeDirection(event.clientX - box.left - start.x, event.clientY - box.top - start.y, performance.now() - start.at);
@@ -933,7 +942,7 @@ export function boot() {
         event.preventDefault();
         const next = items[(index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length];
         next.focus();
-        if (next.getAttribute('role') === 'radio') selectLevel(next.dataset.level);
+        if (next.getAttribute('role') === 'radio' && next.dataset.level) selectLevel(next.dataset.level);
     });
 
     document.addEventListener('keydown', event => {

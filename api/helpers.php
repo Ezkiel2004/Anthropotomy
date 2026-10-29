@@ -27,7 +27,9 @@ const BADGE_METRICS = [
 const GAMES = [
     'germ-smash' => ['title' => 'Germ Smash', 'max_score' => 20000, 'min_sec' => 55, 'max_sec' => 75],
     // Endless: a run lasts until the 3rd hit; 250000 is above a perfect 15-minute Hard run.
-    'cell-runner' => ['title' => 'Cell Runner', 'max_score' => 250000, 'min_sec' => 5, 'max_sec' => 900]
+    'cell-runner' => ['title' => 'Cell Runner', 'max_score' => 250000, 'min_sec' => 5, 'max_sec' => 900],
+    // A 2-minute round; 100000 is above a bot tapping par moves 10 times a second.
+    'neuron-link' => ['title' => 'Neuron Link', 'max_score' => 100000, 'min_sec' => 115, 'max_sec' => 135]
 ];
 
 set_exception_handler(function (Throwable $error): void {

@@ -13,12 +13,16 @@ export const MAX_OXYGEN = 5;
 export const GATE_EVERY = 400;     // metres between organ gates
 export const SPAWN_Z = 120;        // rows and gates appear this far ahead of the cell (metres)
 export const INVULNERABLE = 1.5;   // seconds of blinking after a hit
+export const MAX_SECONDS = 899;   // a run ends here, inside the server's 900 s limit, so a long run still saves
 const FIRST_ROW = 40;
 const GATE_CLEARANCE = 8;          // no hazard row this close to a gate, so the gate stays readable
 const ORGANS = ['heart', 'lungs', 'kidney', 'brain'];
 
 // x1, then x2 from the 2nd delivery in a row, then x3 from the 4th.
 export const deliveryMultiplier = streak => (streak >= 4 ? 3 : streak >= 2 ? 2 : 1);
+
+// Gates first (they span the tube, and their organ would hide the hazards behind it), then far to near.
+export const drawOrder = objects => [...objects].sort((a, b) => (b.kind === 'gate') - (a.kind === 'gate') || b.z - a.z);
 
 export function createRun(level, rng) {
     const config = LEVELS[level];
@@ -114,8 +118,8 @@ export function createRun(level, rng) {
         }
 
         state.score = Math.floor(state.distance) + state.bubblePoints + state.deliveryPoints;
-        if (state.lives <= 0) {
-            state.lives = 0;
+        if (state.lives <= 0 || state.time >= MAX_SECONDS) {
+            state.lives = Math.max(0, state.lives);
             state.over = true;
             events.push({type: 'end'});
         }
@@ -308,7 +312,7 @@ function create(canvas, api) {
         ctx.save();
         if (shake > 0) ctx.translate((random() - 0.5) * 12, (random() - 0.5) * 12);
         drawTunnel(ctx, view, state.distance, clock, api.reducedMotion, particles);
-        for (const object of [...state.objects].sort((a, b) => b.z - a.z)) {
+        for (const object of drawOrder(state.objects)) {
             if (object.z > SPAWN_Z) continue;
             const size = sizeOf(object.kind), alpha = clamp01((SPAWN_Z - object.z) / 18);
             if (object.kind === 'gate') {
