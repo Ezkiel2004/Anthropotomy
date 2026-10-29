@@ -18,6 +18,8 @@
 <div class="hud" id="hud" hidden>
   <div class="hud-score"><span class="hud-label">Score</span><b id="hudScore">0</b></div>
   <span class="hud-combo" id="hudCombo"><span class="sr-only">Combo </span><span id="hudComboText">×1</span></span>
+  <span class="hud-lives" id="hudLives" role="img" aria-label="Lives" hidden></span>
+  <span class="hud-distance" id="hudDistance" hidden><b id="hudDistanceText">0 m</b></span>
 </div>
 <div class="play-top">
   <div class="hud-time" id="hudTime" hidden><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#clock"/></svg><b id="hudTimeText">1:00</b><span class="sr-only"> left</span></div>
@@ -25,6 +27,10 @@
   <button class="icon-btn mute-btn" id="muteBtn" type="button" aria-label="Mute sound" aria-pressed="false"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#speaker-high"/></svg></button>
 </div>
 
+<div class="touch-controls" id="touchControls" hidden>
+  <button class="touch-btn" id="touchLeft" type="button" aria-label="Move left"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-left"/></svg></button>
+  <button class="touch-btn" id="touchRight" type="button" aria-label="Move right"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#arrow-right"/></svg></button>
+</div>
 <div class="countdown" id="countdown" aria-hidden="true"></div>
 <p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
 
@@ -78,6 +84,7 @@
     <div class="row slider" id="musicVolumeRow"><input type="range" min="0" max="100" step="1" id="setMusicVolume" aria-label="Music volume"/><span class="sub" id="musicVolumeText">Volume 50</span></div>
     <div class="row"><label for="setMotion"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#eye-slash"/></svg>Reduce motion</label><span class="switch"><input type="checkbox" role="switch" id="setMotion"/><span></span></span></div>
     <div class="row" id="vibrationRow" hidden><label for="setVibration"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pulse"/></svg>Vibration</label><span class="switch"><input type="checkbox" role="switch" id="setVibration"/><span></span></span></div>
+    <div id="gameSettings"></div>
   </section>
 
   <section class="screen scores" id="s-scores" hidden aria-labelledby="scoresTitle">

@@ -11,16 +11,42 @@ export const GAMES = {
     }
 };
 
-export const DEFAULT_SETTINGS = {sfx: true, sfxVolume: 80, music: true, musicVolume: 50, reduceMotion: false, vibration: true};
+export const DEFAULT_SETTINGS = Object.freeze({sfx: true, sfxVolume: 80, music: true, musicVolume: 50, reduceMotion: false, vibration: true, games: Object.freeze({})});
 
 const SETTINGS_KEY = 'anthropotomy_game_settings';
 const FLAGS = ['sfx', 'music', 'reduceMotion', 'vibration'];
 const VOLUMES = ['sfxVolume', 'musicVolume'];
 
+const isPlain = value => !!value && typeof value === 'object' && !Array.isArray(value);
+
+// Each game's own settings: {gameKey: {name: value}}, strings only, at most 20 games and 20 names each.
+function cleanGames(games) {
+    const clean = {};
+    if (!isPlain(games)) return clean;
+    for (const [game, values] of Object.entries(games).slice(0, 20)) {
+        if (!isPlain(values)) continue;
+        clean[game] = {};
+        for (const [name, value] of Object.entries(values).slice(0, 20)) if (typeof value === 'string') clean[game][name] = value;
+    }
+    return clean;
+}
+
+// A game setting's value: the stored one when it is one of the declared options, otherwise the default.
+export function gameSettingValue(settings, gameKey, decl) {
+    const stored = settings && settings.games && settings.games[gameKey] && settings.games[gameKey][decl.key];
+    return decl.options.some(([value]) => value === stored) ? stored : decl.default;
+}
+
+// A swipe is a quick, long, mostly sideways stroke: at least 30 px, 1.5 times wider than tall, within 600 ms.
+export function swipeDirection(dx, dy, ms) {
+    if (Math.abs(dx) < 30 || Math.abs(dx) <= 1.5 * Math.abs(dy) || ms > 600) return null;
+    return dx > 0 ? 'right' : 'left';
+}
+
 const volume = (value, fallback) => (typeof value === 'number' && Number.isFinite(value) ? Math.min(100, Math.max(0, Math.round(value))) : fallback);
 
 export function loadSettings(storage, prefersReducedMotion) {
-    const settings = {...DEFAULT_SETTINGS, reduceMotion: !!prefersReducedMotion};
+    const settings = {...DEFAULT_SETTINGS, reduceMotion: !!prefersReducedMotion, games: {}};
     let stored;
     try {
         stored = JSON.parse(storage.getItem(SETTINGS_KEY));
@@ -30,6 +56,7 @@ export function loadSettings(storage, prefersReducedMotion) {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return settings;
     for (const key of FLAGS) if (typeof stored[key] === 'boolean') settings[key] = stored[key];
     for (const key of VOLUMES) settings[key] = volume(stored[key], DEFAULT_SETTINGS[key]);
+    settings.games = cleanGames(stored.games);
     return settings;
 }
 
@@ -37,6 +64,7 @@ export function saveSettings(storage, settings) {
     try {
         const known = {};
         for (const key of Object.keys(DEFAULT_SETTINGS)) known[key] = settings[key];
+        known.games = cleanGames(settings.games);
         storage.setItem(SETTINGS_KEY, JSON.stringify(known));
         return true;
     } catch {
@@ -185,6 +213,9 @@ export function boot() {
     let audio = null, unlocked = false, musicBuffer = null, musicNode = null, musicGain = null;
     // A game without music has no Music setting, so its sound effects alone decide whether it is muted.
     const hasMusic = () => !!(game && game.assets && game.assets.music);
+    // This game's own settings (Cell Runner's Controls, say), each one valid or its default.
+    const gameSettings = () => Object.fromEntries(((game && game.settings) || []).map(decl => [decl.key, gameSettingValue(settings, key, decl)]));
+    const touchOn = () => !!(game && game.touchButtons && gameSettings().controls === 'buttons');
     const isMuted = () => !settings.sfx && (!hasMusic() || !settings.music);
     const buffers = {};
 
@@ -245,6 +276,7 @@ export function boot() {
             if (!settings.vibration || !canVibrate) return;
             try { navigator.vibrate(ms); } catch { /* not allowed here */ }
         },
+        get gameSettings() { return gameSettings(); },
         hud,
         gameOver
     };
@@ -264,7 +296,10 @@ export function boot() {
         const pausedView = name === 'paused' || (name === 'settings' && settingsFrom === 'pause');
         const roundShown = !!round && round.phase !== 'over' && (live || pausedView);
         $('hud').hidden = !roundShown;
-        $('hudTime').hidden = !roundShown;
+        $('hudTime').hidden = !roundShown || typeof game.roundSeconds !== 'number';
+        $('hudLives').hidden = !roundShown || typeof game.maxLives !== 'number';
+        $('hudDistance').hidden = !roundShown || game.roundSeconds !== null;
+        $('touchControls').hidden = !(live && touchOn());
         $('pauseBtn').hidden = !live;
         document.body.classList.toggle('is-round', !!round && (roundShown || name === 'over'));
         document.body.classList.toggle('is-dim', pausedView || name === 'over');
@@ -432,7 +467,36 @@ export function boot() {
     }
 
     // ── Settings ──
+    function renderGameSettings() {
+        const rows = ((game && game.settings) || []).map(decl => {
+            const value = gameSettingValue(settings, key, decl);
+            const row = element('div', 'row choice');
+            const label = element('span', 'choice-label', decl.label);
+            label.id = `gameSetting-${decl.key}`;
+            const group = element('div', 'choice-options');
+            group.setAttribute('role', 'radiogroup');
+            group.setAttribute('aria-labelledby', label.id);
+            for (const [optionValue, text] of decl.options) {
+                const option = element('button', '', text);
+                option.type = 'button';
+                option.dataset.value = optionValue;
+                option.setAttribute('role', 'radio');
+                option.setAttribute('aria-checked', String(optionValue === value));
+                option.addEventListener('click', () => {
+                    const games = {...settings.games, [key]: {...(settings.games[key] || {}), [decl.key]: optionValue}};
+                    changeSettings({games});
+                    $('gameSettings').querySelector(`[data-value="${optionValue}"]`)?.focus();
+                });
+                group.append(option);
+            }
+            row.append(label, group);
+            return row;
+        });
+        $('gameSettings').replaceChildren(...rows);
+    }
+
     function renderSettings() {
+        renderGameSettings();
         $('setSfx').checked = settings.sfx;
         $('setSfxVolume').value = settings.sfxVolume;
         $('sfxVolumeText').textContent = `Volume ${settings.sfxVolume}`;
@@ -455,7 +519,7 @@ export function boot() {
     }
 
     // ── The heads-up display ──
-    function hud({score, combo, timeLeft}) {
+    function hud({score, combo, timeLeft, lives, distance}) {
         if (!round) return;
         const shown = round.hud;
         if (score !== shown.score) {
@@ -470,6 +534,18 @@ export function boot() {
             badge.classList.toggle('is-hot', combo > 1);
             if (rose) { badge.classList.remove('pulse'); void badge.offsetWidth; badge.classList.add('pulse'); }
         }
+        if (typeof lives === 'number' && lives !== shown.lives) {
+            shown.lives = lives;
+            const max = game.maxLives;
+            const hearts = Array.from({length: max}, (_, i) => Object.assign(document.createElement('span'), {className: i < lives ? 'heart' : 'heart is-empty'}));
+            $('hudLives').replaceChildren(...hearts);
+            $('hudLives').setAttribute('aria-label', `Lives: ${lives} of ${max}`);
+        }
+        if (typeof distance === 'number') {
+            const metres = `${formatScore(Math.floor(distance))} m`;
+            if (metres !== shown.metres) { shown.metres = metres; $('hudDistanceText').textContent = metres; }
+        }
+        if (typeof timeLeft !== 'number') return;
         const time = formatTime(timeLeft);
         if (time !== shown.time) {
             shown.time = time;
@@ -816,12 +892,28 @@ export function boot() {
     $('setSfxVolume').addEventListener('change', () => sound('pop'));
     $('setMusicVolume').addEventListener('input', event => changeSettings({musicVolume: Number(event.target.value)}));
 
+    // A game with swipe() decides on release whether a press was a swipe or a tap; other games get taps at once.
+    let press = null;
     canvas.addEventListener('pointerdown', event => {
         if (screen !== 'playing' || !instance) return;
         event.preventDefault();
         const box = canvas.getBoundingClientRect();
-        instance.pointer(event.clientX - box.left, event.clientY - box.top);
+        const x = event.clientX - box.left, y = event.clientY - box.top;
+        if (instance.swipe) press = {x, y, at: performance.now()};
+        else instance.pointer(x, y);
     });
+    window.addEventListener('pointerup', event => {
+        const start = press;
+        press = null;
+        if (!start || screen !== 'playing' || !instance) return;
+        const box = canvas.getBoundingClientRect();
+        const direction = swipeDirection(event.clientX - box.left - start.x, event.clientY - box.top - start.y, performance.now() - start.at);
+        if (direction) instance.swipe(direction);
+        else if (instance.pointer) instance.pointer(start.x, start.y);
+    });
+    for (const [id, code] of [['touchLeft', 'ArrowLeft'], ['touchRight', 'ArrowRight']]) {
+        $(id).addEventListener('click', () => { if (screen === 'playing' && instance) instance.key(code); });
+    }
 
     // Up and Down move through the open screen's controls; Enter and Space press them as usual.
     panel.addEventListener('keydown', event => {

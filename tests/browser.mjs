@@ -435,6 +435,7 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     assert.ok(await onScreen('playing'),'The countdown ends and the round starts');
     assert.equal(await evaluate(`document.getElementById('hudScore').textContent`),'0','The HUD starts at 0');
     assert.equal(await evaluate(`document.getElementById('hudTimeText').textContent`),'1:00','The HUD starts at 1:00');
+    assert.ok(await evaluate(`!document.getElementById('hudTime').hidden&&document.getElementById('hudLives').hidden&&document.getElementById('hudDistance').hidden`),'Germ Smash keeps its timed HUD: no hearts, no distance');
     assert.ok(await smashGerm(),'Tapping a germ where it is drawn raises the score');
     assert.equal(await evaluate(`document.getElementById('hudScore').textContent`),String(await evaluate('window.__gameDebug.state.score')),'The HUD shows the new score');
     await press('p','KeyP',80);

@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, bestScore, boardView, boot, gameEntry, soundUrl, wakeAudio, newRoundId} from '../../assets/js/games/shell.js';
+import {GAMES, DEFAULT_SETTINGS, loadSettings, saveSettings, makeRng, starsFor, formatTime, saveOutcome, bestScore, boardView, boot, gameEntry, soundUrl, wakeAudio, newRoundId, swipeDirection, gameSettingValue} from '../../assets/js/games/shell.js';
 import {STARS} from '../../assets/js/games/germ-smash.js';
 
 const KEY = 'anthropotomy_game_settings';
 const store = (stored) => ({getItem: (key) => (key === KEY ? stored : null), setItem() {}});
 
 test('constants match the brief', () => {
-    assert.deepEqual(DEFAULT_SETTINGS, {sfx: true, sfxVolume: 80, music: true, musicVolume: 50, reduceMotion: false, vibration: true});
+    assert.deepEqual(DEFAULT_SETTINGS, {sfx: true, sfxVolume: 80, music: true, musicVolume: 50, reduceMotion: false, vibration: true, games: {}});
     assert.equal(GAMES['germ-smash'].title, 'Germ Smash');
     assert.equal(GAMES['germ-smash'].tagline, 'Smash the germs, spare the good bacteria.');
     assert.equal(GAMES['germ-smash'].card, '../assets/games/germ-smash/card.webp');
@@ -87,7 +87,7 @@ test('saveSettings returns false when storage is missing or throws', () => {
 test('saved settings load back unchanged', () => {
     const data = {};
     const storage = {getItem: (key) => data[key] ?? null, setItem: (key, value) => { data[key] = value; }};
-    const custom = {sfx: false, sfxVolume: 10, music: false, musicVolume: 90, reduceMotion: true, vibration: false};
+    const custom = {sfx: false, sfxVolume: 10, music: false, musicVolume: 90, reduceMotion: true, vibration: false, games: {'cell-runner': {controls: 'buttons'}}};
     saveSettings(storage, custom);
     assert.deepEqual(loadSettings(storage, false), custom);
 });
@@ -204,4 +204,27 @@ test('newRoundId makes a 32-character lowercase hex id that differs each round',
     const a = newRoundId(), b = newRoundId();
     assert.match(a, /^[a-f0-9]{32}$/);
     assert.notEqual(a, b);
+});
+
+test('swipeDirection needs a quick, long, mostly horizontal stroke', () => {
+    assert.equal(swipeDirection(40, 5, 200), 'right');
+    assert.equal(swipeDirection(-40, 5, 200), 'left');
+    assert.equal(swipeDirection(20, 0, 100), null, 'too short');
+    assert.equal(swipeDirection(40, 40, 100), null, 'too diagonal');
+    assert.equal(swipeDirection(40, 0, 700), null, 'too slow');
+});
+
+test('game settings are stored per game and fall back to the declared default', () => {
+    const store = value => ({getItem: () => JSON.stringify(value), setItem() {}});
+    assert.deepEqual(loadSettings(store({games: {'cell-runner': {controls: 'buttons'}}}), false).games, {'cell-runner': {controls: 'buttons'}});
+    assert.deepEqual(loadSettings(store({games: {x: {y: 5}}}), false).games, {x: {}});
+    assert.deepEqual(loadSettings(store({games: []}), false).games, {});
+    assert.deepEqual(loadSettings(store({}), false).games, {});
+    const decl = {key: 'controls', options: [['swipe', 'Swipe'], ['buttons', 'On-screen buttons']], default: 'swipe'};
+    assert.equal(gameSettingValue({games: {'cell-runner': {controls: 'buttons'}}}, 'cell-runner', decl), 'buttons');
+    assert.equal(gameSettingValue({games: {'cell-runner': {controls: 'joystick'}}}, 'cell-runner', decl), 'swipe');
+    assert.equal(gameSettingValue({games: {}}, 'cell-runner', decl), 'swipe');
+    let written = null;
+    assert.equal(saveSettings({setItem: (k, v) => { written = JSON.parse(v); }}, {...DEFAULT_SETTINGS, games: {'cell-runner': {controls: 'buttons'}}}), true);
+    assert.deepEqual(written.games, {'cell-runner': {controls: 'buttons'}});
 });
