@@ -639,6 +639,7 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     await evaluate(`localStorage.removeItem('anthropotomy_game_settings')`);
     await navigate('/student/play.html?game=neuron-link&seed=1');
     assert.ok(await on('tap'),'Neuron Link loads');
+    assert.deepEqual(await evaluate(`window.__gameDebug.sounds.sort()`),['beep','gameover','solve','turn','zap'],'Neuron Link loads its 5 sounds');
     await evaluate(`document.getElementById('tapStart').click()`);
     assert.ok(await on('menu'),'Neuron Link opens its menu');
     await evaluate(`document.querySelector('#s-menu [data-action="new"]').click()`);

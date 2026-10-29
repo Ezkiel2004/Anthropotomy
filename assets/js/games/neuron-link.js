@@ -328,13 +328,11 @@ function create(canvas, api) {
         else drawMuscleShape(ctx, tile * 1.9, tile * 0.95);
         ctx.restore();
         ctx.restore();
-        // Board, size, moves and par, top centre (two short lines fit between the HUD and the buttons on a phone).
+        // Board, size, moves and par along the bottom edge, which this game leaves free (the HUD and buttons hold the top).
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-        ctx.fillText(`Board ${state.boardsSolved + (state.pause > 0 ? 0 : 1)} · ${n}×${n}`, w / 2, 28);
-        ctx.fillStyle = 'rgba(255,255,255,0.65)';
-        ctx.fillText(`Moves ${state.moves} / Par ${board.par}`, w / 2, 46);
+        ctx.fillText(`Board ${state.boardsSolved + (state.pause > 0 ? 0 : 1)} · ${n}×${n} · Moves ${state.moves} / Par ${board.par}`, w / 2, view.h - 20);
         ctx.font = '400 26px Bungee, sans-serif';
         for (const f of floats) {
             ctx.globalAlpha = Math.max(0, Math.min(1, f.life * 2));
@@ -431,8 +429,8 @@ export default {
     ],
     levels: {easy: 'Boards from 4×4 to 6×6', medium: 'Boards from 5×5 to 7×7', hard: 'Boards from 6×6 to 8×8'},
     assets: {
-        images: {brain: 'brain.webp'},
-        sounds: {}
+        images: {brain: 'brain.webp', muscle: 'muscle.webp'},
+        sounds: {turn: 'turn.ogg', zap: 'zap.ogg', solve: 'solve.ogg', beep: 'beep.ogg', gameover: 'gameover.ogg'}
     },
     stars: STARS,
     roundSeconds: ROUND_SECONDS,

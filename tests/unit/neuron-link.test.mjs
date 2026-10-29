@@ -204,3 +204,16 @@ test('the default export follows the game module contract', async () => {
     assert.equal(typeof game.create, 'function');
     assert.equal(typeof game.drawBackdrop, 'function');
 });
+
+test('the muscle and card art and the 5 sounds are on disk, each sound with an .m4a copy for iPhones', async () => {
+    const {default: game} = await import('../../assets/js/games/neuron-link.js');
+    const {existsSync} = await import('node:fs');
+    const dir = new URL('../../assets/games/neuron-link/', import.meta.url);
+    assert.equal(game.assets.images.muscle, 'muscle.webp');
+    assert.deepEqual(game.assets.sounds, {turn: 'turn.ogg', zap: 'zap.ogg', solve: 'solve.ogg', beep: 'beep.ogg', gameover: 'gameover.ogg'});
+    for (const file of [...Object.values(game.assets.images), 'card.webp']) assert.ok(existsSync(new URL(file, dir)), 'image ' + file);
+    for (const file of Object.values(game.assets.sounds)) {
+        assert.ok(existsSync(new URL(file, dir)), 'sound ' + file);
+        assert.ok(existsSync(new URL(file.replace(/\.ogg$/, '.m4a'), dir)), 'iPhone copy of ' + file);
+    }
+});

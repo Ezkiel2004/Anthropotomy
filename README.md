@@ -64,6 +64,8 @@ Germ Smash's characters and gallery card are Blender renders in `assets/games/ge
 
 Cell Runner's red blood cell, clot and gallery card are Blender renders in `assets/games/cell-runner/`; its viruses are Germ Smash's germs and its organ gates reuse the landing page's heart, lungs, kidney and brain renders. Its sounds are copies of Germ Smash's Kenney.nl effects (CC0).
 
+Neuron Link's muscle is a Blender render and its gallery card a screenshot of the game, both in `assets/games/neuron-link/`; its brain reuses the landing page's nervous-system render. Its sounds are copies of Germ Smash's Kenney.nl effects (CC0).
+
 ## Database behavior
 
 - The requested cleanup removed 10 sample student accounts and 36 lessons, with dependent student progress and submissions removed by foreign keys. Both teacher accounts were preserved.
