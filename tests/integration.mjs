@@ -346,6 +346,15 @@ check((await teacher('students.php?id='+legacyPlayer.id,'PUT',{is_active:false})
     check((await student('games/plays.php','POST',round({round_id:'f'.repeat(32)}))).success&&await playedCount()===before+2,'A different round_id is a new round');
     for(const bad of ['short','Z'.repeat(32),123])check((await student('games/plays.php','POST',round({round_id:bad}))).status===422,'Malformed round_id rejected: '+JSON.stringify(bad));
 }
+{
+    const run=(over={})=>({game_key:'cell-runner',difficulty:'easy',score:3000,duration_sec:120,stats:{hits:12,misses:3,friendly_hits:0,best_combo:7},...over});
+    const saved=await student('games/plays.php','POST',run());
+    check(saved.success&&saved.data.points===3000,'A Cell Runner run saves');
+    for(const ok of [{duration_sec:5},{duration_sec:900},{score:250000}])check((await student('games/plays.php','POST',run(ok))).success,'Cell Runner accepts '+JSON.stringify(ok));
+    for(const bad of [{duration_sec:4},{duration_sec:901},{score:250001}])check((await student('games/plays.php','POST',run(bad))).status===422,'Cell Runner rejects '+JSON.stringify(bad));
+    const board=await student('games/leaderboard.php?game=cell-runner');
+    check(board.success&&board.data.game==='cell-runner'&&board.data.best.all_time===250000,'Cell Runner has its own board and best');
+}
 check((await teacher('students.php?id='+uid,'PUT',{is_active:false})).success,'Deactivate student');
 check((await student('scores.php')).status===401,'Existing session denied immediately after deactivation');
 check((await teacher('students.php?id='+uid,'PUT',{is_active:true})).success,'Reactivate test student');

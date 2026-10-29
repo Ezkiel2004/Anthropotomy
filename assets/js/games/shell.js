@@ -8,6 +8,12 @@ export const GAMES = {
         tagline: 'Smash the germs, spare the good bacteria.',
         card: '../assets/games/germ-smash/card.webp',
         load: () => import('./germ-smash.js')
+    },
+    'cell-runner': {
+        title: 'Cell Runner',
+        tagline: 'Race through the bloodstream and deliver oxygen.',
+        card: '../assets/games/cell-runner/card.webp',
+        load: () => import('./cell-runner.js')
     }
 };
 
@@ -526,7 +532,8 @@ export function boot() {
             shown.score = score;
             $('hudScore').textContent = formatScore(score);
         }
-        if (combo !== shown.combo) {
+        $('hudCombo').hidden = typeof combo !== 'number';
+        if (typeof combo === 'number' && combo !== shown.combo) {
             const rose = shown.combo !== undefined && combo > shown.combo;
             shown.combo = combo;
             const badge = $('hudCombo');
@@ -832,6 +839,7 @@ export function boot() {
         window.__gameDebug = {
             get state() { return instance ? instance.state : null; },
             poreCenter: i => (instance && instance.poreCenter ? instance.poreCenter(i) : null),
+            cellBox: () => (instance && instance.cellBox ? instance.cellBox() : null),
             get screen() { return screen; },
             get sounds() { return Object.keys(buffers); }
         };

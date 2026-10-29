@@ -198,11 +198,11 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
         await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowRight',code:'ArrowRight',windowsVirtualKeyCode:39});
         assert.ok(await evaluate(`document.activeElement.id==='tab-badges'&&document.getElementById('tab-badges').getAttribute('aria-selected')==='true'&&!document.getElementById('panel-badges').hidden`),'Arrow keys move between tabs');
         await evaluate(`document.getElementById('tab-leaderboard').click()`);
-        assert.deepEqual(await evaluate(`[...document.querySelectorAll('a.tg-try')].map(a=>[a.textContent.trim(),a.getAttribute('href')])`),[['Try Germ Smash','../student/play.html?game=germ-smash']],'A Try link for each game opens it on the play page');
+        assert.deepEqual(await evaluate(`[...document.querySelectorAll('a.tg-try')].map(a=>[a.textContent.trim(),a.getAttribute('href')])`),[['Try Germ Smash','../student/play.html?game=germ-smash'],['Try Cell Runner','../student/play.html?game=cell-runner']],'A Try link for each game opens it on the play page');
         // The leaderboard: a section and a game filter. All games is the points board; one game ranks weekly best scores.
         const sections=['Rizal','Bonifacio','Mabini','Luna'];
         assert.deepEqual(await evaluate(`[...document.getElementById('boardSection').options].map(o=>o.value)`),sections,'The section picker lists the 4 sections');
-        assert.deepEqual(await evaluate(`[...document.getElementById('boardGame').options].map(o=>[o.value,o.textContent])`),[['all','All games'],['germ-smash','Germ Smash']],'The game filter offers All games and each game');
+        assert.deepEqual(await evaluate(`[...document.getElementById('boardGame').options].map(o=>[o.value,o.textContent])`),[['all','All games'],['germ-smash','Germ Smash'],['cell-runner','Cell Runner']],'The game filter offers All games and each game');
         assert.equal(await evaluate(`document.getElementById('boardSection').value+'/'+document.getElementById('boardGame').value`),'Rizal/all','The board starts on the first section and All games');
         const board=(await api('games/leaderboard.php?section=Rizal')).top;
         assert.ok(board.length>0,'The fixture has points in Rizal this week');
@@ -549,12 +549,74 @@ const stopIntercepting=async()=>{intercept=null;await call('Fetch.disable');};
     await call('Emulation.clearDeviceMetricsOverride');
     await evaluate(`document.querySelector('#s-menu [data-action="exit"]').click()`);
 }
+// Cell Runner on the same shell: the Controls setting, on-screen buttons, hearts and distance instead of a timer,
+// swipes ignored while paused, layouts from 360x640 to 1920x1080, and a run that ends after 3 hits and saves.
+{
+    const on=name=>waitFor(`window.__gameDebug?.screen===${JSON.stringify(name)}`);
+    const st=expr=>evaluate(`(()=>{const s=window.__gameDebug.state;return ${expr};})()`);
+    const key=(k,code,vk)=>call('Input.dispatchKeyEvent',{type:'keyDown',key:k,code,windowsVirtualKeyCode:vk}).then(()=>call('Input.dispatchKeyEvent',{type:'keyUp',key:k,code,windowsVirtualKeyCode:vk}));
+    const swipe=async dx=>{const c=await evaluate(`(()=>{const r=document.querySelector('canvas').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height*0.6};})()`);
+        await call('Input.dispatchMouseEvent',{type:'mousePressed',x:c.x,y:c.y,button:'left',clickCount:1});
+        await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:c.x+dx/2,y:c.y,button:'left'});
+        await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:c.x+dx,y:c.y,button:'left',clickCount:1});};
+    // Settings persist in this browser profile, so start from the defaults whatever an earlier run chose.
+    await evaluate(`localStorage.removeItem('anthropotomy_game_settings')`);
+    await navigate('/student/play.html?game=cell-runner&seed=1');
+    assert.ok(await on('tap'),'Cell Runner loads');
+    assert.deepEqual(await evaluate(`window.__gameDebug.sounds.sort()`),['beep','bubble','crash','deliver','gameover','move'],'Cell Runner loads its 6 sounds');
+    await evaluate(`document.getElementById('tapStart').click()`);
+    assert.ok(await on('menu'),'Cell Runner opens its menu');
+    await evaluate(`document.querySelector('#s-menu [data-action="settings"]').click()`);
+    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameSettings [role="radio"]')].map(b=>[b.textContent,b.getAttribute('aria-checked')])`),[['Swipe','true'],['On-screen buttons','false']],'Settings shows Controls with Swipe chosen');
+    await evaluate(`document.querySelector('#s-settings .back').click()`);
+    await evaluate(`document.querySelector('#s-menu [data-action="new"]').click()`);
+    await evaluate(`document.querySelector('[data-level="easy"]').click();document.getElementById('startRound').click()`);
+    assert.ok(await on('playing'),'The run starts after the countdown');
+    assert.ok(await evaluate(`document.getElementById('hudTime').hidden&&!document.getElementById('hudLives').hidden&&!document.getElementById('hudDistance').hidden&&document.querySelectorAll('#hudLives .heart:not(.is-empty)').length===3`),'The HUD shows 3 hearts and a distance, and no timer');
+    assert.ok(await waitFor(`/^[\\d,]+ m$/.test(document.getElementById('hudDistanceText').textContent)&&document.getElementById('hudDistanceText').textContent!=='0 m'`),'The distance counts up');
+    assert.ok(await evaluate(`document.getElementById('touchControls').hidden`),'Swipe controls show no on-screen buttons');
+    const lane=await st('s.lane');
+    await key('ArrowRight','ArrowRight',39);
+    assert.equal(await st('s.lane'),lane+1,'The right arrow moves one lane right');
+    await swipe(-160);
+    assert.equal(await st('s.lane'),lane,'A swipe left moves one lane left');
+    await key('Escape','Escape',27);
+    assert.ok(await on('paused'),'Escape pauses the run');
+    await swipe(-160);
+    assert.equal(await st('s.lane'),lane,'Review Focus 1: a swipe while paused does not move the cell');
+    await evaluate(`document.getElementById('pauseSettingsBtn').click()`);
+    await evaluate(`[...document.querySelectorAll('#gameSettings [role="radio"]')].find(b=>b.dataset.value==='buttons').click()`);
+    await evaluate(`document.querySelector('#s-settings .back').click()`);
+    await evaluate(`document.getElementById('resumeBtn').click()`);
+    assert.ok(await on('playing'),'Resume returns to the run');
+    assert.ok(await evaluate(`!document.getElementById('touchControls').hidden`),'Review Focus 2: choosing On-screen buttons in the pause menu shows them on resume');
+    await evaluate(`document.getElementById('touchLeft').click()`);
+    assert.equal(await st('s.lane'),lane-1,'The on-screen left button moves one lane left');
+    for(const [w,h] of [[360,640],[1920,1080]]){
+        await call('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:1,mobile:w<700});
+        await pause(400);
+        const fit=await evaluate(`(()=>{const c=window.__gameDebug.cellBox(),cv=document.querySelector('canvas').getBoundingClientRect();const over=id=>{const b=document.getElementById(id).getBoundingClientRect();return !(c.x+c.w<=b.left||b.right<=c.x||c.y+c.h<=b.top||b.bottom<=c.y);};return c.x>=0&&c.y>=0&&c.x+c.w<=cv.width&&c.y+c.h<=cv.height&&!over('touchLeft')&&!over('touchRight');})()`);
+        assert.ok(fit,`Review Focus 5: at ${w}x${h} the cell is on screen and clear of the buttons`);
+    }
+    await call('Emulation.clearDeviceMetricsOverride');
+    await pause(400);
+    assert.ok(await waitFor(`window.__gameDebug.state.time>5.5`,15000),'The run has lasted long enough to be a real round');
+    // Rows the run spawned may already have cost a life, so drop clots until the lives run out.
+    for(let i=0;i<3&&!(await st('s.over'));i++){
+        const lives=await st('s.lives');
+        await st(`(s.invulnerable=0,s.objects.push({id:9e9+${i},kind:'clot',lane:s.lane,z:0.4,variant:0,organ:null,at:0}),1)`);
+        assert.ok(await waitFor(`window.__gameDebug.state.lives<${lives}`),'A clot in the cell\'s lane costs a life');
+    }
+    assert.ok(await on('over'),'Losing the third life ends the run');
+    assert.ok(await waitFor(`document.getElementById('saveStatus').textContent.trim().startsWith('Saved')`),'The run saves');
+    await evaluate(`document.getElementById('overExit').click()`);
+}
 // The Games page: one card per finished game (only Germ Smash) with the student's best, this week's points and the badges.
 {
     assert.ok(await waitFor(`location.pathname==='/student/games.html'&&document.readyState==='complete'`),'Exit to Games opens the student Games page');
     const data=await gameBoard();
     assert.ok(await waitFor(`document.querySelector('#gameGallery .game-card-best')?.dataset.loaded==='true'`),'The gallery loads the best score');
-    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.dataset.game,c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-desc').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['germ-smash','Germ Smash','Smash the germs, spare the good bacteria.','play.html?game=germ-smash']],'The gallery shows exactly one card, Germ Smash, whose Play button opens play.html?game=germ-smash');
+    assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.dataset.game,c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-desc').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['germ-smash','Germ Smash','Smash the germs, spare the good bacteria.','play.html?game=germ-smash'],['cell-runner','Cell Runner','Race through the bloodstream and deliver oxygen.','play.html?game=cell-runner']],'The gallery shows a card for each finished game, whose Play button opens its play page');
     assert.equal(data.best.all_time,Math.max(startBest,...roundScores),'The saved best is the best round');
     assert.equal(await evaluate(`document.querySelector('#gameGallery .game-card-best-value').textContent`),fmt(data.best.all_time),'The card shows the best score just saved');
     assert.ok(await evaluate(`!/match pairs|sort it|beat the clock|unscramble|3d hunt/i.test(document.body.innerText+' '+[...document.querySelectorAll('*')].flatMap(e=>[...e.attributes].map(a=>a.value)).join(' '))`),'No element mentions Match Pairs, Sort It, Beat the Clock, Unscramble or 3D Hunt');

@@ -24,7 +24,11 @@ const BADGE_METRICS = [
 ];
 
 // The arcade games. A round is rejected unless its score and length fit its game's limits.
-const GAMES = ['germ-smash' => ['title' => 'Germ Smash', 'max_score' => 20000, 'min_sec' => 55, 'max_sec' => 75]];
+const GAMES = [
+    'germ-smash' => ['title' => 'Germ Smash', 'max_score' => 20000, 'min_sec' => 55, 'max_sec' => 75],
+    // Endless: a run lasts until the 3rd hit; 250000 is above a perfect 15-minute Hard run.
+    'cell-runner' => ['title' => 'Cell Runner', 'max_score' => 250000, 'min_sec' => 5, 'max_sec' => 900]
+];
 
 set_exception_handler(function (Throwable $error): void {
     error_log((string)$error);

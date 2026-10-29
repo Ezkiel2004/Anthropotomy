@@ -163,3 +163,37 @@ test('Easy never blocks two lanes', () => {
         for (const e of run.tick(0.05)) if (e.type === 'spawn' && e.kind === 'row') assert.equal(e.blocked.length, 1);
     }
 });
+
+test('the default export follows the game module contract', async () => {
+    const {default: game} = await import('../../assets/js/games/cell-runner.js');
+    const {readFile} = await import('node:fs/promises');
+    const sprite = await readFile(new URL('../../assets/icons/interface.svg', import.meta.url), 'utf8');
+    assert.equal(game.key, 'cell-runner');
+    assert.equal(game.title, 'Cell Runner');
+    assert.equal(game.tagline, 'Race through the bloodstream and deliver oxygen.');
+    assert.equal(game.roundSeconds, null, 'endless');
+    assert.equal(game.maxLives, MAX_LIVES);
+    assert.deepEqual(game.touchButtons, ['left', 'right']);
+    assert.deepEqual(game.settings, [{key: 'controls', label: 'Controls', options: [['swipe', 'Swipe'], ['buttons', 'On-screen buttons']], default: 'swipe'}]);
+    assert.equal(game.stars, STARS);
+    assert.deepEqual(Object.keys(game.levels), ['easy', 'medium', 'hard']);
+    assert.equal(game.howToPlay.length, 4);
+    for (const step of game.howToPlay) assert.ok(sprite.includes(`<symbol id="${step.icon}"`), 'How to Play icon is in the sprite: ' + step.icon);
+    for (const name of ['germ1', 'germ2', 'germ3', 'heart', 'lungs', 'kidney', 'brain']) assert.ok(game.assets.images[name], 'image ' + name);
+    assert.equal(typeof game.create, 'function');
+    assert.equal(typeof game.drawBackdrop, 'function');
+});
+
+test('the cell, clot and card art and the 6 sounds are on disk, each sound with an .m4a copy for iPhones', async () => {
+    const {default: game} = await import('../../assets/js/games/cell-runner.js');
+    const {existsSync} = await import('node:fs');
+    const dir = new URL('../../assets/games/cell-runner/', import.meta.url);
+    assert.equal(game.assets.images.cell, 'cell.webp');
+    assert.equal(game.assets.images.clot, 'clot.webp');
+    assert.deepEqual(game.assets.sounds, {move: 'move.ogg', bubble: 'bubble.ogg', crash: 'crash.ogg', deliver: 'deliver.ogg', beep: 'beep.ogg', gameover: 'gameover.ogg'});
+    for (const file of [...Object.values(game.assets.images), 'card.webp']) assert.ok(existsSync(new URL(file, dir)), 'image ' + file);
+    for (const file of Object.values(game.assets.sounds)) {
+        assert.ok(existsSync(new URL(file, dir)), 'sound ' + file);
+        assert.ok(existsSync(new URL(file.replace(/\.ogg$/, '.m4a'), dir)), 'iPhone copy of ' + file);
+    }
+});

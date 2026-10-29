@@ -62,6 +62,8 @@ Games are quick arcade games with an anatomy theme. They never ask quiz question
 
 Germ Smash's characters and gallery card are Blender renders in `assets/games/germ-smash/`. Credits: sound effects by Kenney.nl (Interface Sounds, Impact Sounds and Music Jingles), CC0.
 
+Cell Runner's red blood cell, clot and gallery card are Blender renders in `assets/games/cell-runner/`; its viruses are Germ Smash's germs and its organ gates reuse the landing page's heart, lungs, kidney and brain renders. Its sounds are copies of Germ Smash's Kenney.nl effects (CC0).
+
 ## Database behavior
 
 - The requested cleanup removed 10 sample student accounts and 36 lessons, with dependent student progress and submissions removed by foreign keys. Both teacher accounts were preserved.

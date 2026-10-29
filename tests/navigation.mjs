@@ -88,7 +88,7 @@ for(const role of ['teacher','student']){
    // A fresh database has no rounds: the gallery still offers Germ Smash, with no score yet, and the board is empty.
    if(role==='student'&&page==='games'){
      assert.ok(await waitFor(`document.querySelector('#gameGallery .game-card-best')?.dataset.loaded==='true'`),'The gallery loads');
-     assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-best-value').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['Germ Smash','No score yet','play.html?game=germ-smash']],'An empty install offers Germ Smash with no score yet');
+     assert.deepEqual(await evaluate(`[...document.querySelectorAll('#gameGallery .game-card')].map(c=>[c.querySelector('.game-card-title').textContent,c.querySelector('.game-card-best-value').textContent,c.querySelector('a.game-play').getAttribute('href')])`),[['Germ Smash','No score yet','play.html?game=germ-smash'],['Cell Runner','No score yet','play.html?game=cell-runner']],'An empty install offers each game with no score yet');
      assert.ok(await waitFor(`!document.getElementById('leaderboardEmpty').hidden&&document.getElementById('leaderboardList').hidden`),'An empty install has an empty points board');
    }
    assert.ok(navigation.every(a=>a.icon),'Every link has an icon when collapsed');
