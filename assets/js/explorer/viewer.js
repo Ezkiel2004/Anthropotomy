@@ -103,6 +103,8 @@ export function exitPseudoFullscreen(el) {
 
 // ── Highlight ──
 export const focusPart = part => engine.focusPart(part);
+// Lays parts out in the section tray beside the body, each named by the matching entry of names.
+export const openTray = (parts, names) => engine.openTray(parts, names);
 // Calls `place` every frame with where the part's centre now sits on screen, so a bubble can stay on
 // it while the camera moves (focusing a part brings its centre into view). Returns a stop function.
 export function followPart(part, place) {

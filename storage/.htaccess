@@ -1,0 +1,2 @@
+# Teacher files are served only through api/files.php, which checks who may open each one.
+Require all denied

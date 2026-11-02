@@ -3,12 +3,12 @@
 // shows the viewer's state overlay, records student exploration analytics, and connects the viewer
 // (viewer.js) to the info panel (panel.js). Relies on the classic-script globals AnatomyData,
 // AnatomyLayersCore, AnatomyViewer, API_BASE and Auth that the page loads before this module.
-import * as viewer from './viewer.js?v=20261027-card1';
-import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection} from './panel.js?v=20261027-card1';
+import * as viewer from './viewer.js?v=20261102-tray1';
+import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection, renderClusters} from './panel.js?v=20261102-tray2';
 import {icon} from './icons.js';
 import {mergeSystem} from './data.js';
 import {factsFor} from './part-facts.js?v=20261027-card1';
-import {shortcutAction, stageState, panelDefault} from './format.js';
+import {shortcutAction, stageState, panelDefault, inCluster} from './format.js?v=20261102-cluster1';
 
 const $ = id => document.getElementById(id);
 const teacherExplorer = document.body.dataset.anatomyRole === 'teacher';
@@ -22,7 +22,7 @@ const VIEW_TOOLS = ['zoom-in', 'zoom-out', 'reset', 'rotate', 'save'];
 const TOOL_ICONS = {'zoom-in': 'zoom-in', 'zoom-out': 'zoom-out', reset: 'reset', rotate: 'rotate', save: 'save', fullscreen: 'maximize', info: 'info'};
 const LEGACY_NOTE = "This model isn't part of the layered body, so it's shown on its own.";
 
-let merged = new Map(), contextSystem = null, viewerReady = false;
+let merged = new Map(), contextSystem = null, viewerReady = false, clusters = {};
 let stageMessage = 'Loading anatomy content…', failedId = null;
 let activeSeconds = 0, lastTick = Date.now(), interactions = 0, contextVersion = 0, focusVersion = 0, rovingIndex = 0;
 const viewed = new Set();
@@ -166,7 +166,10 @@ function exitFocus() {
     hideTrivia();
     viewer.clearHighlight();
     renderSelection(null);
+    // Leaving a section tray brings back the menus it moved out of the way.
+    if (trayRestore) { setOpen(trayRestore.panel, {persist: false}); setSystemsOpen(trayRestore.systems, {persist: false}); trayRestore = null; }
 }
+let trayRestore = null;
 // Everyday name, scientific name and trivia; the part's own name keeps its "(left)"/"(right)".
 function partFacts(part) {
     const facts = factsFor(part.userData.name);
@@ -206,6 +209,33 @@ function showTrivia(part) {
         triviaBubble.style.visibility = behind ? 'hidden' : '';
     });
 }
+// A study cluster: switch its system on if needed, then lay its parts out in the tray beside the body, named.
+async function pickCluster(cluster) {
+    const system = AnatomyData.getSystem(contextSystem.id);
+    if (!enabledOrder.includes(system.id)) await toggleSystem(system);
+    const layer = viewer.layerState(system.id);
+    if (layer?.status !== 'ready') { announce(`Wait for the ${system.name} to finish loading.`); return; }
+    // One copy per structure, in the cluster's own order: a left and right pair shows once, without its side.
+    const all = [...layer.parts.values()], parts = [], names = [];
+    for (const entry of cluster.parts) {
+        for (const part of all.filter(p => inCluster(entry, p.userData.name))) {
+            const name = part.userData.name.replace(/ \((left|right)\)$/, '');
+            if (!names.includes(name)) { names.push(name); parts.push(part); }
+        }
+    }
+    if (!parts.length) { announce(`${cluster.name} is not in this model.`); return; }
+    focusVersion++;
+    hideTrivia();
+    // The tray needs the whole viewer: fold the systems menu and the info panel away until the tray closes
+    // (the info button brings the panel back to pick another section).
+    trayRestore ??= {panel: isOpen(), systems: !systemsMenu.classList.contains('is-collapsed')};
+    setOpen(false, {persist: false});
+    setSystemsOpen(false, {persist: false});
+    viewer.openTray(parts, names);
+    renderSelection({title: cluster.name, items: names});
+    names.forEach(name => viewed.add(name)); interactions++;
+    announce(`${cluster.name}: ${names.length} structures laid out beside the body.`);
+}
 function handlePartClick(part) {
     showTrivia(part);
     if (part) {
@@ -231,6 +261,7 @@ async function setContext(raw) {
     if (version !== contextVersion) return;
     contextSystem = merged.get(raw.id);
     renderPanel(contextSystem);
+    renderClusters(clusters[contextSystem.id] || [], pickCluster);
     if (!viewer.focusedPart()) renderSelection(null);
     teacherHooks.onContext(contextSystem);
     updateStage();
@@ -348,7 +379,11 @@ updateStage();
 (async () => {
     if (!await Auth.requireAuth(teacherExplorer ? 'teacher' : 'student')) return;
     try {
-        await AnatomyData.load();
+        // Study clusters are optional: a missing or broken file only hides "Study by section".
+        [clusters] = await Promise.all([
+            fetch('../system_model/layers/clusters.json').then(response => (response.ok ? response.json() : {})).catch(() => ({})),
+            AnatomyData.load()
+        ]);
         if (studentPreview) AnatomyData.systems = AnatomyData.systems.filter(s => s.isActive);
         if (teacherExplorer) teacherHooks = (await import('./teacher.js')).initTeacher({preview: studentPreview});
         const systems = AnatomyData.systems;

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261027-signout3"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261026-layer6"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261102-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -290,9 +290,12 @@ async function viewModule(moduleId) {
   openModal('lessonModal');
 
   try {
-    const res    = await fetch(`${API_BASE}/lessons.php?module_id=${moduleId}`, { credentials: 'same-origin' });
-    const result = await res.json();
+    const [result, filesResult] = await Promise.all([
+      fetch(`${API_BASE}/lessons.php?module_id=${moduleId}`, { credentials: 'same-origin' }).then(r => r.json()),
+      fetch(`${API_BASE}/files.php?kind=material&module_id=${moduleId}`, { credentials: 'same-origin' }).then(r => r.json()).catch(() => null),
+    ]);
     const lessons = result.success ? result.data : [];
+    const materials = filesResult?.success ? filesResult.data : [];
     const pct = Math.round(parseFloat(module.completion_pct || 0));
     const completedCount = lessons.filter(l => l.progress_status === 'completed').length;
 
@@ -314,7 +317,15 @@ async function viewModule(moduleId) {
               <span class="sd-lesson-go">${isDone ? 'Review' : isInProg ? 'Continue' : 'Open'}${icon('arrow-right')}</span>
             </button>`;
         }).join('') : '<div class="dashboard-empty">This module has no lessons yet.</div>'}
-      </div>`;
+      </div>
+      ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
+        const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
+        return `<a class="sd-lesson" href="${API_BASE}/files.php?id=${Number(f.file_id)}" ${isPdf ? 'target="_blank" rel="noopener"' : 'download'}>
+          <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
+          <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : 'Download · ' + escHtml(f.original_name.split('.').pop().toUpperCase())}</span></span>
+          <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
+        </a>`;
+      }).join('')}</div>` : ''}`;
   } catch (e) {
     body.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load this module’s lessons. Please try again.</div>';
   }

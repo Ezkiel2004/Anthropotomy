@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {firstSentence, splitLinks, safeUrl, saveFileName, shortcutAction, panelDefault, stageState} from '../../assets/js/explorer/format.js';
+import {firstSentence, splitLinks, safeUrl, saveFileName, shortcutAction, panelDefault, stageState, inCluster} from '../../assets/js/explorer/format.js';
 
 test('firstSentence stops at the first sentence end', () => {
     assert.equal(firstSentence('Bones support the body. They also store minerals.'), 'Bones support the body.');
@@ -136,4 +136,29 @@ test('factsFor gives the everyday name, keeps the side in the scientific name, a
     assert.equal(humerus.subtitle, 'Humerus (left)');
     assert.ok(humerus.trivia);
     assert.deepEqual(factsFor('Angular artery (right)'), {title: 'Angular artery (right)', subtitle: '', trivia: ''});
+});
+
+test('inCluster matches a name exactly or on either side', () => {
+    assert.ok(inCluster('Capitate bone', 'Capitate bone (left)'));
+    assert.ok(inCluster('Capitate bone', 'Capitate bone (right)'));
+    assert.ok(inCluster('Frontal bone', 'Frontal bone'));
+    assert.ok(inCluster('Parietal bone (left)', 'Parietal bone (left)'));
+    assert.ok(!inCluster('Parietal bone (left)', 'Parietal bone (right)'));
+    assert.ok(!inCluster('Frontal bone', 'Sinus of frontal bone'));
+});
+
+test('every study cluster names real parts of its system', async () => {
+    const {readFile} = await import('node:fs/promises');
+    const layers = new URL('../../system_model/layers/', import.meta.url);
+    const clusters = JSON.parse(await readFile(new URL('clusters.json', layers)));
+    for (const [system, list] of Object.entries(clusters)) {
+        // Every named part in the layer GLB (parts.json leaves out parts without a description).
+        const glb = await readFile(new URL(system + '.glb', layers)).catch(() => null);
+        assert.ok(glb, `clusters.json: unknown system "${system}"`);
+        const names = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString('utf8')).nodes.filter(node => node.extras?.part_id).map(node => node.extras.name);
+        for (const cluster of list) {
+            assert.ok(cluster.name && cluster.parts.length, `${system}: every cluster needs a name and parts`);
+            for (const entry of cluster.parts) assert.ok(names.some(name => inCluster(entry, name)), `${system} / ${cluster.name}: no part named "${entry}"`);
+        }
+    }
 });

@@ -30,7 +30,12 @@ function buildSkeleton(body) {
     const selected = section('selectedPart');
     selected.classList.add('selected-card');
     selected.setAttribute('aria-live', 'polite');
-    selected.append(create('h3', {id: 'selectedPartTitle', className: 'selected-card__title'}));
+    selected.append(create('h3', {id: 'selectedPartTitle', className: 'selected-card__title'}), create('ul', {id: 'selectedPartList', className: 'info-list', hidden: true}));
+    const clusters = section('sysClusters', 'Study by section');
+    clusters.append(
+        create('p', {className: 'info-hint', textContent: 'Lay a group of parts out side by side, each with its name, and learn them as a set.'}),
+        create('div', {id: 'clusterList', className: 'practice-choices'})
+    );
     const description = section('sysDescription', 'Description');
     const functions = section('sysFunctions', 'Functions');
     functions.append(create('ul', {className: 'info-list'}));
@@ -49,7 +54,7 @@ function buildSkeleton(body) {
     );
     const sources = section('sysSources', 'Sources');
     sources.append(create('ul', {className: 'info-list info-list--links'}), create('p', {className: 'source-note', hidden: true}));
-    body.replaceChildren(section('teacherTools'), selected, description, functions, practice, related, sources);
+    body.replaceChildren(section('teacherTools'), selected, clusters, description, functions, practice, related, sources);
     body.querySelector('#practiceButton').addEventListener('click', startPractice);
 }
 
@@ -102,7 +107,17 @@ export function renderPanel(system) {
     sources.hidden = links.hidden && note.hidden;
 }
 
-// Shows the selected part's name, or hides the card with null.
+// The system's study clusters as buttons; onPick(cluster) highlights one. Hidden when the system has none.
+export function renderClusters(list, onPick) {
+    byId('clusterList').replaceChildren(...list.map(cluster => {
+        const button = create('button', {type: 'button', className: 'panel-btn', textContent: cluster.name});
+        button.addEventListener('click', () => onPick(cluster));
+        return button;
+    }));
+    byId('sysClusters').hidden = !list.length;
+}
+
+// Shows the selected part's name (or a cluster's name and its parts in info.items), or hides the card with null.
 export function renderSelection(info) {
     const card = byId('selectedPart');
     if (!info) {
@@ -112,6 +127,9 @@ export function renderSelection(info) {
         return;
     }
     byId('selectedPartTitle').textContent = info.title;
+    const list = byId('selectedPartList');
+    list.replaceChildren(...(info.items || []).map(text => create('li', {textContent: text})));
+    list.hidden = !info.items?.length;
     card.hidden = false;
     // Scroll only the panel (never its overflow-hidden ancestors) so the card is visible below the sticky header.
     const header = els.panel.querySelector('.info-panel__header');

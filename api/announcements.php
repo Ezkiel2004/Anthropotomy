@@ -9,6 +9,7 @@
  */
 
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/mailer.php';
 
 $user = requireLogin();
 $db   = Database::getInstance();
@@ -147,6 +148,7 @@ if ($method === 'POST') {
     );
 
     $newId = (int)$db->lastInsertId();
+    $emailNote = $isPub ? emailAnnouncement($newId) : '';
 
     jsonSuccess([
         'announcement_id' => $newId,
@@ -155,7 +157,7 @@ if ($method === 'POST') {
         'audience'        => $audience,
         'is_pinned'       => (bool)$isPinned,
         'is_published'    => (bool)$isPub
-    ], 'Announcement published successfully!', 201);
+    ], ($isPub ? 'Announcement published.' : 'Announcement saved as a draft.') . $emailNote, 201);
 }
 
 // ── PUT: Update Announcement (Teacher Only) ─────────────────────
@@ -190,7 +192,7 @@ if ($method === 'PUT') {
         'title'           => $title,
         'is_pinned'       => (bool)$isPinned,
         'is_published'    => (bool)$isPub
-    ], 'Announcement updated successfully.');
+    ], 'Announcement updated.' . ($isPub && !$existing['is_published'] ? emailAnnouncement($id) : ''));
 }
 
 // ── DELETE: Remove Announcement (Teacher Only) ──────────────────

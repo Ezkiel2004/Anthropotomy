@@ -137,7 +137,10 @@ if ($method === 'POST') {
     $mediaUrl = null;
 
     // Handle file upload
-    if ($isMultipart && isset($_FILES['lesson_file']) && $_FILES['lesson_file']['error'] === UPLOAD_ERR_OK) {
+    $uploadError = $isMultipart && isset($_FILES['lesson_file']) ? $_FILES['lesson_file']['error'] : UPLOAD_ERR_NO_FILE;
+    if (in_array($uploadError, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) jsonError('File too large. Maximum size is 500 MB.', 422);
+    if ($uploadError !== UPLOAD_ERR_NO_FILE && $uploadError !== UPLOAD_ERR_OK) jsonError('File upload failed. Please try again.', 500);
+    if ($uploadError === UPLOAD_ERR_OK) {
         $mediaUrl = _handleFileUpload($_FILES['lesson_file'], $user['user_id']);
     }
 
@@ -215,9 +218,9 @@ function _handleFileUpload(array $file, int $userId): string {
     }
 
     if ($ext === 'glb' && file_get_contents($file['tmp_name'], false, null, 0, 4) !== 'glTF') jsonError('Upload a valid GLB model.', 422);
-    // Max 50 MB
-    if ($file['size'] > 50 * 1024 * 1024) {
-        jsonError('File too large. Maximum size is 50 MB.', 422);
+    // Max 500 MB (videos); api/.htaccess raises PHP's own limits to match
+    if ($file['size'] > 500 * 1024 * 1024) {
+        jsonError('File too large. Maximum size is 500 MB.', 422);
     }
 
     // Create upload directory

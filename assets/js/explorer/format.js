@@ -74,3 +74,9 @@ export function stageState({viewerReady, hasVisible, loading, contextHasModel, f
     if (failedId) return {kind: 'error', message: "The model couldn't be loaded.", retryId: failedId};
     return {kind: 'idle', message: 'Switch on a body system to begin.'};
 }
+
+// Study clusters (system_model/layers/clusters.json) list parts by the name the explorer shows.
+// A name without a side ("Capitate bone") takes in both "(left)" and "(right)".
+export function inCluster(entry, partName) {
+    return partName === entry || partName === entry + ' (left)' || partName === entry + ' (right)';
+}

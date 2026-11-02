@@ -65,6 +65,19 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS game_card_stats (
  PRIMARY KEY(user_id, card_key),
  FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Teacher files: module materials students can open, and lesson plans only their owner can open.
+// The files themselves live in storage/files/, which is never served directly.
+$pdo->exec("CREATE TABLE IF NOT EXISTS teacher_files (
+ file_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, teacher_id INT UNSIGNED NOT NULL,
+ kind ENUM('material','lesson_plan') NOT NULL, module_id INT UNSIGNED NULL,
+ title VARCHAR(200) NOT NULL, original_name VARCHAR(255) NOT NULL, stored_name VARCHAR(80) NOT NULL UNIQUE,
+ size_bytes BIGINT UNSIGNED NOT NULL, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ KEY(teacher_id, kind), KEY(module_id),
+ FOREIGN KEY(teacher_id) REFERENCES users(user_id) ON DELETE CASCADE,
+ FOREIGN KEY(module_id) REFERENCES modules(module_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Set once an announcement has been emailed to students (api/mailer.php), so editing never re-sends it.
+addColumnIfMissing($pdo, 'announcements', 'emailed_at', 'TIMESTAMP NULL DEFAULT NULL');
 addColumnIfMissing($pdo, 'achievement_rules', 'badge_key', 'VARCHAR(40) NULL UNIQUE');
 addColumnIfMissing($pdo, 'achievement_rules', 'icon', "VARCHAR(40) NOT NULL DEFAULT 'medal'");
 $pdo->exec("CREATE TABLE IF NOT EXISTS student_badges (

@@ -4,7 +4,7 @@
 const AnatomyViewer = {
     dracoPath: '../assets/vendor/three/draco/',
     layers: new Map(), materialCache: new Map(),
-    focusedPart: null, hoveredPart: null, savedView: null, tween: null, pendingHover: null, lastHover: 0,
+    focusedPart: null, focusedParts: new Set(), hoveredPart: null, savedView: null, tween: null, pendingHover: null, lastHover: 0,
     onPartClick: null, labelFor: null,
     init(canvas) {
         this.canvas = canvas;
@@ -44,14 +44,16 @@ const AnatomyViewer = {
             this.zoom(Math.exp(delta * .002), this.pointerAnchor(event.clientX, event.clientY));
         }, {capture: true, passive: false});
         this.observer = new ResizeObserver(() => this.resize()); this.observer.observe(canvas.parentElement);
-        let pointerStart = null;
-        canvas.addEventListener('pointerdown', e => { pointerStart = {x: e.clientX, y: e.clientY}; });
+        let pointerStart = null, spinFrom = null;
+        canvas.addEventListener('pointerdown', e => { pointerStart = {x: e.clientX, y: e.clientY}; spinFrom = {x: e.clientX, y: e.clientY}; });
         canvas.addEventListener('pointerup', e => {
-            const start = pointerStart; pointerStart = null;
-            if (e.button !== 0 || !start || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
+            const start = pointerStart; pointerStart = null; spinFrom = null;
+            if (this.tray || e.button !== 0 || !start || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) return;
             this.onPartClick?.(this.partAt(e.clientX, e.clientY));
         });
         canvas.addEventListener('pointermove', e => {
+            // With the tray open, dragging turns every tray part about its own centre (the view itself stays put).
+            if (this.tray && spinFrom && e.buttons & 1) { this.spinTray(e.clientX - spinFrom.x, e.clientY - spinFrom.y); spinFrom = {x: e.clientX, y: e.clientY}; }
             if (e.buttons) { this.pendingHover = null; this.setHover(null); return; }
             this.pendingHover = {x: e.clientX, y: e.clientY};
         });
@@ -61,12 +63,14 @@ const AnatomyViewer = {
             if (document.hidden) return;
             const now = performance.now();
             this.stepTween(now);
+            this.stepTray(now);
             this.stepViewInset();
             if (this.pendingHover && now - this.lastHover > 50) { // at most ~20 hover raycasts per second
                 const {x, y} = this.pendingHover; this.pendingHover = null; this.lastHover = now;
                 this.setHover(this.partAt(x, y), x, y);
             }
             this.controls.update(); this.renderer.render(this.scene, this.camera);
+            if (this.tray) this.placeTrayLabels();
         };
         // Stop the render loop while the tab is hidden and start a single new one when it returns.
         document.addEventListener('visibilitychange', () => {
@@ -211,6 +215,7 @@ const AnatomyViewer = {
         const layer = this.layers.get(id); if (!layer) return;
         layer.disposed = true; this.layers.delete(id);
         if (this.focusedPart && this.focusedPart.userData.layerId === id) this.clearFocus();
+        if (this.tray?.items[0].part.userData.layerId === id) this.disposeTray(); // its copies use this layer's geometry
         if (this.hoveredPart && this.hoveredPart.userData.layerId === id) this.setHover(null);
         if (layer.root) { this.world.remove(layer.root); this.disposeObject(layer.root); layer.root = null; }
         layer.parts.clear();
@@ -246,7 +251,7 @@ const AnatomyViewer = {
         this.raycaster.setFromCamera(new THREE.Vector2((x - rect.left) / rect.width * 2 - 1, -(y - rect.top) / rect.height * 2 + 1), this.camera);
     },
     partAt(x, y) {
-        const roots = this.visibleRoots(); if (!roots.length) return null;
+        const roots = this.visibleRoots(); if (!roots.length || this.tray) return null;
         this.rayFrom(x, y);
         return AnatomyLayersCore.pickPart(this.raycaster.intersectObjects(roots, true), this.focusedPart?.userData.part_id, mesh => this.isSeeThrough(mesh));
     },
@@ -292,7 +297,7 @@ const AnatomyViewer = {
     },
     materialFor(mesh, part) {
         const base = mesh.userData.baseMaterial;
-        const kind = part && part === this.focusedPart ? 'focus' : this.focusedPart ? 'ghost' : part && part === this.hoveredPart ? 'hover' : null;
+        const kind = part && this.focusedParts.has(part) ? 'focus' : this.focusedPart ? 'ghost' : part && part === this.hoveredPart ? 'hover' : null;
         if (!kind || (kind === 'focus' && !AnatomyLayersCore.glowFor(kind) && !this.isSeeThrough(mesh))) return base;
         return Array.isArray(base) ? base.map(m => this.variant(m, kind)) : this.variant(base, kind);
     },
@@ -303,12 +308,16 @@ const AnatomyViewer = {
     },
 
     // ── Focus ──
-    focusPart(part) {
-        if (!part) return;
+    // Takes one part or a list (a study cluster): every listed part stays solid, the rest fade.
+    focusPart(target) {
+        const parts = [].concat(target || []);
+        if (!parts.length) return;
         if (!this.focusedPart) this.savedView = {position: this.camera.position.clone(), target: this.controls.target.clone()};
-        this.focusedPart = part;
+        this.focusedPart = parts[0]; this.focusedParts = new Set(parts);
         this.applyMaterials();
-        const sphere = new THREE.Box3().setFromObject(part).getBoundingSphere(new THREE.Sphere());
+        const box = new THREE.Box3();
+        parts.forEach(part => box.expandByObject(part));
+        const sphere = box.getBoundingSphere(new THREE.Sphere());
         const direction = this.camera.position.clone().sub(this.controls.target);
         if (direction.lengthSq() < 1e-12) direction.set(0, 0, 1);
         const distance = AnatomyLayersCore.fitDistance(sphere.radius, this.camera.fov, this.camera.aspect);
@@ -319,12 +328,135 @@ const AnatomyViewer = {
     },
     clearFocus() {
         if (!this.focusedPart) return;
-        this.focusedPart = null; this.applyMaterials();
+        this.closeTray();
+        this.focusedPart = null; this.focusedParts = new Set(); this.applyMaterials();
         if (this.savedView) this.moveCamera(this.savedView.position, this.savedView.target);
         else this.restoreMinDistance();
         this.savedView = null;
     },
     restoreMinDistance() { if (this.baseMinDistance != null) this.controls.minDistance = this.baseMinDistance; },
+
+    // ── Section tray: a study cluster's parts fly out of the faded body into a grid beside it, facing the
+    //    viewer, each scaled to the same cell size (not to scale) with its name underneath. The tray holds
+    //    copies that share the parts' geometry; the originals hide until the copies fly back. ──
+    openTray(parts, names) {
+        this.closeTray(true);
+        if (!parts.length) return;
+        if (!this.focusedPart) this.savedView = {position: this.camera.position.clone(), target: this.controls.target.clone()};
+        this.focusedPart = parts[0]; this.focusedParts = new Set(parts);
+        this.applyMaterials(); this.setHover(null); this.tween = null;
+        const facing = this.camera.quaternion.clone();
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(facing), up = new THREE.Vector3(0, 1, 0).applyQuaternion(facing);
+        const body = new THREE.Box3(); this.visibleRoots().forEach(root => body.expandByObject(root));
+        const center = body.getCenter(new THREE.Vector3());
+        const corners = [0, 1, 2, 3, 4, 5, 6, 7].map(i => new THREE.Vector3(i & 1 ? body.max.x : body.min.x, i & 2 ? body.max.y : body.min.y, i & 4 ? body.max.z : body.min.z).sub(center));
+        const halfWidth = Math.max(...corners.map(c => Math.abs(c.dot(right)))), halfHeight = Math.max(...corners.map(c => Math.abs(c.dot(up))));
+        // A near-square grid as tall as the body; three rows at least, so a short section still gets sensible cells.
+        // A portrait screen (a phone) gets a narrow grid and frames the tray alone: the body would leave no room.
+        const portrait = this.camera.aspect < .9;
+        const cols = portrait ? Math.min(3, Math.ceil(Math.sqrt(parts.length * .4))) : Math.min(6, Math.ceil(Math.sqrt(parts.length * .8)));
+        const rows = Math.ceil(parts.length / cols);
+        const cell = halfHeight * 2 / Math.max(rows, 3);
+        const group = new THREE.Group();
+        group.position.copy(center).addScaledVector(right, -(halfWidth + cell * .5 + cols * cell / 2)); // left of the body: the info panel covers the right
+        group.quaternion.copy(facing);
+        this.scene.add(group); group.updateMatrixWorld(true);
+        const box = document.createElement('div'); box.className = 'part-tray';
+        const note = Object.assign(document.createElement('div'), {className: 'part-tray__note', textContent: 'Not to scale'});
+        box.append(note); this.canvas.parentElement.append(box);
+        const unturn = facing.clone().invert();
+        const items = parts.map((part, i) => {
+            const content = new THREE.Group();
+            part.updateMatrixWorld(true);
+            part.traverse(node => {
+                if (!node.isMesh || !node.userData.baseMaterial) return;
+                const copy = new THREE.Mesh(node.geometry, node.userData.baseMaterial);
+                copy.applyMatrix4(node.matrixWorld); content.add(copy);
+            });
+            const sphere = new THREE.Box3().setFromObject(content).getBoundingSphere(new THREE.Sphere());
+            content.position.copy(sphere.center).negate();
+            // pivot (tray frame: position, size, spin) > align (undoes the tray's turn) > content (centred on the part)
+            const align = new THREE.Group(); align.quaternion.copy(unturn); align.add(content);
+            const pivot = new THREE.Group(); pivot.add(align); group.add(pivot);
+            const col = i % cols, row = Math.floor(i / cols);
+            const to = new THREE.Vector3((col - (cols - 1) / 2) * cell, ((rows - 1) / 2 - row) * cell + cell * .14, 0);
+            const from = group.worldToLocal(sphere.center.clone());
+            pivot.position.copy(from);
+            part.visible = false;
+            const label = Object.assign(document.createElement('div'), {className: 'part-tray__label', textContent: names[i]});
+            box.append(label);
+            return {part, pivot, from, to, size: cell * .55 / Math.max(sphere.radius * 2, 1e-6), label};
+        });
+        this.tray = {group, items, cell, rows, box, note, start: performance.now(), closing: false, done: false, panBounds: this.panBounds};
+        // Frame the body and the tray together, keeping the viewing direction so the tray still faces the viewer.
+        // Fit the area's own width and height (a bounding sphere would leave half the view empty).
+        const left = -(halfWidth + cell * .5 + cols * cell), halfSpanX = portrait ? cols * cell / 2 : (halfWidth - left) / 2;
+        const halfSpanY = portrait ? rows * cell / 2 + cell * .3 : Math.max(halfHeight, rows * cell / 2 + cell * .3);
+        const middle = portrait ? group.position.clone() : center.clone().addScaledVector(right, (halfWidth + left) / 2);
+        const tan = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(facing);
+        const depth = Math.max(...corners.map(c => Math.abs(c.dot(forward))));
+        const distance = Math.max(halfSpanY / tan, halfSpanX / (tan * this.camera.aspect)) * 1.12 + depth;
+        const frame = body.clone();
+        for (const x of [-1, 1]) for (const y of [-1, 1]) frame.expandByPoint(group.localToWorld(new THREE.Vector3(x * cols * cell / 2, y * halfSpanY, 0)));
+        this.panBounds = frame.clone().expandByScalar(halfSpanX);
+        this.controls.enableRotate = false;
+        this.moveCamera(middle.clone().addScaledVector(forward, -distance), middle);
+    },
+    stepTray(now) {
+        const tray = this.tray; if (!tray || tray.done) return;
+        const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const k = instant ? 1 : Math.min(1, (now - tray.start) / 800), t = AnatomyLayersCore.easeInOutCubic(k);
+        for (const item of tray.items) {
+            if (tray.closing) {
+                item.pivot.position.lerpVectors(item.at, item.from, t);
+                item.pivot.scale.setScalar(THREE.MathUtils.lerp(item.atSize, 1, t));
+                item.pivot.quaternion.slerpQuaternions(item.atTurn, new THREE.Quaternion(), t);
+            } else {
+                item.pivot.position.lerpVectors(item.from, item.to, t);
+                item.pivot.scale.setScalar(THREE.MathUtils.lerp(1, item.size, t));
+            }
+        }
+        if (k < 1) return;
+        if (tray.closing) this.disposeTray(); else tray.done = true;
+    },
+    spinTray(dx, dy) {
+        if (!this.tray?.done || this.tray.closing) return;
+        const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx * .01)
+            .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy * .01));
+        this.tray.items.forEach(item => item.pivot.quaternion.premultiply(turn));
+    },
+    placeTrayLabels() {
+        const tray = this.tray;
+        tray.box.hidden = !tray.done;
+        if (!tray.done) return;
+        const onScreen = (x, y) => this.screenPoint(tray.group.localToWorld(new THREE.Vector3(x, y, 0)));
+        const a = onScreen(0, 0), b = onScreen(tray.cell, 0), cellPx = Math.hypot(b.x - a.x, b.y - a.y);
+        const width = cellPx * .96 + 'px', fontSize = Math.max(10, Math.min(14, cellPx / 9)) + 'px'; // smaller type in tight grids
+        for (const item of tray.items) {
+            const p = onScreen(item.to.x, item.to.y - tray.cell * .31);
+            Object.assign(item.label.style, {left: p.x + 'px', top: p.y + 'px', width, fontSize});
+        }
+        const top = onScreen(0, tray.rows * tray.cell / 2 + tray.cell * .12);
+        Object.assign(tray.note.style, {left: top.x + 'px', top: top.y + 'px'});
+    },
+    // Sends the copies back into the body; instant also skips the flight (e.g. when another section opens).
+    closeTray(instant = false) {
+        const tray = this.tray; if (!tray || tray.closing) { if (tray && instant) this.disposeTray(); return; }
+        this.controls.enableRotate = true; this.panBounds = tray.panBounds;
+        if (instant) { this.disposeTray(); return; }
+        tray.items.forEach(item => { item.at = item.pivot.position.clone(); item.atSize = item.pivot.scale.x; item.atTurn = item.pivot.quaternion.clone(); });
+        Object.assign(tray, {closing: true, done: false, start: performance.now()});
+    },
+    disposeTray() {
+        const tray = this.tray; if (!tray) return;
+        this.scene.remove(tray.group); // the copies share geometry and materials with the parts, so nothing is disposed
+        tray.items.forEach(item => { item.part.visible = true; });
+        tray.box.remove();
+        // closeTray already handed rotation and pan limits back; restoring again could undo a newer resetView.
+        if (!tray.closing) { this.controls.enableRotate = true; this.panBounds = tray.panBounds; }
+        this.tray = null;
+    },
     moveCamera(position, target, duration = 800) {
         if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
             this.tween = null; this.camera.position.copy(position); this.controls.target.copy(target);

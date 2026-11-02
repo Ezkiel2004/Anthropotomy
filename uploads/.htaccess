@@ -1,0 +1,4 @@
+# Uploaded media is data, never code.
+<FilesMatch "\.(php\d?|phtml|phar)$">
+  Require all denied
+</FilesMatch>

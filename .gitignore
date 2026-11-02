@@ -28,3 +28,7 @@ desktop.ini
 
 # Design-hook cache (the shared detector config in .impeccable/config.json is kept)
 .impeccable/hook.cache.json
+
+# Teacher files (module materials, lesson plans) are user data, not source.
+storage/files/
+storage/mail.ini

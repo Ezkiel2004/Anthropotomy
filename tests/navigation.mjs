@@ -30,7 +30,7 @@ await waitFor(`location.pathname.startsWith('/teacher/') && document.readyState=
 assert.ok((await evaluate('location.pathname')).includes('/teacher/'),'Teacher login redirects');
 
 const expected={
- teacher:['dashboard','modules','students','assessments','games','monitoring','reports','announcements','settings','anatomy'],
+ teacher:['dashboard','modules','lesson-plans','students','assessments','games','monitoring','reports','announcements','settings','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','games','progress']
 };
 // Both sidebars start with a Home link to the public landing page.

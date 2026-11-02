@@ -19,7 +19,7 @@
 </head>
 <body class="teacher-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261021-games1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261102-files1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
@@ -349,7 +349,8 @@ async function postAnnouncement() {
     document.getElementById('annoMessage').value = '';
     document.getElementById('annoPin').checked = false;
 
-    showToast('Announcement posted successfully!', 'success');
+    // The message also says whether students were emailed (api/mailer.php).
+    showToast(result.message, result.message.includes('could not be sent') ? 'error' : 'success', 6000);
     loadAnnouncements();
   } catch (err) {
     showToast(err.message || 'Failed to post announcement.', 'error');

@@ -12,14 +12,14 @@
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261102-files1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261026-fullcard"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261021-games1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261102-files1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
@@ -191,8 +191,8 @@
                  onmouseleave="this.style.borderColor='var(--border-default)'">
               <div style="margin:0 auto var(--space-2);width:32px;color:var(--text-muted);"><svg class="ui-icon" style="width:32px;height:32px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cloud-arrow-up"/></svg></div>
               <div style="font-size:0.875rem;font-weight:600;" id="lesFileLabel">Drop files here or click to upload</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">PDF, MP4, GLB, OBJ, Images (max 50MB)</div>
-              <input type="file" id="lesFileInput" style="display:none;" accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.glb,.obj"
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">PDF, MP4, WebM, GLB, Images (max 500MB)</div>
+              <input type="file" id="lesFileInput" style="display:none;" accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.glb"
                      onchange="document.getElementById('lesFileLabel').textContent = this.files[0]?.name || 'Drop files here or click to upload'"/>
             </div>
           </div>
@@ -211,7 +211,19 @@
   </div>
 </div>
 
+<!-- Module Materials Modal -->
+<div class="modal-overlay" id="materialsModal" style="display:none;" onclick="if(event.target===this)closeModal('materialsModal')">
+  <div class="modal-box">
+    <div class="modal-header"><h3 id="materialsModalTitle">Materials</h3><button class="modal-close" onclick="closeModal('materialsModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-body">
+      <p style="margin:0 0 var(--space-4);color:var(--text-muted);font-size:.875rem;">Students see these files in this module's lessons. They stay here for every new batch.</p>
+      <div id="materialsModalBody"></div>
+    </div>
+  </div>
+</div>
+
 <script src="../assets/js/app.js?v=20261027-signout3"></script>
+<script src="../assets/js/teacher-files.js?v=20261102-files2"></script>
 <script>
 'use strict';
 
@@ -310,6 +322,7 @@ function renderModules(modules) {
       </div>
       <div class="module-card-actions">
         <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="viewLessons(${m.module_id}, '${escHtml(m.title)}')">Lessons</button>
+        <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openMaterials(${m.module_id})">Materials</button>
         <button class="btn btn-primary btn-sm" style="flex:1;" onclick="editModule(${m.module_id})"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pencil-simple"/></svg> Edit</button>
         <button class="btn btn-secondary btn-sm" onclick="archiveModule(${m.module_id})" title="Archive">Archive</button>
       </div>
@@ -332,6 +345,14 @@ async function viewLessons(moduleId, moduleTitle) {
   } catch (e) {
     showToast('Server error loading lessons.', 'error');
   }
+}
+
+// ── Module materials (PPT/PDF kept for every batch) ───────────
+function openMaterials(moduleId) {
+  const module = allModules.find(m => m.module_id === moduleId);
+  document.getElementById('materialsModalTitle').textContent = `Materials: ${module?.title || 'Module'}`;
+  TeacherFiles.mount(document.getElementById('materialsModalBody'), {kind: 'material', moduleId});
+  openModal('materialsModal');
 }
 
 // ── Edit module (set status) ──────────────────────────────────
@@ -426,6 +447,13 @@ document.getElementById('addLessonForm').addEventListener('submit', async (e) =>
   formData.append('status',       'published');
 
   const fileInput = document.getElementById('lesFileInput');
+  if (fileInput.files[0]?.size > 500 * 1024 * 1024) {
+    err.textContent   = 'File too large. Maximum size is 500 MB.';
+    err.style.display = 'block';
+    btn.disabled    = false;
+    btn.textContent = 'Add Lesson';
+    return;
+  }
   if (fileInput.files[0]) formData.append('lesson_file', fileInput.files[0]);
 
   try {

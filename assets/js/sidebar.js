@@ -25,6 +25,10 @@
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg></span>
         <span class="nav-label">Modules and Lessons</span>
       </a>
+      <a class="nav-item" href="lesson-plans.html" data-tooltip="Lesson Plans">
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#folder"/></svg></span>
+        <span class="nav-label">Lesson Plans</span>
+      </a>
       <a class="nav-item" href="students.html" data-tooltip="Students">
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg></span>
         <span class="nav-label">Students</span>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lesson Plans | Anthropotomy</title>
+  <meta name="theme-color" content="#121212"/>
+  <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
+  <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261027-signout3"/>
+  <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
+  <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261016-stage4"/>
+  <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261102-files1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261026-fullcard"/>
+  <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261022-min4"/>
+  <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
+</head>
+<body class="teacher-dashboard stage-portal">
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261102-files1"></script></aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <main class="main-content" id="mainContent">
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <div class="topbar-breadcrumb"><span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Lesson Plans</span></div>
+      <div class="topbar-actions">
+        <div style="position:relative;">
+          <button class="notif-btn" id="notifBtn" aria-label="Notifications">
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+            <div class="notif-header"><span>Notifications</span><a href="#" style="font-size:0.75rem;color:var(--brand);">Mark all read</a></div>
+            <div class="notif-list"></div>
+            <div class="notif-footer"><a href="announcements.html">View all notifications</a></div>
+          </div>
+        </div>
+        <div class="topbar-user">
+          <div class="avatar" style="width:32px;height:32px;font-size:0.7rem;">CR</div>
+          <div>
+            <div class="topbar-user-name">Teacher</div>
+            <div class="topbar-user-role">Science Teacher</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Lesson plans</h1>
+          <p>Your private lesson plans. Only you can open them, and they stay here for every new batch.</p>
+        </div>
+      </div>
+      <section class="card" aria-label="Lesson plans">
+        <div id="lessonPlans"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/app.js?v=20261027-signout3"></script>
+<script src="../assets/js/teacher-files.js?v=20261102-files2"></script>
+<script>
+'use strict';
+Auth.requireAuthSync('teacher');
+TeacherFiles.mount(document.getElementById('lessonPlans'), {kind: 'lesson_plan'});
+</script>
+<script src="../assets/js/site-config.js"></script>
+</body>
+</html>

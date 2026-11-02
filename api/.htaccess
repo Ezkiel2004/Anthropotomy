@@ -1,0 +1,6 @@
+# Lesson videos can be large; keep these in step with the 500 MB check in lessons.php.
+<IfModule mod_php.c>
+  php_value upload_max_filesize 500M
+  php_value post_max_size 510M
+  php_value max_input_time 600
+</IfModule>
