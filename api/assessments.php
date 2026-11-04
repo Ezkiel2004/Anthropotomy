@@ -158,7 +158,7 @@ if ($method === 'GET') {
         "SELECT a.assessment_id, a.title, a.assessment_type, a.instructions,
                 a.time_limit_mins, a.passing_score, a.max_attempts, a.status, a.due_date,
                 a.created_at,
-                bs.system_name, bs.system_code, bs.icon_emoji, bs.color_hex,
+                bs.system_name, bs.system_code, bs.icon_emoji, bs.color_hex, bs.sort_order AS system_sort,
                 COUNT(DISTINCT q.question_id) AS question_count,
                 COUNT(DISTINCT sub.submission_id) AS submission_count,
                 ROUND(AVG(CASE WHEN sub.status IN ('submitted','graded') THEN sub.score END), 1) AS avg_score

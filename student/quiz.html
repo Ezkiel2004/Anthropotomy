@@ -65,21 +65,11 @@
 
       <section class="sd-block" aria-labelledby="availableAssessmentsTitle">
         <div class="sd-stack">
-          <div class="sd-tools">
-            <label class="sd-search">
-              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
-              <span class="sr-only">Search quizzes</span>
-              <input type="search" id="assessmentSearchInput" placeholder="Search quizzes or body systems" autocomplete="off" oninput="handleAssessmentSearch(this.value)">
-            </label>
-            <div class="sd-filters">
-              <select id="assessmentSystemFilter" class="sd-select" aria-label="Filter by body system" onchange="handleAssessmentSystemFilter(this.value)"><option value="all">All body systems</option></select>
-              <select id="assessmentStatusFilter" class="sd-select" aria-label="Filter by status" onchange="handleAssessmentStatusFilter(this.value)">
-                <option value="all">Any status</option>
-                <option value="pending">Still to pass</option>
-                <option value="completed">Passed</option>
-              </select>
-            </div>
-          </div>
+          <label class="sd-search">
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
+            <span class="sr-only">Search quizzes</span>
+            <input type="search" id="assessmentSearchInput" placeholder="Search quizzes or body systems" autocomplete="off" oninput="handleAssessmentSearch(this.value)">
+          </label>
           <div class="sd-seg" id="typeFilterChips" role="group" aria-label="Show formats">
             <button type="button" class="filter-chip-btn active" data-type="all" aria-pressed="true" onclick="setAssessmentTypeFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
             <button type="button" class="filter-chip-btn" data-type="quiz" aria-pressed="false" onclick="setAssessmentTypeFilter('quiz')">Chapter quizzes <span class="chip-count" id="countQuiz">0</span></button>
@@ -89,8 +79,8 @@
           </div>
         </div>
 
-        <div class="sd-h"><h2 id="availableAssessmentsTitle" class="sd-h-title">Quizzes</h2><span class="sd-count" id="assessmentResultsCount" role="status">Loading quizzes…</span></div>
-        <div class="sd-grid" id="availableAssessmentsGrid"><div class="sd-loading">Loading quizzes…</div></div>
+        <h2 id="availableAssessmentsTitle" class="sr-only">Quizzes</h2>
+        <div id="availableAssessmentsGrid" style="display:grid;gap:2rem"><div class="sd-loading">Loading quizzes…</div></div>
       </section>
     </div>
 
@@ -206,8 +196,6 @@ let submitting = false;
 // ── Quiz list state ─────────────────────────────────────────────
 let allAssessments = [];
 let typeFilter = 'all';
-let systemFilter = 'all';
-let statusFilter = 'all';
 let searchQuery = '';
 
 // Each format gets one card colour and icon from the Stage palette.
@@ -267,14 +255,6 @@ function updateSummaryMetrics(list) {
   document.getElementById('countMixed').textContent = countType(['mixed']);
 }
 
-function populateSystemFilterOptions(list) {
-  const select = document.getElementById('assessmentSystemFilter');
-  const systems = new Map();
-  list.forEach(a => { if (a.system_code && a.system_name) systems.set(a.system_code, a.system_name); });
-  select.replaceChildren(new Option('All body systems', 'all'));
-  systems.forEach((name, code) => select.add(new Option(name, code)));
-}
-
 function handleAssessmentSearch(val) {
   searchQuery = (val || '').trim().toLowerCase();
   renderAssessmentCards();
@@ -290,23 +270,9 @@ function setAssessmentTypeFilter(type) {
   renderAssessmentCards();
 }
 
-function handleAssessmentSystemFilter(sys) {
-  systemFilter = sys;
-  renderAssessmentCards();
-}
-
-function handleAssessmentStatusFilter(st) {
-  statusFilter = st;
-  renderAssessmentCards();
-}
-
 function resetAssessmentFilters() {
-  systemFilter = 'all';
-  statusFilter = 'all';
   searchQuery = '';
   document.getElementById('assessmentSearchInput').value = '';
-  document.getElementById('assessmentSystemFilter').value = 'all';
-  document.getElementById('assessmentStatusFilter').value = 'all';
   setAssessmentTypeFilter('all');
 }
 
@@ -326,13 +292,8 @@ function renderAssessmentCards() {
         return false;
       }
     }
-    if (systemFilter !== 'all' && a.system_code !== systemFilter) return false;
-    if (statusFilter === 'completed' && !isPassed(a)) return false;
-    if (statusFilter === 'pending' && isPassed(a)) return false;
     return true;
   });
-
-  document.getElementById('assessmentResultsCount').textContent = `${filtered.length} of ${plural(allAssessments.length, 'quiz', 'quizzes')}`;
 
   if (!filtered.length) {
     grid.innerHTML = allAssessments.length
@@ -341,7 +302,21 @@ function renderAssessmentCards() {
     return;
   }
 
-  grid.innerHTML = filtered.map(a => {
+  // allAssessments is sorted by body system on load, so each run of one system becomes its own section.
+  const groups = [];
+  filtered.forEach(a => {
+    const last = groups[groups.length - 1];
+    if (last && last.code === a.system_code) last.items.push(a);
+    else groups.push({ code: a.system_code, name: (a.system_name || 'General').replace(/\s+System$/i, ''), items: [a] });
+  });
+  grid.innerHTML = groups.map(g => `
+    <section aria-label="${escHtml(g.name)}">
+      <div class="sd-h"><h3 class="sd-h-title">${escHtml(g.name)}</h3><span class="sd-count">${plural(g.items.length, 'quiz', 'quizzes')}</span></div>
+      <div class="sd-grid">${g.items.map(quizCard).join('')}</div>
+    </section>`).join('');
+}
+
+function quizCard(a) {
     const look = formatLook(a.assessment_type);
     const qCount = parseInt(a.question_count) || 0;
     const usedAttempts = a.my_attempts || 0;
@@ -372,8 +347,7 @@ function renderAssessmentCards() {
           <span class="sd-task-chips"><span class="sd-chip">${look.label}</span>${chip}</span>
         </div>
         <div>
-          <p class="sd-task-system">${escHtml((a.system_name || 'General').replace(/\s+System$/i, ''))}</p>
-          <h3 class="sd-task-title">${escHtml(a.title)}</h3>
+          <h4 class="sd-task-title">${escHtml(a.title)}</h4>
           ${a.instructions ? `<p class="sd-task-desc">${escHtml(a.instructions)}</p>` : ''}
         </div>
         <div class="sd-specs">
@@ -387,7 +361,6 @@ function renderAssessmentCards() {
           <button type="button" class="sd-go sd-go--light sd-go--sm sd-stretch" onclick="initiateQuiz(${a.assessment_id})">${action}<span class="sr-only"> ${escHtml(a.title)}</span><span class="sd-go-disc">${icon('arrow-right')}</span></button>
         </div>
       </article>`;
-  }).join('');
 }
 
 // ── Load All Active Assessments ─────────────────────────────────
@@ -398,9 +371,9 @@ async function loadAvailableAssessments() {
     const result = await res.json();
     if (!result.success) throw new Error(result.message);
 
-    allAssessments = result.data || [];
+    // Body-system order (skeletal first); quizzes without a system go last.
+    allAssessments = (result.data || []).sort((a, b) => (a.system_sort ?? 1e9) - (b.system_sort ?? 1e9));
     updateSummaryMetrics(allAssessments);
-    populateSystemFilterOptions(allAssessments);
     renderAssessmentCards();
 
     // A link can name an assessment or a body system to open straight away.
@@ -414,7 +387,6 @@ async function loadAvailableAssessments() {
       if (match) initiateQuiz(match.assessment_id);
     }
   } catch (err) {
-    document.getElementById('assessmentResultsCount').textContent = 'Quizzes unavailable';
     grid.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load your quizzes. Please refresh to try again.</div>';
   }
 }
