@@ -1,6 +1,6 @@
 /* Minimal portal: flat black surfaces with a few quiet touches of design.
    Loaded last on every student and teacher page and scoped to body.stage-portal. Colour is
-   the Stage's original black with its yellow and body-system accents; nothing here blurs,
+   the Stage's original black with its mint accent and body-system accents; nothing here blurs,
    glows or goes translucent. The touches: the app sits on a rounded sheet inside a thin
    darker frame with faint wave lines in two corners, the active nav item is a solid pill,
    the top bar floats as a pill, cards lose their borders and rest on soft shadows, and
@@ -65,9 +65,9 @@ body.stage-portal .topbar-user { border-left-color: #2e2e2e; }
 /* ── Navigation: the current page is a solid pill ── */
 body.stage-portal .nav-item { border-radius: 999px; transition: background-color .3s var(--mn-ease), color .3s var(--mn-ease); }
 body.stage-portal .nav-item:hover { background: #1c1c1c; }
-body.stage-portal .nav-item.active { background: #f7c948; color: #1a1a1a; box-shadow: none; }
+body.stage-portal .nav-item.active { background: var(--st-accent); color: #1a1a1a; box-shadow: none; }
 body.stage-portal .nav-item.active::before { display: none; }
-body.stage-portal .nav-item.active .nav-badge { background: #1a1a1a; color: #f7c948; }
+body.stage-portal .nav-item.active .nav-badge { background: #1a1a1a; color: var(--st-accent); }
 body.stage-portal .user-card { border-radius: 1.25rem; }
 
 /* ── Cards: no borders, soft shadows, generous radii ── */

@@ -450,7 +450,7 @@ a.btn:hover { text-decoration: none; }
 .toast-confirm__row button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #111; }
 .toast-confirm__row button:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .toast-confirm__stay { background: #fff; }
-.toast-confirm__go { background: #f7c948; }
+.toast-confirm__go { background: #36e2c0; }
 @keyframes toast-confirm-in { from { opacity: 0; transform: scale(.94); } }
 @media (prefers-reduced-motion: reduce) { .toast-confirm { animation: none; } .toast-confirm__row button { transition: none; } }
 
