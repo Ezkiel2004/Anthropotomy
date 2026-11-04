@@ -64,22 +64,11 @@
 
       <section class="sd-block" aria-labelledby="availableModulesTitle">
         <div class="sd-stack">
-          <div class="sd-tools">
-            <label class="sd-search">
-              <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
-              <span class="sr-only">Search modules</span>
-              <input type="search" id="lessonSearchInput" placeholder="Search modules or body systems" autocomplete="off" oninput="handleLessonSearch(this.value)">
-            </label>
-            <div class="sd-filters">
-              <select id="lessonSystemFilter" class="sd-select" aria-label="Filter by body system" onchange="handleLessonSystemFilter(this.value)"><option value="all">All body systems</option></select>
-              <select id="lessonSortFilter" class="sd-select" aria-label="Sort modules" onchange="handleLessonSort(this.value)">
-                <option value="curriculum">Course order</option>
-                <option value="progress-desc">Most progress</option>
-                <option value="progress-asc">Least progress</option>
-                <option value="alpha">Title, A to Z</option>
-              </select>
-            </div>
-          </div>
+          <label class="sd-search">
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg>
+            <span class="sr-only">Search modules</span>
+            <input type="search" id="lessonSearchInput" placeholder="Search modules or body systems" autocomplete="off" oninput="handleLessonSearch(this.value)">
+          </label>
           <div class="sd-seg" id="statusFilterChips" role="group" aria-label="Show modules">
             <button type="button" class="filter-chip-btn active" data-status="all" aria-pressed="true" onclick="setLessonStatusFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
             <button type="button" class="filter-chip-btn" data-status="in-progress" aria-pressed="false" onclick="setLessonStatusFilter('in-progress')">In progress <span class="chip-count" id="countInProgress">0</span></button>
@@ -88,8 +77,8 @@
           </div>
         </div>
 
-        <div class="sd-h"><h2 id="availableModulesTitle" class="sd-h-title">Modules</h2><span class="sd-count" id="lessonResultsCount" role="status">Loading modules…</span></div>
-        <div class="sd-grid" id="lessonGrid"></div>
+        <h2 id="availableModulesTitle" class="sr-only">Modules</h2>
+        <div id="lessonGrid" style="display:grid;gap:2rem"></div>
       </section>
     </div>
   </main>
@@ -122,8 +111,6 @@ Auth.requireAuthSync('student');
 
 let allModules           = [];
 let currentStatusFilter  = 'all';
-let currentSystemFilter  = 'all';
-let currentSort          = 'curriculum';
 let searchTerm           = '';
 
 const systemShort = name => String(name || '').replace(/\s+System$/i, '');
@@ -141,7 +128,6 @@ async function loadLessons() {
     updateSummaryMetrics();
     renderLessons();
   } catch (e) {
-    document.getElementById('lessonResultsCount').textContent = 'Modules unavailable';
     grid.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load your lessons. Please refresh to try again.</div>';
   }
 }
@@ -194,19 +180,6 @@ function renderLessons() {
   } else if (currentStatusFilter === 'not-started') {
     data = data.filter(m => !(m.completion_pct || 0));
   }
-  if (currentSystemFilter !== 'all') {
-    data = data.filter(m => m.system_code === currentSystemFilter);
-  }
-  if (currentSort === 'progress-desc') {
-    data.sort((a, b) => (parseFloat(b.completion_pct || 0) - parseFloat(a.completion_pct || 0)));
-  } else if (currentSort === 'progress-asc') {
-    data.sort((a, b) => (parseFloat(a.completion_pct || 0) - parseFloat(b.completion_pct || 0)));
-  } else if (currentSort === 'alpha') {
-    data.sort((a, b) => a.title.localeCompare(b.title));
-  }
-
-  document.getElementById('lessonResultsCount').textContent = `${data.length} of ${plural(allModules.length, 'module')}`;
-
   const grid = document.getElementById('lessonGrid');
   if (!data.length) {
     grid.innerHTML = allModules.length
@@ -215,7 +188,21 @@ function renderLessons() {
     return;
   }
 
-  grid.innerHTML = data.map(m => {
+  // The API returns modules in body-system order, so each run of one system becomes its own section.
+  const groups = [];
+  data.forEach(m => {
+    const last = groups[groups.length - 1];
+    if (last && last.code === m.system_code) last.modules.push(m);
+    else groups.push({ code: m.system_code, name: systemShort(m.system_name) || 'Other', modules: [m] });
+  });
+  grid.innerHTML = groups.map(g => `
+    <section aria-label="${escHtml(g.name)}">
+      <div class="sd-h"><h3 class="sd-h-title">${escHtml(g.name)}</h3><span class="sd-count">${plural(g.modules.length, 'module')}</span></div>
+      <div class="sd-grid">${g.modules.map(moduleCard).join('')}</div>
+    </section>`).join('');
+}
+
+function moduleCard(m) {
     const look = systemLook(m.system_code);
     const pct = Math.round(parseFloat(m.completion_pct || 0));
     const lessons = Number(m.lesson_count) || 0;
@@ -225,11 +212,10 @@ function renderLessons() {
       <article class="sd-mod" style="--card:${look.colour}">
         <div class="sd-mod-art">
           ${look.art ? `<img src="${look.art}" alt="" loading="lazy" width="560" height="640">` : `<span class="sd-sys-icon">${icon('book-open')}</span>`}
-          <span class="sd-mod-system">${escHtml(systemShort(m.system_name))}</span>
           <span class="sd-chip ${chipClass}">${chipText}</span>
         </div>
         <div class="sd-mod-body">
-          <h3 class="sd-mod-title">${escHtml(m.title)}</h3>
+          <h4 class="sd-mod-title">${escHtml(m.title)}</h4>
           ${m.description ? `<p class="sd-mod-desc">${escHtml(m.description)}</p>` : ''}
           <div class="sd-meter" role="progressbar" aria-label="${escHtml(m.title)} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
           <div class="sd-mod-foot">
@@ -238,7 +224,6 @@ function renderLessons() {
           </div>
         </div>
       </article>`;
-  }).join('');
 }
 
 // ── Filter & Search Handlers ───────────────────────────────────
@@ -257,23 +242,9 @@ function setLessonStatusFilter(status) {
   renderLessons();
 }
 
-function handleLessonSystemFilter(system) {
-  currentSystemFilter = system;
-  renderLessons();
-}
-
-function handleLessonSort(sort) {
-  currentSort = sort;
-  renderLessons();
-}
-
 function resetFilters() {
   searchTerm = '';
-  currentSystemFilter = 'all';
-  currentSort = 'curriculum';
   document.getElementById('lessonSearchInput').value = '';
-  document.getElementById('lessonSystemFilter').value = 'all';
-  document.getElementById('lessonSortFilter').value = 'curriculum';
   setLessonStatusFilter('all');
 }
 
@@ -450,7 +421,6 @@ async function markLessonComplete(lessonId) {
 
 // ── Init ───────────────────────────────────────────────────────
 loadLessons();
-fetch(API_BASE+'/body-systems.php').then(r=>r.json()).then(result=>{if(!result.success)return;const select=document.getElementById('lessonSystemFilter');select.replaceChildren(new Option('All body systems','all'));result.data.forEach(s=>select.add(new Option(s.system_name,s.system_code)));}).catch(()=>{});
 </script>
 <script src="../assets/js/site-config.js"></script>
 </body>
