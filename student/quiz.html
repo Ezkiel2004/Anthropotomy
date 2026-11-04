@@ -337,7 +337,7 @@ function renderAssessmentCards() {
   if (!filtered.length) {
     grid.innerHTML = allAssessments.length
       ? '<div class="sd-empty"><p class="sd-empty-title">No quizzes match</p><p>Try another filter or clear your search.</p><button type="button" class="sd-ghost" onclick="resetAssessmentFilters()">Clear filters</button></div>'
-      : `<div class="sd-empty"><p class="sd-empty-title">No quizzes yet</p><p>Your teacher will publish quizzes and activities here. Meanwhile, the 3D explorer is a good warm-up.</p><a class="sd-go sd-go--light sd-go--sm" href="anatomy.html">Explore 3D Anatomy<span class="sd-go-disc">${icon('arrow-right')}</span></a></div>`;
+      : `<div class="sd-empty"><p class="sd-empty-title">No quizzes yet</p><p>Your teacher will publish quizzes and activities here. Meanwhile, the 3D explorer is a good warm-up.</p><a class="sd-ghost" href="anatomy.html">Explore 3D Anatomy</a></div>`;
     return;
   }
 
