@@ -24,25 +24,7 @@ if ($method === 'GET') {
         [$user['user_id']]
     );
 
-    // Get system health info
-    $counts = [
-        'users'       => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM users")['c'] ?? 0),
-        'modules'     => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM modules")['c'] ?? 0),
-        'lessons'     => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM lessons")['c'] ?? 0),
-        'assessments' => (int) ($db->fetchOne("SELECT COUNT(*) AS c FROM assessments")['c'] ?? 0),
-    ];
-
-    $systemInfo = [
-        'php_version'   => PHP_VERSION,
-        'server_time'   => date('Y-m-d H:i:s'),
-        'database'      => 'MySQL / MariaDB (Connected)',
-        'counts'        => $counts,
-    ];
-
-    jsonSuccess([
-        'profile'     => $profile,
-        'system_info' => $systemInfo
-    ]);
+    jsonSuccess(['profile' => $profile]);
 }
 
 if ($method === 'PUT') {
