@@ -17,9 +17,9 @@ require_once __DIR__ . '/../database/connection.php';
 const GRADE_LEVEL = 'Grade 11';
 const SECTIONS = ['Rizal', 'Bonifacio', 'Mabini', 'Luna'];
 
-// Metrics a badge (achievement rule) can be measured on: learning progress, then the arcade games.
+// Metrics a badge (achievement rule) can be measured on: study and quiz progress, then the arcade games.
 const BADGE_METRICS = [
-    'completed_lessons', 'avg_quiz_score', 'quizzes_taken', 'quizzes_passed', 'systems_explored', 'total_time_hours', 'overall_progress',
+    'study_days_total', 'total_time_hours', 'avg_quiz_score', 'quizzes_taken', 'quizzes_passed', 'systems_explored',
     'games_played', 'best_game_streak', 'total_points', 'games_variety',
 ];
 
@@ -334,30 +334,18 @@ function getPagination(int $defaultLimit = 20, int $maxLimit = 100): array {
  * All metrics are dynamically computed from live database records (zero hardcoded values).
  */
 function _updateProgressSummary(int $studentId, Database $db): void {
-    // 1. Dynamic count of all published lessons in published modules
-    $totalLessonsRow = $db->fetchOne(
-        "SELECT COUNT(*) AS total_lessons
-         FROM lessons l
-         JOIN modules m ON m.module_id = l.module_id AND m.status = 'published'
-         WHERE l.status = 'published'"
-    );
-    $totalLessons = (int) ($totalLessonsRow['total_lessons'] ?? 0);
-
-    // 2. Student lesson progress: completed count and study time
-    $lessonStats = $db->fetchOne(
-        "SELECT
-            COUNT(DISTINCT CASE WHEN slp.status = 'completed' THEN slp.lesson_id END) AS completed_lessons,
-            COALESCE(SUM(slp.time_spent_secs), 0) AS lesson_secs
-         FROM student_lesson_progress slp
-         JOIN lessons l ON l.lesson_id = slp.lesson_id AND l.status = 'published'
-         JOIN modules m ON m.module_id = l.module_id AND m.status = 'published'
-         WHERE slp.student_id = ?",
+    // 1. How often the student studies, from the portal heartbeat (api/study.php)
+    $study = $db->fetchOne(
+        "SELECT COUNT(CASE WHEN study_date >= CURDATE() - INTERVAL 6 DAY THEN 1 END)  AS days_week,
+                COUNT(CASE WHEN study_date >= CURDATE() - INTERVAL 29 DAY THEN 1 END) AS days_month,
+                COUNT(*) AS days_total, MAX(study_date) AS last_on,
+                COALESCE(SUM(active_secs), 0) AS secs
+         FROM study_days
+         WHERE student_id = ?",
         [$studentId]
     );
-    $completedLessons = (int) ($lessonStats['completed_lessons'] ?? 0);
-    $lessonSecs       = (float) ($lessonStats['lesson_secs'] ?? 0);
 
-    // 3. Quiz assessment submissions: average score, quizzes taken, quizzes passed
+    // 2. Quiz assessment submissions: average score, quizzes taken, quizzes passed
     $quizStats = $db->fetchOne(
         "SELECT
             COUNT(q.submission_id) AS quizzes_taken,
@@ -377,44 +365,68 @@ function _updateProgressSummary(int $studentId, Database $db): void {
         ? round((float) $quizStats['avg_score'], 2)
         : null;
 
-    // 4. Systems explored count & 3D exploration time
+    // 3. Systems explored in 3D
     $systemsRow = $db->fetchOne(
-        "SELECT
-            COUNT(DISTINCT system_id) AS systems_explored,
-            COALESCE(SUM(duration_secs), 0) AS exploration_secs
+        "SELECT COUNT(DISTINCT system_id) AS systems_explored
          FROM system_exploration_log
          WHERE student_id = ?",
         [$studentId]
     );
     $systemsExplored = (int) ($systemsRow['systems_explored'] ?? 0);
-    $explorationSecs = (float) ($systemsRow['exploration_secs'] ?? 0);
 
-    $totalHours = round(($lessonSecs + $explorationSecs) / 3600, 2);
-
-    // 5. Upsert into student_progress_summary
+    // 4. Upsert into student_progress_summary
     $db->query(
         "INSERT INTO student_progress_summary
-             (student_id, total_lessons, completed_lessons, avg_quiz_score, quizzes_taken, quizzes_passed, systems_explored, total_time_hours)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             (student_id, avg_quiz_score, quizzes_taken, quizzes_passed, systems_explored, total_time_hours,
+              study_days_week, study_days_month, study_days_total, last_studied_on)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
-             total_lessons     = VALUES(total_lessons),
-             completed_lessons = VALUES(completed_lessons),
-             avg_quiz_score    = VALUES(avg_quiz_score),
-             quizzes_taken     = VALUES(quizzes_taken),
-             quizzes_passed    = VALUES(quizzes_passed),
-             systems_explored  = VALUES(systems_explored),
-             total_time_hours  = VALUES(total_time_hours)",
+             avg_quiz_score   = VALUES(avg_quiz_score),
+             quizzes_taken    = VALUES(quizzes_taken),
+             quizzes_passed   = VALUES(quizzes_passed),
+             systems_explored = VALUES(systems_explored),
+             total_time_hours = VALUES(total_time_hours),
+             study_days_week  = VALUES(study_days_week),
+             study_days_month = VALUES(study_days_month),
+             study_days_total = VALUES(study_days_total),
+             last_studied_on  = VALUES(last_studied_on)",
         [
             $studentId,
-            $totalLessons,
-            $completedLessons,
             $avgScore,
             $quizzesTaken,
             $quizzesPassed,
             $systemsExplored,
-            $totalHours,
+            round((float) $study['secs'] / 3600, 2),
+            (int) $study['days_week'],
+            (int) $study['days_month'],
+            (int) $study['days_total'],
+            $study['last_on'],
         ]
     );
+}
+
+/**
+ * Study time on each of the last $days days, oldest first: [['date' => 'Y-m-d', 'minutes' => n, 'students' => n], ...].
+ * For one student, or for every student when $studentId is null (minutes summed, students counted).
+ */
+function studyCalendar(?int $studentId, int $days = 28): array {
+    $db = Database::getInstance();
+    $rows = $db->fetchAll(
+        "SELECT study_date, SUM(active_secs) AS secs, COUNT(*) AS students
+         FROM study_days
+         WHERE (? IS NULL OR student_id = ?) AND study_date > CURDATE() - INTERVAL ? DAY
+         GROUP BY study_date",
+        [$studentId, $studentId, $days]
+    );
+    $byDate = array_column($rows, null, 'study_date');
+    $day = new DateTime($db->fetchOne('SELECT CURDATE() AS d')['d']);
+    $day->modify('-' . ($days - 1) . ' days');
+    $calendar = [];
+    for ($i = 0; $i < $days; $i++, $day->modify('+1 day')) {
+        $date = $day->format('Y-m-d');
+        $calendar[] = ['date' => $date, 'minutes' => (int) round(($byDate[$date]['secs'] ?? 0) / 60), 'students' => (int) ($byDate[$date]['students'] ?? 0)];
+    }
+    return $calendar;
 }
 
 // ── Badges ──────────────────────────────────────────────────────
@@ -450,28 +462,24 @@ function gameMetrics(int $userId): array {
  */
 function badgeMetrics(int $userId): array {
     $row = Database::getInstance()->fetchOne(
-        "SELECT COALESCE(sps.completed_lessons, 0) AS completed_lessons,
-                COALESCE(sps.total_lessons, (SELECT COUNT(*) FROM lessons l JOIN modules m ON m.module_id = l.module_id AND m.status = 'published' WHERE l.status = 'published')) AS total_lessons,
-                sps.avg_quiz_score,
+        "SELECT sps.avg_quiz_score,
                 COALESCE(sps.quizzes_taken, 0)    AS quizzes_taken,
                 COALESCE(sps.quizzes_passed, 0)   AS quizzes_passed,
                 COALESCE(sps.systems_explored, 0) AS systems_explored,
-                COALESCE(sps.total_time_hours, 0) AS total_time_hours
+                COALESCE(sps.total_time_hours, 0) AS total_time_hours,
+                COALESCE(sps.study_days_total, 0) AS study_days_total
          FROM users u
          LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
          WHERE u.user_id = ?",
         [$userId]
     ) ?? [];
-    $completed = (int) ($row['completed_lessons'] ?? 0);
-    $total     = (int) ($row['total_lessons'] ?? 0);
     return [
-        'completed_lessons' => $completed,
         'avg_quiz_score'    => isset($row['avg_quiz_score']) ? (float) $row['avg_quiz_score'] : null,
         'quizzes_taken'     => (int) ($row['quizzes_taken'] ?? 0),
         'quizzes_passed'    => (int) ($row['quizzes_passed'] ?? 0),
         'systems_explored'  => (int) ($row['systems_explored'] ?? 0),
         'total_time_hours'  => (float) ($row['total_time_hours'] ?? 0),
-        'overall_progress'  => $total > 0 ? round(($completed / $total) * 100, 1) : 0.0,
+        'study_days_total'  => (int) ($row['study_days_total'] ?? 0),
     ] + gameMetrics($userId);
 }
 

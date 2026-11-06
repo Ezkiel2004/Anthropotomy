@@ -114,4 +114,16 @@ if ($retired !== '1') {
  $pdo->exec("INSERT INTO app_settings (setting_key, setting_value) VALUES ('games_v2_badges', '1') ON DUPLICATE KEY UPDATE setting_value = '1'");
  $pdo->commit();
 }
+// How often each student studies: active seconds per calendar day, from the student portal's
+// once-a-minute heartbeat (api/study.php). Lessons are slide decks, so there is no lesson completion to track.
+$pdo->exec("CREATE TABLE IF NOT EXISTS study_days (
+ student_id INT UNSIGNED NOT NULL, study_date DATE NOT NULL,
+ active_secs INT UNSIGNED NOT NULL DEFAULT 0, last_beat_at TIMESTAMP NULL,
+ PRIMARY KEY(student_id, study_date), KEY idx_study_days_date (study_date),
+ FOREIGN KEY(student_id) REFERENCES users(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+foreach (['study_days_week' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'study_days_month' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+          'study_days_total' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'last_studied_on' => 'DATE NULL'] as $column => $definition) {
+ addColumnIfMissing($pdo, 'student_progress_summary', $column, $definition);
+}
 echo "Schema migration complete. Existing accounts and learning records preserved.\n";

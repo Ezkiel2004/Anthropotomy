@@ -8,12 +8,12 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261104-mint2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
@@ -58,7 +58,7 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1>Students</h1>
-          <p>Manage enrolled students, section assignments, accounts, and inspect individual academic progress.</p>
+          <p>Manage enrolled students, section assignments and accounts, and see how often each one studies.</p>
         </div>
         <div class="page-header-right">
           <button class="btn btn-secondary btn-sm" onclick="exportStudentCSV()">
@@ -127,7 +127,7 @@
                 <th>Student</th>
                 <th>Student ID</th>
                 <th>Section & Grade</th>
-                <th>Lessons Progress</th>
+                <th>Days Studied (7d)</th>
                 <th>Average Quiz</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -309,9 +309,9 @@ function renderStudentsTable(students) {
         <td>
           <div style="display:flex;align-items:center;gap:var(--space-2);min-width:110px;">
             <div class="progress-bar" style="height:6px;flex:1;background:var(--bg-inset);">
-              <div class="progress-fill" style="width:${s.progress_pct}%;background:${s.progress_pct>=75?'var(--success)':'var(--brand)'};"></div>
+              <div class="progress-fill" style="width:${Math.round(s.study_days_week / 7 * 100)}%;background:${s.study_days_week>=4?'var(--success)':'var(--brand)'};"></div>
             </div>
-            <span style="font-size:0.75rem;color:var(--text-secondary);">${s.completed_lessons}/${s.total_lessons}</span>
+            <span style="font-size:0.75rem;color:var(--text-secondary);">${s.study_days_week}/7</span>
           </div>
         </td>
         <td style="font-weight:700;color:${scoreColor};">
@@ -385,21 +385,6 @@ async function viewStudentDetails(userId) {
     toggleBtn.textContent = selectedStudent.is_active ? 'Deactivate Account' : 'Reactivate Account';
     toggleBtn.className = selectedStudent.is_active ? 'btn btn-secondary' : 'btn btn-primary';
 
-    const sysList = (selectedStudent.system_progress || []).map(sys => {
-      const pct = sys.total_lessons > 0 ? Math.round((sys.completed_lessons / sys.total_lessons) * 100) : 0;
-      return `
-        <div style="margin-bottom:var(--space-2);">
-          <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:4px;">
-            <span>${escHtml(sys.system_name)}</span>
-            <span style="color:var(--text-muted);">${sys.completed_lessons}/${sys.total_lessons} (${pct}%)</span>
-          </div>
-          <div class="progress-bar" style="height:6px;">
-            <div class="progress-fill" style="width:${pct}%;background:${sys.color_hex};"></div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
     const subsList = (selectedStudent.submissions || []).length ? (selectedStudent.submissions || []).map(sub => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border-default);font-size:0.8rem;">
         <div>
@@ -429,8 +414,8 @@ async function viewStudentDetails(userId) {
 
       <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:var(--space-3);margin-bottom:var(--space-5);">
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${selectedStudent.completed_lessons || 0}</div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Lessons Completed</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${Number(selectedStudent.study_days_week) || 0} / 7</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Days Studied (7d)</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
           <div style="font-size:1.25rem;font-weight:700;color:var(--brand);">${selectedStudent.avg_quiz_score !== null ? selectedStudent.avg_quiz_score + '%' : '—'}</div>
@@ -444,10 +429,9 @@ async function viewStudentDetails(userId) {
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-4);">
         <div>
-          <div style="font-weight:600;font-size:0.85rem;margin-bottom:var(--space-3);">Progress by Body System</div>
-          <div style="max-height:220px;overflow-y:auto;padding-right:4px;">
-            ${sysList}
-          </div>
+          <div style="font-weight:600;font-size:0.85rem;margin-bottom:var(--space-3);">Study days, last 4 weeks</div>
+          ${studyStrip(selectedStudent.study_calendar || [])}
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:var(--space-2);">Last studied ${escHtml(fmtLastStudied(selectedStudent.last_studied_on))} · ${escHtml(fmtStudyTime(selectedStudent.total_time_hours))} in all</div>
         </div>
         <div>
           <div style="font-weight:600;font-size:0.85rem;margin-bottom:var(--space-3);">Recent Assessment Scores</div>
@@ -552,7 +536,7 @@ function exportStudentCSV() {
     showToast('No student data to export.', 'warning');
     return;
   }
-  const headers = ['Student ID', 'Full Name', 'Username', 'Section', 'Grade Level', 'Email', 'Completed Lessons', 'Avg Quiz Score', 'Status'];
+  const headers = ['Student ID', 'Full Name', 'Username', 'Section', 'Grade Level', 'Email', 'Days Studied (Last 7 Days)', 'Last Studied', 'Avg Quiz Score', 'Status'];
   const rows = [headers];
 
   allStudents.forEach(s => {
@@ -563,7 +547,8 @@ function exportStudentCSV() {
       `"${s.section}"`,
       `"${s.grade_level}"`,
       `"${s.email || ''}"`,
-      s.completed_lessons,
+      s.study_days_week,
+      s.last_studied_on || 'Never',
       s.avg_quiz_score !== null ? s.avg_quiz_score + '%' : 'N/A',
       s.is_active ? 'Active' : 'Inactive'
     ]);

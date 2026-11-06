@@ -8,10 +8,10 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -51,7 +51,7 @@
       <header class="sd-head">
         <div>
           <h1 class="sd-title">My progress</h1>
-          <p class="sd-sub">Lessons, study time and every quiz result in one place.</p>
+          <p class="sd-sub">How often you study, and every quiz result in one place.</p>
         </div>
       </header>
 
@@ -59,9 +59,9 @@
 
       <div class="sd-top">
         <section class="sd-ring-card" aria-labelledby="overallTitle">
-          <div class="sd-ring" id="overallRing" role="img" aria-label="Lesson completion loading"><span id="overallPct">0%</span></div>
+          <div class="sd-ring" id="overallRing" role="img" aria-label="Study days loading"><span id="overallPct">0</span></div>
           <div class="sd-ring-copy">
-            <p class="sd-next-kicker">Lessons finished</p>
+            <p class="sd-next-kicker">Days studied, last 7 days</p>
             <h2 class="sd-next-title" id="overallTitle">Loading…</h2>
             <p class="sd-next-detail" id="overallExploredText"></p>
           </div>
@@ -70,14 +70,14 @@
         <dl class="sd-stats" aria-label="Your progress at a glance">
           <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="statAvgQuizScore">Not yet</span><span class="sd-stat-hint">Across graded attempts</span></dd></div>
           <div class="sd-stat"><dt>Quizzes passed</dt><dd><span class="sd-stat-value" id="statQuizzesDone">0</span><span class="sd-stat-hint" id="statQuizzesHint">Loading…</span></dd></div>
-          <div class="sd-stat"><dt>Lessons done</dt><dd><span class="sd-stat-value" id="statLessonsRatio">0</span><span class="sd-stat-hint" id="statLessonsHint">Loading…</span></dd></div>
-          <div class="sd-stat"><dt>Study time</dt><dd><span class="sd-stat-value" id="statStudyHours">0h</span><span class="sd-stat-hint">Reading lessons</span></dd></div>
+          <div class="sd-stat"><dt>Days studied</dt><dd><span class="sd-stat-value" id="statStudyDays">0</span><span class="sd-stat-hint">In the last 30 days</span></dd></div>
+          <div class="sd-stat"><dt>Study time</dt><dd><span class="sd-stat-value" id="statStudyHours">0 min</span><span class="sd-stat-hint">All time on Anthropotomy</span></dd></div>
         </dl>
       </div>
 
       <section class="sd-block" aria-labelledby="activityTitle">
-        <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Progress, last 21 days</h2><span class="sd-count" id="activityCount"></span></div>
-        <div class="sd-line" id="streakGrid"></div>
+        <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Study days, last 4 weeks</h2><span class="sd-count" id="activityCount"></span></div>
+        <div id="streakGrid"></div>
       </section>
 
       <section class="sd-block" id="scores" aria-labelledby="scoresTitle">
@@ -114,13 +114,12 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
 
-const isoDay = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
 
 async function loadProgress() {
   try {
@@ -128,49 +127,27 @@ async function loadProgress() {
     const result = await res.json();
     if (!result.success) throw new Error(result.message || 'Unable to load progress.');
 
-    const { summary, system_progress, recent_activity } = result.data;
-    const completed  = parseInt(summary?.completed_lessons || 0);
-    const total      = parseInt(summary?.total_lessons || 0);
-    const overallPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const { summary, system_count, study_calendar } = result.data;
+    const week = Number(summary?.study_days_week) || 0;
     const taken = Number(summary?.quizzes_taken) || 0, passed = Number(summary?.quizzes_passed) || 0;
 
-    // Completion ring: CSS draws it from --p
+    // Ring: CSS draws it from --p (days of the last 7, as a percentage)
     const ring = document.getElementById('overallRing');
-    ring.style.setProperty('--p', overallPct);
-    ring.setAttribute('aria-label', `${overallPct}% of lessons finished`);
-    document.getElementById('overallPct').textContent = `${overallPct}%`;
-    document.getElementById('overallTitle').textContent = total === 0 ? 'No lessons published yet' : `${completed} of ${plural(total, 'lesson')}`;
-    document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${plural((system_progress || []).length, 'body system')} explored in 3D`;
+    ring.style.setProperty('--p', Math.round(week / 7 * 100));
+    ring.setAttribute('aria-label', `Studied on ${week} of the last 7 days`);
+    document.getElementById('overallPct').textContent = `${week}/7`;
+    document.getElementById('overallTitle').textContent = week === 0 ? 'No study days yet this week' : `${plural(week, 'day')} this week`;
+    document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${plural(Number(system_count) || 0, 'body system')} explored in 3D`;
 
     document.getElementById('statAvgQuizScore').textContent = summary?.avg_quiz_score != null ? `${Math.round(summary.avg_quiz_score)}%` : 'Not yet';
     document.getElementById('statQuizzesDone').textContent = passed;
     document.getElementById('statQuizzesHint').textContent = taken === 0 ? 'Your first result shows here' : `Out of ${taken} taken`;
-    document.getElementById('statLessonsRatio').textContent = `${completed}/${total}`;
-    document.getElementById('statLessonsHint').textContent = total === 0 ? 'Waiting for your teacher' : `${overallPct}% finished`;
-    document.getElementById('statStudyHours').textContent = `${parseFloat(summary?.total_time_hours || 0).toFixed(1)}h`;
+    document.getElementById('statStudyDays').textContent = Number(summary?.study_days_month) || 0;
+    document.getElementById('statStudyHours').textContent = fmtStudyTime(summary?.total_time_hours);
 
-    // One square per day, oldest first; today has an outline
-    const activeDates = new Set((recent_activity || []).map(a => a.activity_date));
-    const today = new Date();
-    let activeCount = 0;
-    // Line chart: cumulative % of lessons finished over the last 21 days
-    const perDay = new Map((recent_activity || []).map(a => [a.activity_date, Number(a.lessons_done) || 0]));
-    const days = Array.from({ length: 21 }, (_, n) => { const d = new Date(today); d.setDate(d.getDate() - (20 - n)); return d; });
-    let cum = completed - days.reduce((t, d) => t + (perDay.get(isoDay(d)) || 0), 0);
-    const pts = days.map((d, n) => {
-      const v = perDay.get(isoDay(d)) || 0;
-      if (v) activeCount++;
-      cum += v;
-      return { d, x: 40 + n * 29, y: 110 - (total ? Math.max(0, Math.min(100, cum / total * 100)) : 0), pct: total ? Math.round(cum / total * 100) : 0 };
-    });
-    const line = pts.map(q => `${q.x},${q.y}`).join(' ');
-    const fmt = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    document.getElementById('streakGrid').innerHTML = `<svg viewBox="0 0 640 150" role="img" aria-label="Lesson progress over the last 21 days, now ${overallPct}%">
-      ${[0, 50, 100].map(v => `<line x1="40" x2="620" y1="${110 - v}" y2="${110 - v}" class="grid"/><text x="32" y="${114 - v}" text-anchor="end">${v}%</text>`).join('')}
-      <polygon points="40,110 ${line} 620,110" class="area"/><polyline points="${line}" class="line"/>
-      ${pts.map(q => `<circle cx="${q.x}" cy="${q.y}" r="${q === pts[20] ? 5 : 3}" class="dot"><title>${fmt(q.d)}: ${q.pct}%</title></circle>`).join('')}
-      ${[0, 10, 20].map(n => `<text x="${pts[n].x}" y="135" text-anchor="${n ? (n === 20 ? 'end' : 'middle') : 'start'}">${fmt(pts[n].d)}</text>`).join('')}</svg>`;
-    document.getElementById('activityCount').textContent = `Active on ${plural(activeCount, 'day')}`;
+    const calendar = study_calendar || [];
+    document.getElementById('streakGrid').innerHTML = studyStrip(calendar);
+    document.getElementById('activityCount').textContent = `Studied on ${plural(calendar.filter(d => d.minutes > 0).length, 'day')}`;
   } catch (err) {
     const error = document.getElementById('progressError');
     error.hidden = false;

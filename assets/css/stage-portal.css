@@ -101,8 +101,6 @@
 .sd-next-kicker{margin:0;font-size:.8125rem;font-weight:700}
 .sd-next-title{margin:.5rem 0 0;color:inherit;font-size:clamp(1.375rem,2.4vw,1.75rem);font-weight:700;line-height:1.15;letter-spacing:-.01em}
 .sd-next-detail{margin:.375rem 0 0;font-size:.875rem;font-weight:600;line-height:1.45}
-.sd-next-bar{height:7px;margin-top:.875rem;overflow:hidden;border-radius:4px;background:rgba(18,18,18,.18)}
-.sd-next-bar i{display:block;height:100%;border-radius:inherit;background:currentColor;animation:sd-fill 1s var(--st-ease) both}
 .sd-next-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem 1.25rem}
 .sd-next-alt{color:inherit;font-size:.875rem;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .sd-next-alt:hover{color:inherit}
@@ -150,8 +148,6 @@
 .sd-sys-icon svg{width:1.5rem;height:1.5rem;fill:currentColor}
 .sd-sys-name{display:block;font-family:var(--st-display);font-size:.9375rem;line-height:1.1;text-transform:uppercase;font-variant-ligatures:none}
 .sd-sys-meta{display:block;margin-top:.25rem;font-size:.75rem;font-weight:700}
-.sd-sys-bar{position:absolute;left:.9375rem;right:.9375rem;bottom:.9375rem;height:6px;overflow:hidden;border-radius:3px;background:rgba(255,255,255,.6)}
-.sd-sys-bar i{display:block;height:100%;border-radius:inherit;background:var(--st-dark);animation:sd-fill 1s var(--st-ease) both}
 
 /* Score history bars and achievements */
 .sd-row{display:grid;gap:2.75rem}
@@ -239,7 +235,7 @@
   .sd-quiz-due{max-width:6.5rem}
 }
 @media (prefers-reduced-motion:reduce){
-  .sd>*,.sd-bar i,.sd-next-bar i,.sd-sys-bar i{animation:none}
+  .sd>*,.sd-bar i{animation:none}
   .sd-next-art,.sd-sys,.sd-sys img,.sd-quiz-icon,.sd-go-disc{transition:none}
 }
 
@@ -253,8 +249,6 @@
 .sd-go--accent:hover{color:var(--st-dark)}
 .sd-go--accent .sd-go-disc{background:var(--st-dark);color:var(--st-accent)}
 .sd-go:disabled{opacity:.55;cursor:default;transform:none}
-.sd-go.is-done{opacity:1;background:rgba(44,207,154,.16);color:#5fe3b6}
-.sd-go.is-done .sd-go-disc{background:none;color:inherit}
 .sd-ghost{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.75rem;padding:0 1.125rem;border:0;border-radius:999px;background:var(--st-raised);color:#fff;font:inherit;font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background-color .2s}
 .sd-ghost:hover{background:var(--st-raised-2);color:#fff;text-decoration:none}
 .sd-ghost:disabled{opacity:.4;cursor:default}
@@ -343,7 +337,6 @@
 .sd-mod-body{flex:1;display:flex;flex-direction:column;gap:.5rem;padding:1.125rem 1.125rem 1.25rem}
 .sd-mod-title{margin:0;color:#fff;font-size:1.125rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
 .sd-mod-desc{display:-webkit-box;margin:0;overflow:hidden;color:var(--st-muted);font-size:.875rem;line-height:1.5;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.sd-mod-body>.sd-meter{margin-top:auto}
 .sd-mod-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;padding-top:.75rem}
 .sd-mod-count{color:var(--st-muted);font-size:.8125rem;font-weight:700}
 .sd-modsum{display:grid;gap:.75rem;margin-bottom:1.25rem}
@@ -355,8 +348,6 @@
 .sd-lesson:hover{background:#222}
 .sd-lesson-num{display:grid;flex-shrink:0;place-items:center;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--st-raised-2);color:var(--st-soft);font-size:.875rem;font-weight:700}
 .sd-lesson-num svg{width:1.125rem;height:1.125rem;fill:currentColor}
-.sd-lesson.is-done .sd-lesson-num{background:var(--st-teal);color:var(--st-dark)}
-.sd-lesson.is-progress .sd-lesson-num{background:var(--st-yellow);color:var(--st-dark)}
 .sd-lesson-copy{flex:1;display:grid;gap:.125rem;min-width:0}
 .sd-lesson-title{font-size:.9375rem;font-weight:700;overflow-wrap:anywhere}
 .sd-lesson-meta{color:var(--st-muted);font-size:.8125rem;font-weight:600}

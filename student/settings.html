@@ -8,10 +8,10 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -116,7 +116,7 @@
       <section class="sd-block" aria-labelledby="summaryTitle">
         <div class="sd-h"><h2 id="summaryTitle" class="sd-h-title">Learning summary</h2><a class="sd-link" href="progress.html">Full progress</a></div>
         <dl class="sd-stats sd-stats--row" id="statsGrid">
-          <div class="sd-stat"><dt>Lessons finished</dt><dd><span class="sd-stat-value" id="statLessons">—</span></dd></div>
+          <div class="sd-stat"><dt>Days studied, last 7</dt><dd><span class="sd-stat-value" id="statLessons">—</span></dd></div>
           <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="statAvgScore">—</span></dd></div>
           <div class="sd-stat"><dt>Quizzes passed</dt><dd><span class="sd-stat-value" id="statQuizzes">—</span></dd></div>
           <div class="sd-stat"><dt>Study time</dt><dd><span class="sd-stat-value" id="statHours">—</span></dd></div>
@@ -126,7 +126,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -162,10 +162,10 @@ async function loadStudentSummary() {
     const json = await res.json();
     if (json.success && json.data?.profile) {
       const sp = json.data.profile;
-      document.getElementById('statLessons').textContent  = `${sp.completed_lessons}/${sp.total_lessons}`;
+      document.getElementById('statLessons').textContent  = `${sp.study_days_week}/7`;
       document.getElementById('statAvgScore').textContent = sp.avg_quiz_score !== null ? `${Math.round(sp.avg_quiz_score)}%` : 'Not yet';
       document.getElementById('statQuizzes').textContent  = `${sp.quizzes_passed}/${sp.quizzes_taken}`;
-      document.getElementById('statHours').textContent    = `${parseFloat(sp.total_time_hours || 0).toFixed(1)}h`;
+      document.getElementById('statHours').textContent    = fmtStudyTime(sp.total_time_hours);
     }
   } catch (err) {
     console.warn('Could not load student stats summary:', err);

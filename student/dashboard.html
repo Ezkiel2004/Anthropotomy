@@ -8,10 +8,10 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -109,7 +109,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -124,39 +124,30 @@ function dueText(dueDate) {
   return endOfDueDay < new Date() ? 'Due date passed. Still open' : `Due ${fmtDate(dueDate)}`;
 }
 
-// One line under the greeting, written from the student's own numbers.
+// One line under the greeting, written from how often the student has studied.
 function encouragement(p) {
-  const total = Number(p.total_lessons) || 0, done = Number(p.completed_lessons) || 0, quizzes = Number(p.quizzes_taken) || 0;
-  if (total > 0 && done >= total) return 'You’ve finished every published lesson. Nice work.';
-  if (done > 0) return `You’ve finished ${done} of ${plural(total, 'lesson')}. Keep going.`;
+  const week = Number(p.study_days_week) || 0, quizzes = Number(p.quizzes_taken) || 0;
+  if (week >= 5) return `You studied on ${week} of the last 7 days. Great habit.`;
+  if (week > 0) return `You studied on ${week} of the last 7 days. Keep it up.`;
   if (quizzes > 0) return `You’ve taken ${plural(quizzes, 'quiz', 'quizzes')}. Keep it up.`;
   return 'Here’s a good place to start.';
 }
 
-// The single most useful thing to do next: a lesson in progress, an open quiz,
-// the next lesson, and otherwise the 3D explorer.
+// The single most useful thing to do next: an open quiz, the newest lesson,
+// and otherwise the 3D explorer.
 function pickNextStep(data) {
   const p = data.profile, lesson = data.next_lesson, quiz = (data.upcoming_assessments || [])[0];
-  const lessonDetail = lesson && (lesson.module_title || lesson.system_name || '');
-  const lessonSystem = lesson && (data.systems || []).find(s => s.system_name === lesson.system_name);
-  const lessonLook = lessonSystem ? systemLook(lessonSystem.system_code) : { tone: 'sky', art: '../assets/img/hero/skeletal.webp' };
-  const lessonProgress = lessonSystem && Number(lessonSystem.total_lessons) > 0
-    ? { pct: Number(lessonSystem.pct) || 0, label: `${lessonSystem.completed_lessons} of ${plural(Number(lessonSystem.total_lessons), 'lesson')} in ${lessonSystem.system_name}` } : null;
-  if (lesson && lesson.progress_status === 'in_progress') {
-    return { kind: 'lesson', ...lessonLook, icon: 'book-open', kicker: 'Pick up where you left off', title: lesson.title, detail: lessonDetail, progress: lessonProgress, action: 'Continue lesson', href: 'lessons.html' };
-  }
   if (quiz) {
     return { kind: 'quiz', tone: 'coral', art: '../assets/img/hero/decor-heart.webp', icon: 'exam', kicker: 'Ready for a quick check?', title: quiz.title,
       detail: `${dueText(quiz.due_date)}. About ${Number(quiz.time_limit_mins) || 30} minutes.`, action: 'Start quiz',
       href: `quiz.html?assessment_id=${encodeURIComponent(quiz.assessment_id)}` };
   }
   if (lesson) {
-    return { kind: 'lesson', ...lessonLook, icon: 'book-open', kicker: 'Start your next lesson', title: lesson.title, detail: lessonDetail, progress: lessonProgress, action: 'Start lesson', href: 'lessons.html' };
+    const look = (data.systems || []).some(s => s.system_code === lesson.system_code) ? systemLook(lesson.system_code) : { tone: 'sky', art: '../assets/img/hero/skeletal.webp' };
+    return { kind: 'lesson', ...look, icon: 'book-open', kicker: 'Newest lesson', title: lesson.title, detail: lesson.module_title || lesson.system_name || '', action: 'Open lessons', href: 'lessons.html' };
   }
-  const total = Number(p.total_lessons) || 0, done = Number(p.completed_lessons) || 0;
-  const detail = total === 0 ? 'No lessons yet. Switch a body system on and click any part to learn its name.'
-    : done >= total ? 'All published lessons are complete. Keep your knowledge fresh in 3D.'
-    : 'Visit My Lessons to continue learning, or explore the body in 3D.';
+  const detail = Number(p.total_lessons) === 0 ? 'No lessons yet. Switch a body system on and click any part to learn its name.'
+    : 'Visit My Lessons to study, or explore the body in 3D.';
   return { kind: 'explore', tone: 'sky', art: '../assets/img/hero/skeletal.webp', icon: 'cube', kicker: 'Your next step', title: 'Explore the body in 3D', detail, action: 'Explore 3D Anatomy', href: 'anatomy.html' };
 }
 
@@ -165,8 +156,6 @@ function renderNextStep(step) {
   card.dataset.kind = step.kind;
   card.dataset.tone = step.tone || 'none';
   card.style.setProperty('--card', CARD_COLOURS[step.tone] || '#1f1f1f');
-  const progress = step.progress
-    ? `<div class="sd-next-bar" role="progressbar" aria-label="${escHtml(step.progress.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${step.progress.pct}"><i style="width:${step.progress.pct}%"></i></div><p class="sd-next-detail">${escHtml(step.progress.label)}</p>` : '';
   card.innerHTML = `
     ${step.kind === 'explore' ? `<div class="sd-next-lineup" aria-hidden="true">${['circulatory', 'muscular', 'skeletal'].map(n => `<img src="../assets/img/hero/${n}.webp" alt="">`).join('')}</div>`
     : step.art ? `<img class="sd-next-art${step.kind === 'quiz' ? ' sd-next-art--organ' : ''}" src="${step.art}" alt="">` : `<span class="sd-next-icon">${icon(step.icon)}</span>`}
@@ -174,7 +163,6 @@ function renderNextStep(step) {
       <p class="sd-next-kicker">${escHtml(step.kicker)}</p>
       <h2 id="nextStepTitle" class="sd-next-title">${escHtml(step.title)}</h2>
       ${step.detail ? `<p class="sd-next-detail">${escHtml(step.detail)}</p>` : ''}
-      ${progress}
     </div>
     <div class="sd-next-actions">
       <a href="${step.href}" class="sd-go">${escHtml(step.action)}<span class="sd-go-disc">${icon('arrow-right')}</span></a>
@@ -190,11 +178,6 @@ async function loadStudentDashboard() {
 
     const data = result.data;
     const p = data.profile;
-    const totalLessons = Number(p.total_lessons) || 0;
-    const completedLessons = Number(p.completed_lessons) || 0;
-    const systemCount = (data.systems || []).length;
-    const explored = Number(p.systems_explored) || 0;
-    const quizzesTaken = Number(p.quizzes_taken) || 0;
 
     // Greeting, with the first name so it fits the display face
     const firstName = String(p.full_name || '').trim().split(/\s+/)[0];
@@ -225,7 +208,7 @@ async function loadStudentDashboard() {
       </a>
     `).join('') : '<div class="dashboard-empty">You’re all caught up. New quizzes from your teacher will appear here.</div>';
 
-    // Body systems: progress where there are lessons, a way into 3D everywhere
+    // Body systems: lesson counts, and a way into 3D everywhere
     const systems = data.systems || [];
     document.getElementById('systemProgressGrid').innerHTML = systems.length ? systems.map(s => {
       const look = systemLook(s.system_code);
@@ -235,8 +218,7 @@ async function loadStudentDashboard() {
       <a class="sd-sys" style="--card:${CARD_COLOURS[look.tone]}" href="${explore}">
         ${look.art ? `<img src="${look.art}" alt="" loading="lazy" width="560" height="640">` : `<span class="sd-sys-icon">${icon('cube')}</span>`}
         <span class="sd-sys-name">${escHtml(s.system_name.replace(' System', ''))}</span>
-        <span class="sd-sys-meta">${lessons > 0 ? `${s.completed_lessons} of ${plural(lessons, 'lesson')}` : 'No lessons yet'}<span class="sr-only">. Explore in 3D</span></span>
-        ${lessons > 0 ? `<span class="sd-sys-bar"><i style="width:${Number(s.pct) || 0}%"></i></span>` : ''}
+        <span class="sd-sys-meta">${lessons > 0 ? plural(lessons, 'lesson') : 'No lessons yet'}<span class="sr-only">. Explore in 3D</span></span>
       </a>`;
     }).join('') : '<div class="dashboard-empty">No body systems are available yet.</div>';
 

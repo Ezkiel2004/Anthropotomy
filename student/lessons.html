@@ -8,10 +8,10 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -55,13 +55,6 @@
         </div>
       </header>
 
-      <dl class="sd-stats sd-stats--row" aria-label="Your lessons at a glance">
-        <div class="sd-stat"><dt>Modules</dt><dd><span class="sd-stat-value" id="statTotalModules">0</span><span class="sd-stat-hint" id="statTotalLessonsLabel">Loading…</span></dd></div>
-        <div class="sd-stat"><dt>Finished</dt><dd><span class="sd-stat-value" id="statCompletedModules">0</span><span class="sd-stat-hint">Modules complete</span></dd></div>
-        <div class="sd-stat"><dt>In progress</dt><dd><span class="sd-stat-value" id="statInProgressModules">0</span><span class="sd-stat-hint">Modules started</span></dd></div>
-        <div class="sd-stat"><dt>Lessons done</dt><dd><span class="sd-stat-value" id="statOverallPct">0%</span><span class="sd-stat-hint" id="statCompletedLessonsLabel">Loading…</span></dd></div>
-      </dl>
-
       <section class="sd-block" aria-labelledby="availableModulesTitle">
         <div class="sd-stack">
           <label class="sd-search">
@@ -69,12 +62,6 @@
             <span class="sr-only">Search modules</span>
             <input type="search" id="lessonSearchInput" placeholder="Search modules or body systems" autocomplete="off" oninput="handleLessonSearch(this.value)">
           </label>
-          <div class="sd-seg" id="statusFilterChips" role="group" aria-label="Show modules">
-            <button type="button" class="filter-chip-btn active" data-status="all" aria-pressed="true" onclick="setLessonStatusFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
-            <button type="button" class="filter-chip-btn" data-status="in-progress" aria-pressed="false" onclick="setLessonStatusFilter('in-progress')">In progress <span class="chip-count" id="countInProgress">0</span></button>
-            <button type="button" class="filter-chip-btn" data-status="not-started" aria-pressed="false" onclick="setLessonStatusFilter('not-started')">Not started <span class="chip-count" id="countNotStarted">0</span></button>
-            <button type="button" class="filter-chip-btn" data-status="completed" aria-pressed="false" onclick="setLessonStatusFilter('completed')">Finished <span class="chip-count" id="countCompleted">0</span></button>
-          </div>
         </div>
 
         <h2 id="availableModulesTitle" class="sr-only">Modules</h2>
@@ -103,15 +90,14 @@
 <!-- Lesson reader: a full-screen page, filled when a lesson opens -->
 <div class="sd-reader" id="lessonContentViewer" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
 
-let allModules           = [];
-let currentStatusFilter  = 'all';
-let searchTerm           = '';
+let allModules = [];
+let searchTerm = '';
 
 const systemShort = name => String(name || '').replace(/\s+System$/i, '');
 
@@ -132,34 +118,11 @@ async function loadLessons() {
   }
 }
 
-// ── Update top summary stats and filter counts ─────────────────
+// ── Intro line ─────────────────────────────────────────────────
 function updateSummaryMetrics() {
-  let completedModules = 0, inProgressModules = 0, notStartedModules = 0, totalCompletedLessons = 0, totalLessons = 0;
-  allModules.forEach(m => {
-    const pct = parseFloat(m.completion_pct || 0);
-    totalLessons += parseInt(m.lesson_count || 0);
-    totalCompletedLessons += parseInt(m.completed_lessons || 0);
-    if (pct >= 100) completedModules++;
-    else if (pct > 0) inProgressModules++;
-    else notStartedModules++;
-  });
-  const overallPct = totalLessons > 0 ? Math.round((totalCompletedLessons / totalLessons) * 100) : 0;
-
-  document.getElementById('statTotalModules').textContent = allModules.length;
-  document.getElementById('statTotalLessonsLabel').textContent = `${plural(totalLessons, 'lesson')} in all`;
-  document.getElementById('statCompletedModules').textContent = completedModules;
-  document.getElementById('statInProgressModules').textContent = inProgressModules;
-  document.getElementById('statOverallPct').textContent = overallPct + '%';
-  document.getElementById('statCompletedLessonsLabel').textContent = `${totalCompletedLessons} of ${plural(totalLessons, 'lesson')}`;
+  const totalLessons = allModules.reduce((n, m) => n + (Number(m.lesson_count) || 0), 0);
   document.getElementById('lessonsIntro').textContent = totalLessons === 0 ? 'Lessons appear here when your teacher publishes them.'
-    : totalCompletedLessons >= totalLessons ? 'You’ve finished every published lesson. Nice work.'
-    : totalCompletedLessons > 0 ? `You’ve finished ${totalCompletedLessons} of ${plural(totalLessons, 'lesson')}. Keep going.`
-    : 'Study each body system at your own pace.';
-
-  document.getElementById('countAll').textContent = allModules.length;
-  document.getElementById('countCompleted').textContent = completedModules;
-  document.getElementById('countInProgress').textContent = inProgressModules;
-  document.getElementById('countNotStarted').textContent = notStartedModules;
+    : `${plural(totalLessons, 'lesson')} in ${plural(allModules.length, 'module')}. Study each body system at your own pace.`;
 }
 
 // ── Render module cards ────────────────────────────────────────
@@ -173,17 +136,10 @@ function renderLessons() {
       (m.description && m.description.toLowerCase().includes(searchTerm))
     );
   }
-  if (currentStatusFilter === 'completed') {
-    data = data.filter(m => (m.completion_pct || 0) >= 100);
-  } else if (currentStatusFilter === 'in-progress') {
-    data = data.filter(m => (m.completion_pct || 0) > 0 && (m.completion_pct || 0) < 100);
-  } else if (currentStatusFilter === 'not-started') {
-    data = data.filter(m => !(m.completion_pct || 0));
-  }
   const grid = document.getElementById('lessonGrid');
   if (!data.length) {
     grid.innerHTML = allModules.length
-      ? `<div class="sd-empty"><p class="sd-empty-title">No modules match</p><p>Try another filter or clear your search.</p><button type="button" class="sd-ghost" onclick="resetFilters()">Clear filters</button></div>`
+      ? `<div class="sd-empty"><p class="sd-empty-title">No modules match</p><p>Try another word or clear your search.</p><button type="button" class="sd-ghost" onclick="resetFilters()">Clear search</button></div>`
       : `<div class="sd-empty"><p class="sd-empty-title">Your lessons are on the way</p><p>Your teacher hasn’t published any lessons yet. While you wait, explore the body in 3D.</p><a class="sd-ghost" href="anatomy.html">Explore 3D Anatomy</a></div>`;
     return;
   }
@@ -204,23 +160,18 @@ function renderLessons() {
 
 function moduleCard(m) {
     const look = systemLook(m.system_code);
-    const pct = Math.round(parseFloat(m.completion_pct || 0));
     const lessons = Number(m.lesson_count) || 0;
-    const [chipClass, chipText, action] = pct >= 100 ? ['is-pass', 'Finished', 'Review']
-      : pct > 0 ? ['is-progress', `${pct}% done`, 'Continue'] : ['', 'Not started', 'Start'];
     return `
       <article class="sd-mod" style="--card:${look.colour}">
         <div class="sd-mod-art">
           ${look.art ? `<img src="${look.art}" alt="" loading="lazy" width="560" height="640">` : `<span class="sd-sys-icon">${icon('book-open')}</span>`}
-          <span class="sd-chip ${chipClass}">${chipText}</span>
         </div>
         <div class="sd-mod-body">
           <h4 class="sd-mod-title">${escHtml(m.title)}</h4>
           ${m.description ? `<p class="sd-mod-desc">${escHtml(m.description)}</p>` : ''}
-          <div class="sd-meter" role="progressbar" aria-label="${escHtml(m.title)} progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
           <div class="sd-mod-foot">
-            <span class="sd-mod-count">${Number(m.completed_lessons) || 0} of ${plural(lessons, 'lesson')}</span>
-            <button type="button" class="sd-go sd-go--light sd-go--sm sd-stretch" onclick="viewModule(${m.module_id})">${action}<span class="sr-only"> ${escHtml(m.title)}</span><span class="sd-go-disc">${icon('arrow-right')}</span></button>
+            <span class="sd-mod-count">${plural(lessons, 'lesson')}</span>
+            <button type="button" class="sd-go sd-go--light sd-go--sm sd-stretch" onclick="viewModule(${m.module_id})">Open<span class="sr-only"> ${escHtml(m.title)}</span><span class="sd-go-disc">${icon('arrow-right')}</span></button>
           </div>
         </div>
       </article>`;
@@ -232,20 +183,10 @@ function handleLessonSearch(q) {
   renderLessons();
 }
 
-function setLessonStatusFilter(status) {
-  currentStatusFilter = status;
-  document.querySelectorAll('#statusFilterChips .filter-chip-btn').forEach(btn => {
-    const on = btn.getAttribute('data-status') === status;
-    btn.classList.toggle('active', on);
-    btn.setAttribute('aria-pressed', String(on));
-  });
-  renderLessons();
-}
-
 function resetFilters() {
   searchTerm = '';
   document.getElementById('lessonSearchInput').value = '';
-  setLessonStatusFilter('all');
+  renderLessons();
 }
 
 // ── View module detail + lessons ───────────────────────────────
@@ -267,25 +208,20 @@ async function viewModule(moduleId) {
     ]);
     const lessons = result.success ? result.data : [];
     const materials = filesResult?.success ? filesResult.data : [];
-    const pct = Math.round(parseFloat(module.completion_pct || 0));
-    const completedCount = lessons.filter(l => l.progress_status === 'completed').length;
 
     body.innerHTML = `
       <div class="sd-modsum" style="--card:${systemLook(module.system_code).colour}">
         ${module.description ? `<p>${escHtml(module.description)}</p>` : ''}
-        <div class="sd-mod-foot"><span class="sd-mod-count">${escHtml(module.system_name || '')} · ${completedCount} of ${plural(lessons.length, 'lesson')} finished</span><span class="sd-chip ${pct >= 100 ? 'is-pass' : pct > 0 ? 'is-progress' : ''}">${pct}%</span></div>
-        <div class="sd-meter" role="progressbar" aria-label="Module progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+        <div class="sd-mod-foot"><span class="sd-mod-count">${escHtml(module.system_name || '')} · ${plural(lessons.length, 'lesson')}</span></div>
       </div>
       <div class="sd-lessons">
         ${lessons.length ? lessons.map((l, i) => {
-          const isDone = l.progress_status === 'completed';
-          const isInProg = l.progress_status === 'in_progress';
-          const meta = [l.duration_mins ? l.duration_mins + ' min' : 'Self-paced', l.lesson_type ? l.lesson_type.replace('_', ' ') : 'Theory', isDone ? 'Finished' : isInProg ? 'In progress' : ''].filter(Boolean).join(' · ');
+          const meta = [l.duration_mins ? l.duration_mins + ' min' : 'Self-paced', l.lesson_type ? l.lesson_type.replace('_', ' ') : 'Theory'].join(' · ');
           return `
-            <button type="button" class="sd-lesson${isDone ? ' is-done' : isInProg ? ' is-progress' : ''}" onclick="startLesson(${l.lesson_id})">
-              <span class="sd-lesson-num">${isDone ? icon('check') : i + 1}</span>
+            <button type="button" class="sd-lesson" onclick="startLesson(${l.lesson_id})">
+              <span class="sd-lesson-num">${i + 1}</span>
               <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(l.title)}</span><span class="sd-lesson-meta">${escHtml(meta)}</span></span>
-              <span class="sd-lesson-go">${isDone ? 'Review' : isInProg ? 'Continue' : 'Open'}${icon('arrow-right')}</span>
+              <span class="sd-lesson-go">Open${icon('arrow-right')}</span>
             </button>`;
         }).join('') : '<div class="dashboard-empty">This module has no lessons yet.</div>'}
       </div>
@@ -313,13 +249,7 @@ function renderLessonMedia(lesson) {
   if (ext === 'glb') return `<a class="sd-go sd-go--light" href="anatomy.html?system=${encodeURIComponent(lesson.system_code)}&lesson_id=${Number(lesson.lesson_id)}">Open the lesson model in 3D<span class="sd-go-disc">${icon('arrow-right')}</span></a>`;
   return `<p><a href="${url}" target="_blank" rel="noopener">Open the lesson attachment</a></p>`;
 }
-let readingLessonId = null, readingSeconds = 0, readingTick = Date.now();
-setInterval(()=>{const now=Date.now();if(readingLessonId && !document.hidden)readingSeconds+=Math.min((now-readingTick)/1000,2);readingTick=now;},1000);
-async function saveReadingTime(){if(!readingLessonId||readingSeconds<1)return;const payload={lesson_id:readingLessonId,status:'in_progress',time_spent_secs:Math.floor(readingSeconds)};readingSeconds=0;try{await fetch(API_BASE+'/progress.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload),keepalive:true});}catch(e){console.warn('Reading time could not be saved.');}}
-setInterval(saveReadingTime,30000);window.addEventListener('pagehide',saveReadingTime);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveReadingTime();});
 async function startLesson(lessonId) {
-  await saveReadingTime();
-  readingLessonId=lessonId;readingSeconds=0;readingTick=Date.now();
   try {
     const res    = await fetch(`${API_BASE}/lessons.php?id=${lessonId}`, { credentials: 'same-origin' });
     const result = await res.json();
@@ -337,7 +267,6 @@ async function startLesson(lessonId) {
 // ── Lesson reader ──────────────────────────────────────────────
 function showLessonContent(lesson) {
   const viewer = document.getElementById('lessonContentViewer');
-  const isDone = lesson.progress && lesson.progress.status === 'completed';
   const look = systemLook(lesson.system_code);
   const system = systemShort(lesson.system_name) || 'Anatomy';
   const explore = `anatomy.html?system=${encodeURIComponent(lesson.system_code || '')}`;
@@ -370,7 +299,6 @@ function showLessonContent(lesson) {
     </div>
     <div class="sd-reader-foot">
       <button type="button" class="sd-ghost" onclick="closeLessonViewer()">Close</button>
-      <button type="button" id="btnMarkComplete" class="sd-go sd-go--accent${isDone ? ' is-done' : ''}" onclick="markLessonComplete(${Number(lesson.lesson_id)})"${isDone ? ' disabled' : ''}>${isDone ? 'Finished' : 'Mark as finished'}<span class="sd-go-disc">${icon('check')}</span></button>
     </div>`;
   viewer.hidden = false;
   document.body.style.overflow = 'hidden';
@@ -378,46 +306,12 @@ function showLessonContent(lesson) {
 }
 
 function closeLessonViewer() {
-  saveReadingTime(); readingLessonId=null;
   const viewer = document.getElementById('lessonContentViewer');
   if (viewer.hidden) return;
   viewer.hidden = true;
   document.body.style.overflow = '';
-  loadLessons();
 }
 document.getElementById('lessonContentViewer').addEventListener('keydown', e => { if (e.key === 'Escape') closeLessonViewer(); });
-
-// ── Mark lesson complete ───────────────────────────────────────
-async function markLessonComplete(lessonId) {
-  const btn = document.getElementById('btnMarkComplete');
-  btn.disabled = true;
-  btn.firstChild.textContent = 'Saving…';
-
-  try {
-    const res = await fetch(`${API_BASE}/progress.php`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body:        JSON.stringify({ lesson_id: lessonId, status: 'completed', completion_pct: 100, time_spent_secs: Math.floor(readingSeconds) }),
-    });
-    const result = await res.json();
-    if (result.success) {
-      readingSeconds=0;
-      btn.firstChild.textContent = 'Finished';
-      btn.classList.add('is-done');
-      showToast('Lesson finished. Your progress is saved.', 'success');
-      setTimeout(closeLessonViewer, 700);
-    } else {
-      showToast(result.message || 'Could not save progress.', 'warning');
-      btn.firstChild.textContent = 'Mark as finished';
-      btn.disabled = false;
-    }
-  } catch (e) {
-    showToast('Could not save progress.', 'error');
-    btn.firstChild.textContent = 'Mark as finished';
-    btn.disabled = false;
-  }
-}
 
 // ── Init ───────────────────────────────────────────────────────
 loadLessons();

@@ -715,6 +715,14 @@ a.btn:hover { text-decoration: none; }
 .avatar img, .sd-id-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 label:has(> [data-photo-input]) { cursor: pointer; }
 label:has(> [data-photo-input]:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* Study days (studyStrip in app.js): one square per day, darker for more minutes */
+.study-strip { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 3px; }
+.study-day { aspect-ratio: 1; border-radius: 3px; background: rgba(255, 255, 255, .07); }
+.study-day[data-level="1"] { background: color-mix(in srgb, var(--st-accent, var(--brand)) 35%, transparent); }
+.study-day[data-level="2"] { background: color-mix(in srgb, var(--st-accent, var(--brand)) 65%, transparent); }
+.study-day[data-level="3"] { background: var(--st-accent, var(--brand)); }
+.study-day:last-child { outline: 1px solid var(--st-accent, var(--brand)); outline-offset: 1px; }
+.study-strip-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: .75rem; color: var(--text-muted); }
 .avatar-lg { width: 48px; height: 48px; font-size: 1rem; }
 .avatar-xl { width: 72px; height: 72px; font-size: 1.25rem; }
 

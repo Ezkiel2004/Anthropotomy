@@ -8,12 +8,12 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261104-mint2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
@@ -58,7 +58,7 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1>Monitoring</h1>
-          <p>Track individual learning progress, activity completion, and performance across all body system modules.</p>
+          <p>See how often each student studies, their quiz scores and what they have explored in 3D.</p>
         </div>
         <div class="page-header-right">
           <div class="search-bar"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#magnifying-glass"/></svg><input type="text" id="studentSearch" placeholder="Search students..." oninput="filterStudents()"/></div>
@@ -72,7 +72,7 @@
           <div class="stat-info"><div class="stat-value" id="statTotalEnrolled">—</div><div class="stat-label">Total Enrolled</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-info"><div class="stat-value" id="statActiveToday">—</div><div class="stat-label">Active Learners</div></div>
+          <div class="stat-info"><div class="stat-value" id="statActiveToday">—</div><div class="stat-label">Studied This Week</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-info"><div class="stat-value" id="statClassAvg">—</div><div class="stat-label">Class Average</div></div>
@@ -99,11 +99,11 @@
               <tr>
                 <th>Student</th>
                 <th>Section</th>
-                <th>Overall Progress</th>
+                <th>Days Studied (7d)</th>
                 <th>Avg Score</th>
-                <th>Lessons Done</th>
+                <th>Days Studied (30d)</th>
                 <th>3D Explored</th>
-                <th>Last Active</th>
+                <th>Last Studied</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -133,7 +133,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
@@ -156,7 +156,7 @@ async function loadMonitoringData() {
 
     // Update Summary Stats
     document.getElementById('statTotalEnrolled').textContent = stats.total_students ?? allStudents.length;
-    document.getElementById('statActiveToday').textContent = stats.active_students ?? allStudents.filter(s => s.is_active).length;
+    document.getElementById('statActiveToday').textContent = allStudents.filter(s => s.study_days_week > 0).length;
     const scored = allStudents.filter(s => s.avg_quiz_score !== null);
     document.getElementById('statClassAvg').textContent = stats.class_avg_score ?? (scored.length ? `${(scored.reduce((sum, s) => sum + Number(s.avg_quiz_score), 0) / scored.length).toFixed(1)}%` : 'Not yet');
     document.getElementById('statNeedsAttention').textContent = stats.at_risk ?? allStudents.filter(s => s.performance_status === 'at-risk').length;
@@ -182,7 +182,7 @@ function renderTable(data) {
     const scoreColor = s.avg_quiz_score === null ? 'var(--text-muted)' : scoreVal >= 85 ? 'var(--success)' : scoreVal >= 70 ? 'var(--warning)' : 'var(--error)';
     const avatarBg = s.performance_status === 'top' ? 'var(--warning)' : s.performance_status === 'at-risk' ? 'var(--error)' : 'var(--brand)';
     const initial = initials(s.full_name);
-    const progressPct = Math.round(parseFloat(s.progress_pct || 0));
+    const weekPct = Math.round(s.study_days_week / 7 * 100);
     const secName = s.section || '';
 
     return `
@@ -199,14 +199,14 @@ function renderTable(data) {
         <td>${escHtml(secName)}</td>
         <td>
           <div class="student-progress-cell">
-            <div class="progress-bar" style="background:var(--bg-inset);"><div class="progress-fill" style="width:${progressPct}%;background:${progressPct>=80?'var(--success)':progressPct>=60?'var(--warning)':'var(--error)'};"></div></div>
-            <span>${progressPct}%</span>
+            <div class="progress-bar" style="background:var(--bg-inset);"><div class="progress-fill" style="width:${weekPct}%;background:${s.study_days_week>=4?'var(--success)':s.study_days_week>=2?'var(--warning)':'var(--error)'};"></div></div>
+            <span>${s.study_days_week}/7</span>
           </div>
         </td>
         <td style="font-weight:700;color:${scoreColor};">${scoreText(s.avg_quiz_score)}</td>
-        <td>${s.completed_lessons} / ${s.total_lessons}</td>
+        <td>${s.study_days_month} ${s.study_days_month === 1 ? 'day' : 'days'}</td>
         <td>${Number(s.systems_explored) || 0} / ${systemCount}</td>
-        <td style="font-size:0.8rem;color:var(--text-muted);">${escHtml(s.last_active_fmt || 'Never')}</td>
+        <td style="font-size:0.8rem;color:var(--text-muted);">${escHtml(fmtLastStudied(s.last_studied_on))}</td>
         <td><span class="badge ${s.is_active ? 'badge-success' : 'badge-error'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick="viewStudent(${s.user_id})">View</button>
@@ -263,14 +263,12 @@ async function viewStudent(userId) {
     if (!result.success) throw new Error(result.message);
 
     const s = result.data.student || result.data;
-    const sysProgress = result.data.system_progress || s.system_progress || [];
     const submissions = result.data.submissions || result.data.quiz_submissions || s.submissions || [];
 
     document.getElementById('modalStudentName').textContent = s.full_name + ' – academic profile';
 
     const initial = initials(s.full_name);
     const scoreVal = parseFloat(s.avg_quiz_score || 0);
-    const progressPct = s.total_lessons > 0 ? Math.round((s.completed_lessons / s.total_lessons) * 100) : 0;
 
     modalBody.innerHTML = `
       <div style="display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-5);">
@@ -287,40 +285,25 @@ async function viewStudent(userId) {
 
       <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:var(--space-3);margin-bottom:var(--space-5);">
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${progressPct}%</div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Overall Progress</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${Number(s.study_days_week) || 0} / 7</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Days Studied (7d)</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
           <div style="font-size:1.25rem;font-weight:700;color:var(--brand);">${scoreText(s.avg_quiz_score)}</div>
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Average Score</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${s.completed_lessons} / ${s.total_lessons}</div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Lessons Done</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${fmtStudyTime(s.total_time_hours)}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Study Time</div>
         </div>
         <div style="text-align:center;padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);">
-          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${Number(s.systems_explored) || 0} / ${systemCount || (sysProgress.length)}</div>
+          <div style="font-size:1.25rem;font-weight:700;color:var(--text-primary);">${Number(s.systems_explored) || 0} / ${systemCount}</div>
           <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">3D Explored</div>
         </div>
       </div>
 
-      <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);">Body System Progress Breakdown</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-3);margin-bottom:var(--space-5);">
-        ${sysProgress.map(sys => {
-          const tot = parseInt(sys.total_lessons, 10) || 0;
-          const comp = parseInt(sys.completed_lessons, 10) || 0;
-          const pct = tot > 0 ? Math.round((comp / tot) * 100) : 0;
-          return `
-            <div style="background:var(--bg-inset);border:1px solid var(--border-light);padding:var(--space-3);border-radius:var(--radius-md);">
-              <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.78rem;">
-                <span style="font-weight:500;color:var(--text-primary);">${escHtml(sys.system_name)}</span>
-                <span style="font-weight:600;color:${pct>=80?'var(--success)':pct>0?'var(--warning)':'var(--text-muted)'};">${pct}%</span>
-              </div>
-              <div class="progress-bar" style="background:var(--bg-surface);"><div class="progress-fill" style="width:${pct}%;background:${sys.color_hex};"></div></div>
-            </div>
-          `;
-        }).join('')}
-      </div>
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);">Study days, last 4 weeks · last studied ${escHtml(fmtLastStudied(s.last_studied_on))}</div>
+      <div style="margin-bottom:var(--space-5);">${studyStrip(s.study_calendar || [])}</div>
 
       <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:var(--space-3);">Recent Quiz Submissions</div>
       ${submissions.length === 0 ? '<div style="color:var(--text-muted);font-size:0.8rem;padding:var(--space-3);">No quiz submissions yet.</div>' : `

@@ -8,7 +8,7 @@ const SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
 
 // Units for a badge's progress line ("7 / 10 games"); percentages read "40% / 75%".
 const UNITS = {
-    completed_lessons: 'lessons', quizzes_taken: 'quizzes', quizzes_passed: 'quizzes passed',
+    study_days_total: 'days studied', quizzes_taken: 'quizzes', quizzes_passed: 'quizzes passed',
     systems_explored: 'systems explored', total_time_hours: 'hours', games_played: 'games',
     best_game_streak: 'in a row', total_points: 'points', games_variety: 'games',
 };

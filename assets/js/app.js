@@ -469,6 +469,34 @@ function fmtDate(dateStr) {
 function fmtPct(val, total) {
     return total > 0 ? Math.round((val / total) * 100) : 0;
 }
+// Study days as a row of squares, oldest first, shaded by minutes studied.
+// calendar: [{date: 'YYYY-MM-DD', minutes}] from the API (studyCalendar in api/helpers.php).
+function studyStrip(calendar = []) {
+    const day = iso => new Date(iso + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const studied = calendar.filter(d => d.minutes > 0).length;
+    const cells = calendar.map(d => {
+        const level = d.minutes >= 45 ? 3 : d.minutes >= 15 ? 2 : d.minutes > 0 ? 1 : 0;
+        return `<i class="study-day" data-level="${level}" title="${day(d.date)}: ${d.minutes ? d.minutes + ' min' : 'no study'}"></i>`;
+    }).join('');
+    const first = calendar[0];
+    return `<div class="study-strip" role="img" aria-label="Studied on ${studied} of the last ${calendar.length} days" style="--n:${calendar.length}">${cells}</div>`
+        + (first ? `<div class="study-strip-axis"><span>${day(first.date)}</span><span>Today</span></div>` : '');
+}
+
+// A study date ('YYYY-MM-DD') as Today, Yesterday or a date; Never when there is none.
+function fmtLastStudied(iso) {
+    if (!iso) return 'Never';
+    const day = new Date(iso + 'T00:00');
+    const ago = Math.round((new Date(new Date().toDateString()) - day) / 864e5);
+    return ago <= 0 ? 'Today' : ago === 1 ? 'Yesterday' : fmtDate(day);
+}
+
+// Study time from hours: "45 min" under an hour, otherwise "2.5h".
+function fmtStudyTime(hours) {
+    const h = Number(hours) || 0;
+    return h < 1 ? `${Math.round(h * 60)} min` : `${h.toFixed(1)}h`;
+}
+
 function initials(name = '') {
     return name.trim().split(/\s+/).map(n => n[0] || '').slice(0, 2).join('').toUpperCase() || '?';
 }
@@ -674,10 +702,29 @@ function initChartResize(redrawFn, debounceMs = 200) {
     });
 }
 
+// ── Study time ──────────────────────────────────────────────────
+// Lessons are slide decks, so instead of lesson completion the portal records how often
+// students study: one beat a minute while a student page is visible and in use (input in
+// the last five minutes, or a video playing). api/study.php turns beats into minutes per day.
+const StudyClock = {
+    init() {
+        if (Auth.getUser()?.role !== 'student') return;
+        let lastInput = Date.now();
+        const touch = () => { lastInput = Date.now(); };
+        ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach(type => addEventListener(type, touch, { passive: true, capture: true }));
+        setInterval(() => {
+            const playing = [...document.querySelectorAll('video')].some(v => !v.paused);
+            if (document.hidden || (!playing && Date.now() - lastInput > 5 * 60 * 1000)) return;
+            fetch(`${API_BASE}/study.php`, { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {});
+        }, 60 * 1000);
+    }
+};
+
 // ── Init on DOM Ready ───────────────────────────────────────────
 function initApp() {
     Sidebar.init();
     AccountMenu.init();
+    StudyClock.init();
 
     // Populate user info immediately from cache (fast path)
     const cached = Auth.getUser();

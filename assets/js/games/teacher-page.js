@@ -16,13 +16,12 @@ export const BADGE_ICONS = [
 
 // Every metric api/helpers.php accepts (BADGE_METRICS), with a plain label; unit words the target hint.
 export const METRICS = [
-    {key: 'completed_lessons', label: 'Lessons completed', group: 'Learning', unit: 'lessons'},
+    {key: 'study_days_total', label: 'Days studied', group: 'Learning', unit: 'days'},
+    {key: 'total_time_hours', label: 'Hours spent studying', group: 'Learning', unit: 'hours'},
     {key: 'avg_quiz_score', label: 'Average quiz score', group: 'Learning', unit: '%'},
     {key: 'quizzes_taken', label: 'Quizzes taken', group: 'Learning', unit: 'quizzes'},
     {key: 'quizzes_passed', label: 'Quizzes passed', group: 'Learning', unit: 'quizzes'},
     {key: 'systems_explored', label: 'Body systems explored in 3D', group: 'Learning', unit: 'systems'},
-    {key: 'total_time_hours', label: 'Hours spent learning', group: 'Learning', unit: 'hours'},
-    {key: 'overall_progress', label: 'Overall lesson progress', group: 'Learning', unit: '%'},
     {key: 'games_played', label: 'Games played', group: 'Games', unit: 'games'},
     {key: 'best_game_streak', label: 'Best combo in one round', group: 'Games', unit: 'hits in a row'},
     {key: 'total_points', label: 'Total game points', group: 'Games', unit: 'points'},

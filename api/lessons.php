@@ -38,27 +38,6 @@ if ($method === 'GET') {
         if (!$lesson) jsonError('Lesson not found.', 404);
         if (Auth::getCurrentUser()['role'] === 'student' && (!$db->fetchOne("SELECT l.lesson_id FROM lessons l JOIN modules m ON m.module_id=l.module_id WHERE l.lesson_id=? AND l.status='published' AND m.status='published'", [$id]))) jsonError('Lesson unavailable.', 403);
 
-        if (Auth::getCurrentUser()['role'] === 'student') $_SESSION['lesson_checkpoints'][$id] = time();
-        // Track progress for students
-        $user = Auth::getCurrentUser();
-        if ($user && $user['role'] === 'student') {
-            $progress = $db->fetchOne(
-                "SELECT * FROM student_lesson_progress WHERE student_id = ? AND lesson_id = ?",
-                [$user['user_id'], $id]
-            );
-            $lesson['progress'] = $progress;
-
-            // Update to "in_progress" if first time viewing
-            if (!$progress) {
-                $db->query(
-                    "INSERT INTO student_lesson_progress (student_id, lesson_id, status, started_at)
-                     VALUES (?, ?, 'in_progress', NOW())
-                     ON DUPLICATE KEY UPDATE status = IF(status='not_started','in_progress',status)",
-                    [$user['user_id'], $id]
-                );
-            }
-        }
-
         $lesson['lesson_id']     = (int) $lesson['lesson_id'];
         $lesson['module_id']     = (int) $lesson['module_id'];
         $lesson['duration_mins'] = (int) $lesson['duration_mins'];
@@ -84,24 +63,6 @@ if ($method === 'GET') {
          ORDER BY l.sort_order",
         [$moduleId]
     );
-
-    // For students, attach their progress
-    if ($user && $user['role'] === 'student' && !empty($lessons)) {
-        $lessonIds = array_column($lessons, 'lesson_id');
-        $placeholders = implode(',', array_fill(0, count($lessonIds), '?'));
-        $progressMap = $db->fetchAll(
-            "SELECT lesson_id, status, completion_pct
-             FROM student_lesson_progress
-             WHERE student_id = ? AND lesson_id IN ({$placeholders})",
-            array_merge([$user['user_id']], $lessonIds)
-        );
-        $progByLesson = array_column($progressMap, null, 'lesson_id');
-        foreach ($lessons as &$l) {
-            $prog = $progByLesson[$l['lesson_id']] ?? null;
-            $l['progress_status'] = $prog['status']         ?? 'not_started';
-            $l['completion_pct']  = (float) ($prog['completion_pct'] ?? 0);
-        }
-    }
 
     jsonSuccess($lessons);
 }

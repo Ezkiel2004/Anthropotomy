@@ -8,12 +8,12 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261104-mint2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
@@ -151,10 +151,10 @@
         </div>
       </div>
 
-      <!-- Body systems -->
+      <!-- How often students study -->
       <div class="card" style="margin-bottom:var(--space-6);">
-        <h2 class="section-title">Lesson completion by body system</h2>
-        <div id="moduleProgressList"><div class="dashboard-empty">Loading body systems…</div></div>
+        <h2 class="section-title">Students studying, last 14 days</h2>
+        <div id="studyActivity"><div class="dashboard-empty">Loading study activity…</div></div>
       </div>
 
       <!-- Recent Student Submissions Table -->
@@ -186,7 +186,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -266,7 +266,7 @@ async function loadTeacherDashboard() {
     const configData   = await configRes.json().catch(() => ({}));
     if (!statsData.success) throw new Error(statsData.message || 'Unable to load dashboard.');
 
-    const { stats, recent_submissions, system_stats, at_risk_students } = statsData.data;
+    const { stats, recent_submissions, study_activity, at_risk_students } = statsData.data;
     const config = configData.success ? configData.data : {};
     const atRisk = at_risk_students || [];
 
@@ -297,7 +297,7 @@ async function loadTeacherDashboard() {
       ? `<ul class="row-list">${atRisk.map(s => `
           <li><a class="row-link" href="monitoring.html">
             <span class="row-copy"><span class="row-title">${escHtml(s.full_name)}</span>
-            <span class="row-meta">${escHtml(s.section)}, ${plural(Number(s.completed_lessons) || 0, 'lesson')} finished</span></span>
+            <span class="row-meta">${escHtml(s.section)}, studied ${Number(s.study_days_week) || 0} of the last 7 days</span></span>
             <span class="row-end is-low">${Number(s.avg_score)}%</span></a></li>`).join('')}</ul>`
       : emptyState('No one is flagged right now.', `Students appear here when their quiz average falls below ${passing} or their account is turned off.`);
 
@@ -314,21 +314,16 @@ async function loadTeacherDashboard() {
             <span class="row-end">${s.avg_quiz_score}%</span></li>`).join('')}</ol>`
       : emptyState('No quiz scores yet.', 'Your five highest quiz averages appear here once students submit quizzes.');
 
-    // Lesson completion by body system
-    const systems = system_stats || [];
-    const withLessons = systems.filter(ss => Number(ss.total_lessons) > 0);
-    document.getElementById('moduleProgressList').innerHTML = !systems.length
-      ? emptyState('No body systems are active.', 'Body systems appear here once they are connected to the explorer.')
-      : !withLessons.length
-        ? emptyState('No lessons are published yet.', 'Completion for each body system appears once students can open lessons.', { href: 'modules.html', label: 'Open modules' })
-        : systems.map(ss => `
-          <div class="system-progress-row">
-            <span class="system-progress-name">${escHtml(ss.system_name)}</span>
-            <div class="progress-bar" role="progressbar" aria-label="${escHtml(ss.system_name)} completion" aria-valuenow="${Number(ss.avg_completion_pct)}" aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-fill" style="width:${Number(ss.avg_completion_pct)}%;"></div>
-            </div>
-            <span class="system-progress-value">${Number(ss.total_lessons) ? `${ss.avg_completion_pct}% complete` : 'No lessons yet'}</span>
-          </div>`).join('');
+    // Students who studied each day: one bar per day, tallest when the whole class studied
+    const days = study_activity || [];
+    const most = Math.max(1, stats.total_students, ...days.map(d => d.students));
+    document.getElementById('studyActivity').innerHTML = !days.some(d => d.students)
+      ? emptyState('No study time recorded yet.', 'Each day students spend on Anthropotomy shows here, counted while a student page is open and in use.')
+      : `<div class="sd-chart" style="--n:${days.length}" role="img" aria-label="Students who studied each day, oldest first: ${days.map(d => d.students).join(', ')}">${days.map((d, i) => `
+          <div class="sd-bar" style="--v:${Math.round(d.students / most * 100)};--i:${i}" title="${plural(d.students, 'student')}, ${d.minutes} min in all">
+            <span class="sd-bar-value">${d.students}</span><i></i>
+            <span class="sd-bar-day">${new Date(d.date + 'T00:00').toLocaleDateString('en-PH', { weekday: 'narrow' })}</span>
+          </div>`).join('')}</div>`;
 
     // Recent submissions
     const subTable = document.getElementById('submissionsTable');

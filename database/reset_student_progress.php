@@ -3,7 +3,7 @@
  * Anthropotomy – Reset Student Progress & Recalculate Dynamic Summaries
  *
  * This script:
- * 1. Resets all progress data: student_lesson_progress, assessment_submissions,
+ * 1. Resets all progress data: student_lesson_progress, study_days, assessment_submissions,
  *    answer_responses, and system_exploration_log.
  * 2. Clears student_progress_summary table.
  * 3. Dynamically reinitializes student_progress_summary for all students
@@ -67,6 +67,7 @@ try {
         'answer_responses',
         'assessment_submissions',
         'student_lesson_progress',
+        'study_days',
         'system_exploration_log',
         'student_progress_summary',
     ];

@@ -24,9 +24,10 @@ if ($method === 'GET') {
         $student = $db->fetchOne(
             "SELECT u.user_id, u.username, u.full_name, u.email, u.is_active, u.created_at, u.last_login,
                     sp.student_id AS school_id, sp.section, sp.grade_level, sp.school_year,
-                    sp.guardian_name, sp.contact_no, sp.address,
-                    COALESCE(sps.total_lessons, (SELECT COUNT(*) FROM lessons l JOIN modules m ON m.module_id = l.module_id AND m.status = 'published' WHERE l.status = 'published')) AS total_lessons,
-                    COALESCE(sps.completed_lessons, 0) AS completed_lessons,
+                    sp.guardian_name, sp.contact_no,
+                    COALESCE(sps.study_days_week, 0) AS study_days_week,
+                    COALESCE(sps.study_days_month, 0) AS study_days_month,
+                    sps.last_studied_on,
                     sps.avg_quiz_score,
                     COALESCE(sps.quizzes_taken, 0) AS quizzes_taken,
                     COALESCE(sps.quizzes_passed, 0) AS quizzes_passed,
@@ -43,21 +44,6 @@ if ($method === 'GET') {
             jsonError('Student not found.', 404);
         }
 
-        // Fetch system progress breakdown
-        $systemProgress = $db->fetchAll(
-            "SELECT bs.system_name, bs.icon_emoji, bs.color_hex, bs.system_code,
-                    COUNT(DISTINCT l.lesson_id) AS total_lessons,
-                    COUNT(DISTINCT CASE WHEN slp.status = 'completed' THEN slp.lesson_id END) AS completed_lessons
-             FROM body_systems bs
-             LEFT JOIN modules m ON m.system_id = bs.system_id AND m.status = 'published'
-             LEFT JOIN lessons l ON l.module_id = m.module_id AND l.status = 'published'
-             LEFT JOIN student_lesson_progress slp ON slp.lesson_id = l.lesson_id AND slp.student_id = ?
-             WHERE bs.is_active = 1
-             GROUP BY bs.system_id
-             ORDER BY bs.sort_order",
-            [$id]
-        );
-
         // Fetch recent quiz submissions
         $submissions = $db->fetchAll(
             "SELECT sub.submission_id, sub.score, sub.raw_score, sub.max_score, sub.time_taken_secs,
@@ -70,7 +56,7 @@ if ($method === 'GET') {
             [$id]
         );
 
-        $student['system_progress'] = $systemProgress;
+        $student['study_calendar']  = studyCalendar($id);
         $student['submissions']     = $submissions;
 
         jsonSuccess($student);
@@ -104,8 +90,9 @@ if ($method === 'GET') {
     $students = $db->fetchAll(
         "SELECT u.user_id, u.username, u.full_name, u.email, u.is_active, u.last_login,
                 sp.student_id AS school_id, sp.section, sp.grade_level, sp.school_year,
-                COALESCE(sps.completed_lessons, 0) AS completed_lessons,
-                COALESCE(sps.total_lessons, (SELECT COUNT(*) FROM lessons l JOIN modules m ON m.module_id = l.module_id AND m.status = 'published' WHERE l.status = 'published')) AS total_lessons,
+                COALESCE(sps.study_days_week, 0) AS study_days_week,
+                COALESCE(sps.study_days_month, 0) AS study_days_month,
+                sps.last_studied_on,
                 sps.avg_quiz_score,
                 COALESCE(sps.quizzes_taken, 0)     AS quizzes_taken,
                 COALESCE(sps.quizzes_passed, 0)    AS quizzes_passed,
@@ -124,12 +111,9 @@ if ($method === 'GET') {
     foreach ($students as &$s) {
         $s['user_id']           = (int) $s['user_id'];
         $s['is_active']         = (bool) $s['is_active'];
-        $s['completed_lessons'] = (int) $s['completed_lessons'];
-        $s['total_lessons']     = (int) $s['total_lessons'];
+        $s['study_days_week']   = (int) $s['study_days_week'];
+        $s['study_days_month']  = (int) $s['study_days_month'];
         $s['avg_quiz_score']    = $s['avg_quiz_score'] !== null ? round((float) $s['avg_quiz_score'], 1) : null;
-        $s['progress_pct']      = $s['total_lessons'] > 0
-            ? round(($s['completed_lessons'] / $s['total_lessons']) * 100, 1)
-            : 0;
 
         // Determine risk / performance status
         if (!$s['is_active']) {

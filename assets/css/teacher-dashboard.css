@@ -70,11 +70,7 @@
 .teacher-dashboard .chart-empty[hidden] { display: none; }
 .teacher-dashboard .chart-empty svg { width: 30px; height: 30px; color: var(--st-muted); margin-bottom: 5px; }
 .teacher-dashboard .chart-empty strong { font-size: .8125rem; font-weight: 700; color: var(--st-soft); }
-.teacher-dashboard .system-progress-row { display: grid; grid-template-columns: minmax(125px, 1fr) minmax(70px, 2fr) 100px; align-items: center; gap: 14px; padding: 12px 3px; }
-.teacher-dashboard .system-progress-name { font-size: .875rem; font-weight: 700; }
-.teacher-dashboard .system-progress-value { color: var(--st-muted); font-size: .75rem; font-weight: 700; text-align: right; }
 .teacher-dashboard .progress-bar { background: var(--st-raised-2); }
-.teacher-dashboard .system-progress-row .progress-bar { height: 8px; }
 .teacher-dashboard .progress-fill { background: var(--st-accent); }
 .teacher-dashboard .leaderboard-item { padding: 8px 10px; }
 .teacher-dashboard .leaderboard-name { font-size: .875rem; overflow-wrap: anywhere; }
@@ -91,7 +87,6 @@
   .teacher-dashboard .page-content { padding-inline: 1.25rem; }
   .teacher-dashboard .stat-card { gap: 8px; padding: 13px 10px; }
   .teacher-dashboard .stat-icon { width: 34px; height: 38px; }
-  .teacher-dashboard .system-progress-row { grid-template-columns: minmax(110px, 1fr) minmax(50px, 1.5fr) 86px; gap: 10px; }
 }
 @media (max-width: 1024px) {
   .teacher-dashboard .main-content { width: 100%; }
@@ -117,9 +112,6 @@
   .teacher-dashboard .stat-card { padding: 13px; }
   .teacher-dashboard .card { padding: 1.125rem; }
   .teacher-dashboard .quick-actions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .teacher-dashboard .system-progress-row { grid-template-columns: minmax(0, 1fr) 92px; gap: 8px; padding-block: 10px; }
-  .teacher-dashboard .system-progress-row .progress-bar { grid-column: 1 / -1; grid-row: 2; }
-  .teacher-dashboard .system-progress-value { grid-column: 2; grid-row: 1; }
 }
 
 /* ── Buttons (colours come from stage-portal.css) ── */

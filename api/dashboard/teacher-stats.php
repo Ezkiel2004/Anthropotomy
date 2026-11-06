@@ -7,7 +7,7 @@
  * - Enrolled student counts & active status
  * - Class overall average quiz score
  * - Recent submissions needing grading or review
- * - Per-system class completion averages
+ * - How many students studied on each of the last 14 days
  * - Students needing attention
  */
 
@@ -43,32 +43,12 @@ $recentSubmissions = $db->fetchAll(
      LIMIT 6"
 );
 
-// 3. System completion rates across all students
-$systemStats = $db->fetchAll(
-    "SELECT bs.system_id, bs.system_name, bs.icon_emoji, bs.color_hex, bs.system_code,
-            COUNT(DISTINCT l.lesson_id) AS total_lessons,
-            COUNT(DISTINCT CASE WHEN slp.status = 'completed' THEN slp.progress_id END) AS total_completions
-     FROM body_systems bs
-     LEFT JOIN modules m ON m.system_id = bs.system_id AND m.status = 'published'
-     LEFT JOIN lessons l ON l.module_id = m.module_id AND l.status = 'published'
-     LEFT JOIN student_lesson_progress slp ON slp.lesson_id = l.lesson_id
-     WHERE bs.is_active = 1
-     GROUP BY bs.system_id
-     ORDER BY bs.sort_order ASC"
-);
-
-foreach ($systemStats as &$ss) {
-    $totalPossible = max(1, (int)$ss['total_lessons'] * max(1, $totalStudents));
-    $actualCompletions = (int) $ss['total_completions'];
-    $ss['avg_completion_pct'] = round(($actualCompletions / $totalPossible) * 100, 1);
-}
-
 // 4. Students needing attention (average quiz < 75% or inactive)
 $policy = gradingPolicy();
 $atRiskStudents = $db->fetchAll(
     "SELECT u.user_id, u.full_name, sp.student_id AS school_id, sp.section,
             COALESCE(sps.avg_quiz_score, 0) AS avg_score,
-            COALESCE(sps.completed_lessons, 0) AS completed_lessons
+            COALESCE(sps.study_days_week, 0) AS study_days_week
      FROM users u
      JOIN student_profiles sp ON sp.user_id = u.user_id
      LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
@@ -91,7 +71,7 @@ jsonSuccess([
         'active_assessments'  => $activeAssessments,
     ],
     'recent_submissions' => $recentSubmissions,
-    'system_stats'       => $systemStats,
+    'study_activity'     => studyCalendar(null, 14),
     'at_risk_students'   => $atRiskStudents,
 ]);
 ?>

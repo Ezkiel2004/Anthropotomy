@@ -20,47 +20,37 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $user = Auth::getCurrentUser();
     $isStudent = ($user && $user['role'] === 'student');
-    $studentId = $isStudent ? (int)$user['user_id'] : 0;
 
     // Single module
     if (isset($_GET['id'])) {
         $id = (int) $_GET['id'];
         $sql = "SELECT m.*, bs.system_name, bs.icon_emoji, bs.color_hex, bs.system_code,
                        u.full_name AS teacher_name,
-                       COUNT(DISTINCT l.lesson_id) AS lesson_count" .
-                       ($isStudent ? ", COUNT(DISTINCT CASE WHEN slp.status = 'completed' THEN slp.lesson_id END) AS completed_lessons" : "") . "
+                       COUNT(DISTINCT l.lesson_id) AS lesson_count
                 FROM modules m
                 JOIN body_systems bs ON bs.system_id = m.system_id
                 JOIN users u         ON u.user_id    = m.teacher_id
-                LEFT JOIN lessons l  ON l.module_id  = m.module_id AND l.status = 'published' " .
-                ($isStudent ? "LEFT JOIN student_lesson_progress slp ON slp.lesson_id = l.lesson_id AND slp.student_id = ? " : "") . "
+                LEFT JOIN lessons l  ON l.module_id  = m.module_id AND l.status = 'published'
                 WHERE m.module_id = ?
                 GROUP BY m.module_id";
-        
-        $params = $isStudent ? [$studentId, $id] : [$id];
-        $module = $db->fetchOne($sql, $params);
+
+        $module = $db->fetchOne($sql, [$id]);
         if (!$module) jsonError('Module not found.', 404);
         if ($isStudent && $module['status'] !== 'published') jsonError('Module unavailable.', 403);
 
         // Also fetch lessons for this module
-        $lessonSql = "SELECT l.lesson_id, l.title, l.lesson_type, l.duration_mins, l.sort_order, l.status, l.media_url" .
-                     ($isStudent ? ", COALESCE(slp.status, 'not_started') AS progress_status, COALESCE(slp.completion_pct, 0) AS completion_pct" : "") . "
-                      FROM lessons l " .
-                      ($isStudent ? "LEFT JOIN student_lesson_progress slp ON slp.lesson_id = l.lesson_id AND slp.student_id = ? " : "") . "
-                      WHERE l.module_id = ? AND l.status = 'published'
-                      ORDER BY l.sort_order";
-        $lessonParams = $isStudent ? [$studentId, $id] : [$id];
-        $lessons = $db->fetchAll($lessonSql, $lessonParams);
+        $lessons = $db->fetchAll(
+            "SELECT l.lesson_id, l.title, l.lesson_type, l.duration_mins, l.sort_order, l.status, l.media_url
+             FROM lessons l
+             WHERE l.module_id = ? AND l.status = 'published'
+             ORDER BY l.sort_order",
+            [$id]
+        );
 
         $module['lessons']           = $lessons;
         $module['module_id']         = (int) $module['module_id'];
         $module['system_id']         = (int) $module['system_id'];
         $module['lesson_count']      = (int) $module['lesson_count'];
-        $completedLessons            = (int) ($module['completed_lessons'] ?? 0);
-        $module['completed_lessons'] = $completedLessons;
-        $module['completion_pct']    = $module['lesson_count'] > 0
-            ? round(($completedLessons / $module['lesson_count']) * 100, 1)
-            : 0.0;
 
         jsonSuccess($module);
     }
@@ -83,16 +73,6 @@ if ($method === 'GET') {
                      bs.system_name, bs.icon_emoji, bs.color_hex, bs.system_code, bs.system_id,
                      u.full_name AS teacher_name,
                      COUNT(DISTINCT l.lesson_id) AS lesson_count";
-    $joinProgress = "";
-    $queryParams = [];
-
-    if ($isStudent) {
-        $selectFields .= ", COUNT(DISTINCT CASE WHEN slp.status = 'completed' THEN slp.lesson_id END) AS completed_lessons";
-        $joinProgress = "LEFT JOIN student_lesson_progress slp ON slp.lesson_id = l.lesson_id AND slp.student_id = ? ";
-        $queryParams[] = $studentId;
-    }
-
-    $queryParams = array_merge($queryParams, $params);
 
     $modules = $db->fetchAll(
         "SELECT {$selectFields}
@@ -100,22 +80,16 @@ if ($method === 'GET') {
          JOIN body_systems bs ON bs.system_id = m.system_id
          JOIN users u         ON u.user_id    = m.teacher_id
          LEFT JOIN lessons l  ON l.module_id  = m.module_id AND l.status = 'published'
-         {$joinProgress}
          WHERE 1=1 {$systemFilter} {$statusFilter}
          GROUP BY m.module_id
          ORDER BY bs.sort_order, m.sort_order",
-        $queryParams
+        $params
     );
 
     foreach ($modules as &$m) {
         $m['module_id']         = (int) $m['module_id'];
         $m['system_id']         = (int) $m['system_id'];
         $m['lesson_count']      = (int) $m['lesson_count'];
-        $completed              = (int) ($m['completed_lessons'] ?? 0);
-        $m['completed_lessons'] = $completed;
-        $m['completion_pct']    = $m['lesson_count'] > 0
-            ? round(($completed / $m['lesson_count']) * 100, 1)
-            : 0.0;
     }
 
     jsonSuccess($modules);

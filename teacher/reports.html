@@ -8,12 +8,12 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261104-mint2"/>
+  <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
@@ -127,7 +127,7 @@
                 <th>Quizzes Taken</th>
                 <th>Avg Score</th>
                 <th>Grade</th>
-                <th>Lessons Done</th>
+                <th>Days Studied (30d)</th>
                 <th>3D Explored</th>
                 <th>Rank</th>
                 <th>Status</th>
@@ -143,7 +143,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-photo1"></script>
+<script src="../assets/js/app.js?v=20261106-study1"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
@@ -274,7 +274,7 @@ function renderReport(students) {
         <td>${s.quizzes_taken}</td>
         <td style="font-weight:700;color:${scoreColor};">${scoreText}</td>
         <td><span class="badge ${gradeBadge}">${s.grade}</span></td>
-        <td>${s.completed_lessons} / ${s.total_lessons}</td>
+        <td>${s.study_days_month}</td>
         <td>${Number(s.systems_explored) || 0} / ${reportSystemCount}</td>
         <td style="font-weight:600;color:var(--text-secondary);">${rankDisplay}</td>
         <td><span class="badge ${statusBadge}">${s.status_label}</span></td>

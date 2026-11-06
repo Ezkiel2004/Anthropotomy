@@ -16,8 +16,9 @@ foreach ($db->fetchAll("SELECT user_id FROM users WHERE role='student'") as $stu
 $students = $db->fetchAll(
     "SELECT u.user_id, u.full_name, u.email, u.is_active,
             sp.student_id AS school_id, sp.section, sp.grade_level,
-            COALESCE(sps.total_lessons, (SELECT COUNT(*) FROM lessons WHERE status = 'published')) AS total_lessons,
-            COALESCE(sps.completed_lessons, 0) AS completed_lessons,
+            COALESCE(sps.study_days_week, 0) AS study_days_week,
+            COALESCE(sps.study_days_month, 0) AS study_days_month,
+            sps.last_studied_on,
             sps.avg_quiz_score,
             COALESCE(sps.quizzes_taken, 0) AS quizzes_taken,
             COALESCE(sps.quizzes_passed, 0) AS quizzes_passed,
@@ -27,7 +28,7 @@ $students = $db->fetchAll(
      JOIN student_profiles sp ON sp.user_id = u.user_id
      LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
      WHERE u.role = 'student'
-     ORDER BY (sps.avg_quiz_score IS NOT NULL) DESC, sps.avg_quiz_score DESC, sps.completed_lessons DESC, u.full_name ASC"
+     ORDER BY (sps.avg_quiz_score IS NOT NULL) DESC, sps.avg_quiz_score DESC, sps.study_days_month DESC, u.full_name ASC"
 );
 
 $totalStudents = count($students);
@@ -98,8 +99,9 @@ if (isset($_GET['format']) && strtolower($_GET['format']) === 'csv') {
         'Academic Status',
         'Quizzes Taken',
         'Quizzes Passed',
-        'Completed Lessons',
-        'Total Lessons',
+        'Days Studied (Last 7 Days)',
+        'Days Studied (Last 30 Days)',
+        'Last Studied',
         '3D Systems Explored',
         'Total Study Hours',
         'Account Status'
@@ -118,8 +120,9 @@ if (isset($_GET['format']) && strtolower($_GET['format']) === 'csv') {
             $row['status_label'],
             $row['quizzes_taken'],
             $row['quizzes_passed'],
-            $row['completed_lessons'],
-            $row['total_lessons'],
+            $row['study_days_week'],
+            $row['study_days_month'],
+            $row['last_studied_on'] ?? 'Never',
             $row['systems_explored'],
             number_format((float)$row['total_time_hours'], 2),
             $row['is_active'] ? 'Active' : 'Inactive'
@@ -159,7 +162,7 @@ $sections = $db->fetchAll(
     "SELECT sp.section,
             COUNT(DISTINCT u.user_id) AS student_count,
             COALESCE(AVG(sps.avg_quiz_score), 0) AS avg_score,
-            COALESCE(AVG(sps.completed_lessons), 0) AS avg_lessons
+            COALESCE(AVG(sps.study_days_month), 0) AS avg_study_days
      FROM student_profiles sp
      JOIN users u ON u.user_id = sp.user_id
      LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
@@ -174,7 +177,7 @@ foreach ($sections as $sec) {
         'short_name'    => $sec['section'],
         'student_count' => (int)$sec['student_count'],
         'avg_score'     => round((float)$sec['avg_score'], 1),
-        'avg_lessons'   => round((float)$sec['avg_lessons'], 1)
+        'avg_study_days' => round((float)$sec['avg_study_days'], 1)
     ];
 }
 
