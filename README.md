@@ -13,6 +13,19 @@ An interactive anatomy learning system with teacher and student portals. Applica
 5. Use **Modules** to create or edit modules and add lessons. Publish both the module and lesson to make them available to students. Reading text, uploaded images, PDFs, videos and GLB attachments are supported.
 6. Use **Assessments** to create questions, set attempt limits and passing scores, then publish the assessment. Teachers can configure identification, multiple-choice, true/false and image hotspot questions.
 
+## Sharing online with a Cloudflare tunnel
+
+For a demo, this computer can serve the site to the internet for free through a Cloudflare quick tunnel. The site is only online while the computer, XAMPP and the tunnel are running, and the address changes every time the tunnel starts.
+
+- `C:/xampp/apache/conf/extra/httpd-vhosts.conf` adds a second Apache site on `127.0.0.1:8081` (reachable only from this computer) that serves just the app: the landing and sign-in pages, `api/`, `assets/`, `student/`, `teacher/`, `system_model/` and `uploads/`. Everything else is a 404, so phpMyAdmin, the XAMPP pages, `docs/`, `database/`, `tests/` and `demo users account.txt` never reach the tunnel. It also tells PHP the visitor is on HTTPS, which the session cookie and the request-origin check need.
+- `C:/xampp/cloudflared/cloudflared.exe` is Cloudflare's standalone tunnel program (no installation).
+
+To go online, start Apache and MySQL, then run this and share the `https://….trycloudflare.com` address it prints. Press Ctrl+C to go offline.
+
+```bash
+"C:/xampp/cloudflared/cloudflared.exe" tunnel --no-autoupdate --url http://127.0.0.1:8081
+```
+
 ## Anatomy content
 
 Teachers can open **Explore 3D Anatomy** from the dashboard or **3D Anatomy Explorer** in the sidebar. Teacher view includes hidden systems and links to the selected system's related module lessons. **Student preview** shows only systems visible to students, using the same viewer and descriptions. Neither teacher mode records student exploration progress. For class demonstrations, use the viewer's **Fullscreen** button: it hides portal navigation while keeping the controls and info panel; press Escape or the button again to return.
