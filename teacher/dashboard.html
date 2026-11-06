@@ -186,7 +186,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -322,7 +322,7 @@ async function loadTeacherDashboard() {
       : `<div class="sd-chart" style="--n:${days.length}" role="img" aria-label="Students who studied each day, oldest first: ${days.map(d => d.students).join(', ')}">${days.map((d, i) => `
           <div class="sd-bar" style="--v:${Math.round(d.students / most * 100)};--i:${i}" title="${plural(d.students, 'student')}, ${d.minutes} min in all">
             <span class="sd-bar-value">${d.students}</span><i></i>
-            <span class="sd-bar-day">${new Date(d.date + 'T00:00').toLocaleDateString('en-PH', { weekday: 'narrow' })}</span>
+            <span class="sd-bar-day">${parseDay(d.date).toLocaleDateString('en-PH', { weekday: 'narrow' })}</span>
           </div>`).join('')}</div>`;
 
     // Recent submissions

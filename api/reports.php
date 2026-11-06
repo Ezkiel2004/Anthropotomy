@@ -16,9 +16,7 @@ foreach ($db->fetchAll("SELECT user_id FROM users WHERE role='student'") as $stu
 $students = $db->fetchAll(
     "SELECT u.user_id, u.full_name, u.email, u.is_active,
             sp.student_id AS school_id, sp.section, sp.grade_level,
-            COALESCE(sps.study_days_week, 0) AS study_days_week,
-            COALESCE(sps.study_days_month, 0) AS study_days_month,
-            sps.last_studied_on,
+            " . STUDY_COLUMNS . ",
             sps.avg_quiz_score,
             COALESCE(sps.quizzes_taken, 0) AS quizzes_taken,
             COALESCE(sps.quizzes_passed, 0) AS quizzes_passed,

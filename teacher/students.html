@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -307,12 +307,7 @@ function renderStudentsTable(students) {
           <div style="font-size:0.72rem;color:var(--text-muted);">${escHtml(s.grade_level)}</div>
         </td>
         <td>
-          <div style="display:flex;align-items:center;gap:var(--space-2);min-width:110px;">
-            <div class="progress-bar" style="height:6px;flex:1;background:var(--bg-inset);">
-              <div class="progress-fill" style="width:${Math.round(s.study_days_week / 7 * 100)}%;background:${s.study_days_week>=4?'var(--success)':'var(--brand)'};"></div>
-            </div>
-            <span style="font-size:0.75rem;color:var(--text-secondary);">${s.study_days_week}/7</span>
-          </div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);min-width:110px;font-size:0.75rem;color:var(--text-secondary);">${studyWeekBar(s.study_days_week)}</div>
         </td>
         <td style="font-weight:700;color:${scoreColor};">
           ${s.avg_quiz_score !== null ? s.avg_quiz_score + '%' : '<span style="font-weight:400;font-size:0.78rem;color:var(--text-muted);">No quizzes</span>'}

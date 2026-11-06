@@ -23,7 +23,7 @@
   <main class="main-content" id="mainContent">
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
-      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
+      <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Lessons</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
@@ -90,7 +90,7 @@
 <!-- Lesson reader: a full-screen page, filled when a lesson opens -->
 <div class="sd-reader" id="lessonContentViewer" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -227,7 +227,7 @@ async function viewModule(moduleId) {
       </div>
       ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
-        return `<a class="sd-lesson" href="${API_BASE}/files.php?id=${Number(f.file_id)}" ${isPdf ? 'target="_blank" rel="noopener"' : 'download'}>
+        return `<a class="sd-lesson" href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" ${isPdf ? 'target="_blank" rel="noopener"' : 'download'}>
           <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
           <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : 'Download · ' + escHtml(f.original_name.split('.').pop().toUpperCase())}</span></span>
           <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
@@ -247,9 +247,11 @@ function renderLessonMedia(lesson) {
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return `<img src="${url}" alt="${escHtml(lesson.title)}"/>`;
   if (ext === 'pdf') return `<iframe title="Lesson document" src="${url}"></iframe><p><a href="${url}" target="_blank" rel="noopener">Open the document in a new tab</a></p>`;
   if (ext === 'glb') return `<a class="sd-go sd-go--light" href="anatomy.html?system=${encodeURIComponent(lesson.system_code)}&lesson_id=${Number(lesson.lesson_id)}">Open the lesson model in 3D<span class="sd-go-disc">${icon('arrow-right')}</span></a>`;
-  return `<p><a href="${url}" target="_blank" rel="noopener">Open the lesson attachment</a></p>`;
+  if (['ppt', 'pptx'].includes(ext)) return `<p><a href="${url}" download onclick="StudyClock.reading()">Download the slides</a></p>`;
+  return `<p><a href="${url}" target="_blank" rel="noopener" onclick="StudyClock.reading()">Open the lesson attachment</a></p>`;
 }
 async function startLesson(lessonId) {
+  StudyClock.reading();
   try {
     const res    = await fetch(`${API_BASE}/lessons.php?id=${lessonId}`, { credentials: 'same-origin' });
     const result = await res.json();

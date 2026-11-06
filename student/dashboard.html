@@ -28,7 +28,7 @@
       <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
         <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg>
       </button>
-      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
+      <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Student Portal</span>
         <span class="breadcrumb-sep">/</span>
@@ -109,7 +109,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -136,7 +136,7 @@ function encouragement(p) {
 // The single most useful thing to do next: an open quiz, the newest lesson,
 // and otherwise the 3D explorer.
 function pickNextStep(data) {
-  const p = data.profile, lesson = data.next_lesson, quiz = (data.upcoming_assessments || [])[0];
+  const p = data.profile, lesson = data.newest_lesson, quiz = (data.upcoming_assessments || [])[0];
   if (quiz) {
     return { kind: 'quiz', tone: 'coral', art: '../assets/img/hero/decor-heart.webp', icon: 'exam', kicker: 'Ready for a quick check?', title: quiz.title,
       detail: `${dueText(quiz.due_date)}. About ${Number(quiz.time_limit_mins) || 30} minutes.`, action: 'Start quiz',

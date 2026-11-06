@@ -109,14 +109,14 @@ try {
     if ($isCli) {
         echo PHP_EOL . str_repeat('=', 80) . PHP_EOL;
         printf("%-10s | %-18s | %-12s | %-12s | %-10s | %-10s\n",
-            "User ID", "Full Name", "Total Lessons", "Completed", "Avg Score", "Quizzes Done");
+            "User ID", "Full Name", "Days (7d)", "Days (30d)", "Avg Score", "Quizzes Done");
         echo str_repeat('-', 80) . PHP_EOL;
         foreach ($summaries as $s) {
             printf("%-10s | %-18s | %-12s | %-12s | %-10s | %-10s\n",
                 $s['student_id'],
                 substr($s['full_name'], 0, 18),
-                $s['total_lessons'],
-                $s['completed_lessons'],
+                $s['study_days_week'],
+                $s['study_days_month'],
                 $s['avg_quiz_score'] !== null ? $s['avg_quiz_score'] . '%' : 'NULL',
                 $s['quizzes_taken']
             );
@@ -128,7 +128,7 @@ try {
         echo '<div class="box">';
         echo '<h3>Initialized Student Progress Summaries</h3>';
         echo '<table><thead><tr>
-            <th>User ID</th><th>Student</th><th>Section</th><th>Total Lessons</th><th>Completed</th><th>Avg Score</th><th>Quizzes</th><th>Study Hours</th>
+            <th>User ID</th><th>Student</th><th>Section</th><th>Days Studied (7d)</th><th>Days Studied (30d)</th><th>Avg Score</th><th>Quizzes</th><th>Study Hours</th>
         </tr></thead><tbody>';
         foreach ($summaries as $s) {
             $avg = $s['avg_quiz_score'] !== null ? $s['avg_quiz_score'] . '%' : '<span style="color:#64748b;">None</span>';
@@ -136,8 +136,8 @@ try {
                 <td>{$s['student_id']}</td>
                 <td><strong>{$s['full_name']}</strong> ({$s['username']})</td>
                 <td>{$s['section']}</td>
-                <td>{$s['total_lessons']}</td>
-                <td>{$s['completed_lessons']}</td>
+                <td>{$s['study_days_week']}</td>
+                <td>{$s['study_days_month']}</td>
                 <td>{$avg}</td>
                 <td>{$s['quizzes_taken']}</td>
                 <td>{$s['total_time_hours']}h</td>

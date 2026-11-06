@@ -71,7 +71,7 @@ const exploration=await student('analytics/exploration.php','POST',{system_id:si
 check(exploration.success && exploration.data.duration_secs<5,'Exploration time bounded by server elapsed time');
 check((await teacher('achievements.php','POST',{title:'First study day',metric:'study_days_total',threshold:1})).success,'Create configurable goal');
 const goalStats=await student('dashboard/student-stats.php');
-check(goalStats.data.achievements.find(a=>a.name==='First completion')?.earned,'Database goal evaluated');
+check(goalStats.data.achievements.find(a=>a.name==='First study day')?.earned,'Database goal evaluated');
 check((await teacher('achievements.php')).data.some(r=>r.badge_key==='first-game'&&r.icon==='game-controller'),'Built-in badges seeded with icons');
 check((await teacher('achievements.php','POST',{title:'Play 1',metric:'games_played',threshold:1,icon:'trophy'})).success,'Game metric accepted');
 check((await teacher('achievements.php','POST',{title:'Bad',metric:'games_played',threshold:1,icon:'<b>'})).status===422,'Icon must be a sprite id');
@@ -79,8 +79,8 @@ check((await teacher('achievements.php','POST',{title:'Bad',metric:'nonsense',th
 const earnedCount=r=>r.data.achievements.filter(a=>a.earned).length;
 const badgeRepeat=await student('dashboard/student-stats.php');
 check(earnedCount(badgeRepeat)===earnedCount(goalStats)&&earnedCount(await student('dashboard/student-stats.php'))===earnedCount(goalStats),'Earned badge count is stable across repeated loads');
-const firstCompletion=badgeRepeat.data.achievements.find(a=>a.name==='First completion');
-check(firstCompletion.icon==='medal'&&Boolean(firstCompletion.earned_at),'Dashboard badges carry icon and earned_at');
+const firstStudyDay=badgeRepeat.data.achievements.find(a=>a.name==='First study day');
+check(firstStudyDay.icon==='medal'&&Boolean(firstStudyDay.earned_at),'Dashboard badges carry icon and earned_at');
 const builtIns=(await teacher('achievements.php')).data;
 const builtIn=key=>builtIns.find(r=>r.badge_key===key);
 check(builtIns.filter(r=>r.badge_key).length===14,'Fourteen built-in badges seeded');
@@ -94,15 +94,15 @@ const afterMigrate=(await teacher('achievements.php')).data;
 check(Number(afterMigrate.find(r=>r.badge_key==='streak-10').is_active)===1&&afterMigrate.filter(r=>r.badge_key).length===14,'Migrating again keeps a re-enabled badge on and seeds nothing twice');
 check((await teacher('achievements.php?id='+builtIn('streak-10').achievement_id,'PUT',{is_active:false})).success,'Switch it off again for the rest of the run');
 check((await student('achievements.php')).status===403,'Students cannot manage badge rules');
-const goalRule=(await teacher('achievements.php')).data.find(r=>r.title==='First completion');
+const goalRule=(await teacher('achievements.php')).data.find(r=>r.title==='First study day');
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{threshold:99,icon:'target'})).success,'Teacher edits a badge');
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{metric:'nonsense'})).status===422,'Edit rejects an unknown metric');
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{icon:'<b>'})).status===422,'Edit rejects a bad icon');
 check((await teacher('achievements.php?id=999999','PUT',{threshold:5})).status===404,'Editing a missing badge is not found');
-const raised=(await student('dashboard/student-stats.php')).data.achievements.find(a=>a.name==='First completion');
+const raised=(await student('dashboard/student-stats.php')).data.achievements.find(a=>a.name==='First study day');
 check(raised.earned&&raised.icon==='target','Earned badges stay earned after the target is raised');
 check((await teacher('achievements.php?id='+goalRule.achievement_id,'PUT',{is_active:false})).success,'Teacher deactivates a badge');
-check(!(await student('dashboard/student-stats.php')).data.achievements.some(a=>a.name==='First completion'),'Inactive badges are hidden from students');
+check(!(await student('dashboard/student-stats.php')).data.achievements.some(a=>a.name==='First study day'),'Inactive badges are hidden from students');
 // Practice games: the retired quiz APIs and metrics, then arcade rounds, badges and the leaderboards.
 check((await Promise.all(['sets','mastery'].map(name=>fetch(`${base}/api/games/${name}.php`)))).every(response=>response.status===404),'The card-set and mastery APIs are gone');
 check((await teacher('achievements.php','POST',{title:'Perfect round',metric:'perfect_rounds',threshold:1})).status===422,'The retired perfect-rounds metric is rejected');

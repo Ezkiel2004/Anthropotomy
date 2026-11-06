@@ -39,15 +39,19 @@ function initMenu() {
 }
 
 // ── Signed-in visitors go straight to their dashboard. The static HTML is the
-//    signed-out page, so a failed or slow session check changes nothing. ──
+//    signed-out page. A visitor with a cached session starts hidden (auth-pending,
+//    set in the page head) so the landing page never flashes before the redirect;
+//    it is shown again if the session turns out to be gone or the check is slow. ──
 function initAuth() {
+  const reveal = () => document.documentElement.classList.remove('auth-pending');
+  setTimeout(reveal, 3000);
   fetch('api/auth/session.php', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
     .then(response => (response.ok ? response.json() : null))
     .then(result => {
-      if (!result?.success || !result.data) return;
+      if (!result?.success || !result.data) return reveal();
       location.replace(`${['teacher', 'admin'].includes(result.data.role) ? 'teacher' : 'student'}/dashboard.html`);
     })
-    .catch(() => { /* Stay on the signed-out page. */ });
+    .catch(reveal);
 }
 
 // ── Hero cards: a fan carousel. Clicking a side card, the arrow keys, a swipe or the

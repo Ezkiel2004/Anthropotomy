@@ -12,7 +12,7 @@ const UNITS = {
     systems_explored: 'systems explored', total_time_hours: 'hours', games_played: 'games',
     best_game_streak: 'in a row', total_points: 'points', games_variety: 'games',
 };
-const PERCENT_METRICS = new Set(['avg_quiz_score', 'overall_progress']);
+const PERCENT_METRICS = new Set(['avg_quiz_score']);
 
 const $ = id => document.getElementById(id);
 

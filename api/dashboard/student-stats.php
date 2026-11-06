@@ -28,9 +28,7 @@ $profile = $db->fetchOne(
             COALESCE(sps.quizzes_passed, 0)    AS quizzes_passed,
             COALESCE(sps.systems_explored, 0)  AS systems_explored,
             COALESCE(sps.total_time_hours, 0)  AS total_time_hours,
-            COALESCE(sps.study_days_week, 0)   AS study_days_week,
-            COALESCE(sps.study_days_month, 0)  AS study_days_month,
-            sps.last_studied_on
+            " . STUDY_COLUMNS . "
      FROM users u
      JOIN student_profiles sp ON sp.user_id = u.user_id
      LEFT JOIN student_progress_summary sps ON sps.student_id = u.user_id
@@ -39,7 +37,7 @@ $profile = $db->fetchOne(
 );
 
 // 2. The newest published lesson
-$nextLesson = $db->fetchOne(
+$newestLesson = $db->fetchOne(
     "SELECT l.lesson_id, l.title, l.lesson_type, l.duration_mins,
             m.title AS module_title, bs.system_name, bs.system_code
      FROM lessons l
@@ -123,7 +121,7 @@ jsonSuccess([
         'study_days_month'  => (int)$profile['study_days_month'],
         'last_studied_on'   => $profile['last_studied_on'],
     ],
-    'next_lesson'               => $nextLesson,
+    'newest_lesson'             => $newestLesson,
     'upcoming_assessments'      => $upcomingAssessments,
     'pending_assessments_count' => $pendingAssessmentsCount,
     'systems'                   => $systems,

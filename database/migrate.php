@@ -126,4 +126,12 @@ foreach (['study_days_week' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'study_days_mo
           'study_days_total' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'last_studied_on' => 'DATE NULL'] as $column => $definition) {
  addColumnIfMissing($pdo, 'student_progress_summary', $column, $definition);
 }
+// Lesson completion is no longer tracked, so badges measured on it are switched off, once (same pattern as above).
+$retired = $pdo->query("SELECT setting_value FROM app_settings WHERE setting_key = 'study_v1_badges'")->fetchColumn();
+if ($retired !== '1') {
+ $pdo->beginTransaction();
+ $pdo->exec("UPDATE achievement_rules SET is_active = 0 WHERE metric IN ('completed_lessons', 'overall_progress')");
+ $pdo->exec("INSERT INTO app_settings (setting_key, setting_value) VALUES ('study_v1_badges', '1') ON DUPLICATE KEY UPDATE setting_value = '1'");
+ $pdo->commit();
+}
 echo "Schema migration complete. Existing accounts and learning records preserved.\n";

@@ -28,8 +28,9 @@
   <link rel="stylesheet" href="assets/css/public.css?v=20261014-school1">
   <link rel="stylesheet" href="assets/css/hero.css?v=20261026-stage1">
   <link rel="stylesheet" href="assets/css/minimal-landing.css?v=20261026-still1">
-  <script>document.documentElement.classList.add('js');</script>
-  <script type="module" src="assets/js/landing.js?v=20261106-photo1"></script>
+  <script>document.documentElement.classList.add('js');try{if(sessionStorage.getItem('anthropotomy_user'))document.documentElement.classList.add('auth-pending');}catch(e){}</script>
+  <style>.auth-pending body{visibility:hidden}</style>
+  <script type="module" src="assets/js/landing.js?v=20261106-review1"></script>
   <script type="module" src="assets/js/cell-field.js?v=20261022-cells5"></script>
   <script defer src="assets/js/vendor/gsap.min.js?v=3.15"></script>
   <script defer src="assets/js/vendor/ScrollTrigger.min.js?v=3.15"></script>
@@ -53,8 +54,8 @@
       </div>
       <a class="hx-logo" href="./" aria-label="Anthropotomy home"><img src="assets/brand/mark-96.png" width="40" height="40" alt=""></a>
       <div class="hx-actions">
-        <a class="hx-text-link" href="login.html#login" data-auth="guest">Sign in</a>
-        <a class="hx-pill" href="login.html#register" data-auth="guest" data-primary-cta><span class="hx-pill-badge"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#graduation-cap"/></svg></span><span class="hx-pill-label">Create account</span><span class="hx-pill-plus"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#plus"/></svg></span></a>
+        <a class="hx-text-link" href="login.html#login">Sign in</a>
+        <a class="hx-pill" href="login.html#register" data-primary-cta><span class="hx-pill-badge"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#graduation-cap"/></svg></span><span class="hx-pill-label">Create account</span><span class="hx-pill-plus"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#plus"/></svg></span></a>
       </div>
     </div>
   </header>
@@ -340,9 +341,9 @@
     <!-- Closing CTA -->
     <section class="cta-band on-dark" aria-labelledby="ctaTitle">
       <div class="page hx-cta" data-reveal>
-        <h2 id="ctaTitle" class="section-title" data-auth="guest">You can learn this. Start with your first lesson.</h2>
-        <p class="hx-lead" data-auth="guest">Bring the student ID your school gave you. Everything else is ready for you.</p>
-        <div class="hx-actions" data-auth="guest">
+        <h2 id="ctaTitle" class="section-title">You can learn this. Start with your first lesson.</h2>
+        <p class="hx-lead">Bring the student ID your school gave you. Everything else is ready for you.</p>
+        <div class="hx-actions">
           <a class="hx-text-link" href="login.html#login">Sign in</a>
           <a class="hx-pill" href="login.html#register" data-primary-cta><span class="hx-pill-badge"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#graduation-cap"/></svg></span><span class="hx-pill-label">Create account</span><span class="hx-pill-plus"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="assets/icons/interface.svg?v=20261012-icons3#plus"/></svg></span></a>
         </div>
@@ -358,13 +359,13 @@
       </div>
       <nav aria-label="Footer">
         <ul class="footer-links">
-          <li data-auth="guest"><a href="login.html#register">Create account</a></li>
-          <li data-auth="guest"><a href="login.html#login">Sign in</a></li>
+          <li><a href="login.html#register">Create account</a></li>
+          <li><a href="login.html#login">Sign in</a></li>
           <li><a href="login.html#terms">Terms and Conditions</a></li>
         </ul>
       </nav>
       <div class="footer-small grid gap-4 content-start">
-        <p data-auth="guest"><a href="login.html">Teachers and administrators sign in here too.</a></p>
+        <p><a href="login.html">Teachers and administrators sign in here too.</a></p>
         <p>3D models in the cards above and in the explorer are from <a href="https://www.z-anatomy.com/" rel="noopener">Z-Anatomy</a>, licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license noopener">CC BY-SA 4.0</a>.</p>
       </div>
     </div>

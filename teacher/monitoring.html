@@ -72,7 +72,7 @@
           <div class="stat-info"><div class="stat-value" id="statTotalEnrolled">—</div><div class="stat-label">Total Enrolled</div></div>
         </div>
         <div class="stat-card">
-          <div class="stat-info"><div class="stat-value" id="statActiveToday">—</div><div class="stat-label">Studied This Week</div></div>
+          <div class="stat-info"><div class="stat-value" id="statStudiedWeek">—</div><div class="stat-label">Studied This Week</div></div>
         </div>
         <div class="stat-card">
           <div class="stat-info"><div class="stat-value" id="statClassAvg">—</div><div class="stat-label">Class Average</div></div>
@@ -133,7 +133,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script>
 Auth.requireAuthSync('teacher');
 
@@ -156,7 +156,7 @@ async function loadMonitoringData() {
 
     // Update Summary Stats
     document.getElementById('statTotalEnrolled').textContent = stats.total_students ?? allStudents.length;
-    document.getElementById('statActiveToday').textContent = allStudents.filter(s => s.study_days_week > 0).length;
+    document.getElementById('statStudiedWeek').textContent = allStudents.filter(s => s.study_days_week > 0).length;
     const scored = allStudents.filter(s => s.avg_quiz_score !== null);
     document.getElementById('statClassAvg').textContent = stats.class_avg_score ?? (scored.length ? `${(scored.reduce((sum, s) => sum + Number(s.avg_quiz_score), 0) / scored.length).toFixed(1)}%` : 'Not yet');
     document.getElementById('statNeedsAttention').textContent = stats.at_risk ?? allStudents.filter(s => s.performance_status === 'at-risk').length;
@@ -182,7 +182,6 @@ function renderTable(data) {
     const scoreColor = s.avg_quiz_score === null ? 'var(--text-muted)' : scoreVal >= 85 ? 'var(--success)' : scoreVal >= 70 ? 'var(--warning)' : 'var(--error)';
     const avatarBg = s.performance_status === 'top' ? 'var(--warning)' : s.performance_status === 'at-risk' ? 'var(--error)' : 'var(--brand)';
     const initial = initials(s.full_name);
-    const weekPct = Math.round(s.study_days_week / 7 * 100);
     const secName = s.section || '';
 
     return `
@@ -198,10 +197,7 @@ function renderTable(data) {
         </td>
         <td>${escHtml(secName)}</td>
         <td>
-          <div class="student-progress-cell">
-            <div class="progress-bar" style="background:var(--bg-inset);"><div class="progress-fill" style="width:${weekPct}%;background:${s.study_days_week>=4?'var(--success)':s.study_days_week>=2?'var(--warning)':'var(--error)'};"></div></div>
-            <span>${s.study_days_week}/7</span>
-          </div>
+          <div class="student-progress-cell">${studyWeekBar(s.study_days_week)}</div>
         </td>
         <td style="font-weight:700;color:${scoreColor};">${scoreText(s.avg_quiz_score)}</td>
         <td>${s.study_days_month} ${s.study_days_month === 1 ? 'day' : 'days'}</td>

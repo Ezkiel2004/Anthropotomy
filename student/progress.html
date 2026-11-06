@@ -23,7 +23,7 @@
   <main class="main-content" id="mainContent">
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
-      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
+      <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Progress &amp; Scores</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
@@ -58,12 +58,12 @@
       <div class="dashboard-empty sd-error" id="progressError" role="status" hidden></div>
 
       <div class="sd-top">
-        <section class="sd-ring-card" aria-labelledby="overallTitle">
-          <div class="sd-ring" id="overallRing" role="img" aria-label="Study days loading"><span id="overallPct">0</span></div>
+        <section class="sd-ring-card" aria-labelledby="studyWeekTitle">
+          <div class="sd-ring" id="studyWeekRing" role="img" aria-label="Study days loading"><span id="studyWeekValue">0</span></div>
           <div class="sd-ring-copy">
             <p class="sd-next-kicker">Days studied, last 7 days</p>
-            <h2 class="sd-next-title" id="overallTitle">Loading…</h2>
-            <p class="sd-next-detail" id="overallExploredText"></p>
+            <h2 class="sd-next-title" id="studyWeekTitle">Loading…</h2>
+            <p class="sd-next-detail" id="exploredText"></p>
           </div>
         </section>
 
@@ -77,7 +77,7 @@
 
       <section class="sd-block" aria-labelledby="activityTitle">
         <div class="sd-h"><h2 id="activityTitle" class="sd-h-title">Study days, last 4 weeks</h2><span class="sd-count" id="activityCount"></span></div>
-        <div id="streakGrid"></div>
+        <div id="studyDays"></div>
       </section>
 
       <section class="sd-block" id="scores" aria-labelledby="scoresTitle">
@@ -114,7 +114,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -132,12 +132,12 @@ async function loadProgress() {
     const taken = Number(summary?.quizzes_taken) || 0, passed = Number(summary?.quizzes_passed) || 0;
 
     // Ring: CSS draws it from --p (days of the last 7, as a percentage)
-    const ring = document.getElementById('overallRing');
-    ring.style.setProperty('--p', Math.round(week / 7 * 100));
+    const ring = document.getElementById('studyWeekRing');
+    ring.style.setProperty('--p', studyWeekPct(week));
     ring.setAttribute('aria-label', `Studied on ${week} of the last 7 days`);
-    document.getElementById('overallPct').textContent = `${week}/7`;
-    document.getElementById('overallTitle').textContent = week === 0 ? 'No study days yet this week' : `${plural(week, 'day')} this week`;
-    document.getElementById('overallExploredText').textContent = `${summary?.systems_explored || 0} of ${plural(Number(system_count) || 0, 'body system')} explored in 3D`;
+    document.getElementById('studyWeekValue').textContent = `${week}/7`;
+    document.getElementById('studyWeekTitle').textContent = week === 0 ? 'No study days yet this week' : `${plural(week, 'day')} this week`;
+    document.getElementById('exploredText').textContent = `${summary?.systems_explored || 0} of ${plural(Number(system_count) || 0, 'body system')} explored in 3D`;
 
     document.getElementById('statAvgQuizScore').textContent = summary?.avg_quiz_score != null ? `${Math.round(summary.avg_quiz_score)}%` : 'Not yet';
     document.getElementById('statQuizzesDone').textContent = passed;
@@ -146,7 +146,7 @@ async function loadProgress() {
     document.getElementById('statStudyHours').textContent = fmtStudyTime(summary?.total_time_hours);
 
     const calendar = study_calendar || [];
-    document.getElementById('streakGrid').innerHTML = studyStrip(calendar);
+    document.getElementById('studyDays').innerHTML = studyStrip(calendar);
     document.getElementById('activityCount').textContent = `Studied on ${plural(calendar.filter(d => d.minutes > 0).length, 'day')}`;
   } catch (err) {
     const error = document.getElementById('progressError');

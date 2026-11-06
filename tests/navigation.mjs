@@ -33,8 +33,8 @@ const expected={
  teacher:['dashboard','modules','lesson-plans','students','assessments','games','monitoring','reports','announcements','settings','anatomy'],
  student:['dashboard','anatomy','lessons','quiz','games','progress']
 };
-// Both sidebars start with a Home link to the public landing page.
-const menu=role=>['index.html',...expected[role].map(p=>p+'.html')];
+// Neither sidebar links to the landing page: it sends signed-in visitors to their dashboard.
+const menu=role=>expected[role].map(p=>p+'.html');
 // Pages checked per portal. Student notifications and settings are reached from the top bar
 // (bell and account menu), not the sidebar; scores.html redirects to "My Progress & Scores".
 const pages={teacher:expected.teacher,student:[...expected.student,'notifications','settings']};

@@ -405,6 +405,11 @@ function _updateProgressSummary(int $studentId, Database $db): void {
     );
 }
 
+/** The study columns every student list selects from student_progress_summary (alias sps). */
+const STUDY_COLUMNS = "COALESCE(sps.study_days_week, 0) AS study_days_week,
+                COALESCE(sps.study_days_month, 0) AS study_days_month,
+                sps.last_studied_on";
+
 /**
  * Study time on each of the last $days days, oldest first: [['date' => 'Y-m-d', 'minutes' => n, 'students' => n], ...].
  * For one student, or for every student when $studentId is null (minutes summed, students counted).

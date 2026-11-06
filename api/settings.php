@@ -1,8 +1,8 @@
 <?php
 /**
- * Anthropotomy – User Profile & System Settings API
+ * Anthropotomy – User Profile API
  *
- * GET  /api/settings.php         → Get current user profile details & system health
+ * GET  /api/settings.php         → Get current user profile details
  * PUT  /api/settings.php         → Update profile (name, email, password)
  * POST /api/settings.php         → Upload a profile photo (multipart field "photo")
  */
@@ -30,7 +30,9 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     $file = $_FILES['photo'] ?? null;
-    if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) jsonError('Choose a photo to upload.', 422);
+    // A body over post_max_size arrives with no files at all, so that is a size error, not a missing photo.
+    if (!$file && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) jsonError('Photo must be an image under 5 MB.', 422);
+    if (!$file || !is_int($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) jsonError('Choose a photo to upload.', 422);
     if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] > 5 * 1024 * 1024) jsonError('Photo must be an image under 5 MB.', 422);
     $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][(new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name'])] ?? null;
     if (!$ext || !getimagesize($file['tmp_name'])) jsonError('Upload a JPG, PNG or WebP photo.', 422);

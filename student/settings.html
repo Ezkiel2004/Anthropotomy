@@ -23,7 +23,7 @@
   <main class="main-content" id="mainContent">
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
-      <a class="sd-brand" href="../index.html" aria-label="Anthropotomy home"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
+      <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Settings &amp; Profile</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
@@ -116,7 +116,7 @@
       <section class="sd-block" aria-labelledby="summaryTitle">
         <div class="sd-h"><h2 id="summaryTitle" class="sd-h-title">Learning summary</h2><a class="sd-link" href="progress.html">Full progress</a></div>
         <dl class="sd-stats sd-stats--row" id="statsGrid">
-          <div class="sd-stat"><dt>Days studied, last 7</dt><dd><span class="sd-stat-value" id="statLessons">—</span></dd></div>
+          <div class="sd-stat"><dt>Days studied, last 7</dt><dd><span class="sd-stat-value" id="statStudyDays">—</span></dd></div>
           <div class="sd-stat"><dt>Quiz average</dt><dd><span class="sd-stat-value" id="statAvgScore">—</span></dd></div>
           <div class="sd-stat"><dt>Quizzes passed</dt><dd><span class="sd-stat-value" id="statQuizzes">—</span></dd></div>
           <div class="sd-stat"><dt>Study time</dt><dd><span class="sd-stat-value" id="statHours">—</span></dd></div>
@@ -126,7 +126,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261106-study1"></script>
+<script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -162,7 +162,7 @@ async function loadStudentSummary() {
     const json = await res.json();
     if (json.success && json.data?.profile) {
       const sp = json.data.profile;
-      document.getElementById('statLessons').textContent  = `${sp.study_days_week}/7`;
+      document.getElementById('statStudyDays').textContent  = `${sp.study_days_week}/7`;
       document.getElementById('statAvgScore').textContent = sp.avg_quiz_score !== null ? `${Math.round(sp.avg_quiz_score)}%` : 'Not yet';
       document.getElementById('statQuizzes').textContent  = `${sp.quizzes_passed}/${sp.quizzes_taken}`;
       document.getElementById('statHours').textContent    = fmtStudyTime(sp.total_time_hours);
