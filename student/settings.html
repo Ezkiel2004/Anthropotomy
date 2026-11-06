@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261104-mint1"/>
@@ -17,7 +17,7 @@
 </head>
 <body class="student-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261021-tabs1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261106-photo1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
@@ -55,10 +55,11 @@
       </header>
 
       <section class="sd-id" id="profile" tabindex="-1" aria-labelledby="profileName">
-        <div class="sd-id-avatar" id="profileAvatar" aria-hidden="true">·</div>
+        <div class="sd-id-avatar" id="profileAvatar" data-user-avatar aria-hidden="true">·</div>
         <div class="sd-id-who">
           <h2 class="sd-id-name" id="profileName">Loading…</h2>
           <p class="sd-id-sub" id="profileClass">Student</p>
+          <label class="sd-ghost" style="margin-top:.75rem"><input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp" data-photo-input>Change photo</label>
         </div>
         <dl class="sd-facts">
           <div><dt>Username</dt><dd id="settingUsername">—</dd></div>
@@ -125,13 +126,12 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261027-signout3"></script>
+<script src="../assets/js/app.js?v=20261106-photo1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
 
-const initialsOf = name => String(name || '').trim().split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase() || '·';
 
 async function loadStudentProfile() {
   try {
@@ -149,8 +149,6 @@ async function loadStudentProfile() {
     document.getElementById('settingEmail').value = p.email || '';
     document.getElementById('profileName').textContent = p.full_name || p.username;
     document.getElementById('profileClass').textContent = [p.grade_level, p.section].filter(Boolean).join(' · ') || 'Student';
-    document.getElementById('profileAvatar').textContent = initialsOf(p.full_name || p.username);
-    document.getElementById('topbarAvatar').textContent = initialsOf(p.full_name || p.username);
     document.getElementById('topbarUserName').textContent = p.full_name || p.username;
   } catch (err) {
     console.error('Profile fetch error:', err);

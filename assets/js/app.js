@@ -122,7 +122,11 @@ const Auth = {
 
         document.querySelectorAll('.topbar-user-name').forEach(el => el.textContent = name);
         document.querySelectorAll('.topbar-user-role').forEach(el => el.textContent = subtitle);
-        document.querySelectorAll('.topbar .avatar').forEach(el   => el.textContent = av);
+        // The uploaded photo when there is one, otherwise initials.
+        document.querySelectorAll('.topbar .avatar, [data-user-avatar]').forEach(el => {
+            if (user.profile_pic) el.innerHTML = `<img src="${escHtml(user.profile_pic)}" alt="">`;
+            else el.textContent = av;
+        });
 
         const pendingAssessments = sessionStorage.getItem('anthropotomy_pending_assessments');
         if (pendingAssessments !== null) {
@@ -696,6 +700,25 @@ function initApp() {
             document.getElementById('notifBtn')?.setAttribute('aria-expanded', 'false');
         }
     });
+
+    // Profile photo: a file input marked data-photo-input uploads on change.
+    document.querySelectorAll('[data-photo-input]').forEach(input => input.addEventListener('change', async () => {
+        if (!input.files[0]) return;
+        const body = new FormData();
+        body.append('photo', input.files[0]);
+        input.value = '';
+        try {
+            const res  = await fetch(`${API_BASE}/settings.php`, { method: 'POST', body, credentials: 'same-origin' });
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            const user = { ...Auth.getUser(), profile_pic: json.data.profile_pic };
+            sessionStorage.setItem('anthropotomy_user', JSON.stringify(user));
+            Auth._populateUserUI(user);
+            showToast('Profile photo updated.', 'success');
+        } catch (err) {
+            showToast(err.message || 'Could not upload the photo.', 'error');
+        }
+    }));
 
     // Logout button (all pages)
     document.querySelectorAll('.logout-btn, [data-logout]').forEach(el => {

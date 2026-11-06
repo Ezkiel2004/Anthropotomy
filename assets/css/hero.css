@@ -48,7 +48,6 @@
 .hx-pill-plus{width:2rem;height:2rem;background:var(--hx-blue);color:#fff;transition:transform .2s var(--hx-ease)}
 .hx-pill:hover .hx-pill-plus{transform:scale(1.08)}
 .hx-pill svg{width:1rem;height:1rem;fill:currentColor}
-.hx-avatar{display:grid;place-items:center;width:2.625rem;height:2.625rem;border-radius:.75rem;background:var(--hx-orange);color:#1a1a1a;font-family:var(--hx-display);font-size:1.125rem;font-weight:400}
 .hx-menu{display:none;align-items:center;gap:.5rem;height:2.625rem;padding:0 .875rem;border:0;border-radius:.75rem;background:var(--hx-raised);color:var(--hx-text);font:inherit;font-size:.875rem;font-weight:700;cursor:pointer}
 .hx-menu svg{width:1.125rem;height:1.125rem;fill:currentColor}
 .hx-header :focus-visible{outline:2px solid #fff;outline-offset:3px}
@@ -223,7 +222,7 @@ body{background:var(--hx-bg);color:var(--hx-text)}
 }
 
 /* Display face: Bungee (OFL), caps only and already heavy, so it is set at weight 400. Ligatures off keeps every letter separate. */
-.hx-title,.hx-card-title,.hx-avatar,.section-title,.feature-title,.step-num,.footer .brand-name{font-variant-ligatures:none;text-transform:uppercase}
+.hx-title,.hx-card-title,.section-title,.feature-title,.step-num,.footer .brand-name{font-variant-ligatures:none;text-transform:uppercase}
 
 /* ── Sign-in page (login.html). Phones: the card fan above one form. From 64rem: the fan
    and three reasons on the left, the form on the right. ── */

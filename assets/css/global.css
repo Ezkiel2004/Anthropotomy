@@ -712,6 +712,9 @@ a.btn:hover { text-decoration: none; }
   color: var(--text-inverse);
   flex-shrink: 0;
 }
+.avatar img, .sd-id-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+label:has(> [data-photo-input]) { cursor: pointer; }
+label:has(> [data-photo-input]:focus-visible) { outline: 2px solid var(--brand); outline-offset: 2px; }
 .avatar-lg { width: 48px; height: 48px; font-size: 1rem; }
 .avatar-xl { width: 72px; height: 72px; font-size: 1.25rem; }
 

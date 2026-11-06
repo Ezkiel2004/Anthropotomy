@@ -32,3 +32,6 @@ desktop.ini
 # Teacher files (module materials, lesson plans) are user data, not source.
 storage/files/
 storage/mail.ini
+
+# User profile photos
+uploads/avatars/

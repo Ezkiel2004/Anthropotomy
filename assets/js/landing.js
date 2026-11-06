@@ -38,32 +38,16 @@ function initMenu() {
   wideNav.addEventListener('change', event => { if (event.matches) setOpen(false); });
 }
 
-// ── Signed-in visitors see the same page with their own actions: a greeting,
-//    a link to their dashboard and Sign out. The static HTML is the signed-out
-//    state, so a failed or slow session check changes nothing. ──
+// ── Signed-in visitors go straight to their dashboard. The static HTML is the
+//    signed-out page, so a failed or slow session check changes nothing. ──
 function initAuth() {
   fetch('api/auth/session.php', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
     .then(response => (response.ok ? response.json() : null))
     .then(result => {
       if (!result?.success || !result.data) return;
-      const user = result.data;
-      const staff = ['teacher', 'admin'].includes(user.role);
-      const firstName = String(user.full_name || user.username || '').trim().split(/\s+/)[0];
-      $$('[data-member-name]').forEach(element => { element.textContent = firstName ? `Welcome back, ${firstName}` : 'Welcome back'; });
-      $$('[data-dashboard-link]').forEach(link => { link.href = `${staff ? 'teacher' : 'student'}/dashboard.html`; });
-      if (staff) $$('[data-dashboard-label]').forEach(label => { label.textContent = 'Go to teacher dashboard'; });
-      $$('[data-auth="guest"]').forEach(element => { element.hidden = true; });
-      $$('[data-auth="member"]').forEach(element => { element.hidden = false; });
-      $$('[data-member-initial]').forEach(element => { element.textContent = firstName.charAt(0).toUpperCase(); element.hidden = !firstName; });
+      location.replace(`${['teacher', 'admin'].includes(result.data.role) ? 'teacher' : 'student'}/dashboard.html`);
     })
-    .catch(() => { /* Stay in the signed-out state. */ });
-
-  $$('[data-sign-out]').forEach(button => button.addEventListener('click', async () => {
-    button.disabled = true;
-    try { await fetch('api/auth/logout.php', { method: 'POST', credentials: 'same-origin' }); } catch (_) { /* Best effort. */ }
-    try { sessionStorage.removeItem('anthropotomy_user'); } catch (_) { /* Storage may be unavailable. */ }
-    location.replace(location.pathname);
-  }));
+    .catch(() => { /* Stay on the signed-out page. */ });
 }
 
 // ── Hero cards: a fan carousel. Clicking a side card, the arrow keys, a swipe or the

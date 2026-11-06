@@ -8,7 +8,7 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-photo1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261104-mint2"/>
@@ -21,7 +21,7 @@
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261102-files1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261106-photo1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -58,7 +58,7 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1>Settings</h1>
-          <p>Update personal credentials, subject assignments, password, and view database & platform status.</p>
+          <p>Update your photo, personal details, subject and password.</p>
         </div>
       </div>
 
@@ -67,6 +67,10 @@
         <!-- Profile Information Card -->
         <div class="card" id="profile" tabindex="-1">
           <h3>Personal information</h3>
+          <div style="display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-4);">
+            <div class="avatar avatar-xl" data-user-avatar aria-hidden="true"></div>
+            <label class="btn btn-secondary"><input type="file" class="sr-only" accept="image/jpeg,image/png,image/webp" data-photo-input>Change photo</label>
+          </div>
           <form id="profileForm" onsubmit="handleProfileUpdate(event)">
             <div style="display:flex;flex-direction:column;gap:var(--space-4);">
               <div class="form-group">
@@ -139,7 +143,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261027-signout3"></script>
+<script src="../assets/js/app.js?v=20261106-photo1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');

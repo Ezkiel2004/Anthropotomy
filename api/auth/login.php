@@ -41,6 +41,7 @@ $responseData = [
     'role'      => $user['role'],
     'full_name' => $user['full_name'],
     'email'     => $user['email'] ?? null,
+    'profile_pic' => $user['profile_pic'] ?? null,
     'context'   => $user['context_info'] ?? null,
     'role_id'   => $user['role_id'] ?? null,
 ];

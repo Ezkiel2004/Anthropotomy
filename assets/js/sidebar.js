@@ -13,10 +13,6 @@
 
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
-      <a class="nav-item" href="../index.html" data-tooltip="Home">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#house"/></svg></span>
-        <span class="nav-label">Home</span>
-      </a>
       <a class="nav-item" href="dashboard.html" data-tooltip="Dashboard">
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#layout"/></svg></span>
         <span class="nav-label">Dashboard</span>
@@ -74,10 +70,6 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Learning</div>
-      <a class="nav-item" href="../index.html" data-tooltip="Home">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#house"/></svg></span>
-        <span class="nav-label">Home</span>
-      </a>
       <a class="nav-item" href="dashboard.html" data-tooltip="Dashboard">
         <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#layout"/></svg></span>
         <span class="nav-label">Dashboard</span>

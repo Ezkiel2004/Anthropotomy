@@ -4,6 +4,7 @@
  *
  * GET  /api/settings.php         → Get current user profile details & system health
  * PUT  /api/settings.php         → Update profile (name, email, password)
+ * POST /api/settings.php         → Upload a profile photo (multipart field "photo")
  */
 
 require_once __DIR__ . '/helpers.php';
@@ -25,6 +26,26 @@ if ($method === 'GET') {
     );
 
     jsonSuccess(['profile' => $profile]);
+}
+
+if ($method === 'POST') {
+    $file = $_FILES['photo'] ?? null;
+    if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) jsonError('Choose a photo to upload.', 422);
+    if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] > 5 * 1024 * 1024) jsonError('Photo must be an image under 5 MB.', 422);
+    $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][(new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name'])] ?? null;
+    if (!$ext || !getimagesize($file['tmp_name'])) jsonError('Upload a JPG, PNG or WebP photo.', 422);
+
+    $dir = dirname(__DIR__) . '/uploads/avatars/';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    $name = 'u' . $user['user_id'] . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+    if (!move_uploaded_file($file['tmp_name'], $dir . $name)) jsonError('Photo upload failed. Check server permissions.', 500);
+
+    $old = $db->fetchOne("SELECT profile_pic FROM users WHERE user_id = ?", [$user['user_id']])['profile_pic'] ?? '';
+    $url = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/') . '/uploads/avatars/' . $name;
+    $db->query("UPDATE users SET profile_pic = ? WHERE user_id = ?", [$url, $user['user_id']]);
+    if ($old && is_file($dir . basename($old))) unlink($dir . basename($old));
+
+    jsonSuccess(['profile_pic' => $url], 'Profile photo updated.');
 }
 
 if ($method === 'PUT') {
