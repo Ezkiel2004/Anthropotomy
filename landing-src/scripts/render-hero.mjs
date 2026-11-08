@@ -20,6 +20,8 @@ const OVERSAMPLE = 2; // drawn larger, then scaled down, for smoother edges
 const SHOTS = {
   respiratory: { system: 'respiratory', hide: ['Pleura', 'Epiglottis', 'Mucosa of nasal cavity'], yaw: 28, pitch: 6, width: 560, height: 640, margin: { top: 0.15, bottom: 0.11, side: 0.15 } },
   urinary: { system: 'urinary', yaw: 12, pitch: 4, width: 560, height: 640, margin: { top: 0.03, bottom: -0.04, side: 0.2 } },
+  // The peritoneal sheets show as yellow bands on the stomach and colon at card size.
+  digestive: { system: 'digestive', hide: ['Lesser omentum', 'Mesocolon', 'Meso-appendix'], yaw: 10, pitch: 4, width: 560, height: 640, margin: { top: 0.03, bottom: 0.07, side: 0.2 } },
   'decor-kidney': { system: 'urinary', only: ['Kidney (left)', 'Renal pelvis (left)'], yaw: -25, pitch: 6, width: 360, height: 360, margin: { top: 0.04, bottom: 0.04, side: 0.2 } },
 };
 
