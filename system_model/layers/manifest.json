@@ -76,7 +76,7 @@
     "triangles": 73922
   },
   "muscular": {
-    "bytes": 4954824,
+    "bytes": 4955268,
     "described": 545,
     "deviation_max_mm": 1.468,
     "deviation_p95_mm": 0.488,
@@ -95,8 +95,8 @@
     "triangles": 991167
   },
   "nervous": {
-    "bytes": 2857620,
-    "described": 488,
+    "bytes": 2857432,
+    "described": 486,
     "deviation_max_mm": 0.574,
     "deviation_p95_mm": 0.457,
     "draco_deviation_max_mm": 0.581,
@@ -176,7 +176,7 @@
     "triangles": 43626
   },
   "skeletal": {
-    "bytes": 2770220,
+    "bytes": 2770572,
     "described": 588,
     "deviation_max_mm": 0.809,
     "deviation_p95_mm": 0.3,

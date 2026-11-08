@@ -23,8 +23,8 @@ For each system the script:
 3. welds the copies and decimates each part over MIN_TRIS triangles to the lowest ratio (MIN_RATIO to 1)
    that keeps it within the system's TOLERANCE of its full-resolution mesh, and within SIZE_SHARE of its own
    size: distances are measured both ways (each mesh's vertices to the other's surface), and the bounding box
-   may move at most PLACEMENT_MM. A
-   system whose file would pass BUDGET_BYTES is refitted with its tolerance relaxed in RELAX steps;
+   may move at most PLACEMENT_MM. A system whose file would pass BUDGET_BYTES is refitted with its tolerance
+   relaxed in RELAX steps;
 4. adds the part data the viewer reads (part ID, name, Z-Anatomy definition, system) as glTF extras, exports
    system_model/layers/<system>.glb with Draco compression, then re-imports the file and measures every part
    again after Draco decoding (deviation, bounding box, faceted or inside-out parts);
@@ -137,10 +137,18 @@ def display_name(name):
     return f"{clean} ({SIDE[side.group(1)]})" if side else clean
 
 
+def is_prose(paragraph):
+    """False for the upper-case title line, even with a slip ("POPlITEAL FASCIA"), and for placeholders like "(...)"."""
+    letters = [c for c in paragraph if c.isalpha()]
+    return len(letters) > 0 and sum(c.isupper() for c in letters) < 0.8 * len(letters)
+
+
 def summary(text):
     """The first paragraph of a Z-Anatomy definition text, cleaned of Wikipedia leftovers, about 320 characters."""
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text.as_string()) if p.strip()]
-    paragraphs = [p for p in paragraphs if not p.isupper()]  # drop the upper-case title line
+    if paragraphs and "to be verified" in paragraphs[0].lower():
+        return ""  # Z-Anatomy flags a text it has not checked in its title; one describes the wrong nerve
+    paragraphs = [p for p in paragraphs if is_prose(p)]
     if not paragraphs:
         return ""
     body = re.sub(r"\s+", " ", paragraphs[0])
@@ -464,7 +472,8 @@ def export_system(code, out_dir):
         relax = 1.0
         fits = fit_ratios(temps, TOLERANCE[code])
         source_tris = export_temps(temps, path, window, view_layer)
-        while os.path.getsize(path) > BUDGET_BYTES and any(r > MIN_RATIO for r, _, _ in fits.values()):
+        reducible = [t.name for t in temps if tri_count(t.data) > MIN_TRIS]  # smaller parts always stay at ratio 1
+        while os.path.getsize(path) > BUDGET_BYTES and any(fits[n][0] > MIN_RATIO for n in reducible):
             relax *= RELAX
             fits = fit_ratios(temps, TOLERANCE[code], relax)
             export_temps(temps, path, window, view_layer)
