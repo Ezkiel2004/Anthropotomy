@@ -115,7 +115,7 @@ const AnatomyLayersCore = (() => {
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
         uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),
         vagina: tissue('#c8827d', 0.45), broadLigament: tissue('#dcb4a8', 0.4, 0.45),
-        fascia: tissue('#e0d9cd', 0.45, 0.25)
+        fascia: tissue('#e0d9cd', 0.45, 0.12)
     };
     const FIBROUS_MATERIALS = {bone: 'bone', suture: 'bone', cartilage: 'cartilage', ligament: 'ligament', tendon: 'tendon',
         'articular capsule': 'capsule', bursa: 'bursa', fat: 'fat', teeth: 'teeth', 'teeth-roots': 'toothRoot', dentine: 'toothRoot'};
