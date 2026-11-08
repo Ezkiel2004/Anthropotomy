@@ -1,59 +1,136 @@
 {
   "circulatory": {
-    "bytes": 4331128,
-    "described": 469,
+    "bytes": 2932604,
+    "described": 475,
+    "deviation_max_mm": 0.578,
+    "deviation_p95_mm": 0.192,
+    "draco_deviation_max_mm": 0.579,
+    "draco_deviation_p95_mm": 0.194,
     "file": "circulatory.glb",
     "parts": 669,
+    "placement_max_mm": 0.312,
     "source_triangles": 3798264,
-    "triangles": 1139208
+    "tolerance_max_mm": 1.5,
+    "tolerance_p95_mm": 0.5,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 614877
   },
   "digestive": {
-    "bytes": 430200,
-    "described": 45,
+    "bytes": 315328,
+    "described": 46,
+    "deviation_max_mm": 0.984,
+    "deviation_p95_mm": 0.292,
+    "draco_deviation_max_mm": 0.983,
+    "draco_deviation_p95_mm": 0.293,
     "file": "digestive.glb",
-    "parts": 46,
-    "source_triangles": 398004,
-    "triangles": 97539
+    "parts": 47,
+    "placement_max_mm": 0.482,
+    "source_triangles": 329784,
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 72584
   },
   "endocrine": {
-    "bytes": 37536,
-    "described": 8,
+    "bytes": 44164,
+    "described": 10,
+    "deviation_max_mm": 0.235,
+    "deviation_p95_mm": 0.07,
+    "draco_deviation_max_mm": 0.235,
+    "draco_deviation_p95_mm": 0.07,
     "file": "endocrine.glb",
     "parts": 10,
+    "placement_max_mm": 0.172,
     "source_triangles": 11308,
-    "triangles": 3747
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 5550
   },
   "lymphatic": {
-    "bytes": 358332,
-    "described": 103,
+    "bytes": 457224,
+    "described": 112,
+    "deviation_max_mm": 0.334,
+    "deviation_p95_mm": 0.219,
+    "draco_deviation_max_mm": 0.332,
+    "draco_deviation_p95_mm": 0.219,
     "file": "lymphatic.glb",
-    "parts": 143,
-    "source_triangles": 123650,
-    "triangles": 43238
+    "parts": 144,
+    "placement_max_mm": 0.194,
+    "source_triangles": 124322,
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 73922
   },
   "muscular": {
-    "bytes": 3468980,
-    "described": 477,
+    "bytes": 4954824,
+    "described": 545,
+    "deviation_max_mm": 1.468,
+    "deviation_p95_mm": 0.488,
+    "draco_deviation_max_mm": 1.461,
+    "draco_deviation_p95_mm": 0.488,
     "file": "muscular.glb",
-    "parts": 585,
-    "source_triangles": 2142788,
-    "triangles": 657052
+    "parts": 675,
+    "placement_max_mm": 0.498,
+    "source_triangles": 2315247,
+    "tolerance_max_mm": 1.5,
+    "tolerance_p95_mm": 0.5,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 991167
   },
   "nervous": {
-    "bytes": 3211820,
-    "described": 480,
+    "bytes": 2857620,
+    "described": 488,
+    "deviation_max_mm": 0.574,
+    "deviation_p95_mm": 0.457,
+    "draco_deviation_max_mm": 0.581,
+    "draco_deviation_p95_mm": 0.457,
     "file": "nervous.glb",
-    "parts": 578,
-    "source_triangles": 2402946,
-    "triangles": 731679
+    "parts": 580,
+    "placement_max_mm": 0.153,
+    "source_triangles": 2405634,
+    "tolerance_max_mm": 1.5,
+    "tolerance_p95_mm": 0.5,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 562504
   },
   "reproductive": {
-    "bytes": 54084,
+    "bytes": 58216,
     "described": 14,
+    "deviation_max_mm": 0.41,
+    "deviation_p95_mm": 0.171,
+    "draco_deviation_max_mm": 0.408,
+    "draco_deviation_p95_mm": 0.171,
     "file": "reproductive.glb",
     "parts": 14,
+    "placement_max_mm": 0.074,
     "source_triangles": 19523,
-    "triangles": 7287
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 8211
   },
   "reproductive-female": {
     "bytes": 108012,
@@ -80,27 +157,60 @@
     "triangles": 23464
   },
   "respiratory": {
-    "bytes": 331764,
+    "bytes": 232888,
     "described": 35,
+    "deviation_max_mm": 0.733,
+    "deviation_p95_mm": 0.276,
+    "draco_deviation_max_mm": 0.729,
+    "draco_deviation_p95_mm": 0.275,
     "file": "respiratory.glb",
     "parts": 36,
+    "placement_max_mm": 0.192,
     "source_triangles": 252436,
-    "triangles": 76514
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 43626
   },
   "skeletal": {
-    "bytes": 2457892,
-    "described": 560,
+    "bytes": 2770220,
+    "described": 588,
+    "deviation_max_mm": 0.809,
+    "deviation_p95_mm": 0.3,
+    "draco_deviation_max_mm": 0.808,
+    "draco_deviation_p95_mm": 0.3,
     "file": "skeletal.glb",
-    "parts": 686,
-    "source_triangles": 1027718,
-    "triangles": 350785
+    "parts": 690,
+    "placement_max_mm": 0.335,
+    "source_triangles": 1060066,
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 417597
   },
   "urinary": {
-    "bytes": 41108,
+    "bytes": 46616,
     "described": 8,
+    "deviation_max_mm": 0.398,
+    "deviation_p95_mm": 0.18,
+    "draco_deviation_max_mm": 0.398,
+    "draco_deviation_p95_mm": 0.179,
     "file": "urinary.glb",
     "parts": 8,
+    "placement_max_mm": 0.155,
     "source_triangles": 19980,
-    "triangles": 5989
+    "tolerance_max_mm": 1.0,
+    "tolerance_p95_mm": 0.3,
+    "tolerance_size_share": [
+      0.001,
+      0.004
+    ],
+    "triangles": 7513
   }
 }

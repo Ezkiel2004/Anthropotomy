@@ -93,7 +93,8 @@ const AnatomyLayersCore = (() => {
     // Natural tissue colours (sRGB) and surface roughness. Z-Anatomy colour-codes many structures
     // (muscles by action, blue veins, cyan bursae, purple capsules); the explorer shows how they look instead.
     // An opacity below 1 makes a thin membrane see-through, as Z-Anatomy draws its pleura (85% transparent),
-    // so the organ it wraps stays visible; the broad ligament of the uterus is a fold of the same kind.
+    // so the organ it wraps stays visible; the broad ligament of the uterus is a fold of the same kind, and the fasciae
+    // that sheathe the limb, chest and back muscles are drawn the same way so the muscles show through.
     const tissue = (color, roughness, opacity) => (opacity === undefined ? {color, roughness, metalness: 0} : {color, roughness, metalness: 0, opacity});
     const TISSUE = {
         bone: tissue('#ddd0b3', 0.75), cartilage: tissue('#d9ddd6', 0.35), ligament: tissue('#e2dccb', 0.4),
@@ -114,7 +115,7 @@ const AnatomyLayersCore = (() => {
         peritoneum: tissue('#e0c07e', 0.45), testis: tissue('#e0cdc1', 0.45), erectile: tissue('#b06a6c', 0.45),
         uterus: tissue('#c58a7d', 0.45), cervix: tissue('#d3a197', 0.4), ovary: tissue('#e2c8ba', 0.5), tube: tissue('#d39589', 0.4),
         vagina: tissue('#c8827d', 0.45), broadLigament: tissue('#dcb4a8', 0.4, 0.45),
-        fascia: tissue('#e0d9cd', 0.45)
+        fascia: tissue('#e0d9cd', 0.45, 0.25)
     };
     const FIBROUS_MATERIALS = {bone: 'bone', suture: 'bone', cartilage: 'cartilage', ligament: 'ligament', tendon: 'tendon',
         'articular capsule': 'capsule', bursa: 'bursa', fat: 'fat', teeth: 'teeth', 'teeth-roots': 'toothRoot', dentine: 'toothRoot'};

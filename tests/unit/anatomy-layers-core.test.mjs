@@ -35,6 +35,13 @@ test('the pleura is see-through and the lungs it wraps are solid', () => {
     assert.equal(core.tissueLook('respiratory', 'Lung-base', 'Superior lobe of left lung').opacity, undefined);
 });
 
+test('the fasciae over the muscles are see-through, the muscles solid', () => {
+    const fascia = core.tissueLook('muscular', 'Fascia', 'Brachial fascia (left)');
+    assert.ok(fascia.opacity > 0 && fascia.opacity < 1);
+    assert.equal(core.tissueLook('muscular', 'Muscle', 'Biceps brachii (left)').opacity, undefined);
+    assert.equal(core.tissueLook('muscular', 'Ligament', 'Flexor retinaculum of wrist (left)').opacity, undefined, 'retinacula stay solid');
+});
+
 test('partInfo marks unidentified parts and never invents content', () => {
     const info = core.partInfo({name: 'Bone component 00123', system_id: 'skeletal', systems: ['skeletal'], identity_status: 'source_identity_required', description: '', function: ''}, {skeletal: 'Skeletal System'});
     assert.equal(info.title, 'Bone component 00123');
