@@ -13,6 +13,10 @@ An interactive anatomy learning system with teacher and student portals. Applica
 5. Use **Modules** to create or edit modules and add lessons. Publish both the module and lesson to make them available to students. Reading text, uploaded images, PDFs, videos and GLB attachments are supported.
 6. Use **Assessments** to create questions, set attempt limits and passing scores, then publish the assessment. Teachers can configure identification, multiple-choice, true/false and image hotspot questions.
 
+## Putting it online
+
+For a permanent, free home with its own address and HTTPS, follow [docs/deploy-oracle.md](docs/deploy-oracle.md): an Oracle Cloud Always Free server set up by `deploy/setup-oracle.sh`, with this PC's data moved over by `deploy/export-local.ps1` and later code updates applied by `deploy/update.sh`.
+
 ## Sharing online with a Cloudflare tunnel
 
 For a demo, this computer can serve the site to the internet for free through a Cloudflare quick tunnel. The site is only online while the computer, XAMPP and the tunnel are running, and the address changes every time the tunnel starts.

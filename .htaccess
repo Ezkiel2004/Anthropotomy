@@ -1,6 +1,6 @@
 # Keep scripts, tests, private files and dot-folders (.git, .runtime) off the web.
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteRule ^(database|tests|storage|tools)(/|$) - [R=404,L]
+  RewriteRule ^(database|deploy|tests|storage|tools)(/|$) - [R=404,L]
   RewriteRule (^|/)\. - [R=404,L]
 </IfModule>

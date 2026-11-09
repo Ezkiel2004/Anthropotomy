@@ -1,0 +1,2 @@
+# Server scripts run on Linux; keep their line endings LF on every checkout.
+*.sh text eol=lf
