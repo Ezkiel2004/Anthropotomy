@@ -80,7 +80,7 @@ for(const role of ['teacher','student']){
      assert.ok(await waitFor(`document.querySelectorAll('#badgeRows tr.is-builtin').length===11`),'The built-in badges are listed');
    }
    if(role==='student'){
-     assert.equal(navigation.length,7,'The student sidebar has seven links');
+     assert.equal(navigation.length,6,'The student sidebar has six links');
      const games=navigation.findIndex(a=>a.href==='games.html');
      assert.ok(games>0&&navigation[games-1].href==='quiz.html'&&navigation[games].label==='Games','Games sits right after Quizzes');
      assert.equal(await evaluate(`document.querySelector('.sidebar-nav a[href*="games.html"] use').getAttribute('href').split('#').pop()`),'game-controller','Games uses the game-controller icon');
