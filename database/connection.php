@@ -3,11 +3,26 @@
  * Anthropotomy – Database Connection Configuration
  */
 
-define('DB_HOST', getenv('ANTHROPOTOMY_DB_HOST') ?: '127.0.0.1');
-define('DB_NAME', getenv('ANTHROPOTOMY_DB_NAME') ?: 'anthropotomy_db');
-define('DB_USER', getenv('ANTHROPOTOMY_DB_USER') ?: 'root');       // Change to your MySQL username
-define('DB_PASS', getenv('ANTHROPOTOMY_DB_PASS') ?: '');           // Change to your MySQL password
+// Database login: environment variables, else storage/db.ini (hosts without environment
+// settings, such as InfinityFree; see docs/deploy-infinityfree.md), else the local XAMPP defaults.
+$dbIni = is_file(__DIR__ . '/../storage/db.ini') ? (parse_ini_file(__DIR__ . '/../storage/db.ini', false, INI_SCANNER_RAW) ?: []) : [];
+define('DB_HOST', getenv('ANTHROPOTOMY_DB_HOST') ?: ($dbIni['host'] ?? '127.0.0.1'));
+define('DB_NAME', getenv('ANTHROPOTOMY_DB_NAME') ?: ($dbIni['name'] ?? 'anthropotomy_db'));
+define('DB_USER', getenv('ANTHROPOTOMY_DB_USER') ?: ($dbIni['user'] ?? 'root'));
+define('DB_PASS', getenv('ANTHROPOTOMY_DB_PASS') ?: ($dbIni['pass'] ?? ''));
 define('DB_CHARSET',  'utf8mb4');
+unset($dbIni);
+
+// The school's clock. PHP dates and MySQL's NOW()/CURDATE() both use it wherever the server runs,
+// so due dates, quiz deadlines and study days follow the calendar day in the Philippines.
+define('APP_TIMEZONE', 'Asia/Manila');
+date_default_timezone_set(APP_TIMEZONE);
+
+/** True when the visitor is on HTTPS, also behind a host's proxy or a tunnel that ends HTTPS before PHP. */
+function requestIsHttps(): bool {
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+}
 
 class Database {
     private static $instance = null;
@@ -22,6 +37,7 @@ class Database {
         ];
         try {
             $this->pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $this->pdo->exec("SET time_zone = '" . (new DateTime())->format('P') . "'");
         } catch (PDOException $e) {
             throw new RuntimeException('Database unavailable. Check the database service and configuration.', 0, $e);
         }
@@ -83,7 +99,7 @@ class Auth {
             session_set_cookie_params([
                 'lifetime' => 0,
                 'path'     => '/',
-                'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', // Set true in production with HTTPS
+                'secure'   => requestIsHttps(),
                 'httponly' => true,
                 'samesite' => 'Lax',
             ]);

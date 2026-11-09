@@ -15,6 +15,8 @@ An interactive anatomy learning system with teacher and student portals. Applica
 
 ## Putting it online
 
+Free hosting with no card: follow [docs/deploy-infinityfree.md](docs/deploy-infinityfree.md). `deploy/package-infinityfree.ps1` builds the folder to upload and the database export; the database login goes in `storage/db.ini`, which `database/connection.php` reads when no environment variables are set.
+
 For a permanent, free home with its own address and HTTPS, follow [docs/deploy-oracle.md](docs/deploy-oracle.md): an Oracle Cloud Always Free server set up by `deploy/setup-oracle.sh`, with this PC's data moved over by `deploy/export-local.ps1` and later code updates applied by `deploy/update.sh`.
 
 ## Sharing online with a Cloudflare tunnel

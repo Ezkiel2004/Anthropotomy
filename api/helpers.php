@@ -39,9 +39,10 @@ set_exception_handler(function (Throwable $error): void {
 
 // Reject browser requests from another origin before any mutation.
 if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD', 'OPTIONS'], true)) {
+    // Hosts are compared without the scheme: behind a host's proxy PHP may not see the HTTPS the browser used.
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    $expected = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
-    if (($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '') === 'cross-site' || ($origin !== '' && $origin !== $expected)) {
+    $originHost = parse_url($origin, PHP_URL_HOST) . (parse_url($origin, PHP_URL_PORT) ? ':' . parse_url($origin, PHP_URL_PORT) : '');
+    if (($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '') === 'cross-site' || ($origin !== '' && strcasecmp($originHost, $_SERVER['HTTP_HOST'] ?? '') !== 0)) {
         jsonError('Request origin is not allowed.', 403);
     }
 }

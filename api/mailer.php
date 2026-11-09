@@ -80,7 +80,7 @@ function emailAnnouncement(int $announcementId): string {
     $emails = array_filter(array_column($db->fetchAll($sql, $params), 'email'), fn($e) => filter_var($e, FILTER_VALIDATE_EMAIL));
     if (!$emails) return ' No students in this audience have an email address yet.';
 
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $scheme = requestIsHttps() ? 'https://' : 'http://';
     $link = $scheme . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/') . '/student/notifications.html';
     $text = "{$a['title']}\n\n{$a['body']}\n\n- {$a['teacher_name']}\n\nSee all announcements: $link\n";
     session_write_close(); // sending can take seconds; don't hold the teacher's session lock meanwhile
