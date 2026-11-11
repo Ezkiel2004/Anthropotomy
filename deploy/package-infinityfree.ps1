@@ -5,15 +5,26 @@
 # "demo users account.txt" never go), this PC's uploads and teacher files, and storage\db.ini with
 # the InfinityFree database login. Run it with no arguments and it asks for each value.
 # Both outputs hold private data (password hashes, the database password): delete the folder after uploading.
+# It stops while the demo content (database/seed_demo.php) is in the database. It exports the database
+# named by ANTHROPOTOMY_DB_NAME when that is set (as the app does), otherwise anthropotomy_db;
+# -OutDir builds somewhere else (the folder is emptied first).
 param(
     [Parameter(Mandatory, HelpMessage = 'MySQL Host Name, e.g. sql123.infinityfree.com')][string]$DbHost,
     [Parameter(Mandatory, HelpMessage = 'MySQL Database Name, e.g. if0_12345678_anthropotomy')][string]$DbName,
     [Parameter(Mandatory, HelpMessage = 'MySQL User Name, e.g. if0_12345678')][string]$DbUser,
-    [Parameter(Mandatory, HelpMessage = 'MySQL Password (your hosting account password)')][string]$DbPass
+    [Parameter(Mandatory, HelpMessage = 'MySQL Password (your hosting account password)')][string]$DbPass,
+    [string]$OutDir = 'C:\xampp\anthropotomy-infinityfree'
 )
 $ErrorActionPreference = 'Stop'
 $app = Split-Path $PSScriptRoot -Parent
-$out = 'C:\xampp\anthropotomy-infinityfree'
+$database = if ($env:ANTHROPOTOMY_DB_NAME) { $env:ANTHROPOTOMY_DB_NAME } else { 'anthropotomy_db' }
+
+# 0. Demo content is for design reviews only and must never reach hosting.
+$demo = & C:\xampp\mysql\bin\mysql.exe -u root -N -B -e "SELECT 1 FROM app_settings WHERE setting_key = 'demo_seed'" $database
+if ($LASTEXITCODE -ne 0) { throw 'Could not read the database. Is MySQL running in XAMPP?' }
+if ($demo) { throw 'Demo content is still in the database. Run php database/seed_demo.php --remove first.' }
+
+$out = $OutDir
 $site = Join-Path $out 'htdocs'
 if (Test-Path $out) { Remove-Item -Recurse -Force $out }
 New-Item -ItemType Directory -Force $site | Out-Null
@@ -40,7 +51,7 @@ pass = "$DbPass"
 "@ | Set-Content -Encoding ascii (Join-Path $site 'storage\db.ini')
 
 # 4. Database, without LOCK TABLES (shared hosting does not allow it)
-& C:\xampp\mysql\bin\mysqldump.exe -u root --single-transaction --skip-add-locks --no-tablespaces --default-character-set=utf8mb4 --result-file="$out\anthropotomy.sql" anthropotomy_db
+& C:\xampp\mysql\bin\mysqldump.exe -u root --single-transaction --skip-add-locks --no-tablespaces --default-character-set=utf8mb4 --result-file="$out\anthropotomy.sql" $database
 if ($LASTEXITCODE -ne 0) { throw 'mysqldump failed. Is MySQL running in XAMPP?' }
 
 $files = Get-ChildItem -Recurse -File $site

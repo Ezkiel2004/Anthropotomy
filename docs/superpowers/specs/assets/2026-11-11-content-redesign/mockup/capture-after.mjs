@@ -1,11 +1,19 @@
 // After mockups: the real signed-in pages with the redesigned content injected, rendered to PNG.
 // Run from the repo root with XAMPP up and the demo seeded (php database/seed_demo.php):
 //   node docs/superpowers/specs/assets/2026-11-11-content-redesign/mockup/capture-after.mjs
+// --real skips the injection and shoots the finished pages in the same states, as real-*.png beside the mockups.
+// --base <url> (or CAPTURE_BASE) points it at another server, e.g. a PHP dev server started from a worktree:
+//   node .../capture-after.mjs --real --base http://127.0.0.1:8092
+// Images are written next to this script's folder, so a worktree's copy writes into that worktree.
 import { chromium } from 'file:///C:/xampp/htdocs/Anthropotomy/landing-src/node_modules/playwright-core/index.mjs';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const BASE = 'http://localhost/Anthropotomy';
-const DIR = 'C:/xampp/htdocs/Anthropotomy/docs/superpowers/specs/assets/2026-11-11-content-redesign';
+const args = process.argv.slice(2);
+const REAL = args.includes('--real');
+const baseAt = args.indexOf('--base');
+const BASE = (baseAt >= 0 ? args[baseAt + 1] : process.env.CAPTURE_BASE || 'http://localhost/Anthropotomy').replace(/\/+$/, '');
+const DIR = fileURLToPath(new URL('..', import.meta.url)).replace(/[\\/]+$/, '');
 const CSS = readFileSync(`${DIR}/mockup/after.css`, 'utf8');
 const acct = readFileSync('C:/xampp/htdocs/Anthropotomy/demo users account.txt', 'utf8');
 const cred = role => { const b = acct.split(/\r?\n\r?\n/).find(x => x.trim().startsWith(role)); return { user: b.match(/Username:\s*(\S+)/)[1], pass: b.match(/Password:\s*(\S+)/)[1] }; };
@@ -248,8 +256,91 @@ async function shot(page, name, full = false) {
   const vp = page.viewportSize();
   if (full) await page.setViewportSize({ width: vp.width, height: Math.max(vp.height, await page.evaluate(() => document.documentElement.scrollHeight)) });
   await page.waitForTimeout(300);
-  await page.screenshot({ path: `${DIR}/after-${name}.png` });
+  await page.screenshot({ path: `${DIR}/${REAL ? 'real' : 'after'}-${name}.png` });
   if (full) await page.setViewportSize(vp);
+}
+
+// ── Real pages (--real): the same states, reached through the finished UI; nothing is saved ──
+// Waits for the pdf.js pages and thumbnails the state draws, then lets late layout settle.
+async function settle(page, selectors = []) {
+  for (const sel of selectors) await page.waitForSelector(sel, { timeout: 20000 });
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForTimeout(800);
+}
+async function workspace(page, title) {
+  await page.goto(`${BASE}/teacher/modules.html`); await settle(page, ['.cs-mod']);
+  const id = await page.evaluate(t => allModules.find(m => m.title === t).module_id, title);
+  await page.goto(`${BASE}/teacher/modules.html?module=${id}`);
+  await settle(page, ['.cs-row', '.cs-file']);
+  await page.waitForFunction(() => [...document.querySelectorAll('canvas[data-thumb]')].every(c => c.dataset.rendered), null, { timeout: 15000 });
+  await page.waitForTimeout(600);
+}
+// A local date-time input value days from now at 23:59, as the demo's due dates are.
+const dueIn = days => { const d = new Date(Date.now() + days * 864e5); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T23:59`; };
+
+if (REAL) {
+  {
+    const { ctx, page } = await session('Admin');
+    await page.goto(`${BASE}/teacher/modules.html`); await settle(page, ['.cs-mod']);
+    await shot(page, '01-teacher-modules', true);
+
+    await workspace(page, 'Bones of the Body');
+    await shot(page, '02-module-workspace', true);
+
+    const pdfLesson = page.locator('.cs-row', { hasText: 'Axial and appendicular skeleton' });
+    await pdfLesson.hover(); await pdfLesson.locator('[data-edit]').click();
+    await settle(page, ['.cs-sheet']);
+    await page.waitForTimeout(1200);
+    await shot(page, '03-lesson-editor');
+
+    await workspace(page, 'Bones of the Body');
+    await page.locator('.cs-file', { hasText: 'Skeletal system reviewer' }).locator('[data-open]').click();
+    await settle(page, ['.pv [data-rendered]', '.pv-rail canvas']);
+    await page.waitForTimeout(1000);
+    await shot(page, '05-materials-pdf-viewer');
+
+    await page.goto(`${BASE}/teacher/assessments.html`); await settle(page, ['.cs-arow']);
+    await shot(page, '06-teacher-assessments', true);
+
+    await page.locator('.cs-arow', { hasText: 'Skeletal System Basics' }).locator('[data-questions]').click();
+    await settle(page, ['.cs-q']);
+    await shot(page, '07-question-builder');
+
+    // The mockup's new-assessment sheet, filled in the same way; the sheet is never submitted.
+    await page.goto(`${BASE}/teacher/assessments.html`); await settle(page, ['.cs-arow']);
+    await page.click('#newAssessmentBtn'); await settle(page, ['#asTitle']);
+    await page.fill('#asTitle', 'Heart and Vessels Check');
+    await page.selectOption('#asSystem', { label: await page.evaluate(() => [...document.querySelectorAll('#asSystem option')].find(o => /circulatory/i.test(o.textContent)).textContent) });
+    await page.waitForFunction(() => [...document.querySelectorAll('#asModule option')].some(o => o.textContent === 'The Heart and Blood Vessels'), null, { timeout: 8000 }).catch(() => {});
+    await page.selectOption('#asModule', { label: 'The Heart and Blood Vessels' }).catch(() => {});
+    await page.fill('#asInstructions', 'Answer every question. You can go back before you submit.');
+    await page.fill('#asTime', '20'); await page.fill('#asPass', '75'); await page.fill('#asTries', '2');
+    await page.fill('#asDue', dueIn(10));
+    await page.locator('#asTitle').focus(); await page.locator('#asTitle').blur();
+    await page.waitForTimeout(500);
+    await shot(page, '09-new-assessment');
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await session('Student');
+    await page.goto(`${BASE}/student/lessons.html`); await page.waitForTimeout(1200);
+    const mid = await page.evaluate(() => allModules.find(m => m.title === 'Bones of the Body').module_id);
+    await page.evaluate(id => viewModule(id), mid); await page.waitForTimeout(1200);
+    await page.click('.sd-lesson >> text=Axial and appendicular skeleton');
+    await settle(page, ['.pv [data-rendered]']);
+    await page.waitForTimeout(1000);
+    await shot(page, '04-student-pdf-lesson');
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await session('Admin', { width: 390, height: 844 });
+    await page.goto(`${BASE}/teacher/modules.html`); await settle(page, ['.cs-mod']);
+    await shot(page, '08-teacher-modules-phone', true);
+    await ctx.close();
+  }
+  await browser.close();
+  console.log('ok');
+  process.exit(0);
 }
 
 {

@@ -206,7 +206,7 @@ check(await evaluate(`!document.querySelector('.sd-reader iframe')`),'No iframe 
 
   Also a broken URL (`files.php?id=999999`) shows `.pv-fallback` with a Download link.
 - [ ] **Step 2: Run** the browser suite. Expected: FAIL, `PdfViewer is not defined`.
-- [ ] **Step 3: Implement.** Pages are `div[data-page]` placeholders sized from page 1's aspect ratio; an `IntersectionObserver` with `rootMargin: '600px 0px'` renders a page into a canvas at `devicePixelRatio` and marks it `data-rendered`. Zoom steps: Fit width, 50, 75, 100, 125, 150, 200 %. Toolbar buttons have `aria-label`s; the page box is `aria-live="polite"`. `open()` and `mount()` call `window.StudyClock?.reading()`.
+- [ ] **Step 3: Implement.** Pages are `div[data-page]` placeholders sized from page 1's aspect ratio; an `IntersectionObserver` with `rootMargin: '600px 0px'` renders a page into a canvas at `devicePixelRatio` and marks it `data-rendered`. Zoom steps: Fit width, 50, 75, 100, 125, 150, 200 %. Toolbar buttons have `aria-label`s; the page box is `aria-live="polite"`. `open()` and `mount()` call `StudyClock.reading()` when `typeof StudyClock !== 'undefined'` (StudyClock is a top-level `const` in `app.js`, not a `window` property).
 - [ ] **Step 4: Run** the browser suite. Expected: pass. Check by hand on a phone-sized window (390 px): toolbar wraps to two rows, no rail, no horizontal scroll.
 - [ ] **Step 5: Commit** `One PDF viewer for lessons, materials and lesson plans (pdf.js, no browser tabs) (<date>)`.
 
