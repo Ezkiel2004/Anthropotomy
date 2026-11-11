@@ -36,9 +36,22 @@ check((await teacher('lessons.php?reorder=1','PUT',{module_id:mid,order:[lid]}))
 check((await teacher('lessons.php?reorder=1','PUT',{module_id:mid,order:mine.lessons.map(l=>l.lesson_id).reverse()})).success,'Reorder');
 check((await teacher('modules.php')).data.find(m=>m.module_id===mid).lessons[0].lesson_id===mine.lessons.at(-1).lesson_id,'New order is kept');
 check((await student('lessons.php?reorder=1','PUT',{module_id:mid,order:[]})).status===403,'Students cannot reorder');
+const orderOf=async()=>(await teacher('modules.php')).data.find(m=>m.module_id===mid).lessons.map(l=>l.lesson_id);
+const orderBefore=await orderOf();
+for(const [label,bad] of [['short list',orderBefore.slice(1)],['foreign id',[...orderBefore.slice(1),999999999]],['duplicated id',[orderBefore[0],orderBefore[0],...orderBefore.slice(2)]],['extra id',[...orderBefore,999999999]]]){
+  const res=await teacher('lessons.php?reorder=1','PUT',{module_id:mid,order:bad});
+  check(res.status===422,'Stale order rejected: '+label);
+  check(JSON.stringify(await orderOf())===JSON.stringify(orderBefore),'Order unchanged after rejected reorder: '+label);
+}
 const pdf=new FormData();pdf.append('lesson_file',new Blob([fs.readFileSync('tests/fixtures/sample.pdf')],{type:'application/pdf'}),'sample.pdf');pdf.append('title','Renamed');
 const up=await teacher('lessons.php?id='+lid,'POST',pdf);check(up.success&&up.data.media_url.endsWith('.pdf'),'Multipart update attaches a PDF');
 check((await teacher('lessons.php?id='+lid)).data.title==='Renamed','Multipart update saves fields');
+const pdf2=new FormData();pdf2.append('lesson_file',new Blob([fs.readFileSync('tests/fixtures/sample.pdf')],{type:'application/pdf'}),'sample.pdf');
+const swap=await teacher('lessons.php?id='+lid,'POST',pdf2);const oldFile='uploads/lessons/'+up.data.media_url.split('/').pop(),newFile='uploads/lessons/'+swap.data.media_url.split('/').pop();
+check(swap.success&&swap.data.media_url!==up.data.media_url&&swap.data.media_url.endsWith('.pdf'),'Replacing a PDF stores a new file');
+check(!fs.existsSync(oldFile)&&fs.existsSync(newFile),'Replaced file is deleted and the new one exists');
+const swapBack=new FormData();swapBack.append('remove_media','1');await teacher('lessons.php?id='+lid,'POST',swapBack);check(!fs.existsSync(newFile),'Fixture file removed after the replace check');
+const pdf3=new FormData();pdf3.append('lesson_file',new Blob([fs.readFileSync('tests/fixtures/sample.pdf')],{type:'application/pdf'}),'sample.pdf');up.data.media_url=(await teacher('lessons.php?id='+lid,'POST',pdf3)).data.media_url;
 const bad=new FormData();bad.append('lesson_file',new Blob(['not a pdf'],{type:'text/plain'}),'x.txt');
 check((await teacher('lessons.php?id='+lid,'POST',bad)).status===422,'Bad replacement rejected');
 check((await teacher('lessons.php?id='+lid)).data.media_url===up.data.media_url,'Failed replace keeps the old file');
