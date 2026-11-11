@@ -21,6 +21,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Upload directory (relative to project root)
 define('UPLOAD_DIR', __DIR__ . '/../uploads/lessons/');
+const LESSON_TYPES = ['reading', 'video', '3d_model', 'interactive', 'quiz_prep'];
 
 // ── GET ─────────────────────────────────────────────────────────
 if ($method === 'GET') {
@@ -68,6 +69,52 @@ if ($method === 'GET') {
 }
 
 // ── POST (Create with optional file upload) ─────────────────────
+if ($method === 'POST' && isset($_GET['id'])) {
+    // Multipart update (PHP does not parse multipart bodies on PUT)
+    $user = requireTeacher();
+    $id   = getIdParam();
+    $isMultipart = strpos($_SERVER['CONTENT_TYPE'] ?? '', 'multipart') !== false;
+    $data = $isMultipart ? $_POST : getJsonBody();
+
+    $existing = $db->fetchOne("SELECT * FROM lessons WHERE lesson_id = ?", [$id]);
+    if (!$existing) jsonError('Lesson not found.', 404);
+
+    $title       = optionalField($data, 'title',        $existing['title']);
+    $lessonType  = optionalField($data, 'lesson_type',  $existing['lesson_type']);
+    $contentText = optionalField($data, 'content_text', $existing['content_text']);
+    $durationMin = (int) optionalField($data, 'duration_mins', $existing['duration_mins']);
+    $status      = optionalField($data, 'status',       $existing['status']);
+    if (!in_array($lessonType, LESSON_TYPES, true)) jsonError('Invalid lesson_type.', 422);
+    if (!in_array($status, ['draft', 'published', 'archived'], true)) jsonError('Invalid status.', 422);
+
+    $mediaUrl = $existing['media_url'];
+    $oldUrl   = null;
+    $uploadError = $isMultipart && isset($_FILES['lesson_file']) ? $_FILES['lesson_file']['error'] : UPLOAD_ERR_NO_FILE;
+    if (in_array($uploadError, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) jsonError('File too large. Maximum size is 500 MB.', 422);
+    if ($uploadError !== UPLOAD_ERR_NO_FILE && $uploadError !== UPLOAD_ERR_OK) jsonError('File upload failed. Please try again.', 500);
+    if ($uploadError === UPLOAD_ERR_OK) {
+        $newUrl = _handleFileUpload($_FILES['lesson_file'], $user['user_id']);
+        $oldUrl = $existing['media_url'];
+        $mediaUrl = $newUrl;
+    } elseif (optionalField($data, 'remove_media', '') === '1' || optionalField($data, 'remove_media', false) === true) {
+        $oldUrl = $existing['media_url'];
+        $mediaUrl = null;
+    }
+
+    try {
+        $db->query(
+            "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=?, media_url=? WHERE lesson_id=?",
+            [$title, $lessonType, $contentText, $durationMin, $status, $mediaUrl, $id]
+        );
+    } catch (Throwable $e) {
+        if ($mediaUrl !== $existing['media_url'] && $mediaUrl) _deleteLessonFile($mediaUrl);
+        throw $e;
+    }
+    // Old file goes only after the new state is saved
+    if ($oldUrl && $oldUrl !== $mediaUrl) _deleteLessonFile($oldUrl);
+    jsonSuccess(['media_url' => $mediaUrl], 'Lesson updated successfully.');
+}
+
 if ($method === 'POST') {
     $user = requireTeacher();
 
@@ -82,7 +129,7 @@ if ($method === 'POST') {
     $durationMin = (int) optionalField($data, 'duration_mins', 0);
     $status      = optionalField($data, 'status', 'draft');
 
-    if (!in_array($lessonType, ['reading','video','3d_model','interactive','quiz_prep'])) {
+    if (!in_array($lessonType, LESSON_TYPES, true)) {
         jsonError('Invalid lesson_type.', 422);
     }
 
@@ -116,6 +163,35 @@ if ($method === 'POST') {
 }
 
 // ── PUT (Update) ────────────────────────────────────────────────
+if ($method === 'PUT' && isset($_GET['reorder'])) {
+    requireTeacher();
+    $body     = getJsonBody();
+    $moduleId = (int) ($body['module_id'] ?? 0);
+    $order    = $body['order'] ?? null;
+    $stale    = 'The lesson list changed. Reload and try again.';
+    if (!$moduleId || !is_array($order)) jsonError($stale, 422);
+    $order = array_map(fn($v) => is_int($v) || (is_string($v) && ctype_digit($v)) ? (int) $v : -1, array_values($order));
+    $current = array_map('intval', array_column(
+        $db->fetchAll("SELECT lesson_id FROM lessons WHERE module_id = ? AND status <> 'archived'", [$moduleId]),
+        'lesson_id'
+    ));
+    $a = $order; $b = $current; sort($a); sort($b);
+    if ($a !== $b || count(array_unique($order)) !== count($order)) jsonError($stale, 422);
+
+    $pdo = $db->getConnection();
+    $pdo->beginTransaction();
+    try {
+        foreach ($order as $i => $lessonId) {
+            $db->query("UPDATE lessons SET sort_order = ? WHERE lesson_id = ? AND module_id = ?", [$i + 1, $lessonId, $moduleId]);
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+    jsonSuccess(null, 'Lessons reordered.');
+}
+
 if ($method === 'PUT') {
     requireTeacher();
     $id   = getIdParam();
@@ -129,6 +205,7 @@ if ($method === 'PUT') {
     $contentText = optionalField($body, 'content_text', $existing['content_text']);
     $durationMin = (int) optionalField($body, 'duration_mins', $existing['duration_mins']);
     $status      = optionalField($body, 'status',       $existing['status']);
+    if (!in_array($lessonType, LESSON_TYPES, true)) jsonError('Invalid lesson_type.', 422);
 
     $db->query(
         "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=? WHERE lesson_id=?",
@@ -148,6 +225,21 @@ if ($method === 'DELETE') {
 }
 
 jsonError('Method not supported.', 405);
+
+// Delete an attachment only when it resolves to a file inside uploads/lessons/.
+// media_url may be absolute (/anthropotomy/uploads/lessons/x.pdf) or page-relative
+// (../uploads/lessons/x.pdf); resolve by basename inside the upload directory.
+function _deleteLessonFile(?string $mediaUrl): void {
+    if (!$mediaUrl) return;
+    $base = realpath(UPLOAD_DIR);
+    if ($base === false) return;
+    $name = basename(str_replace('\\', '/', parse_url($mediaUrl, PHP_URL_PATH) ?? ''));
+    if ($name === '' || $name === '.' || $name === '..') return;
+    $path = realpath($base . DIRECTORY_SEPARATOR . $name);
+    if ($path === false || !is_file($path)) return;
+    if (strpos($path, $base . DIRECTORY_SEPARATOR) !== 0) return;
+    @unlink($path);
+}
 
 // ── File Upload Helper ───────────────────────────────────────────
 function _handleFileUpload(array $file, int $userId): string {

@@ -69,7 +69,7 @@ if ($method === 'GET') {
         : "AND m.status = 'published'";
 
     $selectFields = "m.module_id, m.title, m.description, m.status, m.sort_order,
-                     m.created_at, m.published_at,
+                     m.created_at, m.updated_at, m.published_at,
                      bs.system_name, bs.icon_emoji, bs.color_hex, bs.system_code, bs.system_id,
                      u.full_name AS teacher_name,
                      COUNT(DISTINCT l.lesson_id) AS lesson_count";
@@ -86,11 +86,48 @@ if ($method === 'GET') {
         $params
     );
 
+    $isTeacherView   = $user && in_array($user['role'], ['teacher', 'admin']);
+    $lessonsByModule = [];
+    $materialCounts  = [];
+    if ($isTeacherView && $modules) {
+        $ids = array_map('intval', array_column($modules, 'module_id'));
+        $in  = implode(',', array_fill(0, count($ids), '?'));
+        $lessonRows = $db->fetchAll(
+            "SELECT lesson_id, module_id, title, lesson_type, media_url, duration_mins, status, sort_order
+             FROM lessons WHERE module_id IN ($in) AND status <> 'archived'
+             ORDER BY module_id, sort_order, lesson_id",
+            $ids
+        );
+        foreach ($lessonRows as $l) {
+            $lm = (int) $l['module_id'];
+            unset($l['module_id']);
+            $l['lesson_id']     = (int) $l['lesson_id'];
+            $l['duration_mins'] = (int) $l['duration_mins'];
+            $l['sort_order']    = (int) $l['sort_order'];
+            $lessonsByModule[$lm][] = $l;
+        }
+        $materialRows = $db->fetchAll(
+            "SELECT module_id, COUNT(*) AS n FROM teacher_files
+             WHERE kind = 'material' AND module_id IN ($in) GROUP BY module_id",
+            $ids
+        );
+        foreach ($materialRows as $r) {
+            $materialCounts[(int) $r['module_id']] = (int) $r['n'];
+        }
+    }
+
     foreach ($modules as &$m) {
         $m['module_id']         = (int) $m['module_id'];
         $m['system_id']         = (int) $m['system_id'];
         $m['lesson_count']      = (int) $m['lesson_count'];
+        if ($isTeacherView) {
+            $m['lessons']        = $lessonsByModule[$m['module_id']] ?? [];
+            $m['material_count'] = $materialCounts[$m['module_id']] ?? 0;
+        } else {
+            unset($m['updated_at']);
+        }
     }
+    unset($m);
 
     jsonSuccess($modules);
 }
