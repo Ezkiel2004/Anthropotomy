@@ -469,6 +469,7 @@ function promptToast({title, message, label, type = 'text', autocomplete = 'off'
     return new Promise(resolve => {
         const close = answer => { d.close(); d.remove(); resolve(answer); };
         d.querySelector('.toast-confirm__stay').addEventListener('click', () => close(null));
+        input.addEventListener('input', () => { error.hidden = true; error.textContent = ''; input.removeAttribute('aria-invalid'); });
         d.querySelector('form').addEventListener('submit', e => {
             e.preventDefault();
             const problem = validate(input.value);

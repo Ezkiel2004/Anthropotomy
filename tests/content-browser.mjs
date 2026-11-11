@@ -459,6 +459,8 @@ check(await evaluate(`document.activeElement===document.querySelector('dialog.to
 await evaluate(`(()=>{const d=document.querySelector('dialog.toast-confirm[open]');d.querySelector('input').value='short';d.querySelector('.toast-confirm__go').click();})()`);
 check(await waitFor(`document.querySelector('dialog.toast-confirm[open] .toast-confirm__error:not([hidden])')?.textContent==='Use at least 8 characters.'`),'A short password is refused in the dialog');
 check(await evaluate(`document.querySelector('dialog.toast-confirm[open] input').getAttribute('aria-invalid')==='true'`),'The field is marked invalid');
+await evaluate(`(()=>{const i=document.querySelector('dialog.toast-confirm[open] input');i.value='long-enough-1';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await evaluate(`(()=>{const d=document.querySelector('dialog.toast-confirm[open]');return d.querySelector('.toast-confirm__error').hidden&&!d.querySelector('input').hasAttribute('aria-invalid');})()`),'Typing again clears the error');
 await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
 check(await waitFor(`!document.querySelector('dialog.toast-confirm')`),'Escape cancels the reset without sending anything');
 await evaluate(`document.getElementById('detailToggleStatusBtn').click()`);

@@ -637,6 +637,8 @@ async function submitQuiz() {
   }
 
   submitting = true;
+  // Time can run out while "Leave this quiz?" is open; answer it with Stay so the results are not covered.
+  document.querySelector('dialog.toast-confirm[open] .toast-confirm__stay')?.click();
   clearTimeout(saveTimer);
   await saveQuizDraft();
   showToast('Checking your answers…', 'info');
@@ -696,7 +698,7 @@ function displayResults(data, timeUsedSecs) {
 // The server fixes a timed attempt's deadline when it starts, so leaving does not pause it.
 async function confirmExitQuiz() {
   const timed = deadlineMs !== null ? ' The timer keeps running while you are away.' : '';
-  if (await confirmToast({title: 'Leave this quiz?', message: `Your answers so far are saved, and you can come back to finish.${timed}`, confirmText: 'Leave', cancelText: 'Stay'})) exitQuiz();
+  if (await confirmToast({title: 'Leave this quiz?', message: `Your answers so far are saved, and you can come back to finish.${timed}`, confirmText: 'Leave', cancelText: 'Stay'}) && !submitting) exitQuiz();
 }
 
 function exitQuiz() {

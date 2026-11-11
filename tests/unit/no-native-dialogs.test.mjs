@@ -4,15 +4,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('../../', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const root = fileURLToPath(new URL('../../', import.meta.url));
 const skip = new Set(['vendor']);
 const files = dir => readdirSync(join(root, dir), { withFileTypes: true }).flatMap(entry => {
   const rel = join(dir, entry.name);
   if (entry.isDirectory()) return skip.has(entry.name) ? [] : files(rel);
   return /\.(html|m?js)$/.test(entry.name) ? [rel] : [];
 });
-const NATIVE = /(?:^|[^.\w$])(?:alert|confirm|prompt)\s*\(|\bwindow\.(?:alert|confirm|prompt)\s*\(/;
+const NATIVE = /(?:^|[^.\w$])(?:alert|confirm|prompt)\s*\(|\b(?:window|globalThis|self|top)\.(?:alert|confirm|prompt)\s*\(/;
 
 test('no page or script opens a native alert, confirm or prompt box', () => {
   const sources = ['teacher', 'student', 'assets/js'].flatMap(files).concat(['index.html', 'login.html']);
