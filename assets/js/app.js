@@ -449,6 +449,39 @@ function confirmToast({title, message, confirmText, cancelText}) {
     });
 }
 
+/* In-app replacement for window.prompt, in the same card as confirmToast. Resolves with the typed
+   value, or null when cancelled. validate(value) returns the error to show, or '' to accept it. */
+function promptToast({title, message, label, type = 'text', autocomplete = 'off', confirmText, cancelText, validate = () => ''}) {
+    const open = document.querySelector('dialog.toast-confirm[open]');
+    if (open) { open.querySelector('input, button').focus(); return Promise.resolve(null); }
+    const d = document.createElement('dialog');
+    d.className = 'toast-confirm';
+    d.setAttribute('aria-labelledby', 'toastConfirmTitle');
+    d.setAttribute('aria-describedby', 'toastConfirmText');
+    d.innerHTML = `<form novalidate><h2 id="toastConfirmTitle">${escHtml(title)}</h2><p id="toastConfirmText">${escHtml(message)}</p>`
+        + `<label class="toast-confirm__field"><span>${escHtml(label)}</span><input type="${escHtml(type)}" autocomplete="${escHtml(autocomplete)}" aria-describedby="toastPromptError" autofocus></label>`
+        + `<p class="toast-confirm__error" id="toastPromptError" role="alert" hidden></p>`
+        + `<div class="toast-confirm__row"><button type="button" class="toast-confirm__stay">${escHtml(cancelText)}</button>`
+        + `<button type="submit" class="toast-confirm__go">${escHtml(confirmText)}</button></div></form>`;
+    document.body.appendChild(d);
+    d.showModal();
+    const input = d.querySelector('input'), error = d.querySelector('.toast-confirm__error');
+    return new Promise(resolve => {
+        const close = answer => { d.close(); d.remove(); resolve(answer); };
+        d.querySelector('.toast-confirm__stay').addEventListener('click', () => close(null));
+        d.querySelector('form').addEventListener('submit', e => {
+            e.preventDefault();
+            const problem = validate(input.value);
+            if (!problem) return close(input.value);
+            error.textContent = problem;
+            error.hidden = false;
+            input.setAttribute('aria-invalid', 'true');
+            input.focus();
+        });
+        d.addEventListener('cancel', e => { e.preventDefault(); close(null); }); // Escape
+    });
+}
+
 // ── Modal Helpers ───────────────────────────────────────────────
 function openModal(id) {
     const m = document.getElementById(id);

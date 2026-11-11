@@ -8,7 +8,7 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261111-redesign1"></script>
+<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
@@ -451,11 +451,10 @@ async function viewStudentDetails(userId) {
 async function toggleStudentActiveState() {
   if (!selectedStudent) return;
   const newState = !selectedStudent.is_active;
-  const confirmMsg = newState
-    ? `Reactivate account for ${selectedStudent.full_name}?`
-    : `Deactivate account for ${selectedStudent.full_name}? Student will not be able to log in.`;
-
-  if (!confirm(confirmMsg)) return;
+  const confirmed = await confirmToast(newState
+    ? {title: 'Reactivate this account?', message: `${selectedStudent.full_name} can sign in again.`, confirmText: 'Reactivate', cancelText: 'Cancel'}
+    : {title: 'Deactivate this account?', message: `${selectedStudent.full_name} will not be able to sign in.`, confirmText: 'Deactivate', cancelText: 'Cancel'});
+  if (!confirmed) return;
 
   try {
     const res = await fetch(`${API_BASE}/students.php?id=${selectedStudent.user_id}`, {
@@ -571,7 +570,13 @@ document.addEventListener('siteconfigloaded', e => {
 });
 async function resetStudentPassword() {
  if (!selectedStudent) return;
- const password = prompt('Enter a new password with at least 8 characters for this student:');
+ const password = await promptToast({
+  title: 'Reset password?',
+  message: `Set a new password for ${selectedStudent.full_name}. They use it the next time they sign in.`,
+  label: 'New password', type: 'password', autocomplete: 'new-password',
+  confirmText: 'Reset password', cancelText: 'Cancel',
+  validate: value => value.length < 8 ? 'Use at least 8 characters.' : '',
+ });
  if (password === null) return;
  try { const res = await fetch(API_BASE+'/auth/reset-password.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'teacher_reset',student_id:selectedStudent.user_id,new_password:password})});const result=await res.json();showToast(result.message,result.success?'success':'error'); } catch(e){showToast('Could not reset password.','error');}
 }

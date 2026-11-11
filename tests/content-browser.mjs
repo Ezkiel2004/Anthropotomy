@@ -14,6 +14,9 @@ await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
 let next=0;const pending=new Map();
 socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.id){const entry=pending.get(data.id);pending.delete(data.id);data.error?entry.reject(new Error(data.error.message)):entry.resolve(data.result);}else if(data.method==='Runtime.exceptionThrown'){errors.push(data.params.exceptionDetails.exception?.description||data.params.exceptionDetails.text);}});
 function call(method,params={}){return new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});}
+// Every question the portal asks goes through its own dialogs; a native alert, confirm or prompt is recorded, dismissed and fails the suite at the end.
+const nativeDialogs=[];
+socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Page.javascriptDialogOpening'){nativeDialogs.push(data.params.type+': '+data.params.message);call('Page.handleJavaScriptDialog',{accept:false});}});
 async function evaluate(expression){const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.exception?.description||result.exceptionDetails.text);return result.result.value;}
 async function waitFor(expression,timeout=15000){for(let waited=0;waited<timeout;waited+=200){try{if(await evaluate(expression))return true;}catch{/* The page is mid-navigation. */}await new Promise(resolve=>setTimeout(resolve,200));}return false;}
 async function navigate(path){
@@ -438,11 +441,30 @@ check(made.success,'Create an announcement with an apostrophe title');
 await navigate('/teacher/announcements.html');
 const deleteButton=`document.querySelector('[onclick^="deleteAnnouncement(${made.data.announcement_id})"]')`;
 check(await waitFor(deleteButton),'Delete button passes only the id');
-const dialogs=[];
-socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Page.javascriptDialogOpening'){dialogs.push(data.params.message);call('Page.handleJavaScriptDialog',{accept:false});}});
 await evaluate(deleteButton+'.click()');
-check(await waitFor('true')&&dialogs.length===1&&dialogs[0].includes(hostile),'Delete asks for confirmation with the full title');
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes(${JSON.stringify(hostile)})`),'Delete asks in the in-app dialog with the full title');
+await evaluate(`document.querySelector('dialog.toast-confirm[open] .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')`)&&await evaluate(deleteButton+'!==null'),'Keep closes the dialog and the announcement stays');
 check(await evaluate('window.__pwned===undefined'),'The title did not run as script');
+
+// ── Student password reset asks in the page, not with prompt() ──
+const someStudent=(await evaluate(`fetch(API_BASE+'/students.php',{credentials:'same-origin'}).then(r=>r.json())`)).data?.students?.[0];
+check(someStudent?.user_id,'A student exists for the password reset check');
+await navigate('/teacher/students.html');
+await evaluate(`viewStudentDetails(${Number(someStudent.user_id)})`);
+check(await waitFor(`[...document.querySelectorAll('#studentDetailModal button')].some(b=>/reset student password/i.test(b.textContent))`),'Student profile offers a password reset');
+await evaluate(`[...document.querySelectorAll('#studentDetailModal button')].find(b=>/reset student password/i.test(b.textContent)).click()`);
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open] input[type=password][autocomplete=new-password]')`),'Reset opens an in-app password field');
+check(await evaluate(`document.activeElement===document.querySelector('dialog.toast-confirm[open] input')`),'The password field has focus');
+await evaluate(`(()=>{const d=document.querySelector('dialog.toast-confirm[open]');d.querySelector('input').value='short';d.querySelector('.toast-confirm__go').click();})()`);
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open] .toast-confirm__error:not([hidden])')?.textContent==='Use at least 8 characters.'`),'A short password is refused in the dialog');
+check(await evaluate(`document.querySelector('dialog.toast-confirm[open] input').getAttribute('aria-invalid')==='true'`),'The field is marked invalid');
+await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')`),'Escape cancels the reset without sending anything');
+await evaluate(`document.getElementById('detailToggleStatusBtn').click()`);
+check(await waitFor(`/(Deactivate|Reactivate) this account\\?/.test(document.querySelector('dialog.toast-confirm[open]')?.textContent||'')`),'Account status change asks in the in-app dialog');
+await evaluate(`document.querySelector('dialog.toast-confirm[open] .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')`),'Cancel leaves the account as it was');
 
 // ── Lesson editor sheet ─────────────────────────────────────────
 await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
@@ -1000,5 +1022,6 @@ check(await waitFor(`document.getElementById('recentScoresTable')`),'Student das
 check(await evaluate(`![...document.querySelectorAll('th')].some(h=>h.textContent==='Type')`),'Recent results have no Type column');
 
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
+check(nativeDialogs.length===0,'No native alert, confirm or prompt box ever opened: '+nativeDialogs.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();

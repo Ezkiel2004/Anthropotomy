@@ -302,7 +302,7 @@ function main() {
         }
     }
     async function deleteBadge(badge) {
-        if (!confirm(`Delete the badge “${badge.title}”? Students who earned it will no longer have it.`)) return;
+        if (!await confirmToast({title: 'Delete this badge?', message: `Students who earned “${badge.title}” will no longer have it.`, confirmText: 'Delete', cancelText: 'Keep'})) return;
         try {
             await request(`achievements.php?id=${badge.achievement_id}`, {method: 'DELETE'});
             state.badges = state.badges.filter(other => other !== badge);

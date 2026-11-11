@@ -8,7 +8,7 @@
   <link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48"/>
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
-  <link rel="stylesheet" href="../assets/css/global.css?v=20261106-study1"/>
+  <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
@@ -174,7 +174,7 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261111-redesign1"></script>
+<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
 <script src="../assets/js/student-portal.js?v=20261111-redesign1"></script>
 <script>
@@ -630,7 +630,7 @@ async function submitQuiz() {
 
   const answeredCount = questions.filter((_, i) => isQuestionAnswered(i)).length;
   if (answeredCount < questions.length && timeLeft > 0) {
-    if (!confirm(`You have answered ${answeredCount} of ${questions.length} questions. Submit anyway?`)) {
+    if (!await confirmToast({title: 'Submit with questions left?', message: `You have answered ${answeredCount} of ${questions.length} questions.`, confirmText: 'Submit', cancelText: 'Keep answering'})) {
       startTimer();
       return;
     }
@@ -694,9 +694,9 @@ function displayResults(data, timeUsedSecs) {
 }
 
 // The server fixes a timed attempt's deadline when it starts, so leaving does not pause it.
-function confirmExitQuiz() {
+async function confirmExitQuiz() {
   const timed = deadlineMs !== null ? ' The timer keeps running while you are away.' : '';
-  if (confirm(`Leave this quiz? Your answers so far are saved, and you can come back to finish.${timed}`)) exitQuiz();
+  if (await confirmToast({title: 'Leave this quiz?', message: `Your answers so far are saved, and you can come back to finish.${timed}`, confirmText: 'Leave', cancelText: 'Stay'})) exitQuiz();
 }
 
 function exitQuiz() {
