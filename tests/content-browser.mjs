@@ -107,10 +107,20 @@ await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
 // ── Modules grid ────────────────────────────────────────────────
+// A footer fits when its count text is not cut off and every control sits inside the card (cards clip with overflow:hidden).
+const inside=(outer,inner)=>`(()=>{const o=${outer}.getBoundingClientRect(),r=${inner}.getBoundingClientRect();return r.left>=o.left-.5&&r.right<=o.right+.5&&r.top>=o.top-.5&&r.bottom<=o.bottom+.5;})()`;
+const footFits=`[...document.querySelectorAll('.cs-mod')].every(card=>{const meta=card.querySelector('.cs-mod-foot .cs-meta');return meta.scrollWidth<=meta.clientWidth&&[...card.querySelector('.cs-mod-foot').children].every(el=>${inside('card','el')});})`;
+// The widest footer: the longest count text next to the wider Add lesson button.
+const longestFoot=`(()=>{const card=[...document.querySelectorAll('.cs-mod')].find(c=>c.querySelector('.cs-mod-foot a').textContent.trim()==='Add lesson');card.querySelector('.cs-mod-foot .cs-meta').textContent='12 lessons · 10 materials';return true;})()`;
+const segFits=`[...document.querySelectorAll('#statusFilter button')].every(b=>b.scrollWidth<=b.clientWidth&&${inside(`document.getElementById('statusFilter')`,'b')})`;
+const headingsInOrder=`(()=>{let last=0;for(const h of document.querySelectorAll('h1,h2,h3,h4,h5,h6')){const level=+h.tagName[1];if(level>last+1)return false;last=level;}return true;})()`;
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
 await navigate('/teacher/modules.html');
 check(await waitFor(`document.querySelectorAll('.cs-mod').length>0`),'Module cards render');
 check(await evaluate(`[...document.querySelectorAll('.cs-mod')].every(c=>c.querySelector('.cs-eyebrow')&&c.querySelector('.cs-status'))`),'Every card has a system eyebrow and a status');
-check(await evaluate(`[...document.querySelectorAll('.cs-mod-foot')].every(f=>f.scrollWidth<=f.clientWidth)`),'Card actions are never clipped');
+check(await evaluate(footFits),'Card actions are never clipped at 1366px');
+check(await evaluate(headingsInOrder),'Modules page headings are sequential');
+check(await evaluate(segFits),'Every status filter fits its control at 1366px');
 check(await evaluate(`!document.getElementById('addModuleModal')&&!/alert\\(|prompt\\(/.test(document.body.innerHTML)`),'Popups are gone');
 const testModule=(await evaluate(`fetch(API_BASE+'/modules.php',{credentials:'same-origin'}).then(r=>r.json())`)).data.find(m=>m.module_id===moduleId);
 const card=`document.querySelector('.cs-mod[data-id="${moduleId}"]')`;
@@ -173,6 +183,10 @@ await waitFor(`document.querySelector('.cs-menu')`);
 await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].find(b=>b.textContent.trim()==='Publish').click()`);
 check(await waitFor(`${sheetModule}?.querySelector('.cs-status--published')`),'Publish from the menu');
 check(await evaluate(`${sheetModule}.querySelector('.cs-warn')!==null&&${sheetModule}.querySelector('.cs-mod-foot a').textContent.trim()==='Add lesson'&&/modules\\.html\\?module=\\d+$/.test(${sheetModule}.querySelector('.cs-mod-foot a').getAttribute('href'))`),'An empty published module warns and offers Add lesson');
+check(await evaluate(footFits),'Add lesson footer fits at 1366px');
+await evaluate(longestFoot);
+check(await evaluate(footFits),'Long counts beside Add lesson still fit at 1366px');
+check(await evaluate(headingsInOrder),'Headings stay sequential with every card kind');
 
 // Archive asks first, then the card leaves the grid.
 await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
@@ -182,12 +196,21 @@ check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textC
 await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
 check(await waitFor(`!${sheetModule}&&document.querySelector('.cs-seg [data-status="archived"]')`),'Archived module leaves the grid and an Archived filter appears');
 
-// Phone width: no sideways scroll, card actions still fit.
+// Phone width: no sideways scroll, card actions and all four status filters still fit.
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
 await navigate('/teacher/modules.html');
 check(await waitFor(`document.querySelectorAll('.cs-mod').length>0`),'Cards render at 390px');
 check(await evaluate(`document.documentElement.scrollWidth<=390`),'No horizontal scroll at 390px');
-check(await evaluate(`[...document.querySelectorAll('.cs-mod-foot')].every(f=>f.scrollWidth<=f.clientWidth)`),'Card actions fit at 390px');
+check(await evaluate(footFits),'Card actions fit at 390px');
+check(await evaluate(`document.querySelectorAll('#statusFilter button').length===4`),'All, Published, Draft and Archived filters show');
+check(await evaluate(segFits),'Every status filter fits its control at 390px');
+await evaluate(`document.querySelectorAll('#statusFilter em').forEach(e=>e.textContent='88')`);
+check(await evaluate(segFits)&&await evaluate(`document.documentElement.scrollWidth<=390`),'Two-digit counts still fit at 390px');
+await evaluate(`document.querySelector('#statusFilter [data-status="archived"]').click()`);
+check(await waitFor(`document.querySelector('.cs-mod .cs-status--archived')`),'Archived filter shows the archived module');
+await evaluate(longestFoot);
+check(await evaluate(footFits),'Long counts beside Add lesson still fit at 390px');
+check(await evaluate(`document.documentElement.scrollWidth<=390`),'Still no horizontal scroll at 390px');
 await call('Emulation.clearDeviceMetricsOverride');
 
 // ── Student ─────────────────────────────────────────────────────
