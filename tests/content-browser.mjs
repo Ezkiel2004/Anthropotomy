@@ -106,6 +106,90 @@ check(await evaluate(`(()=>{const tops=[...document.querySelectorAll('.pv-overla
 await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
+// ── Modules grid ────────────────────────────────────────────────
+await navigate('/teacher/modules.html');
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>0`),'Module cards render');
+check(await evaluate(`[...document.querySelectorAll('.cs-mod')].every(c=>c.querySelector('.cs-eyebrow')&&c.querySelector('.cs-status'))`),'Every card has a system eyebrow and a status');
+check(await evaluate(`[...document.querySelectorAll('.cs-mod-foot')].every(f=>f.scrollWidth<=f.clientWidth)`),'Card actions are never clipped');
+check(await evaluate(`!document.getElementById('addModuleModal')&&!/alert\\(|prompt\\(/.test(document.body.innerHTML)`),'Popups are gone');
+const testModule=(await evaluate(`fetch(API_BASE+'/modules.php',{credentials:'same-origin'}).then(r=>r.json())`)).data.find(m=>m.module_id===moduleId);
+const card=`document.querySelector('.cs-mod[data-id="${moduleId}"]')`;
+const many=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
+check(testModule.lessons.some(l=>l.status==='draft')&&testModule.material_count>0,'Fixture module has a draft lesson and a material');
+check(await evaluate(`${card}.querySelector('.cs-mod-foot .cs-meta').textContent`)===`${many(testModule.lessons.length,'lesson')} · ${many(testModule.material_count,'material')}`,'Card counts lessons (drafts included) and materials');
+check(await evaluate(`[...${card}.querySelectorAll('.cs-mix span')].some(s=>s.textContent.includes('PDF'))&&[...${card}.querySelectorAll('.cs-mix span')].some(s=>s.textContent.includes('Reading'))`),'Card shows lesson-kind chips');
+check(await evaluate(`/modules\\.html\\?module=${moduleId}$/.test(${card}.querySelector('.cs-mod-foot a').getAttribute('href'))&&${card}.querySelector('.cs-mod-foot a').textContent.trim()==='Open'`),'Open links to the module');
+check(await evaluate(`document.querySelectorAll('.cs-btn--primary').length===1`),'One primary button on the page');
+
+// New module through the sheet (POST), created as a draft.
+await evaluate(`document.getElementById('newModuleBtn').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"][aria-modal="true"]')`),'New module opens the sheet');
+check(await evaluate(`document.activeElement.closest('.cs-sheet')!==null`),'Focus moves into the sheet');
+check(await evaluate(`['title','system_id','description'].every(n=>document.querySelector('.cs-sheet [name="'+n+'"]'))&&document.querySelectorAll('.cs-sheet [name="status"]').length===2`),'Sheet asks for title, body system, description and status');
+await evaluate(`(()=>{const s=document.querySelector('.cs-sheet');const set=(sel,v)=>{const el=s.querySelector(sel);el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));};
+  set('[name="title"]','Sheet module');set('[name="system_id"]',s.querySelector('[name="system_id"] option[value]:not([value=""])').value);set('[name="description"]','Made in the sheet');
+  s.querySelector('[name="status"][value="draft"]').click();document.querySelector('.cs-sheet-foot .cs-btn--primary').click();})()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&[...document.querySelectorAll('.cs-mod .cs-h3')].some(h=>h.textContent==='Sheet module')`),'Saving the sheet creates the module');
+const sheetModule=`[...document.querySelectorAll('.cs-mod')].find(c=>c.querySelector('.cs-h3').textContent.startsWith('Sheet module'))`;
+check(await evaluate(`${sheetModule}.classList.contains('cs-mod--draft')&&${sheetModule}.querySelector('.cs-status--draft')!==null`),'New draft shows the draft status');
+
+// Filters: Draft shows drafts only; a lesson title finds its module only.
+await evaluate(`document.querySelector('.cs-seg [data-status="draft"]').click()`);
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>0&&[...document.querySelectorAll('.cs-mod')].every(c=>c.querySelector('.cs-status--draft'))`),'Draft filter shows draft modules only');
+await evaluate(`document.querySelector('.cs-seg [data-status="all"]').click()`);
+await evaluate(`(()=>{const i=document.querySelector('.cs-search input');i.value='Second lesson';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-mod').length===1&&document.querySelector('.cs-mod').dataset.id==='${moduleId}'`),'Searching a lesson title shows its module only');
+await evaluate(`(()=>{const i=document.querySelector('.cs-search input');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>=2`),'Clearing the search shows every module again');
+
+// More menu: arrow keys move, Escape closes and returns focus; Edit details opens the sheet.
+await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
+check(await waitFor(`document.querySelector('.cs-menu[role="menu"]')&&document.activeElement.getAttribute('role')==='menuitem'`),'More opens a menu with focus on the first item');
+check(await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].map(b=>b.textContent.trim()).join('|')`)==='Edit details|Materials|Publish|Archive','Menu offers Edit details, Materials, Publish and Archive');
+await key('ArrowDown');
+check(await evaluate(`document.activeElement.textContent.trim()==='Materials'`),'Arrow down moves to the next item');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.cs-menu')&&document.activeElement.matches('[data-more]')`),'Escape closes the menu and returns focus');
+await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
+await waitFor(`document.querySelector('.cs-menu')`);
+await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].find(b=>b.textContent.trim()==='Edit details').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Sheet module'`),'Edit details opens the sheet with the module filled in');
+check(await evaluate(`!document.querySelector('.cs-sheet select')&&document.querySelector('.cs-sheet').textContent.includes('Test System')`),'Body system is shown read-only when editing');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').focus()`);
+await key('Tab');
+check(await evaluate(`document.activeElement.closest('.cs-sheet')!==null`),'Tab stays inside the sheet');
+await evaluate(`(()=>{const t=document.querySelector('.cs-sheet [name="title"]');t.focus();t.setSelectionRange(t.value.length,t.value.length);})()`);
+await call('Input.insertText',{text:' renamed'});
+await key('Escape');
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Discard changes?')`),'Escape with unsaved changes asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')&&document.querySelector('.cs-sheet')`),'Keep editing leaves the sheet open');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&[...document.querySelectorAll('.cs-mod .cs-h3')].some(h=>h.textContent==='Sheet module renamed')`),'Saving edits updates the card');
+
+// Publish from the menu: a published module with no lessons shows the amber note and Add lesson.
+await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
+await waitFor(`document.querySelector('.cs-menu')`);
+await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].find(b=>b.textContent.trim()==='Publish').click()`);
+check(await waitFor(`${sheetModule}?.querySelector('.cs-status--published')`),'Publish from the menu');
+check(await evaluate(`${sheetModule}.querySelector('.cs-warn')!==null&&${sheetModule}.querySelector('.cs-mod-foot a').textContent.trim()==='Add lesson'&&/modules\\.html\\?module=\\d+$/.test(${sheetModule}.querySelector('.cs-mod-foot a').getAttribute('href'))`),'An empty published module warns and offers Add lesson');
+
+// Archive asks first, then the card leaves the grid.
+await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
+await waitFor(`document.querySelector('.cs-menu')`);
+await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].find(b=>b.textContent.trim()==='Archive').click()`);
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Archive this module?')`),'Archive asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`!${sheetModule}&&document.querySelector('.cs-seg [data-status="archived"]')`),'Archived module leaves the grid and an Archived filter appears');
+
+// Phone width: no sideways scroll, card actions still fit.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await navigate('/teacher/modules.html');
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>0`),'Cards render at 390px');
+check(await evaluate(`document.documentElement.scrollWidth<=390`),'No horizontal scroll at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-mod-foot')].every(f=>f.scrollWidth<=f.clientWidth)`),'Card actions fit at 390px');
+await call('Emulation.clearDeviceMetricsOverride');
+
 // ── Student ─────────────────────────────────────────────────────
 await signIn('fixture-student',studentPassword,'/student/');
 await navigate('/student/lessons.html');

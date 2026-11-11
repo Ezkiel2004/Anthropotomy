@@ -155,7 +155,7 @@ const AccountMenu = {
         trigger.setAttribute('aria-expanded', 'false');
         trigger.setAttribute('aria-controls', 'accountDropdown');
         while (accountLink.firstChild) trigger.appendChild(accountLink.firstChild);
-        trigger.insertAdjacentHTML('beforeend', '<svg class="account-chevron ui-icon" width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#caret-down"/></svg>');
+        trigger.insertAdjacentHTML('beforeend', '<svg class="account-chevron ui-icon" width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#caret-down"/></svg>');
         const menu = document.createElement('div');
         menu.className = 'account-dropdown';
         menu.id = 'accountDropdown';
@@ -333,7 +333,7 @@ const Notifications = {
         list.innerHTML = this.items.slice(0, 6).map(n => `
             <div class="notif-item ${n.unread ? 'unread' : ''}" role="button" tabindex="0" onclick="Notifications.open('${n.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                 <div class="notif-item-icon" style="background:${n.bg || 'rgba(59,130,246,0.15)'};display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">
-                    ${n.icon || '<svg width="15" height="15" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>'}
+                    ${n.icon || '<svg width="15" height="15" class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>'}
                 </div>
                 <div class="notif-item-content">
                     <div class="notif-item-title">${escHtml(n.title)}</div>

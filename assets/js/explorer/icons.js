@@ -1,6 +1,6 @@
 // Explorer toolbar and panel icons: Phosphor regular symbols from the shared portal sprite,
 // so the explorer matches every other page. Static strings, inserted with innerHTML.
-const SPRITE = new URL('../../icons/interface.svg?v=20261012-icons3', import.meta.url).href;
+const SPRITE = new URL('../../icons/interface.svg?v=20261111-icons4', import.meta.url).href;
 const SYMBOLS = {
     'zoom-in': 'magnifying-glass-plus',
     'zoom-out': 'magnifying-glass-minus',

@@ -14,52 +14,52 @@
     <nav class="sidebar-nav">
       <div class="nav-section-label">Main</div>
       <a class="nav-item" href="dashboard.html" data-tooltip="Dashboard">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#layout"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#layout"/></svg></span>
         <span class="nav-label">Dashboard</span>
       </a>
       <a class="nav-item" href="modules.html" data-tooltip="Modules">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#book-open"/></svg></span>
         <span class="nav-label">Modules and Lessons</span>
       </a>
       <a class="nav-item" href="lesson-plans.html" data-tooltip="Lesson Plans">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#folder"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#folder"/></svg></span>
         <span class="nav-label">Lesson Plans</span>
       </a>
       <a class="nav-item" href="students.html" data-tooltip="Students">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#users"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#users"/></svg></span>
         <span class="nav-label">Students</span>
         <span class="nav-badge" id="studentCountBadge">0</span>
       </a>
       <a class="nav-item" href="assessments.html" data-tooltip="Assessments">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#exam"/></svg></span>
         <span class="nav-label">Assessments</span>
       </a>
       <a class="nav-item" href="games.html" data-tooltip="Games">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#game-controller"/></svg></span>
         <span class="nav-label">Games</span>
       </a>
 
       <div class="nav-section-label">Management</div>
       <a class="nav-item" href="monitoring.html" data-tooltip="Monitoring">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pulse"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#pulse"/></svg></span>
         <span class="nav-label">Monitoring</span>
       </a>
       <a class="nav-item" href="reports.html" data-tooltip="Reports">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-bar"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#chart-bar"/></svg></span>
         <span class="nav-label">Reports</span>
       </a>
       <a class="nav-item" href="announcements.html" data-tooltip="Announcements">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#megaphone"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#megaphone"/></svg></span>
         <span class="nav-label">Announcements</span>
         <span class="nav-badge">0</span>
       </a>
 
       <div class="nav-section-label">System</div>
       <a class="nav-item" href="settings.html" data-tooltip="Settings">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#gear"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#gear"/></svg></span>
         <span class="nav-label">Settings</span>
       </a>
-<a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
+<a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
 `,
         student: `<div class="sidebar-logo">
       <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png" alt="" width="36" height="36"/></div>
@@ -71,29 +71,29 @@
     <nav class="sidebar-nav">
       <div class="nav-section-label">Learning</div>
       <a class="nav-item" href="dashboard.html" data-tooltip="Dashboard">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#layout"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#layout"/></svg></span>
         <span class="nav-label">Dashboard</span>
       </a>
       <a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg></span>
         <span class="nav-label">3D Anatomy Explorer</span>
       </a>
       <a class="nav-item" href="lessons.html" data-tooltip="Lessons">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#book-open"/></svg></span>
         <span class="nav-label">My Lessons</span>
       </a>
       <a class="nav-item" href="quiz.html" data-tooltip="Quizzes">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#exam"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#exam"/></svg></span>
         <span class="nav-label">Quizzes and Activities</span>
         <span class="nav-badge" style="display:none;">0</span>
       </a>
       <a class="nav-item" href="games.html" data-tooltip="Games">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#game-controller"/></svg></span>
         <span class="nav-label">Games</span>
       </a>
       <div class="nav-section-label">My Progress</div>
       <a class="nav-item" href="progress.html" data-tooltip="Progress">
-        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#chart-line"/></svg></span>
+        <span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#chart-line"/></svg></span>
         <span class="nav-label">My Progress &amp; Scores</span>
       </a>
     </nav>
@@ -117,5 +117,5 @@
     if(host.dataset.portal!=='student')return;
     const tabs=[['dashboard','house','Home'],['anatomy','cube','3D'],['lessons','book-open','Lessons'],['quiz','exam','Quizzes'],['games','game-controller','Games'],['progress','chart-line','Progress']];
     const pending=Number(sessionStorage.getItem('anthropotomy_pending_assessments'))||0;
-    host.insertAdjacentHTML('afterend',`<nav class="sd-tabbar" aria-label="Student sections">${tabs.map(([page,glyph,label])=>`<a href="${page}.html"${current===page+'.html'?' aria-current="page"':''}><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#${glyph}"/></svg><span>${label}</span>${page==='quiz'?`<span class="sd-tab-badge" id="tabQuizBadge"${pending>0?'':' hidden'}>${pending}</span>`:''}</a>`).join('')}</nav>`);
+    host.insertAdjacentHTML('afterend',`<nav class="sd-tabbar" aria-label="Student sections">${tabs.map(([page,glyph,label])=>`<a href="${page}.html"${current===page+'.html'?' aria-current="page"':''}><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#${glyph}"/></svg><span>${label}</span>${page==='quiz'?`<span class="sd-tab-badge" id="tabQuizBadge"${pending>0?'':' hidden'}>${pending}</span>`:''}</a>`).join('')}</nav>`);
 })();

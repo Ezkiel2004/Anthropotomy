@@ -7,7 +7,7 @@
 const PdfViewer = (() => {
     const SCRIPT_SRC = document.currentScript?.src || document.querySelector('script[src*="pdf-viewer.js"]')?.src || location.href;
     const LIB_BASE = new URL('../vendor/pdfjs/', SCRIPT_SRC).href;
-    const ICONS = new URL('../icons/interface.svg?v=20261012-icons3', SCRIPT_SRC).href;
+    const ICONS = new URL('../icons/interface.svg?v=20261111-icons4', SCRIPT_SRC).href;
     const FIT_MAX = 896;                       // 56rem: the widest a "fit width" page gets
     const PERCENTS = [50, 75, 100, 125, 150, 200];
     const PX_PER_PT = 96 / 72;

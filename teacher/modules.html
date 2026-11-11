@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv1"/>
+  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
@@ -25,12 +26,12 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Modules & Lessons</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -50,106 +51,41 @@
     </header>
 
     <div class="page-content">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Modules and lessons</h1>
-          <p>Create, edit, organize, and publish anatomy learning modules and lesson content.</p>
-        </div>
-        <div class="page-header-right">
-          <button class="btn btn-secondary btn-sm" onclick="openModal('addLessonModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg>
-            Add Lesson
-          </button>
-          <button class="btn btn-primary btn-sm" onclick="openModal('addModuleModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg>
-            New Module
-          </button>
-        </div>
-      </div>
+      <div class="cs">
+        <header class="cs-head page-header">
+          <div class="page-header-left">
+            <h1>Modules and lessons</h1>
+            <p>Build each body system’s lessons, attach handouts and publish when they’re ready.</p>
+          </div>
+          <div class="cs-actions">
+            <button type="button" class="cs-btn cs-btn--primary" id="newModuleBtn"><svg class="cs-ico" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#plus"/></svg>New module</button>
+          </div>
+        </header>
 
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="statTotalModules">0</div>
-            <div class="stat-label">Total Modules</div>
-          </div>
+        <div class="cs-summary" id="moduleSummary" aria-label="Module summary">
+          <div><b class="cs-num" id="sumModules">0</b><span>modules</span></div>
+          <div><b class="cs-num" id="sumLessons">0</b><span>lessons</span></div>
+          <div><i style="background:var(--cs-mint)"></i><b class="cs-num" id="sumPublished">0</b><span>published</span></div>
+          <div><i style="background:var(--cs-amber)"></i><b class="cs-num" id="sumDraft">0</b><span>draft</span></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="statTotalLessons">0</div>
-            <div class="stat-label">Total Lessons</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="statPublishedModules">0</div>
-            <div class="stat-label">Published</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-info">
-            <div class="stat-value" id="statDraftModules">0</div>
-            <div class="stat-label">Draft</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Module Cards -->
-      <div class="module-grid" id="moduleGrid"></div>
+        <div class="cs-toolbar" role="search">
+          <label class="cs-search"><svg class="cs-ico" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg><input type="search" id="moduleSearch" placeholder="Search modules and lessons" aria-label="Search modules and lessons" autocomplete="off"/></label>
+          <div class="cs-seg" id="statusFilter" role="group" aria-label="Show modules"></div>
+          <label class="cs-select"><span class="cs-sr">Body system</span><select id="systemFilter"><option value="">All body systems</option></select><svg class="cs-ico cs-ico--sm" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#caret-down"/></svg></label>
+        </div>
+
+        <div class="cs-grid" id="moduleGrid"></div>
+        <p class="cs-sr" id="moduleResults" role="status"></p>
+      </div>
     </div>
   </main>
-</div>
-
-<!-- Add Module Modal -->
-<div class="modal-overlay" id="addModuleModal" style="display:none;" onclick="if(event.target===this)closeModal('addModuleModal')">
-  <div class="modal-box">
-    <div class="modal-header"><h3>New module</h3><button class="modal-close" onclick="closeModal('addModuleModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
-    <form id="createModuleForm">
-      <div class="modal-body">
-        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
-          <div class="form-group">
-            <label for="modTitle">Module Title</label>
-            <div class="input-wrapper"><input type="text" id="modTitle" placeholder="e.g. Introduction to the Skeletal System" required/></div>
-          </div>
-          <div class="form-group">
-            <label for="modSystemId">Body System</label>
-            <div class="input-wrapper">
-              <select id="modSystemId" class="anatomy-system-select" style="width:100%;background:transparent;" required>
-                <option value="">Select System…</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="modDesc">Module Description</label>
-            <div class="input-wrapper">
-              <textarea id="modDesc" rows="3" placeholder="Brief description of this module..." style="resize:vertical;width:100%;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-body);"></textarea>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Status</label>
-            <div style="display:flex;gap:var(--space-2);">
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="modStatus" value="published" checked/> Published</label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="modStatus" value="draft"/> Draft</label>
-            </div>
-          </div>
-          <div id="modFormError" style="display:none;color:var(--error);font-size:0.85rem;padding:0.5rem;border:1px solid var(--error);border-radius:6px;"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('addModuleModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="modSubmitBtn">Create Module</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <!-- Add Lesson Modal -->
 <div class="modal-overlay" id="addLessonModal" style="display:none;" onclick="if(event.target===this)closeModal('addLessonModal')">
   <div class="modal-box">
-    <div class="modal-header"><h3>New lesson</h3><button class="modal-close" onclick="closeModal('addLessonModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3>New lesson</h3><button class="modal-close" onclick="closeModal('addLessonModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
     <form id="addLessonForm">
       <div class="modal-body">
         <div style="display:flex;flex-direction:column;gap:var(--space-4);">
@@ -169,13 +105,13 @@
             <label>Lesson Type</label>
             <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
               <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="reading" checked/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#book-open"/></svg> Reading</label>
+                <input type="radio" name="lessonType" value="reading" checked/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#book-open"/></svg> Reading</label>
               <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="video"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#video-camera"/></svg> Video</label>
+                <input type="radio" name="lessonType" value="video"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#video-camera"/></svg> Video</label>
               <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="3d_model"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg> 3D Model</label>
+                <input type="radio" name="lessonType" value="3d_model"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg> 3D Model</label>
               <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="interactive"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#game-controller"/></svg> Interactive</label>
+                <input type="radio" name="lessonType" value="interactive"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#game-controller"/></svg> Interactive</label>
             </div>
           </div>
           <div class="form-group">
@@ -190,7 +126,7 @@
                  onclick="document.getElementById('lesFileInput').click()"
                  onmouseenter="this.style.borderColor='var(--primary-500)'"
                  onmouseleave="this.style.borderColor='var(--border-default)'">
-              <div style="margin:0 auto var(--space-2);width:32px;color:var(--text-muted);"><svg class="ui-icon" style="width:32px;height:32px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cloud-arrow-up"/></svg></div>
+              <div style="margin:0 auto var(--space-2);width:32px;color:var(--text-muted);"><svg class="ui-icon" style="width:32px;height:32px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cloud-arrow-up"/></svg></div>
               <div style="font-size:0.875rem;font-weight:600;" id="lesFileLabel">Drop files here or click to upload</div>
               <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">PDF, MP4, WebM, GLB, Images (max 500MB)</div>
               <input type="file" id="lesFileInput" style="display:none;" accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.glb"
@@ -215,7 +151,7 @@
 <!-- Module Materials Modal -->
 <div class="modal-overlay" id="materialsModal" style="display:none;" onclick="if(event.target===this)closeModal('materialsModal')">
   <div class="modal-box">
-    <div class="modal-header"><h3 id="materialsModalTitle">Materials</h3><button class="modal-close" onclick="closeModal('materialsModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3 id="materialsModalTitle">Materials</h3><button class="modal-close" onclick="closeModal('materialsModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
     <div class="modal-body">
       <p style="margin:0 0 var(--space-4);color:var(--text-muted);font-size:.875rem;">Students see these files in this module's lessons. They stay here for every new batch.</p>
       <div id="materialsModalBody"></div>
@@ -228,209 +164,289 @@
 <script src="../assets/js/pdf-viewer.js?v=20261111-pv1"></script>
 <script src="../assets/js/lesson-reader.js?v=20261111-lr1"></script>
 <script src="../assets/js/teacher-files.js?v=20261102-files3"></script>
+<script src="../assets/js/content-studio.js?v=20261111-cs1"></script>
 <script>
 'use strict';
 
 const user = Auth.requireAuthSync('teacher');
 
-// ── Stats counters ────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────
+// Modules arrive in body-system order, then module order. Archived ones stay out of "All".
 let allModules = [];
+let allSystems = [];
+const filters = { status: 'all', system: '', query: '' };
+const STATUS_FILTERS = [['all', 'All'], ['published', 'Published'], ['draft', 'Draft'], ['archived', 'Archived']];
+const count = (n, word, many = word + 's') => `${n} ${n === 1 ? word : many}`;
+const moduleById = id => allModules.find(m => m.module_id === id);
+const liveModules = () => allModules.filter(m => m.status !== 'archived');
 
 // ── Load modules from API ─────────────────────────────────────
 async function loadModules() {
   const grid = document.getElementById('moduleGrid');
-  grid.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--text-muted);">Loading modules…</div>';
-
+  if (!allModules.length) grid.innerHTML = '<div class="cs-empty" role="status"><p>Loading modules…</p></div>';
   try {
-    const [modsRes, sysRes] = await Promise.all([
-      fetch(`${API_BASE}/modules.php`, { credentials: 'same-origin' }),
-      fetch(`${API_BASE}/body-systems.php?with_stats=1`, { credentials: 'same-origin' }),
+    const [modsData, sysData] = await Promise.all([
+      fetch(`${API_BASE}/modules.php`, { credentials: 'same-origin' }).then(r => r.json()),
+      allSystems.length ? null : fetch(`${API_BASE}/body-systems.php`, { credentials: 'same-origin' }).then(r => r.json()),
     ]);
-
-    const modsData = await modsRes.json();
-    const sysData  = await sysRes.json();
-
-    if (!modsData.success) { grid.innerHTML = `<p style="color:var(--error);">Failed to load modules.</p>`; return; }
-
+    if (!modsData.success) throw new Error(modsData.message || 'Modules did not load.');
     allModules = modsData.data || [];
-
-    // Update stat cards
-    const published = allModules.filter(m => m.status === 'published').length;
-    const drafts    = allModules.filter(m => m.status === 'draft').length;
-    const lessons   = allModules.reduce((s, m) => s + (m.lesson_count || 0), 0);
-    document.querySelectorAll('.stat-value')[0].textContent = allModules.length;
-    document.querySelectorAll('.stat-value')[1].textContent = lessons;
-    document.querySelectorAll('.stat-value')[2].textContent = published;
-    document.querySelectorAll('.stat-value')[3].textContent = drafts;
-
-    // Populate system dropdown in "Create Module" form
-    const sysSelect = document.getElementById('modSystemId');
-    if (sysData.success && sysSelect) {
-      sysData.data.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value       = s.system_id;
-        opt.textContent = s.system_name;
-        sysSelect.appendChild(opt);
-      });
-    }
-
-    // Populate module dropdown in "Add Lesson" form
-    const modSelect = document.getElementById('lesModuleId');
-    if (modSelect && allModules.length) {
-      allModules.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value       = m.module_id;
-        opt.textContent = `${m.system_name} / ${m.title}`;
-        modSelect.appendChild(opt);
-      });
-    }
-
-    renderModules(allModules);
-    const requestedModule=Number(new URLSearchParams(location.search).get('module_id'));
-    const linkedModule=allModules.find(module=>module.module_id===requestedModule);
-    if(linkedModule){history.replaceState(null,'',location.pathname);await viewLessons(linkedModule.module_id,linkedModule.title);}
-
+    if (sysData?.success) allSystems = sysData.data || [];
+    fillLessonModuleSelect();
+    renderSummary();
+    renderFilters();
+    renderModules();
   } catch (err) {
     console.error(err);
-    grid.innerHTML = `<p style="color:var(--error);">Server error. Ensure XAMPP is running.</p>`;
+    grid.innerHTML = '<div class="cs-empty" role="alert"><p>Modules could not load. Check that XAMPP is running, then reload the page.</p></div>';
   }
 }
 
-// ── Render module cards ───────────────────────────────────────
-function renderModules(modules) {
+// Parent-module choices for the old Add lesson form, until lessons are added inside a module.
+function fillLessonModuleSelect() {
+  const select = document.getElementById('lesModuleId');
+  if (!select) return;
+  select.length = 1;
+  liveModules().forEach(m => select.add(new Option(`${m.system_name} / ${m.title}`, m.module_id)));
+}
+
+// ── Summary and filters ───────────────────────────────────────
+function renderSummary() {
+  const live = liveModules();
+  const stat = (id, n, word, many) => {
+    const number = document.getElementById(id);
+    number.textContent = n;
+    number.nextElementSibling.textContent = n === 1 ? word : many;
+  };
+  stat('sumModules', live.length, 'module', 'modules');
+  stat('sumLessons', live.reduce((sum, m) => sum + (m.lessons || []).length, 0), 'lesson', 'lessons');
+  stat('sumPublished', live.filter(m => m.status === 'published').length, 'published', 'published');
+  stat('sumDraft', live.filter(m => m.status === 'draft').length, 'draft', 'drafts');
+}
+
+function renderFilters() {
+  const live = liveModules();
+  const counts = {
+    all: live.length,
+    published: live.filter(m => m.status === 'published').length,
+    draft: live.filter(m => m.status === 'draft').length,
+    archived: allModules.length - live.length,
+  };
+  if (filters.status === 'archived' && !counts.archived) filters.status = 'all';
+  document.getElementById('statusFilter').innerHTML = STATUS_FILTERS
+    .filter(([key]) => key !== 'archived' || counts.archived)
+    .map(([key, label]) => `<button type="button" data-status="${key}" aria-pressed="${filters.status === key}">${label} <em class="cs-num">${counts[key]}</em></button>`)
+    .join('');
+
+  const systems = new Map(allModules.map(m => [String(m.system_id), m.system_name]));
+  if (!systems.has(filters.system)) filters.system = '';
+  const select = document.getElementById('systemFilter');
+  select.innerHTML = '<option value="">All body systems</option>'
+    + [...systems].map(([id, name]) => `<option value="${id}">${escHtml(name)}</option>`).join('');
+  select.value = filters.system;
+}
+
+function matches(m) {
+  if (filters.status === 'all' ? m.status === 'archived' : m.status !== filters.status) return false;
+  if (filters.system && String(m.system_id) !== filters.system) return false;
+  if (!filters.query) return true;
+  return [m.title, m.description, m.system_name, ...(m.lessons || []).map(l => l.title)]
+    .some(text => String(text || '').toLowerCase().includes(filters.query));
+}
+
+function clearFilters() {
+  Object.assign(filters, { status: 'all', system: '', query: '' });
+  document.getElementById('moduleSearch').value = '';
+  document.getElementById('systemFilter').value = '';
+  document.querySelectorAll('#statusFilter [data-status]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.status === 'all')));
+  renderModules();
+}
+
+// ── Module cards ──────────────────────────────────────────────
+function renderModules() {
   const grid = document.getElementById('moduleGrid');
-  if (!modules.length) {
-    grid.innerHTML = `<div class="portal-empty" role="status">
-      <div style="font-size:3rem;margin-bottom:1rem;"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#cube"/></svg></div>
-      <p>No modules yet. Click <strong>+ New Module</strong> to create one.</p>
-    </div>`;
-    return;
+  const focusedMore = document.activeElement?.closest?.('#moduleGrid [data-more]')?.dataset.more;
+  const shown = allModules.filter(matches);
+  if (!allModules.length) {
+    grid.innerHTML = '<div class="cs-empty"><p>No modules yet. Make one for a body system, then add its lessons.</p><button type="button" class="cs-btn cs-btn--sm" data-new-module>New module</button></div>';
+  } else if (!shown.length) {
+    grid.innerHTML = '<div class="cs-empty"><p>No modules match these filters.</p><button type="button" class="cs-btn cs-btn--sm" data-clear-filters>Clear filters</button></div>';
+  } else {
+    grid.innerHTML = shown.map(moduleCard).join('');
   }
-
-  grid.innerHTML = modules.map(m => {
-    const statusBadge = m.status === 'published'
-      ? '<span class="badge badge-success">Published</span>'
-      : m.status === 'draft'
-        ? '<span class="badge badge-warning">Draft</span>'
-        : '<span class="badge badge-neutral">Archived</span>';
-
-    return `
-    <div class="module-card" id="mc-${m.module_id}">
-      <div class="module-card-body">
-        <div class="module-card-title">${escHtml(m.title)}</div>
-        <div class="module-card-desc">${escHtml((m.description || '').substring(0, 100))}${(m.description || '').length > 100 ? '…' : ''}</div>
-        <div class="module-card-meta">
-          ${statusBadge}
-          <span style="font-size:0.75rem;color:var(--text-muted);">${m.lesson_count} lesson${m.lesson_count !== 1 ? 's' : ''} · ${m.system_name}</span>
-        </div>
-      </div>
-      <div class="module-card-actions">
-        <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="viewLessons(${m.module_id}, '${escHtml(m.title)}')">Lessons</button>
-        <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openMaterials(${m.module_id})">Materials</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="editModule(${m.module_id})"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pencil-simple"/></svg> Edit</button>
-        <button class="btn btn-secondary btn-sm" onclick="archiveModule(${m.module_id})" title="Archive">Archive</button>
-      </div>
-    </div>`;
-  }).join('');
+  document.getElementById('moduleResults').textContent = count(shown.length, 'module') + ' shown';
+  if (focusedMore) grid.querySelector(`[data-more="${focusedMore}"]`)?.focus({ preventScroll: true });
 }
 
-// ── View lessons (quick expand) ───────────────────────────────
-async function viewLessons(moduleId, moduleTitle) {
-  showToast(`Loading lessons for "${moduleTitle}"…`, 'info');
+function moduleCard(m) {
+  const look = ContentFormat.systemLook(m.system_code);
+  const status = ['published', 'draft', 'archived'].includes(m.status) ? m.status : 'draft';
+  const lessons = m.lessons || [];
+  // Students see a published module only once it has a published lesson.
+  const unseen = status === 'published' && !lessons.some(l => l.status === 'published');
+  const href = `modules.html?module=${m.module_id}`;
+  const title = escHtml(m.title);
+  const mix = ContentFormat.kindCounts(lessons)
+    .map(k => `<span class="t-${k.kind}">${Studio.icon(k.icon)}${k.count > 1 ? k.count + ' ' : ''}${escHtml(k.label)}</span>`).join('');
+  const note = lessons.length
+    ? 'No published lessons yet. Students can’t see this module until one is published.'
+    : 'No lessons yet. Students can’t see this module until it has one published lesson.';
+  const action = unseen || !lessons.length
+    ? `<a class="cs-btn cs-btn--sm" href="${href}" aria-label="Add a lesson to ${title}">${Studio.icon('plus', 'cs-ico--sm')}Add lesson</a>`
+    : `<a class="cs-btn cs-btn--sm" href="${href}" aria-label="Open ${title}">Open${Studio.icon('arrow-right', 'cs-ico--sm')}</a>`;
+  return `<article class="cs-mod cs-mod--${status}" style="--sys:${look.colour}" data-id="${m.module_id}">
+    <div class="cs-mod-art">${look.art ? `<img src="${look.art}" alt="" loading="lazy" decoding="async">` : ''}${Studio.status(status)}</div>
+    <div class="cs-mod-body">
+      <span class="cs-eyebrow">${escHtml(m.system_name)}</span>
+      <h3 class="cs-h3">${title}</h3>
+      ${m.description ? `<p class="cs-body cs-clamp">${escHtml(m.description)}</p>` : '<p class="cs-body cs-body--none">No description yet</p>'}
+      ${mix ? `<div class="cs-mix">${mix}</div>` : ''}
+      ${unseen ? `<div class="cs-warn">${Studio.icon('warning-circle', 'cs-ico--sm')}<span>${note}</span></div>` : ''}
+    </div>
+    <div class="cs-mod-foot">
+      <span class="cs-meta">${count(lessons.length, 'lesson')}${m.material_count ? ' · ' + count(m.material_count, 'material') : ''}</span>
+      ${action}
+      <button type="button" class="cs-icon-btn" data-more="${m.module_id}" aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ${title}">${Studio.icon('dots-three')}</button>
+    </div>
+  </article>`;
+}
+
+function moduleMenu(m) {
+  const edit = { label: 'Edit details', onSelect: () => openModuleSheet(m) };
+  if (m.status === 'archived') return [edit, { label: 'Restore as draft', onSelect: () => setModuleStatus(m, 'draft') }];
+  return [
+    edit,
+    { label: 'Materials', onSelect: () => openMaterials(m.module_id) },
+    m.status === 'published'
+      ? { label: 'Unpublish', onSelect: () => setModuleStatus(m, 'draft') }
+      : { label: 'Publish', onSelect: () => setModuleStatus(m, 'published') },
+    { label: 'Archive', danger: true, onSelect: () => archiveModule(m.module_id) },
+  ];
+}
+
+// ── Saving ────────────────────────────────────────────────────
+async function saveModule(method, moduleId, payload) {
   try {
-    const res    = await fetch(`${API_BASE}/lessons.php?module_id=${moduleId}`, { credentials: 'same-origin' });
-    const result = await res.json();
-    if (!result.success) { showToast('Failed to load lessons.', 'error'); return; }
-    const lessons = result.data;
-    const list    = lessons.length
-      ? lessons.map(l => `${l.sort_order}. ${l.title} (${l.lesson_type})`).join('\n')
-      : 'No lessons yet.';
-    alert(`Lessons in "${moduleTitle}":\n\n${list}`);
+    const res = await fetch(`${API_BASE}/modules.php${moduleId ? `?id=${moduleId}` : ''}`, {
+      method,
+      headers:     payload ? { 'Content-Type': 'application/json' } : undefined,
+      credentials: 'same-origin',
+      body:        payload ? JSON.stringify(payload) : undefined,
+    });
+    return await res.json();
   } catch (e) {
-    showToast('Server error loading lessons.', 'error');
+    return { success: false, message: 'Server error. Make sure XAMPP is running.' };
   }
+}
+
+async function setModuleStatus(m, status) {
+  const done = status === 'published' ? 'Module published.'
+    : m.status === 'archived' ? 'Module restored as a draft.' : 'Module unpublished.';
+  const result = await saveModule('PUT', m.module_id, { status });
+  if (!result.success) { showToast(result.message || 'The module could not be updated.', 'error'); return; }
+  showToast(done, 'success');
+  loadModules();
+}
+
+async function archiveModule(moduleId) {
+  const ok = await confirmToast({ title: 'Archive this module?', message: 'Students will no longer see it.', confirmText: 'Archive', cancelText: 'Cancel' });
+  if (!ok) return;
+  const result = await saveModule('DELETE', moduleId);
+  if (!result.success) { showToast(result.message || 'The module could not be archived.', 'error'); return; }
+  showToast('Module archived.', 'success');
+  loadModules();
+}
+
+// ── Module sheet: title, body system, description, status ───
+// The body system is fixed once a module exists (the API cannot move it, and its linked
+// assessments keep their system), so editing shows it read-only.
+function openModuleSheet(module) {
+  const editing = Boolean(module);
+  const current = module?.status || 'draft';
+  const statuses = [['published', 'Published'], ['draft', 'Draft']];
+  if (current === 'archived') statuses.push(['archived', 'Archived']);
+
+  const form = document.createElement('form');
+  form.id = 'moduleSheetForm';
+  form.innerHTML = `
+    <div class="cs-field"><label for="msTitle">Title</label>
+      <input class="cs-input" id="msTitle" name="title" required maxlength="200" autocomplete="off" placeholder="e.g. Bones of the body" value="${escHtml(module?.title || '')}"/></div>
+    ${editing
+      ? `<div class="cs-field"><span class="cs-label" id="msSystemLabel">Body system</span>
+          <div class="cs-input cs-input--static" aria-labelledby="msSystemLabel" style="--sys:${ContentFormat.systemLook(module.system_code).colour}"><span class="cs-sw"></span>${escHtml(module.system_name)}</div>
+          <span class="cs-hint">A module stays in the body system it was made for.</span></div>`
+      : `<div class="cs-field"><label for="msSystem">Body system</label>
+          <span class="cs-pick"><select class="cs-input" id="msSystem" name="system_id" required><option value="">Choose a body system</option>${allSystems.map(s => `<option value="${s.system_id}">${escHtml(s.system_name)}</option>`).join('')}</select>${Studio.icon('caret-down', 'cs-ico--sm')}</span></div>`}
+    <div class="cs-field"><label for="msDesc">Description <span class="cs-meta">(optional)</span></label>
+      <textarea class="cs-input cs-input--area" id="msDesc" name="description" rows="4" placeholder="What this module covers, in a sentence or two">${escHtml(module?.description || '')}</textarea></div>
+    <div class="cs-field" role="radiogroup" aria-labelledby="msStatusLabel"><span class="cs-label" id="msStatusLabel">Status</span>
+      <div class="cs-seg">${statuses.map(([value, label]) => `<label><input type="radio" name="status" value="${value}"${value === current ? ' checked' : ''}/>${label}</label>`).join('')}</div>
+      <span class="cs-hint">Students see a published module once it has a published lesson.</span></div>`;
+
+  const foot = document.createElement('div');
+  foot.innerHTML = `<span class="cs-meta" id="msNote" role="status"></span>
+    <button type="button" class="cs-btn" data-cancel>Cancel</button>
+    <button type="submit" class="cs-btn cs-btn--primary" form="moduleSheetForm">${editing ? 'Save details' : 'Create module'}</button>`;
+
+  const sheet = Studio.sheet({ eyebrow: editing ? module.title : 'Modules', title: editing ? 'Edit details' : 'New module', body: form, footer: foot });
+  foot.querySelector('[data-cancel]').addEventListener('click', () => sheet.close());
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const note = foot.querySelector('#msNote');
+    const save = foot.querySelector('[type="submit"]');
+    const fields = form.elements;
+    const fail = message => { note.textContent = message; note.classList.add('is-error'); };
+    const title = fields.title.value.trim();
+    if (!title) { fail('Add a title.'); fields.title.focus(); return; }
+    const payload = { title, description: fields.description.value.trim(), status: fields.status.value };
+    if (!editing) payload.system_id = Number(fields.system_id.value);
+    save.disabled = true;
+    note.classList.remove('is-error');
+    note.textContent = 'Saving…';
+    const result = await saveModule(editing ? 'PUT' : 'POST', editing ? module.module_id : null, payload);
+    save.disabled = false;
+    if (!result.success) { fail(result.message || 'The module could not be saved.'); return; }
+    sheet.setDirty(false);
+    await sheet.close();
+    showToast(editing ? 'Details saved.' : 'Module created.', 'success');
+    loadModules();
+  });
 }
 
 // ── Module materials (PPT/PDF kept for every batch) ───────────
 function openMaterials(moduleId) {
-  const module = allModules.find(m => m.module_id === moduleId);
+  const module = moduleById(moduleId);
   document.getElementById('materialsModalTitle').textContent = `Materials: ${module?.title || 'Module'}`;
   TeacherFiles.mount(document.getElementById('materialsModalBody'), {kind: 'material', moduleId});
   openModal('materialsModal');
 }
 
-// ── Edit module (set status) ──────────────────────────────────
-async function editModule(moduleId) {
-  const newStatus = prompt('Set status (published / draft / archived):');
-  if (!newStatus || !['published','draft','archived'].includes(newStatus)) return;
-  try {
-    const res = await fetch(`${API_BASE}/modules.php?id=${moduleId}`, {
-      method:      'PUT',
-      headers:     { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body:        JSON.stringify({ status: newStatus }),
-    });
-    const result = await res.json();
-    if (result.success) { showToast('Module updated!', 'success'); loadModules(); }
-    else showToast(result.message || 'Update failed.', 'error');
-  } catch (e) {
-    showToast('Server error.', 'error');
+// ── Page events ───────────────────────────────────────────────
+document.getElementById('newModuleBtn').addEventListener('click', () => openModuleSheet(null));
+document.getElementById('moduleGrid').addEventListener('click', event => {
+  const more = event.target.closest('[data-more]');
+  if (more) {
+    const module = moduleById(Number(more.dataset.more));
+    if (module) Studio.menu(more, moduleMenu(module));
+    return;
   }
-}
-
-// ── Archive module ────────────────────────────────────────────
-async function archiveModule(moduleId) {
-  if (!confirm('Archive this module? Students will no longer see it.')) return;
-  try {
-    const res    = await fetch(`${API_BASE}/modules.php?id=${moduleId}`, {
-      method: 'DELETE', credentials: 'same-origin',
-    });
-    const result = await res.json();
-    if (result.success) { showToast('Module archived.', 'success'); loadModules(); }
-    else showToast(result.message, 'error');
-  } catch (e) { showToast('Server error.', 'error'); }
-}
-
-// ── Create Module Form ────────────────────────────────────────
-document.getElementById('createModuleForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('modSubmitBtn');
-  const err = document.getElementById('modFormError');
-  btn.disabled   = true;
-  btn.textContent = 'Creating…';
-  err.style.display = 'none';
-
-  const payload = {
-    title:       document.getElementById('modTitle').value.trim(),
-    system_id:   parseInt(document.getElementById('modSystemId').value),
-    description: document.getElementById('modDesc').value.trim(),
-    status:      document.querySelector('input[name="modStatus"]:checked')?.value || 'draft',
-  };
-
-  try {
-    const res    = await fetch(`${API_BASE}/modules.php`, {
-      method:      'POST',
-      headers:     { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body:        JSON.stringify(payload),
-    });
-    const result = await res.json();
-    if (result.success) {
-      closeModal('addModuleModal');
-      document.getElementById('createModuleForm').reset();
-      showToast('Module created successfully!', 'success');
-      loadModules();
-    } else {
-      err.textContent  = result.message || 'Failed to create module.';
-      err.style.display = 'block';
-    }
-  } catch (ex) {
-    err.textContent  = 'Server error. Make sure XAMPP is running.';
-    err.style.display = 'block';
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = 'Create Module';
-  }
+  if (event.target.closest('[data-new-module]')) openModuleSheet(null);
+  if (event.target.closest('[data-clear-filters]')) clearFilters();
+});
+document.getElementById('statusFilter').addEventListener('click', event => {
+  const button = event.target.closest('[data-status]');
+  if (!button) return;
+  filters.status = button.dataset.status;
+  document.querySelectorAll('#statusFilter [data-status]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+  renderModules();
+});
+document.getElementById('systemFilter').addEventListener('change', event => {
+  filters.system = event.target.value;
+  renderModules();
+});
+document.getElementById('moduleSearch').addEventListener('input', event => {
+  filters.query = event.target.value.trim().toLowerCase();
+  renderModules();
 });
 
 // ── Add Lesson Form ───────────────────────────────────────────

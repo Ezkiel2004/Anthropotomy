@@ -4,7 +4,7 @@
 
 import {GAMES, bestScore} from './shell.js';
 
-const SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
 
 // Units for a badge's progress line ("7 / 10 games"); percentages read "40% / 75%".
 const UNITS = {

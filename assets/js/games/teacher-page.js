@@ -6,7 +6,7 @@
 
 import {GAMES} from './shell.js';
 
-const SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
 
 // The only icons a badge can use, in picker order.
 export const BADGE_ICONS = [

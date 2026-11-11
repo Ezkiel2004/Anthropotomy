@@ -24,12 +24,12 @@
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Announcements</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -56,7 +56,7 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary btn-sm" onclick="openModal('createAnnouncementModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#plus"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#plus"/></svg>
             New Announcement
           </button>
         </div>
@@ -96,7 +96,7 @@
 <!-- Create Announcement Modal -->
 <div class="modal-overlay" id="createAnnouncementModal" style="display:none;" onclick="if(event.target===this)closeModal('createAnnouncementModal')">
   <div class="modal-box" style="width:min(95%,580px);">
-    <div class="modal-header"><h3>New announcement</h3><button class="modal-close" onclick="closeModal('createAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3>New announcement</h3><button class="modal-close" onclick="closeModal('createAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
     <div class="modal-body">
       <div style="display:flex;flex-direction:column;gap:var(--space-4);">
         <div class="form-group"><label>Title</label><div class="input-wrapper"><input type="text" id="annoTitle" placeholder="e.g. New Module Available: Digestive System"/></div></div>
@@ -129,7 +129,7 @@
 <!-- Edit Announcement Modal -->
 <div class="modal-overlay" id="editAnnouncementModal" style="display:none;" onclick="if(event.target===this)closeModal('editAnnouncementModal')">
   <div class="modal-box" style="width:min(95%,580px);">
-    <div class="modal-header"><h3>Edit announcement</h3><button class="modal-close" onclick="closeModal('editAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#x-circle"/></svg></button></div>
+    <div class="modal-header"><h3>Edit announcement</h3><button class="modal-close" onclick="closeModal('editAnnouncementModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
     <div class="modal-body">
       <input type="hidden" id="editAnnoId"/>
       <div style="display:flex;flex-direction:column;gap:var(--space-4);">
@@ -155,7 +155,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('editAnnouncementModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveAnnouncementEdit()"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#floppy-disk"/></svg> Save Changes</button>
+      <button class="btn btn-primary" onclick="saveAnnouncementEdit()"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#floppy-disk"/></svg> Save Changes</button>
     </div>
   </div>
 </div>
@@ -306,8 +306,8 @@ function renderCardHtml(a, isPinned) {
           <button class="btn btn-secondary btn-sm" onclick="togglePin(${a.announcement_id}, ${a.is_pinned ? 1 : 0})">
             ${a.is_pinned ? 'Unpin' : 'Pin'}
           </button>
-          <button class="btn btn-secondary btn-sm" onclick="openEditModal(${a.announcement_id})"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pencil-simple"/></svg> Edit</button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteAnnouncement(${Number(a.announcement_id)})" title="Delete Announcement" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trash"/></svg> Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="openEditModal(${a.announcement_id})"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#pencil-simple"/></svg> Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteAnnouncement(${Number(a.announcement_id)})" title="Delete Announcement" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#trash"/></svg> Delete</button>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@
    Needs app.js (escHtml, StudyClock), content-format.js and pdf-viewer.js loaded first. */
 'use strict';
 const LessonReader = (() => {
-  const ICON_SPRITE = '../assets/icons/interface.svg?v=20261012-icons3';
+  const ICON_SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
   const icon = name => `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
   const state = new WeakMap();   // root -> { pdf, onClose }
 

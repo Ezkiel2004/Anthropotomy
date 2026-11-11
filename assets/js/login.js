@@ -2,7 +2,7 @@
 const APP_BASE = new URL('../../', document.currentScript.src).pathname.replace(/\/$/, '');
 const API_BASE = APP_BASE + '/api';
 const byId = id => document.getElementById(id);
-const eye = hidden => `<svg viewBox="0 0 256 256" aria-hidden="true"><use href="assets/icons/interface.svg?v=20261012-icons3#${hidden ? 'eye' : 'eye-slash'}"/></svg>`;
+const eye = hidden => `<svg viewBox="0 0 256 256" aria-hidden="true"><use href="assets/icons/interface.svg?v=20261111-icons4#${hidden ? 'eye' : 'eye-slash'}"/></svg>`;
 function togglePassword(id, button) {
     const input = byId(id);
     const visible = input.type === 'password';
