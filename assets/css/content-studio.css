@@ -171,6 +171,9 @@ body.stage-portal .cs-select select:focus { box-shadow: none; outline: none; }
 .cs-rows > .cs-row.is-drop-after { box-shadow: inset 0 -2px 0 var(--cs-mint); }
 .cs-add-row:focus-visible, .cs-crumb:focus-visible, a.cs-quiz:focus-visible { outline: none; box-shadow: var(--cs-focus); }
 .cs-file .cs-row-title, .cs-quiz .cs-row-title { font-size: .875rem; }
+/* A material's title wraps to a second line beside its thumbnail rather than being cut short by its two buttons. */
+.cs-file .cs-row-title { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.3; overflow-wrap: anywhere; }
+.cs-file > .cs-icon-btn + .cs-icon-btn { margin-left: -.5rem; }
 .tf-panel { position: relative; }
 .tf-panel .tf-files, .cs-quizzes { padding: .375rem; }
 .tf-panel .tf-files:has(> .tf-empty), .cs-quizzes:has(> .cs-panel-empty) { padding: 0; }

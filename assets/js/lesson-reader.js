@@ -29,6 +29,7 @@ const LessonReader = (() => {
     const look = ContentFormat.systemLook(lesson.system_code);
     const system = String(lesson.system_name || '').replace(/\s+System$/i, '') || 'Anatomy';
     const kicker = [lesson.module_title, lesson.duration_mins ? lesson.duration_mins + ' min read' : 'Self-paced'].filter(Boolean).map(escHtml).join(' · ');
+    const isPdf = /\.pdf$/i.test(String(lesson.media_url || '').split('?')[0]);   // a PDF lesson reads on a wider page (pdf-viewer.css)
 
     root.innerHTML = `
     <div class="sd-reader-bar">
@@ -37,7 +38,7 @@ const LessonReader = (() => {
       ${exploreHref ? `<a class="sd-ghost" href="${escHtml(exploreHref)}">${icon('cube')}View in 3D</a>` : ''}
     </div>
     <div class="sd-reader-scroll">
-      <article class="sd-reader-doc" style="--card:${look.colour}">
+      <article class="sd-reader-doc${isPdf ? ' sd-reader-doc--pdf' : ''}" style="--card:${look.colour}">
         <header>
           <p class="sd-reader-kicker"><b>${escHtml(system)}</b> · ${kicker}</p>
           <h2 class="sd-reader-title" id="readerTitle">${escHtml(lesson.title)}</h2>

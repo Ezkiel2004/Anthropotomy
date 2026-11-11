@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
-  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv1"/>
+  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv2"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
@@ -93,8 +93,8 @@
 
 <script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261111-pv2"></script>
-<script src="../assets/js/lesson-reader.js?v=20261111-lr1"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261111-pv3"></script>
+<script src="../assets/js/lesson-reader.js?v=20261111-lr2"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -231,7 +231,7 @@ async function viewModule(moduleId) {
       </div>
       ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
-        return `<${isPdf ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}"` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
+        return `<${isPdf ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}" data-context="${escHtml(module.title)} · Materials"` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
           <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
           <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : 'Download · ' + escHtml(f.original_name.split('.').pop().toUpperCase())}</span></span>
           <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
@@ -266,7 +266,7 @@ const closeLessonViewer = () => LessonReader.close(lessonReaderRoot);
 // Material PDFs open in the in-app viewer; Word and PowerPoint files stay plain downloads.
 document.getElementById('lessonModalBody').addEventListener('click', e => {
   const item = e.target.closest('[data-material]');
-  if (item) PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title });
+  if (item) PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title, context: item.dataset.context });
 });
 
 // ── Init ───────────────────────────────────────────────────────

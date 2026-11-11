@@ -1,6 +1,7 @@
 /* Lesson editor: one side sheet that creates a lesson or edits an existing one, attachment included.
-   LessonSheet.open(moduleId, lesson|null, {onSaved, moduleTitle}) → Promise (resolves once the sheet is on screen)
+   LessonSheet.open(moduleId, lesson|null, {onSaved, moduleTitle, position}) → Promise (resolves once the sheet is on screen)
    lesson is any row of the module's list; the full lesson (text, attachment) is fetched when editing.
+   position (1-based) names the lesson's place in the module in the sheet's eyebrow when editing.
    onSaved() runs after a successful save so the page can reload its list.
    Needs app.js (API_BASE, showToast, escHtml), content-format.js, content-studio.js and pdf-viewer.js. */
 'use strict';
@@ -32,7 +33,7 @@ const LessonSheet = (() => {
     } catch { return null; }
   }
 
-  async function open(moduleId, row, { onSaved, moduleTitle } = {}) {
+  async function open(moduleId, row, { onSaved, moduleTitle, position } = {}) {
     let lesson = null;
     if (row) {
       lesson = await fetchLesson(row.lesson_id);
@@ -57,8 +58,8 @@ const LessonSheet = (() => {
         <input type="file" id="lsFile" hidden accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.gif,.glb"/></div>
       <div class="cs-field"><label for="lsText">Lesson text <span class="cs-meta">(optional)</span></label>
         <textarea class="cs-input cs-input--area" id="lsText" name="content_text" rows="5" placeholder="What students read, or how to use the attachment">${escHtml(lesson?.content_text || '')}</textarea></div>
-      <div class="cs-two"><div class="cs-field"><label for="lsMins">Time to study <span class="cs-meta">(minutes)</span></label>
-          <input class="cs-input" id="lsMins" name="duration_mins" type="number" min="0" max="999" inputmode="numeric" placeholder="For example 15" value="${lesson?.duration_mins > 0 ? lesson.duration_mins : ''}"/></div>
+      <div class="cs-two"><div class="cs-field"><label for="lsMins">Time to study<span class="cs-sr"> in minutes</span></label>
+          <span class="cs-unit"><input class="cs-input" id="lsMins" name="duration_mins" type="number" min="0" max="999" inputmode="numeric" placeholder="For example 15" value="${lesson?.duration_mins > 0 ? lesson.duration_mins : ''}"/><span class="cs-meta" aria-hidden="true">minutes</span></span></div>
         <div class="cs-field"><span class="cs-label">Visible to students</span>
           <label class="cs-switch"><input type="checkbox" role="switch" name="status"${!editing || lesson.status === 'published' ? ' checked' : ''}/><i></i><span data-switch-label></span></label></div></div>`;
 
@@ -67,7 +68,8 @@ const LessonSheet = (() => {
       <button type="button" class="cs-btn" data-cancel>Cancel</button>
       <button type="submit" class="cs-btn cs-btn--primary" form="lessonSheetForm">${editing ? 'Save lesson' : 'Add lesson'}</button>`;
 
-    const sheet = Studio.sheet({ eyebrow: moduleTitle || lesson?.module_title || 'Lessons', title: editing ? 'Edit lesson' : 'New lesson', body: form, footer: foot });
+    const where = moduleTitle || lesson?.module_title || 'Lessons';
+    const sheet = Studio.sheet({ eyebrow: editing && position ? `${where} · Lesson ${position}` : where, title: editing ? 'Edit lesson' : 'New lesson', body: form, footer: foot });
     const note = foot.querySelector('#lsNote');
     const saveButton = foot.querySelector('[type="submit"]');
     const input = form.querySelector('#lsFile');
@@ -103,7 +105,7 @@ const LessonSheet = (() => {
         const parts = [ContentFormat.KINDS[kind].label];
         if (state.pageCount) parts.push(pages(state.pageCount));
         if (state.size) parts.push(sizeLabel(state.size));
-        parts.push(state.picked ? (state.current && !state.removed ? 'Replaces the current file' : 'Uploads when you save') : kind === 'pdf' ? 'Opens in the lesson viewer' : 'Saved with the lesson');
+        parts.push(state.picked ? (state.current && !state.removed ? 'replaces the current file' : 'uploads when you save') : kind === 'pdf' ? 'opens in the lesson viewer' : 'saved with the lesson');
         const el = attach.querySelector('[data-attach-meta]');
         if (el) el.textContent = parts.join(' · ');
       };

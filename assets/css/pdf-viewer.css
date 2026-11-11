@@ -8,7 +8,8 @@
 .pv *, .pv-overlay * { box-sizing: border-box; }
 .pv { display: flex; flex-direction: column; background: #0c0c0c; border-radius: 1.25rem; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -22px rgba(0,0,0,.8), 0 0 0 1px var(--pv-line); }
 .pv-bar { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding: .625rem .75rem .625rem 1rem; background: var(--pv-s1); box-shadow: 0 1px 0 var(--pv-line); }
-.pv-name { display: flex; align-items: center; gap: .625rem; min-width: 0; margin-right: auto; }
+/* The name takes the free space and shortens (title first) before the controls wrap to a second row. */
+.pv-name { display: flex; align-items: center; gap: .625rem; flex: 1 1 0; min-width: 6rem; }
 .pv-name b { font-size: .875rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pv-name .ui-icon { color: #ffb86b; flex: none; }
 .pv-meta { font-size: .8125rem; color: var(--pv-muted); white-space: nowrap; }
@@ -37,10 +38,15 @@
 .pv-fallback p { margin: 0; }
 .pv-download { display: inline-flex; align-items: center; gap: .5rem; height: 2.5rem; padding: 0 1.125rem; border-radius: 999px; background: var(--pv-mint); color: #07110f; font-weight: 700; font-size: .875rem; text-decoration: none; }
 .pv-overlay { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; gap: .75rem; padding: .75rem 1.25rem 1.25rem; background: #0a0a0a; }
-.pv-top { display: flex; justify-content: flex-end; }
+.pv-top { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; }
+.pv-context { margin-right: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--pv-muted); }
 .pv-close { display: inline-flex; align-items: center; gap: .5rem; height: 2.5rem; padding: 0 1rem; border: 0; border-radius: 999px; background: var(--pv-s2); color: var(--pv-ink); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
 .pv-close:hover { background: var(--pv-s3); }
 .pv--full { flex: 1; min-height: 0; }
+/* A PDF lesson in the lesson reader (lesson-reader.js) gets a wider page; its text keeps the reading measure. */
+.sd-reader-doc.sd-reader-doc--pdf { max-width: 60rem; }
+.sd-reader-doc--pdf .sd-reader-media { margin: 1.5rem 0; }
+.sd-reader-doc--pdf .sd-reader-text { max-width: 46rem; }
 @media (max-width: 899px) {
   .pv--full .pv-body { grid-template-columns: minmax(0, 1fr); }
   .pv-rail { display: none; }

@@ -1,6 +1,6 @@
 /* One PDF viewer for lessons, materials and lesson plans. Renders with the vendored pdf.js (assets/vendor/pdfjs/), no browser tab, no iframe.
    PdfViewer.mount(container, {url, title, downloadUrl}) → Promise<{destroy()}>   inline viewer
-   PdfViewer.open({url, title, downloadUrl}) → {close()}                          full-screen viewer with a thumbnail rail
+   PdfViewer.open({url, title, downloadUrl, context}) → {close()}                 full-screen viewer with a thumbnail rail; context labels where it came from
    PdfViewer.thumbnail(canvas, url) → Promise<number>                             draws page 1 into a canvas, resolves to the page count
    PdfViewer.pageCount(url) → Promise<number>                                     reads the page count without drawing
    Pages are empty placeholders; only the ones near the viewport are drawn, and they are released again when they scroll far away.
@@ -278,7 +278,7 @@ const PdfViewer = (() => {
         overlay.setAttribute('role', 'dialog');
         overlay.setAttribute('aria-modal', 'true');
         overlay.setAttribute('aria-label', options.title || 'Document');
-        overlay.innerHTML = `<div class="pv-top"><button type="button" class="pv-close" aria-label="Close">${icon('x')}Close</button></div><div class="pv pv--full"></div>`;
+        overlay.innerHTML = `<div class="pv-top">${options.context ? `<span class="pv-context">${esc(options.context)}</span>` : ''}<button type="button" class="pv-close" aria-label="Close">${icon('x')}Close</button></div><div class="pv pv--full"></div>`;
         document.body.append(overlay);
         document.body.style.overflow = 'hidden';
         let closed = false;

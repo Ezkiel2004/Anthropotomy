@@ -320,7 +320,7 @@ const ModuleWorkspace = (() => {
     renderLessons();
     const moduleId = next.module_id;
     TeacherFiles.mount(root.querySelector('[data-materials-panel]'), {
-      kind: 'material', moduleId, compact: true,
+      kind: 'material', moduleId, compact: true, context: `${next.title} · Materials`,
       onChange: files => {
         if (module?.module_id !== moduleId) return;
         module.material_count = files.length;

@@ -1,6 +1,6 @@
-// Browser checks for the content redesign (PDF viewer now; studio pages later).
-// Run through .superpowers/sdd/2026-11-11-content-redesign/run-suites.sh content: it starts PHP on 8091 and
-// Chrome on 9225 after tests/integration.mjs has set up the fixtures (fixture-student and its password).
+// Browser checks for the content redesign: Modules and Assessments pages, module workspace, lesson sheet,
+// question builder, PDF viewer and the student quiz filter. Needs the test server on 127.0.0.1:8091 and
+// headless Chrome on 9225, run after tests/integration.mjs has set up the fixtures (fixture-student and its password).
 import fs from 'node:fs';
 import path from 'node:path';
 const base='http://127.0.0.1:8091';
@@ -249,6 +249,7 @@ check(await evaluate(headingsInOrder),'Workspace headings are sequential');
 check(await evaluate(`[...document.querySelectorAll('#workspaceView .cs-btn--primary')].filter(b=>b.offsetParent).length===1`),'One primary button in the workspace');
 await evaluate(`${materialRow('Long reader')}.querySelector('[data-open]').click()`);
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'A material PDF opens in the viewer');
+check(await evaluate(`document.querySelector('.pv-overlay .pv-context').textContent===document.querySelector('#workspaceView .cs-hero h2').textContent+' · Materials'`),'The material viewer names the module it came from');
 await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes the material viewer');
 
@@ -384,6 +385,12 @@ await navigate('/student/lessons.html');
 await evaluate(`StudyClock.reading=()=>{window.__reads=(window.__reads||0)+1}`);
 await evaluate(`startLesson(${lessonId})`);
 check(await waitFor(`document.querySelector('.sd-reader .pv canvas[data-rendered]')`),'Lesson PDF renders inline');
+// A PDF lesson reads on the wider page, and at a tablet width the toolbar shortens the name instead of wrapping its buttons.
+const pdfBarOneRow=`(()=>{const tops=[...document.querySelectorAll('.sd-reader .pv-bar > *')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect();return r.top+r.height/2;});return Math.max(...tops)-Math.min(...tops)<4;})()`;
+check(await evaluate(`!!document.querySelector('.sd-reader .sd-reader-doc--pdf')&&${pdfBarOneRow}`),'A PDF lesson uses the wide page and a one-row toolbar');
+await call('Emulation.setDeviceMetricsOverride',{width:820,height:900,deviceScaleFactor:1,mobile:false});
+check(await waitFor(pdfBarOneRow),'The PDF toolbar stays on one row at 820px');
+await call('Emulation.clearDeviceMetricsOverride');
 check(await evaluate(`window.__reads>=1`),'Opening a PDF lesson counts as study time');
 check(await evaluate(`(async()=>{const before=window.__reads;const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Count'});const ok=window.__reads>before;v.destroy();d.remove();return ok;})()`),'Mounting the inline viewer counts as study time');
 check(await evaluate(`!document.querySelector('.sd-reader iframe')`),'No iframe left in the reader');
@@ -401,6 +408,7 @@ check(await waitFor(`document.querySelector('#lessonModalBody .sd-materials-titl
 check(await evaluate(`!document.querySelector('#lessonModalBody a[target=_blank]')`),'Material PDFs do not open a new tab');
 await evaluate(`[...document.querySelectorAll('#lessonModalBody .sd-lesson')].find(e=>/Long reader/.test(e.textContent)).click()`);
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Material opens in the viewer');
+check(await evaluate(`document.querySelector('.pv-overlay .pv-context').textContent===document.getElementById('lessonModalTitle').textContent+' · Materials'`),'The student material viewer names the module');
 check(await evaluate(`window.__reads>=4`),'Opening a material counts as study time');
 check(await waitFor(`document.querySelectorAll('.pv-stage [data-page]').length===60`),'Student sees all 60 pages');
 await key('Escape');
@@ -474,6 +482,7 @@ check(await waitFor(`${editorRow}.querySelector('[data-meta]').textContent.start
 await evaluate(`${editorRow}.querySelector('[data-edit]').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Editor lesson'&&document.querySelector('.cs-sheet [name="content_text"]').value==='Written in the sheet.'`),'Editing fills in the saved lesson text');
 check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Edit lesson'&&document.querySelector('.cs-sheet [name="duration_mins"]').value==='12'&&document.querySelector('.cs-sheet [name="status"]').checked`),'Editing fills in the title, time and published switch');
+check(await evaluate(`document.querySelector('.cs-sheet .cs-sheet-head .cs-eyebrow').textContent.endsWith(' · Lesson '+([...document.querySelectorAll('#workspaceView .cs-row')].indexOf(${editorRow})+1))`),'The edit sheet names the lesson number');
 check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'The saved PDF shows a thumbnail');
 await evaluate(`(()=>{const t=document.querySelector('.cs-sheet [name="title"]');t.focus();t.setSelectionRange(t.value.length,t.value.length);})()`);
 await call('Input.insertText',{text:' two'});
@@ -500,7 +509,7 @@ const oldMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{cr
 await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.dataset.lesson==='${lessonId}').querySelector('[data-edit]').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'A lesson with an attachment shows the card');
 await attachFile('sample.pdf');
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach .cs-meta')?.textContent.includes('Replaces the current file')`),'Choosing a file shows it as the replacement');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach .cs-meta')?.textContent.includes('replaces the current file')`),'Choosing a file shows it as the replacement');
 await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
 check(await waitFor(`!document.querySelector('.cs-sheet')`),'Saving a replacement closes the sheet');
 const newMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;

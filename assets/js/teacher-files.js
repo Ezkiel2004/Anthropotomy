@@ -1,6 +1,7 @@
 /* Teacher file lists (module materials, lesson plans): upload, list, open and delete through api/files.php.
-   TeacherFiles.mount(element, {kind, moduleId}) draws the upload form and the list into element. Needs app.js, and pdf-viewer.js to open PDFs.
-   TeacherFiles.mount(panel, {kind, moduleId, compact: true, title, onChange}) is the side-panel version for the module workspace:
+   TeacherFiles.mount(element, {kind, moduleId, context}) draws the upload form and the list into element. Needs app.js, and pdf-viewer.js to open PDFs.
+   context labels the full-screen viewer (default "Lesson plans" or "Materials").
+   TeacherFiles.mount(panel, {kind, moduleId, compact: true, title, context, onChange}) is the side-panel version for the module workspace:
    a panel header with the count and Upload (which opens a small form), rows with a first-page thumbnail, a more menu with Delete,
    and dropping files anywhere on the panel uploads them. onChange(files) runs after every load. Compact needs content-studio.js (Studio). */
 const TeacherFiles = (() => {
@@ -10,6 +11,8 @@ const TeacherFiles = (() => {
     const icon = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#${name}"/></svg>`;
     const extOf = name => String(name).split('.').pop().toLowerCase();
     const fileUrl = id => `${API_BASE}/files.php?id=${id}`;
+    const contextFor = (kind, context) => context || (kind === 'lesson_plan' ? 'Lesson plans' : 'Materials');
+    const view = (file, context) => PdfViewer.open({url: fileUrl(file.file_id), title: file.title, context});
     let uid = 0;
 
     function rows(files) {
@@ -66,7 +69,8 @@ const TeacherFiles = (() => {
     const remove = id => fetch(`${API_BASE}/files.php?id=${id}`, {method: 'DELETE', credentials: 'same-origin'}).then(r => r.json()).catch(() => null);
     const confirmDelete = () => confirmToast({title: 'Delete this file?', message: 'It is removed for good.', confirmText: 'Delete', cancelText: 'Keep'});
 
-    function mountCompact(root, {kind, moduleId = null, title = 'Materials', onChange}) {
+    function mountCompact(root, {kind, moduleId = null, title = 'Materials', context, onChange}) {
+        context = contextFor(kind, context);
         const query = `kind=${kind}` + (moduleId ? `&module_id=${moduleId}` : '');
         const n = ++uid;
         root.classList.add('tf-panel');
@@ -160,10 +164,10 @@ const TeacherFiles = (() => {
             const open = e.target.closest('[data-open]')?.dataset.open;
             const file = files.find(f => String(f.file_id) === (open || e.target.closest('[data-file-more]')?.dataset.fileMore));
             if (!file) return;
-            if (open) { PdfViewer.open({url: fileUrl(file.file_id), title: file.title}); return; }
+            if (open) { view(file, context); return; }
             const isPdf = extOf(file.original_name) === 'pdf';
             Studio.menu(e.target.closest('[data-file-more]'), [
-                isPdf ? {label: 'Open', onSelect: () => PdfViewer.open({url: fileUrl(file.file_id), title: file.title})}
+                isPdf ? {label: 'Open', onSelect: () => view(file, context)}
                     : {label: 'Download', onSelect: () => Object.assign(document.createElement('a'), {href: fileUrl(file.file_id), download: ''}).click()},
                 {label: 'Delete', danger: true, onSelect: async () => {
                     if (!await confirmDelete()) return;
@@ -180,6 +184,7 @@ const TeacherFiles = (() => {
     function mount(root, options) {
         if (options.compact) return mountCompact(root, options);
         const {kind, moduleId = null} = options;
+        const context = contextFor(kind, options.context);
         const query = `kind=${kind}` + (moduleId ? `&module_id=${moduleId}` : '');
         root.innerHTML = `
           <form class="tf-form">
@@ -222,7 +227,7 @@ const TeacherFiles = (() => {
             const open = e.target.closest('[data-open]')?.dataset.open;
             if (open) {
                 const file = files.find(f => String(f.file_id) === open);
-                if (file) PdfViewer.open({url: fileUrl(file.file_id), title: file.title});
+                if (file) view(file, context);
                 return;
             }
             const id = e.target.closest('[data-delete]')?.dataset.delete;
