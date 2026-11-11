@@ -829,6 +829,128 @@ check(await evaluate(builderFits)&&await evaluate(cardsFit)&&await evaluate(chro
 await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
+// ── Question form: other types, validation, type switches, any positive points ──
+// Builder quiz now holds: multiple choice, true or false, identification, hotspot (sternum), hotspot (skull).
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+const bank=async()=>(await api('questions.php?assessment_id='+bqId)).data;
+const openBuilder=async(title,count)=>{
+  await navigate('/teacher/assessments.html');
+  await waitFor(`${arow(title)}!==undefined`);
+  await evaluate(`${arow(title)}.querySelector('[data-questions]').click()`);
+  return waitFor(`${qcards}.length===${count}`);
+};
+const editQuestion=async n=>{await openQMenu(n);await evaluate(pick('Edit'));return waitFor(`document.querySelector('.cs-sheet h3')?.textContent==='Edit question'`);};
+const formError=`document.querySelector('.cs-sheet .cs-sheet-foot .is-error')?.textContent`;
+check(await openBuilder('Builder quiz',5),'The builder reopens on the builder quiz');
+// True or false: the form shows the saved value; switching it moves the mark.
+check(await editQuestion(1)&&await evaluate(`document.querySelector('.cs-sheet [name="question_type"]:checked').value==='true_false'&&!document.querySelector('.cs-sheet [data-for="true_false"]').hidden&&document.querySelector('.cs-sheet [name="tf"]:checked').value==='False'`),'Editing true or false shows the saved answer');
+await evaluate(`document.querySelector('.cs-sheet [name="tf"][value="True"]').click()`);
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(1)}?.querySelector('.cs-opt.ok')?.textContent.startsWith('True')`),'Saving true or false moves the correct mark');
+check((await bank())[1].options.map(o=>`${o.option_text}:${o.is_correct}`).join()==='True:true,False:false','The true or false answer is saved');
+// Identification: the form shows the term; a new term is saved as the answer and the option.
+check(await editQuestion(2)&&await evaluate(`document.querySelector('.cs-sheet [name="question_type"]:checked').value==='identification'&&document.querySelector('.cs-sheet [name="term"]').value==='Femur'`),'Editing identification shows the saved answer');
+await sheetSet('[name="term"]','Thighbone');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(2)}?.querySelector('.cs-answer').textContent.includes('Answer: Thighbone')`),'Saving identification shows the new answer');
+const savedTerm=(await bank())[2];
+check(savedTerm.hotspot_data.target_label==='Thighbone'&&savedTerm.options.length===1&&savedTerm.options[0].option_text==='Thighbone'&&savedTerm.options[0].is_correct,'The identification answer is saved');
+// Multiple choice validation: fewer than two choices, no correct choice, a blank choice marked correct, points at 0.
+await evaluate(`document.querySelector('.cs-modal .cs-btn--primary').click()`);
+await waitFor(`document.querySelector('.cs-sheet h3')?.textContent==='New question'`);
+await sheetSet('[name="question_text"]','Which bone is in the forearm?');
+await evaluate(`document.querySelectorAll('.cs-sheet [name="choice"]')[0].value='Radius'`);
+await saveForm();
+check(await waitFor(`${formError}==='Add at least two answer choices.'`),'One choice is refused');
+await evaluate(`(()=>{const c=document.querySelectorAll('.cs-sheet [name="choice"]');c[1].value='Femur';document.querySelectorAll('.cs-sheet [name="correct"]').forEach(r=>{r.checked=false;});})()`);
+await saveForm();
+check(await waitFor(`${formError}==='Mark a filled-in choice as the correct answer.'`),'No correct choice is refused');
+await evaluate(`document.querySelectorAll('.cs-sheet [name="correct"]')[3].click()`);
+await saveForm();
+check(await waitFor(`${formError}==='Mark a filled-in choice as the correct answer.'`)&&await evaluate(`document.activeElement===document.querySelectorAll('.cs-sheet [name="choice"]')[3]`),'A blank choice marked correct is refused and focused');
+await evaluate(`document.querySelectorAll('.cs-sheet [name="correct"]')[0].click()`);
+await sheetSet('[name="points"]','0');
+await saveForm();
+check(await waitFor(`${formError}==='Points must be more than 0.'`),'Points of 0 are refused');
+check((await bank()).length===5,'Nothing was saved while the form refused');
+await sheetSet('[name="points"]','0.5');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcards}.length===6&&${qcard(5)}.querySelector('.cs-q-top .cs-meta').textContent==='0.5 points'`),'Half a point is accepted');
+check((await bank())[5].points===.5&&(await bank())[5].options.map(o=>`${o.option_text}:${o.is_correct}`).join()==='Radius:true,Femur:false','The new question saves its choices and half a point');
+// Type switch on edit: the skull hotspot becomes multiple choice and its old target is cleared.
+check(await editQuestion(4)&&await evaluate(`document.querySelector('.cs-sheet [name="question_type"]:checked').value==='hotspot'`),'Editing the skull hotspot');
+await evaluate(`document.querySelector('.cs-sheet [name="question_type"][value="multiple_choice"]').click()`);
+check(await evaluate(`document.querySelector('.cs-sheet [data-for="hotspot"]').hidden&&!document.querySelector('.cs-sheet [data-for="multiple_choice"]').hidden`),'Switching to multiple choice shows the choices');
+await sheetSet('[name="question_text"]','Which bone protects the brain?');
+await evaluate(`(()=>{const c=document.querySelectorAll('.cs-sheet [name="choice"]');c[0].value='Sternum';c[1].value='Skull';document.querySelectorAll('.cs-sheet [name="correct"]')[1].click();})()`);
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(4)}?.querySelector('.cs-qtype').textContent.trim()==='Multiple choice'&&!${qcard(4)}.querySelector('.cs-hs')&&${qcard(4)}.querySelector('.cs-opt.ok').textContent.includes('Skull')`),'The switched question shows as multiple choice');
+const switched=(await bank())[4];
+const staleHotspot=switched.hotspot_data&&typeof switched.hotspot_data==='object'?Object.keys(switched.hotspot_data):[];
+check(switched.question_type==='multiple_choice'&&staleHotspot.length===0&&switched.options.map(o=>`${o.option_text}:${o.is_correct}`).join()==='Sternum:false,Skull:true','The old hotspot target is cleared and the choices saved');
+// A question worth 12 points (made through the API) edits without touching its points.
+const twelve=await addQuestion({question_type:'multiple_choice',question_text:'Worth twelve',points:12,sort_order:10,options:[{option_text:'Yes',is_correct:true},{option_text:'No',is_correct:false}]});
+check(twelve.success,'Create a question worth 12 points');
+await key('Escape');
+check(await openBuilder('Builder quiz',7),'The builder shows the 12-point question');
+check(await evaluate(`${qcard(6)}.querySelector('.cs-q-top .cs-meta').textContent==='12 points'`),'The card says 12 points');
+check(await editQuestion(6)&&await evaluate(`document.querySelector('.cs-sheet [name="points"]').value==='12'`),'The form keeps 12 points');
+await sheetSet('[name="question_text"]','Worth twelve, edited');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(6)}?.querySelector('.cs-q-text').textContent==='Worth twelve, edited'`),'A 12-point question saves a text change');
+check((await bank())[6].points===12,'Its points stay 12');
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-modal')`);
+
+// ── A first attempt arrives while the builder is open: the next write is refused and the builder locks ──
+// The student takes the quiz from another device (its own session, outside the browser).
+function apiClient(){let cookie='';return async(path,method='GET',body)=>{const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');return {status:response.status,...await response.json()};};}
+const otherDevice=apiClient();
+check((await otherDevice('auth/login.php','POST',{username:'fixture-student',password:studentPassword})).success,'The student signs in on another device');
+const takeQuiz=async id=>{const start=await otherDevice('quiz/start.php','POST',{assessment_id:id});if(!start.success)return false;return (await otherDevice('quiz/submit.php','POST',{submission_id:start.data.submission_id,answers:[],time_taken_secs:5})).success;};
+const raceQuiz=async title=>{const made=await api('assessments.php','POST',{title,system_id:testSystem.system_id,status:'active',time_limit_mins:10,passing_score:50,max_attempts:1});const id=Number(made.data?.assessment_id);const q=await api('questions.php','POST',{assessment_id:id,question_type:'multiple_choice',question_text:'Race question',points:1,options:[{option_text:'Left',is_correct:true},{option_text:'Right',is_correct:false}]});return made.success&&q.success?id:0;};
+const raceIds={edit:await raceQuiz('Race edit'),remove:await raceQuiz('Race delete'),add:await raceQuiz('Race add')};
+check(Object.values(raceIds).every(Boolean),'Create three open assessments nobody has taken');
+const raceBank=async id=>(await api('questions.php?assessment_id='+id)).data;
+const lockedNow=`document.querySelector('.cs-modal .cs-lock')&&!document.querySelector('.cs-modal [data-q-more]')&&document.querySelector('.cs-modal .cs-sheet-foot .cs-btn--primary').disabled`;
+const lockToast=`[...document.querySelectorAll('.toast')].some(t=>t.textContent.includes('its questions are locked. Duplicate it to edit.'))`;
+// Edit: the form is open when the attempt lands; Save is refused.
+check(await openBuilder('Race edit',1)&&await evaluate(`!document.querySelector('.cs-modal .cs-lock')`),'The builder opens unlocked');
+check(await editQuestion(0),'Edit opens before anyone has taken it');
+await sheetSet('[name="question_text"]','Changed after an attempt');
+check(await takeQuiz(raceIds.edit),'A student takes it while the form is open');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${lockedNow}`),'Saving the edit locks the builder and shows the lock note');
+check(await waitFor(lockToast),'A toast says the questions are locked');
+check((await raceBank(raceIds.edit))[0].question_text==='Race question'&&await evaluate(`${qcard(0)}.querySelector('.cs-q-text').textContent==='Race question'`),'The question is unchanged');
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-modal')`);
+// Delete: the attempt lands while the builder is open; Delete is refused.
+check(await openBuilder('Race delete',1),'A second builder opens unlocked');
+check(await takeQuiz(raceIds.remove),'A student takes it while the builder is open');
+await openQMenu(0);
+await evaluate(pick('Delete'));
+await confirmShows('Delete this question?');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(lockedNow)&&await waitFor(lockToast),'Deleting locks the builder and shows the lock note');
+check((await raceBank(raceIds.remove)).length===1&&await evaluate(`${qcards}.length===1`),'The question is kept');
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-modal')`);
+// Add: the new-question form is open when the attempt lands; Add is refused.
+check(await openBuilder('Race add',1),'A third builder opens unlocked');
+await evaluate(`document.querySelector('.cs-modal .cs-btn--primary').click()`);
+await waitFor(`document.querySelector('.cs-sheet h3')?.textContent==='New question'`);
+await sheetSet('[name="question_text"]','Added after an attempt');
+await evaluate(`(()=>{const c=document.querySelectorAll('.cs-sheet [name="choice"]');c[0].value='Up';c[1].value='Down';})()`);
+check(await takeQuiz(raceIds.add),'A student takes it while the new-question form is open');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${lockedNow}`)&&await waitFor(lockToast),'Adding locks the builder and shows the lock note');
+check((await raceBank(raceIds.add)).length===1&&await evaluate(`${qcards}.length===1`),'No question is added');
+check(await evaluate(`document.querySelector('.cs-modal .cs-lock button').textContent.trim()==='Duplicate to edit'`),'The locked builder offers Duplicate to edit');
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-modal')`);
+await call('Emulation.clearDeviceMetricsOverride');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();

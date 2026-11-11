@@ -355,7 +355,7 @@ const QuestionBuilder = (() => {
         <span class="cs-hint">A click counts when it lands within the tolerance of the target, measured as a share of the picture’s width.</span>
       </div>
       <div class="cs-field cs-field--points"><label for="qfPoints">Points</label>
-        <input class="cs-input" type="number" id="qfPoints" name="points" min="1" max="10" step="any" inputmode="decimal" value="${editing ? number(question.points) : 1}"/></div>`;
+        <input class="cs-input" type="number" id="qfPoints" name="points" min="0" step="any" inputmode="decimal" value="${editing ? number(question.points) : 1}"/></div>`;
 
     const foot = document.createElement('div');
     foot.className = 'cs-afoot';
@@ -433,8 +433,9 @@ const QuestionBuilder = (() => {
       const kind = selected();
       const text = fields.question_text.value.trim();
       if (!text) return fail('Write the question.', fields.question_text);
+      // Any positive number, as the API accepts: older questions can be worth 0.5 or 12.
       const worth = Number(fields.points.value);
-      if (!filled(fields.points.value) || worth < 1 || worth > 10) return fail('Points must be from 1 to 10.', fields.points);
+      if (!filled(fields.points.value) || !(worth > 0)) return fail('Points must be more than 0.', fields.points);
 
       let options = [];
       // On an edit, a type that no longer uses them clears the old answer term or target.
