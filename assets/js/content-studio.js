@@ -101,8 +101,13 @@ const Studio = (() => {
   // A side editor (size 'side') or a centred one (size 'center'); full screen below 640 px. Escape,
   // the scrim and Close all call close(), which asks before discarding unsaved changes. Typing in
   // any field marks it dirty; setDirty(false) after a save lets close() go without asking.
+  // Sheets stack (the question form opens over the question builder): only the top one takes keys.
+  // onClose runs once the sheet is gone and focus is back on the opener.
   const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-  function sheet({ eyebrow = '', title = '', body, footer, size = 'side' }) {
+  const stack = [];
+  function sheet({ eyebrow = '', title = '', body, footer, size = 'side', onClose }) {
+    const self = {};
+    stack.push(self);
     const opener = document.activeElement;
     const titleId = 'cs-sheet-title-' + (++uid);
     const scrim = document.createElement('div');
@@ -130,7 +135,7 @@ const Studio = (() => {
     root.addEventListener('change', markDirty);
     const focusables = () => [...root.querySelectorAll(FOCUSABLE)].filter(el => el.getClientRects().length);
     const onKey = event => {
-      if (closed || event.defaultPrevented || document.querySelector('dialog[open]')) return;
+      if (closed || stack.at(-1) !== self || event.defaultPrevented || document.querySelector('dialog[open]')) return;
       if (event.key === 'Escape') { event.preventDefault(); close(); return; }
       if (event.key !== 'Tab') return;
       const list = focusables();
@@ -145,12 +150,14 @@ const Studio = (() => {
 
     function teardown() {
       closed = true;
+      stack.splice(stack.indexOf(self), 1);
       document.removeEventListener('keydown', onKey);
       scrim.remove();
       root.remove();
       behind.forEach(el => { el.inert = false; });
       document.body.style.overflow = overflow;
       if (opener && opener.isConnected && typeof opener.focus === 'function') opener.focus({ preventScroll: true });
+      onClose?.();
     }
     function close() {
       if (closed) return Promise.resolve(true);

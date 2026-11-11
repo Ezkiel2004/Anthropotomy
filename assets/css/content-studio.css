@@ -246,6 +246,74 @@ body.stage-portal input[type="datetime-local"].cs-input { color-scheme: dark; }
 .cs-anymix .cs-meta { display: block; margin-top: .25rem; line-height: 1.5; }
 .cs-anymix .cs-qmix { margin-top: .625rem; }
 
+/* Question builder (assets/js/question-builder.js): a centred sheet with a stats line, the lock note
+   and one card per question with its answer showing. Values from mockup/after.css. */
+.cs-qhead { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+.cs-qhead > div { display: flex; flex-direction: column; gap: .1875rem; }
+.cs-qhead b { font-size: 1.125rem; font-weight: 700; }
+.cs-qstat--open { color: var(--cs-mint); }
+.cs-qstat--draft { color: var(--cs-amber); }
+.cs-qstat--closed { color: var(--cs-muted); }
+.cs-lock { display: flex; gap: .625rem; align-items: center; flex-wrap: wrap; font-size: .8125rem; color: var(--cs-soft); background: color-mix(in srgb, var(--cs-sky) 10%, var(--cs-s2)); border-radius: var(--cs-r-sm); padding: .75rem .875rem; }
+.cs-lock .cs-ico { color: var(--cs-sky); }
+.cs-lock > span { flex: 1 1 16rem; min-width: 0; line-height: 1.45; }
+.cs-lock-btn { margin-left: auto; padding: .375rem .5rem; border: 0; border-radius: var(--cs-r-xs); background: none; color: var(--cs-ink); font: 600 .8125rem/1.2 var(--font-body); white-space: nowrap; cursor: pointer; }
+.cs-lock-btn:hover { background: color-mix(in srgb, var(--cs-sky) 14%, var(--cs-s2)); }
+.cs-lock-btn:focus-visible { outline: none; box-shadow: var(--cs-focus); }
+.cs-qlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .875rem; }
+.cs-q { background: var(--cs-s2); border-radius: var(--cs-r); padding: 1rem 1.125rem 1.125rem; display: flex; flex-direction: column; gap: .75rem; box-shadow: var(--cs-top); min-width: 0; }
+.cs-q-top { display: flex; align-items: center; gap: .625rem; min-height: 2.25rem; }
+.cs-q-n { position: relative; width: 1.75rem; height: 1.75rem; border-radius: .5rem; background: var(--cs-s4); display: grid; place-items: center; flex: none; font-size: .75rem; font-weight: 700; }
+.cs-qtype { display: inline-flex; gap: .375rem; align-items: center; font-size: .75rem; font-weight: 600; color: var(--t); min-width: 0; }
+.cs-q-top .cs-meta { margin-left: auto; white-space: nowrap; }
+.cs-q-top .cs-icon-btn { margin: -.25rem -.375rem -.25rem 0; }
+.cs-q-text { font-size: 1rem; font-weight: 600; margin: 0; line-height: 1.4; white-space: pre-line; overflow-wrap: anywhere; }
+.cs-opts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.cs-opt { display: flex; align-items: center; gap: .625rem; padding: .625rem .75rem; border-radius: .625rem; background: var(--cs-s1); font-size: .875rem; color: var(--cs-soft); min-width: 0; }
+.cs-opt > span { min-width: 0; overflow-wrap: anywhere; }
+.cs-opt i { width: 1rem; height: 1rem; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cs-faint); flex: none; }
+.cs-opt.ok { color: var(--cs-ink); background: color-mix(in srgb, var(--cs-mint) 11%, var(--cs-s1)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-mint) 45%, transparent); }
+.cs-opt.ok .cs-ico { width: 1rem; height: 1rem; color: var(--cs-mint); }
+.cs-opt.ok em { margin-left: auto; padding-left: .5rem; font-style: normal; font-size: .6875rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--cs-mint); }
+.cs-hs { display: flex; gap: 1rem; align-items: center; min-width: 0; }
+.cs-hs .cs-row-copy { gap: .5rem; align-items: flex-start; }
+/* The figure wraps the picture exactly, so the ring's percentages are of the picture itself. */
+.cs-hs figure { margin: 0; position: relative; border-radius: .625rem; background: #f2f2f2; overflow: hidden; flex: none; }
+.cs-hs figure img { display: block; max-width: 7rem; max-height: 8rem; width: auto; height: auto; }
+.cs-hs figure b, .cs-hs-pick b { position: absolute; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 2px var(--cs-mint), 0 0 0 999px rgba(0,0,0,.18); background: color-mix(in srgb, var(--cs-mint) 25%, transparent); transform: translate(-50%, -50%); pointer-events: none; }
+.cs-hs-missing { display: none; }
+.cs-hs figure.is-missing { width: 7rem; height: 8rem; background: var(--cs-s3); }
+.cs-hs figure.is-missing img { display: none; }
+.cs-hs figure.is-missing b { box-shadow: 0 0 0 2px var(--cs-mint); }   /* no dimming over an empty box */
+.cs-hs figure.is-missing .cs-hs-missing { position: absolute; inset: 0; display: grid; place-items: start center; padding: .625rem .5rem; font-size: .75rem; line-height: 1.3; color: var(--cs-muted); text-align: center; }
+.cs-answer { display: inline-flex; align-items: center; gap: .5rem; align-self: flex-start; max-width: 100%; font-size: .875rem; padding: .5rem .75rem; border-radius: .625rem; background: color-mix(in srgb, var(--cs-mint) 11%, var(--cs-s1)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-mint) 45%, transparent); }
+.cs-answer > span { min-width: 0; overflow-wrap: anywhere; }
+.cs-answer .cs-ico { color: var(--cs-mint); }
+.cs-qempty { display: flex; flex-direction: column; align-items: center; gap: .625rem; padding: 2.5rem 1.5rem; border-radius: var(--cs-r); background: var(--cs-s2); text-align: center; }
+.cs-qempty p { margin: 0; max-width: 30rem; color: var(--cs-muted); font-size: .875rem; line-height: 1.5; }
+.cs-modal .cs-sheet-head h3:focus { outline: none; }   /* focus lands here after Duplicate to edit; it is not a control */
+
+/* Question form: a side sheet over the builder. Only the chosen type's fields show. */
+.cs-qform [hidden] { display: none; }
+.cs-qform-hs { display: flex; flex-direction: column; gap: 1.25rem; }
+body.stage-portal textarea.cs-input--question { min-height: 5.5rem; font-size: .9375rem; font-weight: 500; }
+.cs-types--4 { grid-template-columns: repeat(4, 1fr); }
+.cs-choices { display: flex; flex-direction: column; gap: .5rem; }
+.cs-choice { display: flex; align-items: center; gap: .375rem; }
+.cs-choice > .cs-input { flex: 1; min-width: 0; }
+.cs-choice-ok { position: relative; flex: none; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border-radius: var(--cs-r-sm); cursor: pointer; }
+.cs-choice-ok input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.cs-choice-ok i { width: 1.125rem; height: 1.125rem; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--cs-faint); }
+.cs-choice-ok:hover i { box-shadow: inset 0 0 0 1.5px var(--cs-soft); }
+.cs-choice-ok:has(input:checked) i { background: var(--cs-mint); box-shadow: inset 0 0 0 1.5px var(--cs-mint), inset 0 0 0 4.5px var(--cs-s1); }
+.cs-choice-ok:has(input:focus-visible) { box-shadow: var(--cs-focus); }
+.cs-choice:has(.cs-choice-ok input:checked) > .cs-input:not(:focus) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cs-mint) 45%, transparent); }
+.cs-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+body.stage-portal .cs-unit--pct .cs-input { padding-right: 2rem; }
+.cs-hs-pick { position: relative; align-self: flex-start; max-width: 100%; margin: 0; border-radius: .625rem; overflow: hidden; background: #f2f2f2; }
+.cs-hs-pick img { display: block; max-width: 100%; max-height: 20rem; width: auto; height: auto; cursor: crosshair; }
+.cs-field--points { max-width: 10rem; }
+
 /* More menu (Studio.menu) */
 .cs-menu { position: fixed; z-index: 2050; min-width: 12rem; max-width: calc(100vw - 1rem); padding: .375rem; border-radius: var(--cs-r-sm); background: var(--cs-s3); color: var(--cs-ink); box-shadow: 0 18px 44px -12px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06); font-family: var(--font-body); }
 .cs-menu-item { display: flex; align-items: center; gap: .625rem; width: 100%; padding: .625rem .75rem; border: 0; border-radius: var(--cs-r-xs); background: transparent; color: var(--cs-soft); font: 600 .875rem/1.2 var(--font-body); text-align: left; cursor: pointer; white-space: nowrap; }
@@ -353,7 +421,15 @@ body.stage-portal .toast { z-index: 2100; }
   body.stage-portal .cs-toolbar--assess .cs-select select { flex: 1; }
   /* The assessment sheet's long button: the note takes its own line, the two buttons share the next. */
   .cs-afoot > .cs-meta { flex-basis: 100%; }
+  .cs-afoot > .cs-meta:empty { display: none; }
   .cs-afoot > .cs-btn { flex: 1; justify-content: center; }
+  /* Question builder: options in one column, two type tiles a row, tighter cards. */
+  .cs-qhead { gap: .75rem 1.25rem; }
+  .cs-q { padding: .875rem .875rem 1rem; }
+  .cs-opts { grid-template-columns: minmax(0, 1fr); }
+  .cs-types--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cs-three { gap: .625rem; }
+  .cs-lock-btn { margin-left: calc(1.125rem + .625rem); padding-left: 0; padding-right: 0; }   /* under the note text */
   .cs-head .cs-actions { width: 100%; }
   .cs-head .cs-actions .cs-btn--primary { flex: 1; justify-content: center; }
   .cs-sheet, .cs-modal { inset: 0; top: 0; right: 0; bottom: 0; left: 0; width: auto; max-height: none; transform: none; border-radius: 0; }

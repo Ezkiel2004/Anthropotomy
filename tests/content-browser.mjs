@@ -637,8 +637,10 @@ await navigate('/teacher/assessments.html');
 check(await waitFor(`document.querySelectorAll('.cs-arow').length>0`),'Rows render with a quoted title');
 check(await evaluate(`!document.querySelector('[data-pwned]')&&!document.querySelector('.cs-arow [onclick]')&&${arow(`x" data-pwned="1 ');window.__pwned=1;//`)}.querySelector('.cs-eyebrow').textContent==='All body systems'`),'A quoted title stays text and a row with no body system says All body systems');
 await evaluate(`${arow(`x" data-pwned="1 ');window.__pwned=1;//`)}.querySelector('.cs-aend .cs-btn').click()`);
-check(await waitFor(`getComputedStyle(document.getElementById('questionBuilderModal')).display!=='none'`)&&await evaluate(`window.__pwned===undefined`),'Questions opens the builder without running the title');
-await evaluate(`closeModal('questionBuilderModal')`);
+check(await waitFor(`document.querySelector('.cs-modal[role="dialog"]')`)&&await evaluate(`window.__pwned===undefined`),'Questions opens the builder without running the title');
+check(await evaluate(`!document.querySelector('[data-pwned]')&&document.querySelector('.cs-modal h3').textContent===${JSON.stringify(`x" data-pwned="1 ');window.__pwned=1;//`)}`),'The builder shows a quoted title as text');
+await evaluate(`document.querySelector('.cs-modal [data-sheet-close]').click()`);
+check(await waitFor(`!document.querySelector('.cs-modal')`),'Close shuts the builder');
 check((await api('assessments.php?id='+Number(quoted.data.assessment_id),'DELETE')).success,'Remove the quoted-title assessment');
 // New assessment: no type to pick; Create and add questions saves a draft and opens the builder on it.
 await navigate('/teacher/assessments.html');
@@ -651,11 +653,12 @@ check(await evaluate(`document.querySelector('.cs-sheet').textContent.includes('
 check(await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').textContent.trim()==='Create and add questions'`),'The button reads Create and add questions');
 await sheetSet('[name="title"]','Sheet quiz');
 await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
-check(await waitFor(`!document.querySelector('.cs-sheet')&&getComputedStyle(document.getElementById('questionBuilderModal')).display!=='none'`),'Create and add questions opens the question builder');
-check(await waitFor(`document.getElementById('builderModalBody').textContent.includes('No questions in this assessment yet')&&document.getElementById('builderModalTitle').textContent.includes('Sheet quiz')`),'The builder opens on the new, empty assessment');
+check(await waitFor(`!document.querySelector('.cs-sheet')&&document.querySelector('.cs-modal[role="dialog"]')`),'Create and add questions opens the question builder');
+check(await waitFor(`document.querySelector('.cs-modal .cs-sheet-body').textContent.includes('No questions yet')&&document.querySelector('.cs-modal h3').textContent==='Sheet quiz'`),'The builder opens on the new, empty assessment');
+check(await evaluate(`(()=>{const p=[...document.querySelectorAll('.cs-modal .cs-btn--primary')];return p.length===1&&p[0].textContent.trim()==='Add question'&&!p[0].disabled;})()`),'An empty builder offers Add question');
 const sheetQuiz=(await api('assessments.php')).data.find(a=>a.title==='Sheet quiz');
 check(sheetQuiz&&sheetQuiz.status==='draft'&&sheetQuiz.question_count===0,'The new assessment is a draft with no questions');
-await evaluate(`closeModal('questionBuilderModal')`);
+await evaluate(`document.querySelector('.cs-modal [data-sheet-close]').click()`);
 check(await waitFor(`${arow('Sheet quiz')}?.closest('.cs-agroup').querySelector('.cs-h2').textContent==='Drafts'`),'The new draft is listed under Drafts');
 // Phone width: rows stack into cards, nothing scrolls sideways, the sheet is full screen.
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
@@ -668,6 +671,161 @@ check(await evaluate(`getComputedStyle(document.getElementById('assessSystemFilt
 await evaluate(`document.getElementById('newAssessmentBtn').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet')&&document.querySelector('.cs-sheet').getAnimations().length===0`),'The assessment sheet opens at 390px');
 check(await evaluate(`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect();const b=document.querySelector('.cs-sheet-body');return s.width===innerWidth&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`),'The assessment sheet is full screen with no sideways scroll at 390px');
+await key('Escape');
+await call('Emulation.clearDeviceMetricsOverride');
+
+// ── Question builder ────────────────────────────────────────────
+// "Builder quiz": a draft nobody has taken with one question of each type. "Test quiz" has attempts, so it is locked.
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+await navigate('/teacher/assessments.html');
+const builderQuiz=await api('assessments.php','POST',{title:'Builder quiz',system_id:testSystem.system_id,status:'draft',time_limit_mins:15,passing_score:70,max_attempts:2});
+const bqId=Number(builderQuiz.data?.assessment_id);
+const addQuestion=body=>api('questions.php','POST',{assessment_id:bqId,points:1,...body});
+const bqMade=[
+  await addQuestion({question_type:'multiple_choice',question_text:'Which bone protects the brain?',options:[{option_text:'Sternum',is_correct:false},{option_text:'Pelvis',is_correct:false},{option_text:'Skull',is_correct:true},{option_text:'Scapula',is_correct:false}]}),
+  await addQuestion({question_type:'true_false',question_text:'The sternum is part of the appendicular skeleton.',options:[{option_text:'True',is_correct:false,sort_order:1},{option_text:'False',is_correct:true,sort_order:2}]}),
+  await addQuestion({question_type:'identification',question_text:'The thigh bone, the longest bone in the body',hotspot_data:{target_label:'Femur'},options:[{option_text:'Femur',is_correct:true}]}),
+  await addQuestion({question_type:'hotspot',question_text:'Click the sternum',points:2,hotspot_data:{target_label:'Sternum',image_url:'../assets/img/hero/skeletal.webp',x:.46,y:.58,radius:.07}}),
+];
+check(builderQuiz.success&&bqMade.every(r=>r.success),'Create an assessment nobody has taken with one question of each type');
+await navigate('/teacher/assessments.html');
+check(await waitFor(`${arow('Builder quiz')}!==undefined`),'The builder quiz is listed');
+check(await evaluate(`!document.getElementById('questionBuilderModal')&&!document.getElementById('addQuestionModal')&&!document.getElementById('addQuestionForm')&&typeof QuestionBuilder==='object'&&typeof openQuestionBuilder==='function'&&typeof openQuestionForm==='function'`),'The old builder and add-question modals are gone');
+const qcards=`[...document.querySelectorAll('.cs-modal .cs-q')]`;
+const qcard=n=>`${qcards}[${n}]`;
+const openQMenu=async n=>{await evaluate(`${qcard(n)}.querySelector('[data-q-more]').click()`);return waitFor(`document.querySelector('.cs-menu[role="menu"]')`);};
+// The builder's footer is a .cs-sheet-foot too, so the form's controls are looked up inside .cs-sheet.
+const saveForm=()=>evaluate(`document.querySelector('.cs-sheet .cs-sheet-foot .cs-btn--primary').click()`);
+const clickPicture=(fx,fy)=>evaluate(`(()=>{const i=document.querySelector('.cs-sheet .cs-hs-pick img'),r=i.getBoundingClientRect();i.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:r.left+r.width*${fx},clientY:r.top+r.height*${fy}}));})()`);
+const pictureLoaded=scope=>`(()=>{const i=document.querySelector('${scope} img');return Boolean(i&&i.complete&&i.naturalWidth>0);})()`;
+await evaluate(`${arow('Builder quiz')}.querySelector('[data-questions]').click()`);
+check(await waitFor(`document.querySelector('.cs-modal[role="dialog"]')&&${qcards}.length===4`),'Questions opens the builder with every question');
+check(await evaluate(`document.activeElement.closest('.cs-modal')!==null`),'Focus moves into the builder');
+check(await evaluate(`document.querySelector('.cs-modal .cs-sheet-head .cs-eyebrow').textContent==='Test System'&&document.querySelector('.cs-modal h3').textContent==='Builder quiz'`),'The header shows the body system and the title');
+check(JSON.stringify(await evaluate(`[...document.querySelectorAll('.cs-modal .cs-qhead > div')].map(d=>[d.querySelector('.cs-meta').textContent,d.querySelector('b').textContent])`))===JSON.stringify([['Questions','4'],['Points','5'],['Time','15 min'],['Pass mark','70%'],['Status','Draft']]),'The header shows questions, points, time, pass mark and status');
+check(await evaluate(`!document.querySelector('.cs-modal .cs-lock')`),'An assessment nobody has taken is not locked');
+check(JSON.stringify(await evaluate(`${qcards}.map(q=>q.querySelector('.cs-qtype').textContent.trim())`))===JSON.stringify(['Multiple choice','True or false','Identification','Hotspot']),'Each question shows its type label');
+check(await evaluate(`${qcards}.map(q=>q.querySelector('.cs-qtype use').getAttribute('href').split('#')[1]).join()==='list-checks,toggle-left,textbox,crosshair'`),'Each type label has its icon');
+check(await evaluate(`!/multiple_choice|true_false|\\bidentification\\b|\\bhotspot\\b|\\[Correct\\]|Type:/.test(document.querySelector('.cs-modal').textContent)`),'No raw type names and no [Correct]');
+check(await evaluate(`(()=>{const q=${qcard(0)},ok=q.querySelectorAll('.cs-opt.ok');return q.querySelectorAll('.cs-opt').length===4&&ok.length===1&&ok[0].textContent.includes('Skull')&&ok[0].textContent.includes('Correct')&&ok[0].querySelector('use').getAttribute('href').endsWith('#check-circle');})()`),'Multiple choice shows every option with the correct one marked');
+check(await evaluate(`(()=>{const q=${qcard(1)};return q.querySelectorAll('.cs-opt').length===2&&q.querySelectorAll('.cs-opt.ok').length===1&&q.querySelector('.cs-opt.ok').textContent.startsWith('False');})()`),'True or false marks the correct value');
+check(await evaluate(`${qcard(2)}.querySelector('.cs-answer').textContent.includes('Answer: Femur')`),'Identification shows Answer: Femur');
+check(await waitFor(pictureLoaded('.cs-modal .cs-q:nth-child(4) .cs-hs')),'The hotspot picture loads');
+check(await evaluate(`(()=>{const q=${qcard(3)},f=q.querySelector('.cs-hs figure').getBoundingClientRect(),b=q.querySelector('.cs-hs figure b').getBoundingClientRect();const cx=(b.left+b.width/2-f.left)/f.width,cy=(b.top+b.height/2-f.top)/f.height;return Math.abs(b.width/f.width-.14)<.01&&Math.abs(cx-.46)<.01&&Math.abs(cy-.58)<.01;})()`),'The hotspot ring sits on the target, twice the tolerance across');
+check(await evaluate(`${qcard(3)}.textContent.includes('Target: Sternum')&&${qcard(3)}.textContent.includes('Tolerance 7% of the picture')`),'The hotspot names its target and tolerance');
+check(await evaluate(`${qcards}.map(q=>q.querySelector('.cs-q-top .cs-meta').textContent).join()==='1 point,1 point,1 point,2 points'`),'Each question shows its points');
+check(await evaluate(headingsInOrder),'Headings stay sequential with the builder open');
+check(await evaluate(`(()=>{const p=[...document.querySelectorAll('.cs-modal .cs-btn--primary')];return p.length===1&&p[0].textContent.trim()==='Add question'&&!p[0].disabled;})()`),'One primary button in the builder: Add question');
+// Edit: the form opens over the builder, filled in; Escape closes only the form.
+await openQMenu(0);
+check(JSON.stringify(await evaluate(menuItems))===JSON.stringify(['Edit','Duplicate','Delete']),'A question menu offers Edit, Duplicate and Delete');
+await evaluate(pick('Edit'));
+check(await waitFor(`document.querySelector('.cs-sheet h3')?.textContent==='Edit question'`),'Edit opens the question form');
+check(await evaluate(`(()=>{const f=document.querySelector('.cs-sheet form');return f.elements.question_text.value==='Which bone protects the brain?'&&f.querySelector('[name="question_type"]:checked').value==='multiple_choice'&&[...f.querySelectorAll('[name="choice"]')].slice(0,4).map(i=>i.value).join()==='Sternum,Pelvis,Skull,Scapula'&&f.querySelector('[name="correct"]:checked').value==='2'&&f.elements.points.value==='1';})()`),'The form is filled in with the question, its options and the correct one');
+check(await evaluate(`document.querySelector('.cs-modal')?.inert===true`),'The builder waits behind the form');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.cs-sheet')&&document.querySelector('.cs-modal')&&!document.querySelector('.cs-modal').inert`),'Escape closes only the form');
+check(await waitFor(`document.activeElement===${qcard(0)}.querySelector('[data-q-more]')`),'Focus returns to the question menu button');
+await openQMenu(0);
+await evaluate(pick('Edit'));
+await waitFor(`document.querySelector('.cs-sheet form')`);
+await sheetSet('[name="question_text"]','Which bone protects the brain and eyes?');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(0)}?.querySelector('.cs-q-text').textContent==='Which bone protects the brain and eyes?'`),'Saving an edit updates the card');
+check(await waitFor(`[...document.querySelectorAll('.toast')].some(t=>t.textContent==='Question saved.')`),'A toast says Question saved.');
+check(await evaluate(`${qcards}.length===4&&${qcard(0)}.querySelector('.cs-opt.ok').textContent.includes('Skull')`),'The edit keeps the options and the correct answer');
+check((await api('questions.php?assessment_id='+bqId)).data[0].question_text==='Which bone protects the brain and eyes?','The edit is saved');
+check(await waitFor(`document.activeElement===${qcard(0)}.querySelector('[data-q-more]')`),'Focus returns to the edited question');
+// Hotspot editor: picture, click to set the target, tolerance.
+await openQMenu(3);
+await evaluate(pick('Edit'));
+check(await waitFor(`document.querySelector('.cs-sheet [name="image_url"]')?.value==='../assets/img/hero/skeletal.webp'`),'Editing a hotspot fills in its picture address');
+check(await evaluate(`(()=>{const f=document.querySelector('.cs-sheet form');return f.querySelector('[name="question_type"]:checked').value==='hotspot'&&f.elements.target_label.value==='Sternum'&&f.elements.target_x.value==='46'&&f.elements.target_y.value==='58'&&f.elements.tolerance.value==='7'&&f.elements.points.value==='2';})()`),'The hotspot form shows the target, where it is and the tolerance');
+check(await waitFor(`${pictureLoaded('.cs-sheet .cs-hs-pick')}&&document.querySelector('.cs-sheet .cs-hs-pick b')!==null`),'The form shows the picture with the target ring');
+await clickPicture(.25,.75);
+check(await evaluate(`(()=>{const f=document.querySelector('.cs-sheet form');return Math.abs(f.elements.target_x.value-25)<1&&Math.abs(f.elements.target_y.value-75)<1&&document.querySelector('.cs-sheet .cs-hs-pick b').style.left.startsWith('25');})()`),'Clicking the picture moves the target');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcard(3)}?.querySelector('.cs-hs figure b').style.left.startsWith('25')`),'Saving moves the ring on the card');
+const savedHotspot=(await api('questions.php?assessment_id='+bqId)).data[3].hotspot_data;
+check(Math.abs(savedHotspot.x-.25)<.01&&Math.abs(savedHotspot.y-.75)<.01&&Math.abs(savedHotspot.radius-.07)<.001&&savedHotspot.target_label==='Sternum','The new target is saved');
+// Duplicate and Delete ask first.
+await openQMenu(1);
+await evaluate(pick('Duplicate'));
+check(await confirmShows('Duplicate this question?'),'Duplicating a question asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`${qcards}.length===5&&${qcard(4)}.querySelector('.cs-q-text').textContent==='The sternum is part of the appendicular skeleton.'&&${qcard(4)}.querySelector('.cs-opt.ok').textContent.startsWith('False')`),'Duplicate adds a copy at the end');
+await openQMenu(4);
+await evaluate(pick('Delete'));
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Delete this question?')&&document.querySelector('dialog.toast-confirm .toast-confirm__go').textContent==='Delete'`),'Deleting a question asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')`)&&await evaluate(`${qcards}.length===5`),'Cancel keeps the question');
+await openQMenu(4);
+await evaluate(pick('Delete'));
+await confirmShows('Delete this question?');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`${qcards}.length===4`),'Delete removes the question');
+check((await api('questions.php?assessment_id='+bqId)).data.length===4,'The question is deleted');
+// Add a hotspot through the form.
+await evaluate(`document.querySelector('.cs-modal .cs-btn--primary').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet h3')?.textContent==='New question'`),'Add question opens an empty form');
+check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].map(t=>t.textContent.trim()).join('|')==='Multiple choice|True or false|Identification|Hotspot'&&document.querySelector('.cs-sheet [name="question_type"]:checked').value==='multiple_choice'`),'The form offers the four question types, multiple choice first');
+await evaluate(`document.querySelector('.cs-sheet [name="question_type"][value="hotspot"]').click()`);
+check(await evaluate(`!document.querySelector('.cs-sheet [data-for="hotspot"]').hidden&&document.querySelector('.cs-sheet [data-for="multiple_choice"]').hidden`),'Picking Hotspot shows the picture fields');
+await sheetSet('[name="question_text"]','Click the skull');
+await sheetSet('[name="target_label"]','Skull');
+await evaluate(`(()=>{const i=document.querySelector('.cs-sheet [name="image_url"]');i.value='../assets/img/hero/skeletal.webp';i.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+check(await waitFor(pictureLoaded('.cs-sheet .cs-hs-pick')),'The picture previews from its address');
+await saveForm();
+check(await waitFor(`document.querySelector('.cs-sheet .cs-sheet-foot .is-error')?.textContent==='Click the picture to set the target.'`),'Saving without a target asks for one');
+await clickPicture(.5,.15);
+await sheetSet('[name="tolerance"]','5');
+await saveForm();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${qcards}.length===5&&${qcard(4)}.querySelector('.cs-qtype').textContent.trim()==='Hotspot'&&${qcard(4)}.textContent.includes('Target: Skull')&&${qcard(4)}.textContent.includes('Tolerance 5% of the picture')`),'A hotspot added in the form shows on its card');
+check(await waitFor(`[...document.querySelectorAll('.toast')].some(t=>t.textContent==='Question added.')`),'A toast says Question added.');
+await evaluate(`document.querySelector('.cs-modal [data-sheet-close]').click()`);
+check(await waitFor(`!document.querySelector('.cs-modal')&&${arow('Builder quiz')}?.querySelector('.cs-qtotal').textContent==='5 questions'`),'Closing the builder shows the new count on the row');
+check(await waitFor(`document.activeElement===${arow('Builder quiz')}.querySelector('[data-questions]')`),'Focus returns to the row Questions button');
+// Locked: Test quiz has attempts.
+await evaluate(`${arow('Test quiz')}.querySelector('[data-questions]').click()`);
+check(await waitFor(`document.querySelector('.cs-modal .cs-lock')&&${qcards}.length===3`),'An assessment with attempts opens locked');
+check(await evaluate(`document.querySelector('.cs-modal .cs-lock').textContent.includes('its questions are locked to keep past results fair')&&document.querySelector('.cs-modal .cs-lock button').textContent.trim()==='Duplicate to edit'`),'The lock note explains and offers Duplicate to edit');
+check(await evaluate(`!document.querySelector('.cs-modal [data-q-more]')&&![...document.querySelectorAll('.cs-modal button')].some(b=>/^(Edit|Delete)$/.test(b.textContent.trim()))`),'Locked questions offer no Edit or Delete');
+check(await evaluate(`document.querySelector('.cs-modal .cs-sheet-foot .cs-btn--primary').disabled`),'Add question is unavailable while locked');
+check(await evaluate(`(()=>{const t=document.querySelector('.cs-modal').textContent;return t.includes('Answer: SecretTerm')&&t.includes('Tolerance 5% of the picture')&&document.querySelector('.cs-modal .cs-opt.ok').textContent.includes('Correct fixture option');})()`),'Locked questions still show their answers');
+check(await waitFor(`document.querySelector('.cs-modal .cs-hs figure.is-missing b')`),'A picture that does not load still shows the target ring');
+check(await evaluate(`document.querySelector('.cs-modal .cs-qhead').textContent.includes('Open')`),'The header says Open');
+const idsBefore=(await api('assessments.php')).data.map(a=>a.assessment_id);
+await evaluate(`document.querySelector('.cs-modal .cs-lock button').click()`);
+check(await waitFor(`document.querySelector('.cs-modal h3')?.textContent==='Test quiz (copy)'&&!document.querySelector('.cs-modal .cs-lock')&&${qcards}.length===3`),'Duplicate to edit opens the builder on the copy');
+const lockedCopies=(await api('assessments.php')).data.filter(a=>!idsBefore.includes(a.assessment_id));
+check(lockedCopies.length===1&&lockedCopies[0].title==='Test quiz (copy)'&&lockedCopies[0].status==='draft'&&lockedCopies[0].question_count===3&&lockedCopies[0].submission_count===0,'The copy is a new draft with every question and no attempts');
+check(await evaluate(`document.querySelectorAll('.cs-modal [data-q-more]').length===3&&!document.querySelector('.cs-modal .cs-sheet-foot .cs-btn--primary').disabled&&document.querySelector('.cs-modal .cs-qhead').textContent.includes('Draft')&&document.querySelector('.cs-modal .cs-sheet-head .cs-eyebrow').textContent==='Test System'`),'The copy can be edited');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.cs-modal')&&document.querySelector('.cs-arow[data-id="${lockedCopies[0].assessment_id}"]')?.closest('.cs-agroup').querySelector('.cs-h2').textContent==='Drafts'`),'The copy is listed under Drafts');
+// Phone width: the builder and the form are full screen and nothing scrolls sideways.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await navigate('/teacher/assessments.html');
+await waitFor(`${arow('Builder quiz')}!==undefined`);
+await evaluate(`${arow('Builder quiz')}.querySelector('[data-questions]').click()`);
+check(await waitFor(`${qcards}.length===5`),'The builder opens at 390px');
+const builderFits=`(()=>{const m=document.querySelector('.cs-modal').getBoundingClientRect(),b=document.querySelector('.cs-modal .cs-sheet-body');return m.width===innerWidth&&m.height===innerHeight&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`;
+const cardsFit=`${qcards}.every(q=>[...q.querySelectorAll('.cs-q-top > *, .cs-q-text, .cs-opt, .cs-hs, .cs-hs > *, .cs-answer')].every(el=>${inside('q','el')}))`;
+const chromeFits=`[...document.querySelectorAll('.cs-modal .cs-qhead > div, .cs-modal .cs-lock > *, .cs-modal .cs-sheet-foot > *')].every(el=>${inside(`el.closest('.cs-modal')`,'el')})`;
+check(await evaluate(builderFits),'The builder is full screen with no sideways scroll at 390px');
+check(await waitFor(pictureLoaded('.cs-modal .cs-q:nth-child(4) .cs-hs'))&&await evaluate(cardsFit),'Question cards fit at 390px');
+check(await evaluate(chromeFits),'The builder header and footer fit at 390px');
+await openQMenu(0);
+await evaluate(pick('Edit'));
+check(await waitFor(`document.querySelector('.cs-sheet form')&&document.querySelector('.cs-sheet').getAnimations().length===0`),'The question form opens at 390px');
+check(await evaluate(`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect(),b=document.querySelector('.cs-sheet .cs-sheet-body');return s.width===innerWidth&&b.scrollWidth<=b.clientWidth;})()`),'The question form is full screen with no sideways scroll at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].every(t=>{const r=t.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&t.scrollWidth<=t.clientWidth;})`),'The question type tiles fit at 390px');
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-sheet')`);
+await key('Escape');
+await waitFor(`!document.querySelector('.cs-modal')`);
+await evaluate(`${arow('Test quiz')}.querySelector('[data-questions]').click()`);
+check(await waitFor(`document.querySelector('.cs-modal .cs-lock')&&${qcards}.length===3`),'The locked builder opens at 390px');
+check(await evaluate(builderFits)&&await evaluate(cardsFit)&&await evaluate(chromeFits),'The lock note and cards fit at 390px');
 await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 

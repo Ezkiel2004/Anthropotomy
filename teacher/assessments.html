@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
-  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs4"/>
+  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs5"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
@@ -80,355 +80,32 @@
   </main>
 </div>
 
-<!-- Question Builder Modal -->
-<div class="modal-overlay" id="questionBuilderModal" style="display:none;" onclick="if(event.target===this)closeModal('questionBuilderModal')">
-  <div class="modal-box" style="width:min(95%,750px);max-height:90vh;display:flex;flex-direction:column;">
-    <div class="modal-header">
-      <h3 id="builderModalTitle">Question bank</h3>
-      <button class="modal-close" onclick="closeModal('questionBuilderModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
-    </div>
-    <div class="modal-body" style="overflow-y:auto;flex:1;" id="builderModalBody">
-      <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading questions…</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('questionBuilderModal')">Close</button>
-      <button class="btn btn-primary" onclick="showAddQuestionForm()">+ Add New Question</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Question Form Modal -->
-<div class="modal-overlay" id="addQuestionModal" style="display:none;" onclick="if(event.target===this)closeModal('addQuestionModal')">
-  <div class="modal-box" style="width:min(95%,600px);">
-    <div class="modal-header">
-      <h3>Add a question</h3>
-      <button class="modal-close" onclick="closeModal('addQuestionModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
-    </div>
-    <form id="addQuestionForm" onsubmit="handleSaveQuestion(event)">
-      <div class="modal-body">
-        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
-          <div class="form-group">
-            <label>Question Text *</label>
-            <div class="input-wrapper"><textarea id="qText" rows="2" placeholder="e.g. Which bone is the longest in the human body?" required style="resize:vertical;width:100%;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-body);"></textarea></div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-3);">
-            <div class="form-group">
-              <label>Question Type</label>
-              <div class="input-wrapper">
-                <select id="qType" onchange="toggleQuestionTypeFields(this.value)" style="width:100%;background:transparent;color:var(--text-primary);border:none;outline:none;">
-                  <option value="multiple_choice">Multiple Choice (4 Choices)</option>
-                  <option value="true_false">True / False</option>
-                  <option value="identification">Identification (Exact Term)</option>
-                  <option value="hotspot">Hotspot / Click-to-Identify</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Points</label>
-              <div class="input-wrapper"><input type="number" id="qPoints" value="1" min="1" max="10"/></div>
-            </div>
-          </div>
-
-          <!-- Multiple Choice Options Group -->
-          <div id="mcOptionsGroup" style="display:flex;flex-direction:column;gap:var(--space-2);">
-            <label style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Answer Choices (select the radio for the correct option):</label>
-            <div style="display:flex;align-items:center;gap:var(--space-2);">
-              <input type="radio" name="mcCorrect" value="0" checked/>
-              <div class="input-wrapper" style="flex:1;"><input type="text" id="opt0" placeholder="Option A (Correct)"/></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--space-2);">
-              <input type="radio" name="mcCorrect" value="1"/>
-              <div class="input-wrapper" style="flex:1;"><input type="text" id="opt1" placeholder="Option B"/></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--space-2);">
-              <input type="radio" name="mcCorrect" value="2"/>
-              <div class="input-wrapper" style="flex:1;"><input type="text" id="opt2" placeholder="Option C"/></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--space-2);">
-              <input type="radio" name="mcCorrect" value="3"/>
-              <div class="input-wrapper" style="flex:1;"><input type="text" id="opt3" placeholder="Option D"/></div>
-            </div>
-          </div>
-
-          <!-- True / False Group -->
-          <div id="tfOptionsGroup" style="display:none;flex-direction:column;gap:var(--space-2);">
-            <label style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Select the Correct Statement Value:</label>
-            <div style="display:flex;gap:var(--space-4);padding:var(--space-2) 0;">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;color:var(--teal-400);">
-                <input type="radio" name="tfCorrect" value="True" checked/> True
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;color:var(--red-400);">
-                <input type="radio" name="tfCorrect" value="False"/> False
-              </label>
-            </div>
-          </div>
-
-          <!-- Identification Group -->
-          <div id="identificationGroup" style="display:none;flex-direction:column;gap:var(--space-3);">
-            <div class="form-group">
-              <label>Expected Correct Term / Scientific Name *</label>
-              <div class="input-wrapper"><input type="text" id="idTargetWord" placeholder="e.g. Femur, Alveoli, or Mitral Valve"/></div>
-              <span style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Students will be required to type this exact term (evaluation is case-insensitive).</span>
-            </div>
-          </div>
-
-          <!-- Hotspot Group -->
-          <div id="hotspotGroup" style="display:none;flex-direction:column;gap:var(--space-3);">
-            <div class="form-group">
-              <label>Target Structure Label *</label>
-              <div class="input-wrapper"><input type="text" id="targetLabel" placeholder="e.g. Left Ventricle or Femur"/></div>
-            </div>
-            <div class="form-group">
-              <label>Diagram Image URL</label>
-              <div class="input-wrapper"><input type="text" id="targetImgUrl" placeholder="Choose an image URL from the media library" onchange="previewHotspotDiagram()"/></div>
-            </div>
-          </div>
-
-          <div id="hotspotTargetEditor" style="display:none"><p>Click the diagram to set the correct target. The tolerance is a fraction of the diagram dimensions.</p><img id="targetPreview" alt="Click to set the answer location" style="max-width:100%;max-height:320px;cursor:crosshair"/><label>Target X (0 to 1)<input id="targetX" type="number" min="0" max="1" step="0.001"/></label><label>Target Y (0 to 1)<input id="targetY" type="number" min="0" max="1" step="0.001"/></label><label>Tolerance (0.01 to 0.25)<input id="targetRadius" type="number" min="0.01" max="0.25" step="0.01" value="0.05"/></label></div>
-          <div id="saveQuestionError" style="display:none;color:var(--error);font-size:0.85rem;padding:0.5rem;border:1px solid var(--error);border-radius:6px;"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('addQuestionModal')">Back</button>
-        <button type="submit" class="btn btn-primary" id="saveQBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#floppy-disk"/></svg> Save Question</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/content-studio.js?v=20261111-cs3"></script>
+<script src="../assets/js/content-studio.js?v=20261111-cs4"></script>
 <script src="../assets/js/assessment-list.js?v=20261111-al1"></script>
+<script src="../assets/js/question-builder.js?v=20261111-qb1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
 
-let activeAssessmentId = null;
-
-// ── Assessment list and sheet (assets/js/assessment-list.js) ────
-// The question builder below opens from a row's Questions button and after Create and add questions.
-AssessmentList.init({ openQuestions: (id, title) => openQuestionBuilder(id, title) });
+// The list lives in assets/js/assessment-list.js and the question builder in assets/js/question-builder.js.
+// A row's Questions button and Create and add questions open the builder; its changes reload the list.
+QuestionBuilder.init({
+  find: id => AssessmentList.find(id),
+  refresh: () => AssessmentList.load(),
+  // Focus goes back to the row's Questions button when the list was redrawn behind the builder.
+  onClose: id => {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    document.querySelector(`#assessList [data-questions="${Number(id)}"]`)?.focus();
+  },
+});
+AssessmentList.init({ openQuestions: id => openQuestionBuilder(id) });
 function loadAssessments() { return AssessmentList.load(); }
 function openAssessmentSheet(assessment) { return AssessmentList.openSheet(assessment || null); }
-
-// ── Question Builder ────────────────────────────────────────────
-async function openQuestionBuilder(assessmentId, title = AssessmentList.find(assessmentId)?.title || '') {
-  activeAssessmentId = assessmentId;
-  document.getElementById('builderModalTitle').textContent = `Questions: ${title}`;
-  openModal('questionBuilderModal');
-  await reloadQuestions();
-}
-
-async function reloadQuestions() {
-  const body = document.getElementById('builderModalBody');
-  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading questions…</div>';
-
-  try {
-    const res = await fetch(`${API_BASE}/questions.php?assessment_id=${activeAssessmentId}`, { credentials: 'same-origin' });
-    const result = await res.json();
-    if (!result.success) {
-      body.innerHTML = `<div style="color:var(--error);">${escHtml(result.message)}</div>`;
-      return;
-    }
-
-    const questions = result.data || [];
-    if (!questions.length) {
-      body.innerHTML = `
-        <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
-          <div style="margin:0 auto 0.5rem;width:40px;color:var(--text-muted);"><svg class="ui-icon" style="width:40px;height:40px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#question"/></svg></div>
-          <div style="font-weight:600;font-size:1rem;margin-bottom:0.5rem;">No questions in this assessment yet</div>
-          <p style="font-size:0.85rem;">Click the <strong>+ Add New Question</strong> button below to build questions.</p>
-        </div>
-      `;
-      return;
-    }
-
-    body.innerHTML = questions.map((q, idx) => {
-      let details = '';
-      if (q.question_type === 'multiple_choice') {
-        details = (q.options || []).map(opt => `
-          <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;padding:2px 0;">
-            <span style="color:${opt.is_correct ? '#5fe3b6' : 'var(--text-muted)'};font-weight:${opt.is_correct ? '700' : '400'};">
-              ${opt.is_correct ? '<svg class="ui-icon" title="Correct answer" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#check-circle"/></svg> [Correct]' : '<svg class="ui-icon" style="width:14px;height:14px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#circle"/></svg>'} ${escHtml(opt.option_text)}
-            </span>
-          </div>
-        `).join('');
-      } else if (q.question_type === 'true_false') {
-        const correctOpt = (q.options || []).find(o => o.is_correct);
-        details = `<div style="font-size:0.82rem;color:var(--success);">Correct Answer: <strong>${escHtml(correctOpt ? correctOpt.option_text : 'True')}</strong></div>`;
-      } else if (q.question_type === 'identification' || q.question_type === 'fill_blank') {
-        const target = q.hotspot_data?.target_label || (q.options?.[0]?.option_text) || '';
-        details = `<div style="font-size:0.82rem;color:var(--brand);">Target Scientific Term: <strong>${escHtml(target)}</strong></div>`;
-      } else if (q.question_type === 'hotspot') {
-        details = `<div style="font-size:0.82rem;color:var(--brand);">Hotspot target area: <strong>${escHtml(q.hotspot_data?.target_label || 'Marked structure')}</strong></div>`;
-      }
-
-      return `
-        <div style="padding:var(--space-3);background:var(--bg-inset);border-radius:var(--radius-md);margin-bottom:var(--space-3);border:1px solid var(--border-light);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-            <div style="font-weight:600;font-size:0.9rem;">
-              <span style="color:var(--brand);">Q${idx + 1}.</span> ${escHtml(q.question_text)}
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="deleteQuestion(${q.question_id})" title="Delete question" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#trash"/></svg> Delete</button>
-          </div>
-          <div style="margin-left:1.5rem;">
-            ${details}
-            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">
-              ${q.points} pt${q.points !== 1 ? 's' : ''} • Type: ${q.question_type}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  } catch (err) {
-    body.innerHTML = `<div style="color:var(--error);">Network error loading question bank.</div>`;
-  }
-}
-
-function showAddQuestionForm() {
-  document.getElementById('addQuestionForm').reset();
-  document.getElementById('saveQuestionError').style.display = 'none';
-  toggleQuestionTypeFields('multiple_choice');
-  openModal('addQuestionModal');
-}
-
-function toggleQuestionTypeFields(type) {
-  const mc = document.getElementById('mcOptionsGroup');
-  const tf = document.getElementById('tfOptionsGroup');
-  const idGroup = document.getElementById('identificationGroup');
-  const hs = document.getElementById('hotspotGroup');
-
-  mc.style.display      = (type === 'multiple_choice') ? 'flex' : 'none';
-  tf.style.display      = (type === 'true_false') ? 'flex' : 'none';
-  idGroup.style.display = (type === 'identification') ? 'flex' : 'none';
-  hs.style.display      = (type === 'hotspot') ? 'flex' : 'none';
-}
-
-async function handleSaveQuestion(e) {
-  e.preventDefault();
-  const btn = document.getElementById('saveQBtn');
-  const err = document.getElementById('saveQuestionError');
-  err.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Saving…';
-
-  const type = document.getElementById('qType').value;
-  let options = [];
-  let hotspotData = null;
-
-  if (type === 'multiple_choice') {
-    const selectedCorrect = parseInt(document.querySelector('input[name="mcCorrect"]:checked')?.value || 0);
-    options = [
-      { option_text: document.getElementById('opt0').value.trim(), is_correct: selectedCorrect === 0 },
-      { option_text: document.getElementById('opt1').value.trim(), is_correct: selectedCorrect === 1 },
-      { option_text: document.getElementById('opt2').value.trim(), is_correct: selectedCorrect === 2 },
-      { option_text: document.getElementById('opt3').value.trim(), is_correct: selectedCorrect === 3 }
-    ].filter(o => o.option_text !== '');
-    if (options.length < 2) {
-      err.textContent = 'Please enter at least 2 answer choices.';
-      err.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Save Question';
-      return;
-    }
-  } else if (type === 'true_false') {
-    const isTrue = (document.querySelector('input[name="tfCorrect"]:checked')?.value || 'True') === 'True';
-    options = [
-      { option_text: 'True', is_correct: isTrue, sort_order: 1 },
-      { option_text: 'False', is_correct: !isTrue, sort_order: 2 }
-    ];
-  } else if (type === 'identification') {
-    const target = document.getElementById('idTargetWord').value.trim();
-    if (!target) {
-      err.textContent = 'Please specify the expected anatomical term.';
-      err.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Save Question';
-      return;
-    }
-    hotspotData = { target_label: target };
-    options = [
-      { option_text: target, is_correct: true, sort_order: 1 }
-    ];
-  } else {
-    // hotspot
-    const target = document.getElementById('targetLabel').value.trim();
-    if (!target) {
-      err.textContent = 'Please specify the target structure label.';
-      err.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Save Question';
-      return;
-    }
-    hotspotData = {
-      target_label: target,
-      image_url: document.getElementById('targetImgUrl').value.trim(),
-      x: Number(document.getElementById('targetX').value),
-      y: Number(document.getElementById('targetY').value),
-      radius: Number(document.getElementById('targetRadius').value)
-    };
-  }
-
-  const payload = {
-    assessment_id: activeAssessmentId,
-    question_text: document.getElementById('qText').value.trim(),
-    question_type: type,
-    points:        parseFloat(document.getElementById('qPoints').value) || 1.0,
-    options:       options,
-    hotspot_data:  hotspotData
-  };
-
-  try {
-    const res = await fetch(`${API_BASE}/questions.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Question added!', 'success');
-      closeModal('addQuestionModal');
-      await reloadQuestions();
-      loadAssessments(); // Update count on cards
-    } else {
-      err.textContent = result.message || 'Failed to save question.';
-      err.style.display = 'block';
-    }
-  } catch (ex) {
-    err.textContent = 'Server error saving question.';
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Save Question';
-  }
-}
-
-async function deleteQuestion(questionId) {
-  if (!confirm('Delete this question?')) return;
-  try {
-    const res = await fetch(`${API_BASE}/questions.php?id=${questionId}`, {
-      method: 'DELETE',
-      credentials: 'same-origin'
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Question deleted.', 'success');
-      await reloadQuestions();
-      loadAssessments();
-    } else {
-      showToast(result.message || 'Delete failed.', 'error');
-    }
-  } catch (err) {
-    showToast('Server error.', 'error');
-  }
-}
-
+function openQuestionBuilder(assessmentId) { return QuestionBuilder.open(assessmentId); }
+function openQuestionForm(assessmentId, question = null) { return QuestionBuilder.openForm(assessmentId, question); }
 </script>
 <script src="../assets/js/site-config.js"></script>
-<script>
-function previewHotspotDiagram(){const image=document.getElementById('targetPreview');image.src=document.getElementById('targetImgUrl').value.trim();document.getElementById('hotspotTargetEditor').style.display='block';}
-document.getElementById('targetPreview').onclick=e=>{const r=e.target.getBoundingClientRect();document.getElementById('targetX').value=((e.clientX-r.left)/r.width).toFixed(3);document.getElementById('targetY').value=((e.clientY-r.top)/r.height).toFixed(3);};
-</script></body>
+</body>
 </html>
