@@ -109,8 +109,11 @@ await call('Emulation.clearDeviceMetricsOverride');
 // ── Student ─────────────────────────────────────────────────────
 await signIn('fixture-student',studentPassword,'/student/');
 await navigate('/student/lessons.html');
+await evaluate(`StudyClock.reading=()=>{window.__reads=(window.__reads||0)+1}`);
 await evaluate(`startLesson(${lessonId})`);
 check(await waitFor(`document.querySelector('.sd-reader .pv canvas[data-rendered]')`),'Lesson PDF renders inline');
+check(await evaluate(`window.__reads>=1`),'Opening a PDF lesson counts as study time');
+check(await evaluate(`(async()=>{const before=window.__reads;const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Count'});const ok=window.__reads>before;v.destroy();d.remove();return ok;})()`),'Mounting the inline viewer counts as study time');
 check(await evaluate(`!document.querySelector('.sd-reader iframe')`),'No iframe left in the reader');
 check(await evaluate(`document.querySelector('.sd-reader .pv-pages').textContent.includes('of ')`),'Inline viewer shows the page count');
 await evaluate(`document.querySelector('.sd-reader .pv [aria-label="Full screen"]').click()`);
@@ -119,12 +122,14 @@ await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes full screen');
 check(await evaluate(`!document.getElementById('lessonContentViewer').hidden`),'Escape in full screen leaves the reader open');
 await evaluate(`closeLessonViewer()`);
+check(await evaluate(`(()=>{document.addEventListener('click',e=>{if(e.target.closest('[data-reading]'))e.preventDefault();},true);const r=document.getElementById('lessonContentViewer');LessonReader.show(r,{lesson_id:1,title:'Slides',media_url:'deck.pptx',system_code:'MUS',content_text:'x'});const before=window.__reads;r.querySelector('[data-reading]').click();const ok=window.__reads===before+1;LessonReader.close(r);return ok;})()`),'A lesson attachment link counts as study time');
 // Materials open in the viewer, not a tab.
 await evaluate(`viewModule(${moduleId})`);
 check(await waitFor(`document.querySelector('#lessonModalBody .sd-materials-title')`),'Student sees the module materials');
 check(await evaluate(`!document.querySelector('#lessonModalBody a[target=_blank]')`),'Material PDFs do not open a new tab');
 await evaluate(`[...document.querySelectorAll('#lessonModalBody .sd-lesson')].find(e=>/Long reader/.test(e.textContent)).click()`);
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Material opens in the viewer');
+check(await evaluate(`window.__reads>=4`),'Opening a material counts as study time');
 check(await waitFor(`document.querySelectorAll('.pv-stage [data-page]').length===60`),'Student sees all 60 pages');
 await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes the material viewer');

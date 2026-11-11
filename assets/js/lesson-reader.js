@@ -66,7 +66,7 @@ const LessonReader = (() => {
       root.addEventListener('keydown', e => { if (e.key === 'Escape') close(root); });
       root.addEventListener('click', e => {
         if (e.target.closest('[data-reader-close]')) close(root);
-        else if (e.target.closest('[data-reading]') && window.StudyClock) StudyClock.reading();
+        else if (e.target.closest('[data-reading]') && typeof StudyClock !== 'undefined') StudyClock.reading();
       });
     }
     entry.pdf?.destroy();

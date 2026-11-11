@@ -214,7 +214,7 @@ const PdfViewer = (() => {
             root.innerHTML = `<div class="pv-fallback" role="alert"><p>This document can’t be shown here.</p>
               <a class="pv-download" href="${esc(downloadUrl)}" download>${icon('download-simple')} Download</a></div>`;
         };
-        window.StudyClock?.reading();
+        if (typeof StudyClock !== 'undefined') StudyClock.reading();
         load(url).then(async loaded => {
             task = loaded.task;
             pdf = loaded.pdf;
