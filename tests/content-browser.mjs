@@ -536,6 +536,141 @@ check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].every
 await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
+// ── Assessments ─────────────────────────────────────────────────
+// Fixtures from the integration suite: "Test quiz" (open, mixed questions, 2 attempts, pass 75%), "Typed" (draft,
+// no questions) and "Test quiz (copy)" (draft). Added here: one due tomorrow and one closed in another body system.
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+await navigate('/teacher/assessments.html');
+const api=(path,method='GET',body)=>evaluate(`fetch(API_BASE+'/${path}',{method:'${method}',credentials:'same-origin',headers:{'Content-Type':'application/json'}${body?`,body:${JSON.stringify(JSON.stringify(body))}`:''}}).then(r=>r.json())`);
+const systemList=(await api('body-systems.php')).data;
+const testSystem=systemList.find(s=>s.system_code==='test-system');
+let otherSystem=systemList.find(s=>s.system_code!=='test-system');
+if(!otherSystem){
+  const made=await api('anatomy-content.php','POST',{system_name:'Second System',system_code:'second-system',color_hex:'#654321',description:'Second description',is_active:true,key_facts:{Fact:'Second fact'},structures:[{name:'Second Structure',desc:'Second structure',mesh_name:'second-part'}]});
+  check(made.success,'Create a second body system');
+  otherSystem={system_id:made.data.system_id,system_name:'Second System',system_code:'second-system'};
+}
+const pad=n=>String(n).padStart(2,'0');
+const dayAfter=new Date(Date.now()+86400000);
+const soonQuiz=await api('assessments.php','POST',{title:'Due tomorrow quiz',system_id:testSystem.system_id,status:'active',due_date:`${dayAfter.getFullYear()}-${pad(dayAfter.getMonth()+1)}-${pad(dayAfter.getDate())} 12:00:00`,time_limit_mins:15,passing_score:70,max_attempts:1});
+check(soonQuiz.success&&(await api('questions.php','POST',{assessment_id:Number(soonQuiz.data.assessment_id),question_type:'multiple_choice',question_text:'Pick one',points:1,options:[{option_text:'Yes',is_correct:true},{option_text:'No',is_correct:false}]})).success,'Create an assessment due tomorrow');
+const closedQuiz=await api('assessments.php','POST',{title:'Closed review',system_id:otherSystem.system_id,status:'closed'});
+check(closedQuiz.success&&(await api('questions.php','POST',{assessment_id:Number(closedQuiz.data.assessment_id),question_type:'true_false',question_text:'True?',points:1,options:[{option_text:'True',is_correct:true,sort_order:1},{option_text:'False',is_correct:false,sort_order:2}]})).success,'Create a closed assessment in another body system');
+await navigate('/teacher/assessments.html');
+const arow=title=>`[...document.querySelectorAll('.cs-arow')].find(r=>r.querySelector('.cs-h3').textContent===${JSON.stringify(title)})`;
+const openAssessMenu=async title=>{await evaluate(`${arow(title)}.querySelector('[data-more]').click()`);return waitFor(`document.querySelector('.cs-menu[role="menu"]')`);};
+const confirmShows=text=>waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes(${JSON.stringify(text)})`);
+check(await waitFor(`document.querySelectorAll('.cs-arow').length>0`),'Assessment rows render');
+const heads=await evaluate(`[...document.querySelectorAll('.cs-alist .cs-h2')].map(h=>h.textContent)`);
+check(heads.join()===['Open now','Drafts','Closed'].filter(h=>heads.includes(h)).join(),'Groups keep the order Open now, Drafts, Closed');
+check(heads.join()==='Open now,Drafts,Closed','All three groups show');
+check(await evaluate(`!/multiple_choice|diagram|submissions\\b/.test(document.querySelector('.cs-alist').textContent)`),'No raw enum names or "submissions"');
+check(await evaluate(`[...document.querySelectorAll('.cs-arow .cs-btn--primary')].length===0`),'No mint buttons inside rows');
+check(await evaluate(`!document.querySelector('input[name="assessType"],[data-assessment-type]')`),'No assessment type anywhere on the page');
+check(await evaluate(`!/assessment_type|chapter quiz/i.test(document.documentElement.outerHTML)&&!document.querySelector('.chip')&&!/All Types|Hotspot Activity|Labeled Diagram|Multiple Choice Quiz/.test(document.body.textContent)`),'No type field, type filter chips or "Chapter quiz" left');
+check(await evaluate(`document.querySelectorAll('.cs-btn--primary').length===1`),'One primary button on the Assessments page');
+check(await evaluate(headingsInOrder),'Assessments headings are sequential');
+const listed=(await api('assessments.php')).data;
+check(JSON.stringify(await evaluate(`['sumOpen','sumDraft','sumClosed','sumAttempts'].map(id=>Number(document.getElementById(id).textContent))`))===JSON.stringify([listed.filter(a=>a.status==='active').length,listed.filter(a=>a.status==='draft'||a.status==='scheduled').length,listed.filter(a=>a.status==='closed').length,listed.reduce((sum,a)=>sum+a.submission_count,0)]),'Summary counts open, drafts, closed and every attempt');
+check(await evaluate(`(()=>{const r=${arow('Test quiz')};return r.querySelector('.cs-tile.q-mixed use').getAttribute('href').endsWith('#stack')&&r.querySelector('.cs-eyebrow').textContent==='Test System';})()`),'A mixed assessment shows the stack tile and only its body system');
+check(await evaluate(`${arow('Test quiz')}.querySelector('.cs-acopy .cs-meta').textContent==='10 min · pass 75% · 2 tries'`),'Row meta reads time, pass mark and tries');
+check(await evaluate(`(()=>{const r=${arow('Test quiz')};return r.querySelector('.cs-qtotal').textContent==='3 questions'&&r.querySelectorAll('.cs-qchip').length===3;})()`),'Question count with one chip per question type');
+check(await evaluate(`(()=>{const r=${arow('Test quiz')}.querySelector('.cs-result');return /^2 attempts · avg \\d+%$/.test(r.querySelector('.cs-meta').textContent)&&r.querySelector('.cs-bar--low')!==null;})()`),'Results show attempts, the average and an amber bar below the pass mark');
+check(await evaluate(`${arow('Test quiz')}.querySelector('.cs-due b').textContent==='No due date'`),'No due date says so');
+check(await evaluate(`(()=>{const r=${arow('Due tomorrow quiz')};return r.querySelector('.cs-due').classList.contains('cs-due--soon')&&r.querySelector('.cs-due b').textContent.endsWith('· tomorrow');})()`),'A due date within 3 days is amber and says tomorrow');
+check(await evaluate(`(()=>{const r=${arow('Due tomorrow quiz')};return r.querySelector('.cs-tile.q-multiple_choice')!==null&&r.querySelector('.cs-result').textContent==='No attempts yet'&&r.querySelector('.cs-acopy .cs-meta').textContent==='15 min · pass 70% · 1 try';})()`),'One question type shows its own tile; no attempts says so');
+check(await evaluate(`document.querySelector('.cs-agroup .cs-h3').textContent==='Due tomorrow quiz'`),'Open now lists the soonest due first');
+check(await evaluate(`(()=>{const r=${arow('Typed')};return r.querySelector('.cs-result').textContent==='Not published'&&r.querySelector('.cs-tile.q-empty')!==null&&r.querySelector('.cs-qtotal').textContent==='No questions yet';})()`),'A draft with no questions reads Not published and No questions yet');
+check(await evaluate(`[...document.querySelectorAll('.cs-arow')].every(r=>r.querySelector('.cs-aend .cs-btn').textContent.trim()==='Questions')`),'The row action is always Questions');
+// Search and the body-system select narrow the rows.
+await evaluate(`(()=>{const s=document.getElementById('assessSystemFilter');s.value=${JSON.stringify(otherSystem.system_code)};s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-arow').length===1&&${arow('Closed review')}!==undefined`),'The body-system select narrows the rows');
+check(await evaluate(`[...document.querySelectorAll('.cs-alist .cs-h2')].map(h=>h.textContent).join()==='Closed'`),'Only groups with rows show');
+await evaluate(`(()=>{const s=document.getElementById('assessSystemFilter');s.value='';s.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+await evaluate(`(()=>{const i=document.getElementById('assessSearch');i.value='tomorrow';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-arow').length===1&&${arow('Due tomorrow quiz')}!==undefined`),'Search narrows the rows');
+await evaluate(`(()=>{const i=document.getElementById('assessSearch');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-arow').length===${listed.length}`),'Clearing the filters shows every assessment');
+// More menu: Pause asks first, moves the assessment to Drafts and Open brings it back.
+await openAssessMenu('Test quiz');
+check(JSON.stringify(await evaluate(menuItems))===JSON.stringify(['Pause','Close','Edit settings','Duplicate']),'An open assessment with attempts offers Pause, Close, Edit settings and Duplicate');
+await evaluate(pick('Pause'));
+check(await confirmShows('Pause this assessment?'),'Pause asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')`)&&await evaluate(`${arow('Test quiz')}.querySelector('.cs-status--active')!==null`),'Cancel leaves it open');
+await openAssessMenu('Test quiz');
+await evaluate(pick('Pause'));
+await confirmShows('Pause this assessment?');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`${arow('Test quiz')}?.querySelector('.cs-status--draft')&&${arow('Test quiz')}.closest('.cs-agroup').querySelector('.cs-h2').textContent==='Drafts'`),'Pause moves it to Drafts');
+check(await waitFor(`document.activeElement===${arow('Test quiz')}.querySelector('[data-more]')`),'Focus returns to its more button');
+await openAssessMenu('Test quiz');
+check((await evaluate(menuItems))[0]==='Open','A draft offers Open first');
+await evaluate(pick('Open'));
+check(await waitFor(`${arow('Test quiz')}?.querySelector('.cs-status--active')&&${arow('Test quiz')}.closest('.cs-agroup').querySelector('.cs-h2').textContent==='Open now'`),'Open puts it back in Open now');
+// Duplicate and Delete ask first; Delete is offered only while nobody has taken it.
+await openAssessMenu('Due tomorrow quiz');
+await evaluate(pick('Duplicate'));
+check(await confirmShows('Duplicate this assessment?'),'Duplicate asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`${arow('Due tomorrow quiz (copy)')}?.querySelector('.cs-status--draft')`),'Duplicate adds a draft copy');
+await openAssessMenu('Due tomorrow quiz (copy)');
+check((await evaluate(menuItems)).at(-1)==='Delete','A draft nobody has taken offers Delete last');
+await evaluate(pick('Delete'));
+check(await confirmShows('Delete this assessment?'),'Delete asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`!${arow('Due tomorrow quiz (copy)')}`),'Delete removes the row');
+// Edit settings: the sheet comes filled in; saving updates the row and links a module.
+await openAssessMenu('Due tomorrow quiz');
+await evaluate(pick('Edit settings'));
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Due tomorrow quiz'`),'Edit settings opens the sheet filled in');
+check(await evaluate(`document.querySelector('.cs-sheet [name="system_id"]').value==='${testSystem.system_id}'&&document.querySelector('.cs-sheet [name="max_attempts"]').value==='1'&&document.querySelector('.cs-sheet [name="due_date"]').value.endsWith('T12:00')`),'The sheet shows the saved body system, tries and due date');
+await sheetSet('[name="title"]','Due tomorrow check');
+await evaluate(`(()=>{const m=document.querySelector('.cs-sheet [name="module_id"]');m.value='${moduleId}';m.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${arow('Due tomorrow check')}!==undefined`),'Saving settings updates the row');
+check(Number((await api('assessments.php')).data.find(a=>a.title==='Due tomorrow check').module_id)===Number(moduleId),'Saving settings links the module');
+// A title with quotes stays text: no attribute, no script.
+const quoted=await api('assessments.php','POST',{title:`x" data-pwned="1 ');window.__pwned=1;//`,status:'draft'});
+check(quoted.success,'Create an assessment with quotes in its title');
+await navigate('/teacher/assessments.html');
+check(await waitFor(`document.querySelectorAll('.cs-arow').length>0`),'Rows render with a quoted title');
+check(await evaluate(`!document.querySelector('[data-pwned]')&&!document.querySelector('.cs-arow [onclick]')&&${arow(`x" data-pwned="1 ');window.__pwned=1;//`)}.querySelector('.cs-eyebrow').textContent==='All body systems'`),'A quoted title stays text and a row with no body system says All body systems');
+await evaluate(`${arow(`x" data-pwned="1 ');window.__pwned=1;//`)}.querySelector('.cs-aend .cs-btn').click()`);
+check(await waitFor(`getComputedStyle(document.getElementById('questionBuilderModal')).display!=='none'`)&&await evaluate(`window.__pwned===undefined`),'Questions opens the builder without running the title');
+await evaluate(`closeModal('questionBuilderModal')`);
+check((await api('assessments.php?id='+Number(quoted.data.assessment_id),'DELETE')).success,'Remove the quoted-title assessment');
+// New assessment: no type to pick; Create and add questions saves a draft and opens the builder on it.
+await navigate('/teacher/assessments.html');
+await waitFor(`document.querySelectorAll('.cs-arow').length>0`);
+await evaluate(`document.getElementById('newAssessmentBtn').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"]')`),'New assessment opens the sheet');
+check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='New assessment'&&document.activeElement===document.querySelector('.cs-sheet [name="title"]')`),'The sheet is titled New assessment and focus starts on the title');
+check(await evaluate(`['title','system_id','module_id','instructions','time_limit_mins','passing_score','max_attempts','due_date'].every(n=>document.querySelector('.cs-sheet [name="'+n+'"]'))`),'The sheet asks for title, body system, module, instructions, time limit, pass mark, tries and due date');
+check(await evaluate(`document.querySelector('.cs-sheet').textContent.includes('Any mix of question types')&&document.querySelectorAll('.cs-sheet .cs-qchip').length===4&&!document.querySelector('.cs-sheet input[type="radio"]')`),'The sheet notes any mix of question types and has no type to pick');
+check(await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').textContent.trim()==='Create and add questions'`),'The button reads Create and add questions');
+await sheetSet('[name="title"]','Sheet quiz');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&getComputedStyle(document.getElementById('questionBuilderModal')).display!=='none'`),'Create and add questions opens the question builder');
+check(await waitFor(`document.getElementById('builderModalBody').textContent.includes('No questions in this assessment yet')&&document.getElementById('builderModalTitle').textContent.includes('Sheet quiz')`),'The builder opens on the new, empty assessment');
+const sheetQuiz=(await api('assessments.php')).data.find(a=>a.title==='Sheet quiz');
+check(sheetQuiz&&sheetQuiz.status==='draft'&&sheetQuiz.question_count===0,'The new assessment is a draft with no questions');
+await evaluate(`closeModal('questionBuilderModal')`);
+check(await waitFor(`${arow('Sheet quiz')}?.closest('.cs-agroup').querySelector('.cs-h2').textContent==='Drafts'`),'The new draft is listed under Drafts');
+// Phone width: rows stack into cards, nothing scrolls sideways, the sheet is full screen.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await navigate('/teacher/assessments.html');
+check(await waitFor(`document.querySelectorAll('.cs-arow').length>0`),'Assessment rows render at 390px');
+check(await evaluate(`document.documentElement.scrollWidth<=390`),'No horizontal scroll on Assessments at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-arow')].every(r=>{const c=r.querySelector('.cs-acopy').getBoundingClientRect(),q=r.querySelector('.cs-qmix').getBoundingClientRect(),e=r.querySelector('.cs-aend').getBoundingClientRect();return q.top>=c.bottom-1&&e.top>=q.bottom-1;})`),'Rows stack into cards at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-arow')].every(row=>[...row.querySelectorAll(':scope > *, .cs-aend > *')].every(el=>${inside('row','el')}))`),'Row contents fit at 390px');
+check(await evaluate(`getComputedStyle(document.getElementById('assessSystemFilter').closest('.cs-select')).display!=='none'`),'The body-system select stays at 390px');
+await evaluate(`document.getElementById('newAssessmentBtn').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet')&&document.querySelector('.cs-sheet').getAnimations().length===0`),'The assessment sheet opens at 390px');
+check(await evaluate(`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect();const b=document.querySelector('.cs-sheet-body');return s.width===innerWidth&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`),'The assessment sheet is full screen with no sideways scroll at 390px');
+await key('Escape');
+await call('Emulation.clearDeviceMetricsOverride');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();

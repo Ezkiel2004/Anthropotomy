@@ -193,6 +193,59 @@ a.cs-quiz:hover { background: var(--cs-s2); }
 .q-multiple_choice { --t: #8ec5ff; } .q-true_false { --t: #c4a7ff; } .q-identification { --t: #f5d76e; } .q-hotspot { --t: #ff8a8f; }
 .q-mixed { --t: var(--cs-mint); } .q-empty { --t: var(--cs-muted); }
 
+/* Assessments list (assets/js/assessment-list.js): rows grouped Open now, Drafts, Closed. The row
+   layout follows the list's own width: one line when wide, two lines on a tablet, a card on a phone. */
+.cs-alist { display: flex; flex-direction: column; gap: .75rem; min-width: 0; container-type: inline-size; }
+.cs-agroup { display: flex; flex-direction: column; gap: .75rem; }
+.cs-alist .cs-group-head { margin-top: .5rem; }
+.cs-alist .cs-group-head .cs-meta { margin-left: 0; }
+.cs-arow { display: grid; grid-template-columns: 3rem minmax(0, 1.6fr) minmax(0, 1fr) 9rem 10rem auto; grid-template-areas: "tile copy mix due result end"; align-items: center; gap: 1.25rem; padding: 1rem 1.25rem 1rem 1rem; background: var(--cs-s1); border-radius: var(--cs-r); box-shadow: var(--cs-shadow); }
+.cs-arow > .cs-tile { grid-area: tile; width: 3rem; height: 3rem; border-radius: .875rem; }
+.cs-arow > .cs-tile .cs-ico { width: 1.375rem; height: 1.375rem; }
+.cs-acopy { grid-area: copy; display: flex; flex-direction: column; gap: .3125rem; min-width: 0; }
+.cs-acopy .cs-eyebrow { display: flex; gap: .5rem; align-items: center; min-width: 0; }
+.cs-acopy .cs-eyebrow i { width: .4375rem; height: .4375rem; border-radius: 2px; background: var(--sys); flex: none; }
+.cs-acopy .cs-h3 { overflow-wrap: anywhere; }
+.cs-qmix { grid-area: mix; display: flex; gap: .375rem; align-items: center; flex-wrap: wrap; min-width: 0; }
+.cs-qtotal { font-size: .8125rem; color: var(--cs-muted); margin-right: .25rem; }
+.cs-qtotal b { color: var(--cs-ink); font-weight: 600; }
+.cs-qchip { display: inline-flex; align-items: center; gap: .25rem; font-size: .75rem; font-weight: 600; color: var(--cs-soft); background: var(--cs-s3); border-radius: 999px; padding: .25rem .5rem .25rem .375rem; white-space: nowrap; }
+.cs-qchip .cs-ico { color: var(--t); }
+.cs-due { grid-area: due; display: flex; flex-direction: column; gap: .25rem; font-size: .8125rem; min-width: 0; }
+.cs-due b { font-weight: 600; }
+.cs-due--soon b { color: var(--cs-amber); }
+.cs-due--none b, .cs-due--past b { color: var(--cs-muted); }
+.cs-result { grid-area: result; display: flex; flex-direction: column; gap: .4375rem; font-size: .8125rem; min-width: 0; }
+.cs-result b { color: var(--cs-ink); font-weight: 650; }
+.cs-bar { display: block; height: .375rem; border-radius: 999px; background: var(--cs-s3); overflow: hidden; }
+.cs-bar i { display: block; height: 100%; border-radius: inherit; background: var(--cs-mint); }
+.cs-bar--low i { background: var(--cs-amber); }
+.cs-aend { grid-area: end; display: flex; align-items: center; gap: .5rem; justify-content: flex-end; }
+.cs-status--scheduled { --dot: var(--cs-amber); }
+.cs-empty .cs-h2 { margin: 0; }
+@container (max-width: 62rem) {
+  .cs-arow { grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "tile copy copy end" ". mix due result"; row-gap: .875rem; }
+}
+@container (max-width: 36rem) {
+  .cs-arow { grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-areas: "tile copy" "mix mix" "due due" "result result" "end end"; align-items: start; gap: .875rem; padding: 1rem; }
+  .cs-arow > .cs-tile { width: 2.75rem; height: 2.75rem; }
+  .cs-due { flex-direction: row; flex-wrap: wrap; gap: .375rem; }
+  .cs-aend { justify-content: flex-start; padding-top: .875rem; box-shadow: 0 -1px 0 var(--cs-line); }
+  .cs-aend > .cs-status { margin-right: auto; }
+}
+
+/* Assessment sheet: a unit inside the field ("minutes", "%"), the question-mix note */
+.cs-unit { position: relative; display: block; }
+body.stage-portal .cs-unit .cs-input { padding-right: 5.5rem; appearance: textfield; -moz-appearance: textfield; }
+.cs-unit .cs-input::-webkit-inner-spin-button, .cs-unit .cs-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.cs-unit > .cs-meta { position: absolute; right: .875rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+body.stage-portal .cs-input:disabled { color: var(--cs-muted); cursor: not-allowed; }
+body.stage-portal input[type="datetime-local"].cs-input { color-scheme: dark; }
+.cs-attach.cs-anymix { align-items: flex-start; }
+.cs-anymix .cs-row-title { white-space: normal; }
+.cs-anymix .cs-meta { display: block; margin-top: .25rem; line-height: 1.5; }
+.cs-anymix .cs-qmix { margin-top: .625rem; }
+
 /* More menu (Studio.menu) */
 .cs-menu { position: fixed; z-index: 2050; min-width: 12rem; max-width: calc(100vw - 1rem); padding: .375rem; border-radius: var(--cs-r-sm); background: var(--cs-s3); color: var(--cs-ink); box-shadow: 0 18px 44px -12px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06); font-family: var(--font-body); }
 .cs-menu-item { display: flex; align-items: center; gap: .625rem; width: 100%; padding: .625rem .75rem; border: 0; border-radius: var(--cs-r-xs); background: transparent; color: var(--cs-soft); font: 600 .875rem/1.2 var(--font-body); text-align: left; cursor: pointer; white-space: nowrap; }
@@ -295,6 +348,12 @@ body.stage-portal .toast { z-index: 2100; }
   /* Wraps instead of clipping when a fourth filter or long counts do not fit; one row still reads as a pill. */
   .cs-seg { width: 100%; flex-wrap: wrap; border-radius: 1.375rem; }
   .cs-toolbar .cs-select { display: none; }
+  /* Assessments have no segmented filter, so the body-system select stays, full width. */
+  .cs-toolbar--assess .cs-select { display: inline-flex; flex: 1 1 100%; }
+  body.stage-portal .cs-toolbar--assess .cs-select select { flex: 1; }
+  /* The assessment sheet's long button: the note takes its own line, the two buttons share the next. */
+  .cs-afoot > .cs-meta { flex-basis: 100%; }
+  .cs-afoot > .cs-btn { flex: 1; justify-content: center; }
   .cs-head .cs-actions { width: 100%; }
   .cs-head .cs-actions .cs-btn--primary { flex: 1; justify-content: center; }
   .cs-sheet, .cs-modal { inset: 0; top: 0; right: 0; bottom: 0; left: 0; width: auto; max-height: none; transform: none; border-radius: 0; }

@@ -12,11 +12,12 @@ const Studio = (() => {
   }
 
   // A dot and a word: published and active mint, draft amber, closed and archived grey.
+  // { plain: true } sits on a raised grey pill for rows and cards without system art behind it.
   const STATUS_LABELS = { published: 'Published', active: 'Active', draft: 'Draft', closed: 'Closed', archived: 'Archived' };
-  function status(value) {
+  function status(value, { plain = false } = {}) {
     const key = token(value);
     const label = STATUS_LABELS[key] || (key ? key[0].toUpperCase() + key.slice(1).replace(/_/g, ' ') : 'Unknown');
-    return `<span class="cs-status cs-status--${key}">${esc(label)}</span>`;
+    return `<span class="cs-status${plain ? ' cs-status--plain' : ''} cs-status--${key}">${esc(label)}</span>`;
   }
 
   // ── Menu ─────────────────────────────────────────────────────

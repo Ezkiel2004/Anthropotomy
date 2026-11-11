@@ -319,6 +319,7 @@ if ($method === 'PUT') {
     }
     $title        = optionalField($body, 'title',           $existing['title']);
     $systemId     = optionalField($body, 'system_id',       $existing['system_id']);
+    $moduleId     = optionalField($body, 'module_id',       $existing['module_id']);
     $instructions = optionalField($body, 'instructions',    $existing['instructions']);
     $timeLimit    = optionalField($body, 'time_limit_mins', $existing['time_limit_mins']);
     $passingScore = optionalField($body, 'passing_score',   $existing['passing_score']);
@@ -328,13 +329,14 @@ if ($method === 'PUT') {
 
     $db->query(
         "UPDATE assessments SET
-            title = ?, system_id = ?, instructions = ?,
+            title = ?, system_id = ?, module_id = ?, instructions = ?,
             time_limit_mins = ?, passing_score = ?, max_attempts = ?,
             status = ?, due_date = ?, updated_at = NOW()
          WHERE assessment_id = ?",
         [
             $title,
             $systemId ? (int)$systemId : null,
+            $moduleId ? (int)$moduleId : null,
             $instructions,
             $timeLimit ? (int)$timeLimit : null,
             (float)$passingScore,

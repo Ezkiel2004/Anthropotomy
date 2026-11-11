@@ -117,7 +117,7 @@ const ModuleWorkspace = (() => {
         <button type="button" class="cs-icon-btn" data-edit aria-label="Edit ${title}">${Studio.icon('pencil-simple')}</button>
         <button type="button" class="cs-icon-btn" data-row-more aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ${title}">${Studio.icon('dots-three')}</button>
       </span>
-      ${Studio.status(status).replace('cs-status ', 'cs-status cs-status--plain ')}
+      ${Studio.status(status, { plain: true })}
     </li>`;
   }
   function renderLessons() {

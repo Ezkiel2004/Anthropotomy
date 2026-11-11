@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
@@ -49,102 +50,34 @@
     </header>
 
     <div class="page-content">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Assessments</h1>
-          <p>Create, manage, and review quizzes, identification exercises, and interactive anatomy activities.</p>
-        </div>
-        <div class="page-header-right">
-          <button class="btn btn-primary btn-sm" onclick="openModal('createAssessModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#plus"/></svg>
-            Create Assessment
-          </button>
-        </div>
-      </div>
+      <div class="cs" id="assessView">
+        <header class="cs-head page-header">
+          <div class="page-header-left">
+            <h1 id="pageTitle" tabindex="-1">Assessments</h1>
+            <p>Mix any question types in one assessment. Students see only the ones that are open.</p>
+          </div>
+          <div class="cs-actions">
+            <button type="button" class="cs-btn cs-btn--primary" id="newAssessmentBtn"><svg class="cs-ico" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#plus"/></svg>New assessment</button>
+          </div>
+        </header>
 
-      <!-- Type Filters -->
-      <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-6);flex-wrap:wrap;">
-        <div class="chip active" onclick="filterAssess(this,'all')">All Types</div>
-        <div class="chip" onclick="filterAssess(this,'quiz')">Multiple Choice Quiz</div>
-        <div class="chip" onclick="filterAssess(this,'interactive')">Hotspot Activity</div>
-        <div class="chip" onclick="filterAssess(this,'identification')">Identification</div>
-        <div class="chip" onclick="filterAssess(this,'diagram')">Labeled Diagram</div>
-      </div>
+        <div class="cs-summary" aria-label="Assessment summary">
+          <div><i style="background:var(--cs-mint)"></i><b class="cs-num" id="sumOpen">0</b><span>open</span></div>
+          <div><i style="background:var(--cs-amber)"></i><b class="cs-num" id="sumDraft">0</b><span>drafts</span></div>
+          <div><i style="background:var(--cs-faint)"></i><b class="cs-num" id="sumClosed">0</b><span>closed</span></div>
+          <div><b class="cs-num" id="sumAttempts">0</b><span>attempts</span></div>
+        </div>
 
-      <!-- Assessment Cards -->
-      <div class="module-grid" id="assessmentGrid">
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">Loading assessments from database…</div>
+        <div class="cs-toolbar cs-toolbar--assess" role="search">
+          <label class="cs-search"><svg class="cs-ico" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg><input type="search" id="assessSearch" placeholder="Search assessments" aria-label="Search assessments" autocomplete="off"/></label>
+          <label class="cs-select"><span class="cs-sr">Body system</span><select id="assessSystemFilter"><option value="">All body systems</option></select><svg class="cs-ico cs-ico--sm" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#caret-down"/></svg></label>
+        </div>
+
+        <div class="cs-alist" id="assessList"></div>
+        <p class="cs-sr" id="assessResults" role="status"></p>
       </div>
     </div>
   </main>
-</div>
-
-<!-- Create Assessment Modal -->
-<div class="modal-overlay" id="createAssessModal" style="display:none;" onclick="if(event.target===this)closeModal('createAssessModal')">
-  <div class="modal-box" style="width:min(95%,560px);">
-    <div class="modal-header">
-      <h3>New assessment</h3>
-      <button class="modal-close" onclick="closeModal('createAssessModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
-    </div>
-    <form id="createAssessForm" onsubmit="handleCreateAssessment(event)">
-      <div class="modal-body">
-        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
-          <div class="form-group">
-            <label>Assessment Title *</label>
-            <div class="input-wrapper"><input type="text" id="assessTitle" placeholder="e.g. Skeletal System Chapter Quiz" required/></div>
-          </div>
-          <div class="form-group">
-            <label>Body System *</label>
-            <div class="input-wrapper">
-              <select id="assessSystem" class="anatomy-system-select" style="width:100%;background:transparent;" required>
-                <option value="">Select System…</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Assessment Type</label>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-2);">
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="assessType" value="quiz" checked/> Multiple Choice
-              </label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="assessType" value="interactive"/> Hotspot Activity
-              </label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="assessType" value="identification"/> Identification
-              </label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);background:var(--bg-inset);border:1px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;">
-                <input type="radio" name="assessType" value="diagram"/> Labeled Diagram
-              </label>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-3);">
-            <div class="form-group">
-              <label>Time Limit (mins)</label>
-              <div class="input-wrapper"><input type="number" id="assessTime" value="30" min="5" max="180"/></div>
-            </div>
-            <div class="form-group">
-              <label>Passing Score (%)</label>
-              <div class="input-wrapper"><input type="number" id="assessPass" value="75" min="50" max="100"/></div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Due Date</label>
-            <div class="input-wrapper"><input type="datetime-local" id="assessDue"/></div>
-          </div>
-          <div class="form-group">
-            <label>Instructions for Students</label>
-            <div class="input-wrapper"><textarea id="assessInstructions" rows="3" placeholder="Write instructions for students..." style="resize:vertical;width:100%;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-body);"></textarea></div>
-          </div>
-          <div id="createAssessError" style="display:none;color:var(--error);font-size:0.85rem;padding:0.5rem;border:1px solid var(--error);border-radius:6px;"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('createAssessModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="createAssessSubmitBtn">Create Assessment</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <!-- Question Builder Modal -->
@@ -264,171 +197,23 @@
 </div>
 
 <script src="../assets/js/app.js?v=20261106-review1"></script>
+<script src="../assets/js/content-format.js?v=20261111-cf1"></script>
+<script src="../assets/js/content-studio.js?v=20261111-cs3"></script>
+<script src="../assets/js/assessment-list.js?v=20261111-al1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');
 
-let allAssessments = [];
-let allSystems = [];
-let currentFilter = 'all';
 let activeAssessmentId = null;
 
-const typeColors = { quiz:'#f2545b', interactive:'#8b5cf6', identification:'#2ccf9a', diagram:'#3fb8f5', exploration:'#f7c948' };
-const typeIcons  = { quiz:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#exam"/></svg>', interactive:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#map-pin"/></svg>', identification:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg>', diagram:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#image"/></svg>', exploration:'<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg>' };
-const statusBadge = { active:'badge-success', closed:'badge-error', draft:'badge-warning', scheduled:'badge-info' };
-
-// ── Load Assessments & Systems ──────────────────────────────────
-async function loadAssessments() {
-  const grid = document.getElementById('assessmentGrid');
-  try {
-    const [assRes, sysRes] = await Promise.all([
-      fetch(`${API_BASE}/assessments.php`, { credentials: 'same-origin' }),
-      fetch(`${API_BASE}/body-systems.php`, { credentials: 'same-origin' })
-    ]);
-
-    const assData = await assRes.json();
-    const sysData = await sysRes.json();
-
-    if (!assData.success) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--error);padding:3rem;">Failed to load assessments.</div>`;
-      return;
-    }
-
-    allAssessments = assData.data || [];
-    allSystems     = sysData.success ? sysData.data : [];
-
-    // Populate system dropdown
-    const sysSelect = document.getElementById('assessSystem');
-    sysSelect.innerHTML = '<option value="">Select System…</option>';
-    allSystems.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.system_id;
-      opt.textContent = s.system_name;
-      sysSelect.appendChild(opt);
-    });
-
-    renderAssessments();
-  } catch (err) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--error);padding:3rem;">Server connection error.</div>`;
-  }
-}
-
-// ── Render Assessment Cards ─────────────────────────────────────
-function renderAssessments() {
-  const grid = document.getElementById('assessmentGrid');
-  const data = currentFilter === 'all'
-    ? allAssessments
-    : allAssessments.filter(a => a.assessment_type === currentFilter);
-
-  if (!data.length) {
-    grid.innerHTML = `
-      <div class="portal-empty" role="status">
-        <div style="font-weight:600;font-size:1.1rem;margin-bottom:0.5rem;">No assessments found</div>
-        <p style="font-size:0.85rem;">Click <strong>Create Assessment</strong> to create your first quiz or hotspot activity.</p>
-      </div>
-    `;
-    return;
-  }
-
-  grid.innerHTML = data.map(a => {
-    const dueDateStr = a.due_date ? fmtDate(a.due_date) : 'No due date';
-
-    return `
-      <div class="module-card">
-        <div class="module-card-header" style="background:var(--bg-inset);border-bottom:1px solid var(--border-light);height:60px;display:flex;align-items:center;justify-content:center;">
-          <div style="font-size:0.75rem;color:var(--brand);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
-            ${a.assessment_type === 'interactive' ? 'Hotspot Activity' : a.assessment_type.replace('_', ' ')}
-          </div>
-        </div>
-        <div class="module-card-body">
-          <div class="module-card-title">${escHtml(a.title)}</div>
-          <div class="module-card-desc">
-            System: <strong>${escHtml(a.system_name || 'General')}</strong> • ${a.question_count} questions • Due: ${dueDateStr}
-          </div>
-          <div class="module-card-meta">
-            <span class="badge ${statusBadge[a.status] || 'badge-neutral'}">${a.status}</span>
-            <span style="font-size:0.78rem;color:var(--text-muted);">${a.submission_count} submissions</span>
-          </div>
-          ${a.submission_count > 0 ? `
-          <div style="margin-top:var(--space-3);">
-            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">
-              <span>Class Average</span><span>${a.avg_score}%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${a.avg_score}%;background:${a.avg_score>=85?'var(--success)':a.avg_score>=70?'var(--warning)':'var(--error)'};"></div></div>
-          </div>` : ''}
-        </div>
-        <div class="module-card-actions">
-          <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="openQuestionBuilder(${a.assessment_id}, '${escHtml(a.title)}')">Questions (${a.question_count})</button>
-          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="toggleAssessmentStatus(${a.assessment_id}, '${a.status}')">
-            ${a.status === 'active' ? 'Pause' : 'Activate'}
-          </button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteAssessment(${a.assessment_id}, '${escHtml(a.title)}')" title="Delete assessment"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#trash"/></svg> Delete</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function filterAssess(el, filter) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentFilter = filter;
-  renderAssessments();
-}
-
-// ── Create Assessment Handler ───────────────────────────────────
-async function handleCreateAssessment(e) {
-  e.preventDefault();
-  const btn = document.getElementById('createAssessSubmitBtn');
-  const err = document.getElementById('createAssessError');
-  err.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Creating…';
-
-  const typeEl = document.querySelector('input[name="assessType"]:checked');
-  const payload = {
-    title:           document.getElementById('assessTitle').value.trim(),
-    system_id:       parseInt(document.getElementById('assessSystem').value),
-    assessment_type: typeEl ? typeEl.value : 'quiz',
-    time_limit_mins: parseInt(document.getElementById('assessTime').value) || 30,
-    passing_score:   parseFloat(document.getElementById('assessPass').value) || 75,
-    due_date:        document.getElementById('assessDue').value || null,
-    instructions:    document.getElementById('assessInstructions').value.trim(),
-    status:          'active'
-  };
-
-  try {
-    const res = await fetch(`${API_BASE}/assessments.php`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(payload)
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Assessment created successfully!', 'success');
-      closeModal('createAssessModal');
-      document.getElementById('createAssessForm').reset();
-      await loadAssessments();
-      // Open Question Builder immediately for convenience
-      if (result.data && result.data.assessment_id) {
-        openQuestionBuilder(result.data.assessment_id, payload.title);
-      }
-    } else {
-      err.textContent = result.message || 'Creation failed.';
-      err.style.display = 'block';
-    }
-  } catch (ex) {
-    err.textContent = 'Server error during creation.';
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Create Assessment';
-  }
-}
+// ── Assessment list and sheet (assets/js/assessment-list.js) ────
+// The question builder below opens from a row's Questions button and after Create and add questions.
+AssessmentList.init({ openQuestions: (id, title) => openQuestionBuilder(id, title) });
+function loadAssessments() { return AssessmentList.load(); }
+function openAssessmentSheet(assessment) { return AssessmentList.openSheet(assessment || null); }
 
 // ── Question Builder ────────────────────────────────────────────
-async function openQuestionBuilder(assessmentId, title) {
+async function openQuestionBuilder(assessmentId, title = AssessmentList.find(assessmentId)?.title || '') {
   activeAssessmentId = assessmentId;
   document.getElementById('builderModalTitle').textContent = `Questions: ${title}`;
   openModal('questionBuilderModal');
@@ -640,50 +425,6 @@ async function deleteQuestion(questionId) {
   }
 }
 
-// ── Toggle Assessment Status ────────────────────────────────────
-async function toggleAssessmentStatus(id, currentStatus) {
-  const newStatus = currentStatus === 'active' ? 'draft' : 'active';
-  try {
-    const res = await fetch(`${API_BASE}/assessments.php?id=${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ status: newStatus })
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast(`Assessment status set to ${newStatus}.`, 'success');
-      loadAssessments();
-    } else {
-      showToast(result.message || 'Failed to update status.', 'error');
-    }
-  } catch (err) {
-    showToast('Server error.', 'error');
-  }
-}
-
-// ── Delete Assessment ───────────────────────────────────────────
-async function deleteAssessment(id, title) {
-  if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) return;
-  try {
-    const res = await fetch(`${API_BASE}/assessments.php?id=${id}`, {
-      method: 'DELETE',
-      credentials: 'same-origin'
-    });
-    const result = await res.json();
-    if (result.success) {
-      showToast('Assessment deleted.', 'success');
-      loadAssessments();
-    } else {
-      showToast(result.message || 'Failed to delete assessment.', 'error');
-    }
-  } catch (err) {
-    showToast('Server error.', 'error');
-  }
-}
-
-// ── Init ────────────────────────────────────────────────────────
-loadAssessments();
 </script>
 <script src="../assets/js/site-config.js"></script>
 <script>
