@@ -307,7 +307,7 @@ function renderCardHtml(a, isPinned) {
             ${a.is_pinned ? 'Unpin' : 'Pin'}
           </button>
           <button class="btn btn-secondary btn-sm" onclick="openEditModal(${a.announcement_id})"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#pencil-simple"/></svg> Edit</button>
-          <button class="btn btn-secondary btn-sm" onclick="deleteAnnouncement(${a.announcement_id}, '${escHtml(a.title).replace(/'/g, "\\'")}')" title="Delete Announcement" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trash"/></svg> Delete</button>
+          <button class="btn btn-secondary btn-sm" onclick="deleteAnnouncement(${Number(a.announcement_id)})" title="Delete Announcement" style="color:var(--error);"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261012-icons3#trash"/></svg> Delete</button>
         </div>
       </div>
     </div>
@@ -435,7 +435,8 @@ async function saveAnnouncementEdit() {
   }
 }
 
-async function deleteAnnouncement(id, title) {
+async function deleteAnnouncement(id) {
+  const title = allAnnouncements.find(a => Number(a.announcement_id) === id)?.title ?? '';
   if (!confirm(`Are you sure you want to delete the announcement:\n"${title}"?`)) return;
 
   try {

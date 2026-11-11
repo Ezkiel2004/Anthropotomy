@@ -136,6 +136,21 @@ await evaluate(`viewModule(${moduleId})`);
 check(await waitFor(`document.querySelectorAll('#lessonModalBody [data-material]').length>=2`),'Student sees the quoted-title material');
 check(await evaluate(`!document.querySelector('[data-pwned]')&&[...document.querySelectorAll('#lessonModalBody [data-material]')].some(e=>e.dataset.title==='x" data-pwned="1')`),'A quote in a title cannot add an attribute');
 
+// Announcement titles are never put into inline handlers.
+await signIn(credentials.username,credentials.password,'/teacher/');
+const hostile="Don't miss');window.__pwned=1;//";
+await navigate('/teacher/announcements.html');
+const made=await evaluate(`fetch(API_BASE+'/announcements.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:${JSON.stringify(hostile)},body:'Body',audience:'all'})}).then(r=>r.json())`);
+check(made.success,'Create an announcement with an apostrophe title');
+await navigate('/teacher/announcements.html');
+const deleteButton=`document.querySelector('[onclick^="deleteAnnouncement(${made.data.announcement_id})"]')`;
+check(await waitFor(deleteButton),'Delete button passes only the id');
+const dialogs=[];
+socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(data.method==='Page.javascriptDialogOpening'){dialogs.push(data.params.message);call('Page.handleJavaScriptDialog',{accept:false});}});
+await evaluate(deleteButton+'.click()');
+check(await waitFor('true')&&dialogs.length===1&&dialogs[0].includes(hostile),'Delete asks for confirmation with the full title');
+check(await evaluate('window.__pwned===undefined'),'The title did not run as script');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();
