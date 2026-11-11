@@ -5,6 +5,7 @@
  * GET    /api/assessments.php          → List assessments with question counts & stats
  * GET    /api/assessments.php?id=1     → Single assessment with full question bank
  * POST   /api/assessments.php          → Create new assessment (teacher/admin)
+ * POST   /api/assessments.php?duplicate=1 → Copy an assessment as a draft with all its questions (teacher/admin)
  * PUT    /api/assessments.php?id=1     → Update assessment settings (teacher/admin)
  * DELETE /api/assessments.php?id=1     → Delete or archive assessment (teacher/admin)
  */
@@ -118,10 +119,10 @@ if ($method === 'GET') {
         $params[] = $_GET['system'];
     }
 
-    // Filter by assessment type
-    if (!empty($_GET['type']) && $_GET['type'] !== 'all') {
-        $where[]  = 'a.assessment_type = ?';
-        $params[] = $_GET['type'];
+    // Filter by module
+    if (!empty($_GET['module_id'])) {
+        $where[]  = 'a.module_id = ?';
+        $params[] = (int) $_GET['module_id'];
     }
 
     // Filter by status
@@ -155,7 +156,7 @@ if ($method === 'GET') {
     }
 
     $assessments = $db->fetchAll(
-        "SELECT a.assessment_id, a.title, a.assessment_type, a.instructions,
+        "SELECT a.assessment_id, a.module_id, a.title, a.instructions,
                 a.time_limit_mins, a.passing_score, a.max_attempts, a.status, a.due_date,
                 a.created_at,
                 bs.system_name, bs.system_code, bs.icon_emoji, bs.color_hex, bs.sort_order AS system_sort,
@@ -174,8 +175,23 @@ if ($method === 'GET') {
         $params
     );
 
+    $mix = [];
+    if ($assessments) {
+        $ids = array_column($assessments, 'assessment_id');
+        $in  = implode(',', array_fill(0, count($ids), '?'));
+        foreach ($db->fetchAll(
+            "SELECT assessment_id, question_type, COUNT(*) AS c FROM questions
+             WHERE assessment_id IN ({$in}) GROUP BY assessment_id, question_type",
+            $ids
+        ) as $row) {
+            $mix[(int) $row['assessment_id']][$row['question_type']] = (int) $row['c'];
+        }
+    }
+
     foreach ($assessments as &$a) {
         $a['assessment_id']    = (int) $a['assessment_id'];
+        $a['module_id']        = $a['module_id'] !== null ? (int) $a['module_id'] : null;
+        $a['question_types']   = (object) ($mix[$a['assessment_id']] ?? []);
         $a['time_limit_mins']  = $a['time_limit_mins'] ? (int) $a['time_limit_mins'] : null;
         $a['passing_score']    = (float) $a['passing_score'];
         $a['question_count']   = (int) $a['question_count'];
@@ -191,12 +207,59 @@ if ($method === 'GET') {
 }
 
 // ── POST: Create assessment ─────────────────────────────────────
+if ($method === 'POST' && isset($_GET['duplicate'])) {
+    requireTeacher();
+    $srcId = (int) $_GET['duplicate'];
+    $src = $db->fetchOne("SELECT * FROM assessments WHERE assessment_id = ?", [$srcId]);
+    if (!$src) {
+        jsonError('Assessment not found.', 404);
+    }
+
+    $pdo = $db->getConnection();
+    $pdo->beginTransaction();
+    try {
+        $db->query(
+            "INSERT INTO assessments
+                (teacher_id, system_id, module_id, title, instructions,
+                 time_limit_mins, passing_score, max_attempts, status, due_date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', NULL)",
+            [$user['user_id'], $src['system_id'], $src['module_id'], $src['title'] . ' (copy)',
+             $src['instructions'], $src['time_limit_mins'], $src['passing_score'], $src['max_attempts']]
+        );
+        $newId = (int) $pdo->lastInsertId();
+
+        $questions = $db->fetchAll(
+            "SELECT * FROM questions WHERE assessment_id = ? ORDER BY sort_order ASC, question_id ASC",
+            [$srcId]
+        );
+        foreach ($questions as $q) {
+            $db->query(
+                "INSERT INTO questions (assessment_id, question_text, question_type, image_url, hotspot_data, points, sort_order)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$newId, $q['question_text'], $q['question_type'], $q['image_url'], $q['hotspot_data'], $q['points'], $q['sort_order']]
+            );
+            $newQ = (int) $pdo->lastInsertId();
+            foreach ($db->fetchAll("SELECT option_text, is_correct, sort_order FROM answer_options WHERE question_id = ? ORDER BY sort_order ASC, option_id ASC", [$q['question_id']]) as $o) {
+                $db->query(
+                    "INSERT INTO answer_options (question_id, option_text, is_correct, sort_order) VALUES (?, ?, ?, ?)",
+                    [$newQ, $o['option_text'], $o['is_correct'], $o['sort_order']]
+                );
+            }
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+
+    jsonSuccess(['assessment_id' => $newId], 'Assessment duplicated.', 201);
+}
+
 if ($method === 'POST') {
     requireTeacher();
     $body = getJsonBody();
 
     $title       = requireField($body, 'title', 'Assessment title');
-    $type        = optionalField($body, 'assessment_type', 'quiz');
     $systemId    = optionalField($body, 'system_id', null);
     $moduleId    = optionalField($body, 'module_id', null);
     $instructions= optionalField($body, 'instructions', '');
@@ -215,15 +278,14 @@ if ($method === 'POST') {
 
     $db->query(
         "INSERT INTO assessments
-            (teacher_id, system_id, module_id, title, assessment_type, instructions,
+            (teacher_id, system_id, module_id, title, instructions,
              time_limit_mins, passing_score, max_attempts, status, due_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $user['user_id'],
             $systemId,
             $moduleId,
             $title,
-            $type,
             $instructions,
             $timeLimit ? (int) $timeLimit : null,
             (float) $passingScore,
@@ -251,12 +313,11 @@ if ($method === 'PUT') {
     }
 
     if ($db->fetchOne('SELECT submission_id FROM assessment_submissions WHERE assessment_id=? LIMIT 1', [$id])) {
-        foreach (['passing_score','time_limit_mins','max_attempts','assessment_type'] as $field) {
+        foreach (['passing_score','time_limit_mins','max_attempts'] as $field) {
             if (isset($body[$field]) && (string)$body[$field] !== (string)$existing[$field]) jsonError('Grading rules are locked after the first attempt. Create another assessment to change them.', 409);
         }
     }
     $title        = optionalField($body, 'title',           $existing['title']);
-    $type         = optionalField($body, 'assessment_type', $existing['assessment_type']);
     $systemId     = optionalField($body, 'system_id',       $existing['system_id']);
     $instructions = optionalField($body, 'instructions',    $existing['instructions']);
     $timeLimit    = optionalField($body, 'time_limit_mins', $existing['time_limit_mins']);
@@ -267,13 +328,12 @@ if ($method === 'PUT') {
 
     $db->query(
         "UPDATE assessments SET
-            title = ?, assessment_type = ?, system_id = ?, instructions = ?,
+            title = ?, system_id = ?, instructions = ?,
             time_limit_mins = ?, passing_score = ?, max_attempts = ?,
             status = ?, due_date = ?, updated_at = NOW()
          WHERE assessment_id = ?",
         [
             $title,
-            $type,
             $systemId ? (int)$systemId : null,
             $instructions,
             $timeLimit ? (int)$timeLimit : null,
