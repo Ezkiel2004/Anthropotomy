@@ -289,6 +289,6 @@ function _handleFileUpload(array $file, int $userId): string {
     }
 
     // Return web-accessible URL (relative to project root)
-    return rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/') . '/uploads/lessons/' . $filename;
+    return rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME']))), '/') . '/uploads/lessons/' . $filename;
 }
 ?>

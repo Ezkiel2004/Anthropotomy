@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
+  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
@@ -92,6 +93,7 @@
 
 <script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261111-pv1"></script>
 <script src="../assets/js/student-portal.js?v=20261019-acct1"></script>
 <script>
 'use strict';
@@ -228,11 +230,11 @@ async function viewModule(moduleId) {
       </div>
       ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
-        return `<a class="sd-lesson" href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" ${isPdf ? 'target="_blank" rel="noopener"' : 'download'}>
+        return `<${isPdf ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}"` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
           <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
           <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : 'Download · ' + escHtml(f.original_name.split('.').pop().toUpperCase())}</span></span>
           <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
-        </a>`;
+        </${isPdf ? 'button' : 'a'}>`;
       }).join('')}</div>` : ''}`;
   } catch (e) {
     body.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load this module’s lessons. Please try again.</div>';
@@ -240,13 +242,14 @@ async function viewModule(moduleId) {
 }
 
 // ── Start a lesson & open reader ───────────────────────────────
+let readerPdf = null;   // the inline viewer of the open lesson, destroyed when the reader closes or changes
 function renderLessonMedia(lesson) {
   if (!lesson.media_url) return '';
   const url = escHtml(lesson.media_url);
   const ext = lesson.media_url.split('?')[0].split('.').pop().toLowerCase();
   if (['mp4', 'webm'].includes(ext)) return `<video controls preload="metadata" src="${url}">Video playback is unavailable.</video>`;
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return `<img src="${url}" alt="${escHtml(lesson.title)}"/>`;
-  if (ext === 'pdf') return `<iframe title="Lesson document" src="${url}"></iframe><p><a href="${url}" target="_blank" rel="noopener">Open the document in a new tab</a></p>`;
+  if (ext === 'pdf') return `<div class="sd-pdf" data-pdf="${url}" data-title="${escHtml(lesson.title)}"></div>`;
   if (ext === 'glb') return `<a class="sd-go sd-go--light" href="anatomy.html?system=${encodeURIComponent(lesson.system_code)}&lesson_id=${Number(lesson.lesson_id)}">Open the lesson model in 3D<span class="sd-go-disc">${icon('arrow-right')}</span></a>`;
   if (['ppt', 'pptx'].includes(ext)) return `<p><a href="${url}" download onclick="StudyClock.reading()">Download the slides</a></p>`;
   return `<p><a href="${url}" target="_blank" rel="noopener" onclick="StudyClock.reading()">Open the lesson attachment</a></p>`;
@@ -305,6 +308,10 @@ function showLessonContent(lesson) {
     </div>`;
   viewer.hidden = false;
   document.body.style.overflow = 'hidden';
+  readerPdf?.destroy();
+  readerPdf = null;
+  const pdfHost = viewer.querySelector('.sd-pdf');
+  if (pdfHost) PdfViewer.mount(pdfHost, { url: pdfHost.dataset.pdf, title: pdfHost.dataset.title }).then(v => { readerPdf = v; });
   viewer.querySelector('.sd-reader-bar button').focus();
 }
 
@@ -312,8 +319,15 @@ function closeLessonViewer() {
   const viewer = document.getElementById('lessonContentViewer');
   if (viewer.hidden) return;
   viewer.hidden = true;
+  readerPdf?.destroy();
+  readerPdf = null;
   document.body.style.overflow = '';
 }
+// Material PDFs open in the in-app viewer; Word and PowerPoint files stay plain downloads.
+document.getElementById('lessonModalBody').addEventListener('click', e => {
+  const item = e.target.closest('[data-material]');
+  if (item) PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title });
+});
 document.getElementById('lessonContentViewer').addEventListener('keydown', e => { if (e.key === 'Escape') closeLessonViewer(); });
 
 // ── Init ───────────────────────────────────────────────────────

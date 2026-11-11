@@ -1,5 +1,5 @@
 /* Teacher file lists (module materials, lesson plans): upload, list, open and delete through api/files.php.
-   TeacherFiles.mount(element, {kind, moduleId}) draws the upload form and the list into element. Needs app.js. */
+   TeacherFiles.mount(element, {kind, moduleId}) draws the upload form and the list into element. Needs app.js, and pdf-viewer.js to open PDFs. */
 const TeacherFiles = (() => {
     const MAX_BYTES = 100 * 1024 * 1024;
     const size = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
@@ -13,7 +13,9 @@ const TeacherFiles = (() => {
               <span class="tf-icon">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
               <span class="tf-copy"><span class="tf-title">${escHtml(f.title)}</span>
                 <span class="tf-meta">${escHtml(f.original_name)} · ${size(Number(f.size_bytes))} · ${fmtDate(f.created_at)}</span></span>
-              <a class="btn btn-secondary btn-sm" href="${API_BASE}/files.php?id=${f.file_id}" ${isPdf ? 'target="_blank" rel="noopener"' : 'download'}>${icon(isPdf ? 'eye' : 'download-simple')} ${isPdf ? 'Open' : 'Download'}</a>
+              ${isPdf
+                ? `<button type="button" class="btn btn-secondary btn-sm" data-open="${f.file_id}">${icon('eye')} Open</button>`
+                : `<a class="btn btn-secondary btn-sm" href="${API_BASE}/files.php?id=${f.file_id}" download>${icon('download-simple')} Download</a>`}
               <button type="button" class="btn btn-secondary btn-sm" data-delete="${f.file_id}" aria-label="Delete ${escHtml(f.title).replace(/"/g, '&quot;')}">${icon('trash')}</button>
             </li>`;
         }).join('')}</ul>`;
@@ -27,15 +29,17 @@ const TeacherFiles = (() => {
               <div class="input-wrapper"><input type="text" id="tfTitle-${kind}" name="title" maxlength="200" placeholder="Defaults to the file name"/></div></div>
             <div class="form-group"><label for="tfFile-${kind}">File</label>
               <input type="file" id="tfFile-${kind}" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx" required/>
-              <div class="tf-hint">PDF opens in the browser. PowerPoint and Word files download. Max 100 MB.</div></div>
+              <div class="tf-hint">PDF opens in the viewer. PowerPoint and Word files download. Max 100 MB.</div></div>
             <p class="tf-error" role="alert" hidden></p>
             <button type="submit" class="btn btn-primary btn-sm">${icon('upload-simple')} Upload</button>
           </form>
           <div class="tf-files" aria-live="polite"><p class="tf-empty">Loading files…</p></div>`;
         const form = root.querySelector('form'), list = root.querySelector('.tf-files'), error = root.querySelector('.tf-error');
 
+        let files = [];
         async function refresh() {
             const result = await fetch(`${API_BASE}/files.php?${query}`, {credentials: 'same-origin'}).then(r => r.json()).catch(() => null);
+            files = result?.success ? result.data : [];
             list.innerHTML = result?.success ? rows(result.data) : '<p class="tf-empty">Files could not be loaded. Please try again.</p>';
         }
 
@@ -57,6 +61,12 @@ const TeacherFiles = (() => {
         });
 
         list.addEventListener('click', async e => {
+            const open = e.target.closest('[data-open]')?.dataset.open;
+            if (open) {
+                const file = files.find(f => String(f.file_id) === open);
+                if (file) PdfViewer.open({url: `${API_BASE}/files.php?id=${file.file_id}`, title: file.title});
+                return;
+            }
             const id = e.target.closest('[data-delete]')?.dataset.delete;
             if (!id || !await confirmToast({title: 'Delete this file?', message: 'It is removed for good.', confirmText: 'Delete', cancelText: 'Keep'})) return;
             const result = await fetch(`${API_BASE}/files.php?id=${id}`, {method: 'DELETE', credentials: 'same-origin'}).then(r => r.json()).catch(() => null);
