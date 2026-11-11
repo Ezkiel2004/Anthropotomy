@@ -9,6 +9,7 @@ const pairs = [
   ['compare-4-pdf-lesson', 'before-08-student-pdf-lesson', 'after-04-student-pdf-lesson', 'PDF in the lesson reader'],
   ['compare-5-assessments', 'before-04-teacher-assessments', 'after-06-teacher-assessments', 'Teacher Assessments page'],
   ['compare-6-question-builder', 'before-05-teacher-question-builder', 'after-07-question-builder', 'Question builder'],
+  ['compare-8-new-assessment', 'before-06-teacher-create-assessment', 'after-09-new-assessment', 'New assessment: no type to pick'],
   ['compare-7-phone', 'before-09-teacher-modules-phone', 'after-08-teacher-modules-phone', 'Modules on a phone'],
 ];
 const size = f => execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', f]).toString().trim().split(',').map(Number);

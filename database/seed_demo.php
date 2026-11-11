@@ -111,7 +111,7 @@ try {
     $due = fn(string $mod) => date('Y-m-d 23:59:00', strtotime($mod));
 
     $assessments = [
-        ['Skeletal System Basics', 'quiz', 'skeletal', 'Choose the best answer. You can go back to any question before you submit.', 15, 75, 3, 'active', null, [
+        ['Skeletal System Basics', 'skeletal', 'Choose the best answer. You can go back to any question before you submit.', 15, 75, 3, 'active', null, [
             $mc('How many bones are in the adult human skeleton?', ['106', '206', '256', '306'], 1),
             $mc('Which bone protects the brain?', ['Sternum', 'Pelvis', 'Skull', 'Scapula'], 2),
             $mc('Red bone marrow makes', ['Blood cells', 'Bile', 'Hormones', 'Cartilage'], 0),
@@ -119,33 +119,33 @@ try {
             $tf('The sternum is part of the appendicular skeleton.', false),
             $tf('Osteoblasts are cells that build new bone.', true),
         ]],
-        ['Name That Bone', 'identification', 'skeletal', 'Type the anatomical name of each bone. Spelling counts.', 10, 70, 2, 'active', '+5 days', [
+        ['Name That Bone', 'skeletal', 'Type the anatomical name of each bone. Spelling counts.', 10, 70, 2, 'active', '+5 days', [
             $id('The thigh bone, the longest bone in the body', 'Femur'),
             $id('The kneecap', 'Patella'),
             $id('The collarbone', 'Clavicle'),
             $id('The upper arm bone', 'Humerus'),
         ]],
-        ['Find the Structure', 'diagram', null, 'Click the structure named in each question on the picture.', 8, 67, 3, 'active', '+2 days', [
+        ['Find the Structure', null, 'Click the structure named in each question on the picture.', 8, 67, 3, 'active', '+2 days', [
             $hs('Click the heart.', 'Heart', 'circulatory', .54, .555, .08),
             $hs('Click the sternum (breastbone).', 'Sternum', 'skeletal', .46, .58, .07),
             $hs('Click the trachea (windpipe).', 'Trachea', 'respiratory', .50, .23, .05),
         ]],
-        ['Heart and Vessels Check', 'mixed', 'circulatory', 'A mix of question types on the heart and blood vessels.', 20, 75, 2, 'draft', '+10 days', [
+        ['Heart and Vessels Check', 'circulatory', 'A mix of question types on the heart and blood vessels.', 20, 75, 2, 'draft', '+10 days', [
             $mc('Which chamber pumps blood to the whole body?', ['Right atrium', 'Right ventricle', 'Left atrium', 'Left ventricle'], 3),
             $tf('Veins carry blood away from the heart.', false),
             $id('The largest artery in the body', 'Aorta'),
             $hs('Click the heart.', 'Heart', 'circulatory', .54, .555, .08),
         ]],
-        ['Breathing Review', 'quiz', 'respiratory', 'Closed review from the last unit.', 10, 75, 1, 'closed', '-3 days', [
+        ['Breathing Review', 'respiratory', 'Closed review from the last unit.', 10, 75, 1, 'closed', '-3 days', [
             $mc('Gas exchange happens in the', ['Trachea', 'Bronchi', 'Alveoli', 'Larynx'], 2),
             $mc('The main muscle of breathing is the', ['Diaphragm', 'Biceps', 'Heart', 'Stomach'], 0),
             $tf('The trachea splits into two bronchi.', true),
         ]],
     ];
     $questionIds = [];
-    foreach ($assessments as $ai => [$title, $type, $code, $instructions, $mins, $pass, $attempts, $status, $dueMod, $questions]) {
+    foreach ($assessments as $ai => [$title, $code, $instructions, $mins, $pass, $attempts, $status, $dueMod, $questions]) {
         $aid = $db->insert('assessments', ['teacher_id' => $tid, 'system_id' => $code ? $sys[$code] : null, 'module_id' => $code ? ($moduleIds[$code] ?? null) : null,
-            'title' => $title, 'assessment_type' => $type, 'instructions' => $instructions, 'time_limit_mins' => $mins, 'passing_score' => $pass,
+            'title' => $title, 'instructions' => $instructions, 'time_limit_mins' => $mins, 'passing_score' => $pass,
             'max_attempts' => $attempts, 'status' => $status, 'due_date' => $dueMod ? $due($dueMod) : null]);
         $seed['assessments'][] = $aid;
         foreach ($questions as $qi => [$qtype, $text, $options, $data]) {

@@ -8,11 +8,12 @@ Make the teacher's content pages read as one product with a clear visual hierarc
 
 - **Teacher Modules and Lessons** (`teacher/modules.html`): the module list, a module workspace, lesson and module editors.
 - **Teacher Assessments** (`teacher/assessments.html`): the list, the question builder and the assessment editor.
+- **No assessment types** (decided 2026-11-11, after the first review). Teachers no longer choose Quiz, Identification, Hotspot activity or Mixed when they create an assessment. Any assessment can hold any mix of multiple choice, true or false, identification and hotspot questions, and every label, icon and filter comes from the questions it contains. A fixed type only restricted teachers who mix question types.
 - **One in-app PDF viewer** used everywhere a PDF opens: lesson attachments in the student lesson reader, module materials (teacher and student) and lesson plans.
 - **Look:** keep the Stage palette (black, mint `#36e2c0`, body-system colours, Bungee page titles, Geist body). Add depth with surface steps, one type scale and one card language. No new palette, no light theme.
 - **Demo content** for reviewing the work: `database/seed_demo.php`, removable with `--remove`.
 
-Out of scope: the student Lessons grid, the student quiz runner and results (only the PDF viewer reaches the student side), the explorer, games, dashboards.
+Out of scope: the student Lessons grid, the student quiz runner and results, the explorer, games, dashboards. Two changes reach the student side: the PDF viewer, and the places that showed the retired assessment type (the quiz list's filter chips and card look, the dashboard's score table chip, the progress page search).
 
 ## What is wrong today
 
@@ -24,11 +25,11 @@ Seen with the demo content (`docs/superpowers/specs/assets/2026-11-11-content-re
 4. **PDF lessons.** The student reader embeds the browser's PDF viewer in an iframe: grey toolbar, 52% zoom, a thumbnail panel the student did not ask for, and a bare "Open the document in a new tab" link. Phones are worse: iOS Safari shows only the first page in an iframe and Android Chrome downloads the file instead.
 5. **Assessments page.** A centred type label row ("QUIZ", "DIAGRAM") wastes the top of every card; raw enum names show ("diagram", "mixed"); "1 submissions"; "Due: No due date"; "Pause" is the mint primary button, so the riskiest action is the most prominent. Filter chips do not match the data ("Hotspot Activity" and "Labeled Diagram" are both shown).
 6. **Question builder.** Correct answers are marked with the text "[Correct]", types show as `multiple_choice`, every question has a red "Delete", and there is no edit.
-7. **Bug.** The create form sends `assessment_type: 'interactive'` for hotspot activities, but the column is `enum('quiz','identification','diagram','exploration','mixed')`. MariaDB runs without strict mode here, so the row is saved with an empty type and never matches a filter on either portal.
+7. **Bug.** The create form sends `assessment_type: 'interactive'` for hotspot activities, but the column is `enum('quiz','identification','diagram','exploration','mixed')`. MariaDB runs without strict mode here, so the row is saved with an empty type and never matches a filter on either portal. Retiring the type removes this bug instead of patching it.
 
 ## Design
 
-Mockups are the real signed-in pages with new content injected (`mockup/capture-after.mjs`, `mockup/after.css`). Side-by-side images: `compare-1` to `compare-7`, plus `after-05-materials-pdf-viewer.png`.
+Mockups are the real signed-in pages with new content injected (`mockup/capture-after.mjs`, `mockup/after.css`). Side-by-side images: `compare-1` to `compare-8`, plus `after-05-materials-pdf-viewer.png`.
 
 ### Visual system (shared by both pages)
 
@@ -77,37 +78,44 @@ A right-side sheet (full screen on phones) for both new and existing lessons, re
 ### Assessments page (`compare-5`)
 
 - Header with one primary **New assessment**; summary strip: open, draft, closed, total attempts (the mockup's "attempts this week" needs submission dates the list API does not return, so it counts all attempts).
-- Toolbar: search and one type filter whose options match the data: All, Quizzes, Identification, Hotspot, Mixed.
-- Rows grouped **Open now** (soonest due first), **Drafts**, **Closed**. Each row: type tile, system and type eyebrow, title, "15 min · pass 75% · 3 tries", question count with per-type chips, due date (amber within 3 days, "No due date" in muted text), results ("1 attempt · avg 83%" with a bar, or "No attempts yet"), status, one neutral action (**Questions**; the mockup's "Results" button is dropped because the results already sit in the row and the Monitoring page has no per-assessment link) and a more menu (Open/Pause/Close, Edit settings, Duplicate, Delete).
+- Toolbar: search and the body-system select used on the Modules page. There is no type filter, because assessments have no type.
+- Rows grouped **Open now** (soonest due first), **Drafts**, **Closed**. Each row: a tile drawn from the question mix (one question type shows that type's icon and tint, several show the mint stack icon, none shows "No questions yet"), the body-system eyebrow, title, "15 min · pass 75% · 3 tries", question count with per-type chips, due date (amber within 3 days, "No due date" in muted text), results ("1 attempt · avg 83%" with a bar, or "No attempts yet"), status, one neutral action (**Questions**; the mockup's "Results" button is dropped because the results already sit in the row and the Monitoring page has no per-assessment link) and a more menu (Open/Pause/Close, Edit settings, Duplicate, Delete).
 - Phones stack each row into a card.
 
 ### Question builder (`compare-6`)
 
-- Header: system and type eyebrow, title, then Questions, Points, Time, Pass mark, Status.
+- Header: body-system eyebrow, title, then Questions, Points, Time, Pass mark, Status.
 - When the assessment has attempts, a blue note explains the questions are locked to keep past results fair, with **Duplicate to edit** (a draft copy with all questions).
 - Each question: number, type with icon ("Multiple choice", "True or false", "Identification", "Hotspot"), points, more menu (Edit, Duplicate, Delete). Options in a two-column grid; the correct one has a mint outline, a check and "Correct". Identification shows "Answer: Femur". Hotspot shows the picture with the target ring and its tolerance.
 - **Edit question** reuses the add-question form, prefilled; the API already supports `PUT questions.php?id=`.
-- The create/edit assessment form becomes a sheet with type tiles (Quiz, Identification, Hotspot activity, Mixed) in the same style as the lesson tiles.
+- The create/edit assessment form becomes a sheet with no type to pick (`after-09-new-assessment.png`, `compare-8`): title, body system, optional module, instructions, time limit, pass mark, tries per student, due date. A note lists the four question types that can be mixed. **Create and add questions** saves a draft and opens the builder.
+- Each question still picks its own type in the add/edit question form, as today.
+
+### Student side of the retired type
+
+- **Quiz list** (`student/quiz.html`): the chips become All, Multiple choice, True or false, Identification, Hotspot. Each counts and shows the assessments that contain at least one question of that type, so a mixed assessment appears under every type it holds. Card colour and icon come from the question mix, as on the teacher list.
+- **Dashboard** (`student/dashboard.html`): the score table's type chip is removed.
+- **Progress** (`student/progress.html`): search matches title and body system, not type.
 
 ## Data and API changes
 
-- `database/migrate.php`: add `interactive` to `assessments.assessment_type`, and set rows whose type is `''` or `diagram` to `interactive`. `assessments.php` POST and PUT reject any type outside quiz, identification, interactive, mixed, so a bad value can never be saved as empty again.
+- **Assessment type retired.** `assessments.php` stops reading `assessment_type` on POST and PUT, drops it from its GET rows and drops the `?type=` filter. The column stays in the table (old rows, default `quiz`) so nothing is destroyed, but no page reads or writes it. No migration is needed.
 - `api/modules.php` GET for teachers adds per module: `lessons` (every lesson, drafts included, with type, attachment URL, minutes, status and order), `material_count` and `updated_at`. Kind counts and total minutes are worked out in the browser with `content-format.js`, so the kind rules live in one place. Students get the old shape.
 - `api/lessons.php`: `PUT ?reorder=1` with `{module_id, order: [lesson_id, ...]}`; `POST ?id=<id>` as multipart to update a lesson including replacing or removing its attachment (PHP does not parse multipart PUT). A replaced or removed file under `uploads/lessons/` is deleted.
-- `api/assessments.php`: GET adds `question_types` (counts per question type); `POST ?duplicate=<id>` copies the assessment, questions and options as a draft titled "<title> (copy)".
-- `assets/js/content-format.js` (new, plain script, unit tested): `lessonKind(lesson)`, `assessmentTypeLabel(type)`, `questionMix(types)`, `dueLabel(date, now)`, `plural` helpers used by both pages.
-- `database/seed_demo.php` seeds the hotspot activity as `interactive` once the migration exists.
+- `api/assessments.php`: GET adds `question_types` (counts per question type, for teachers and students; it reveals no answers) and `module_id`, and accepts `?module_id=`; `POST ?duplicate=<id>` copies the assessment, questions and options as a draft titled "<title> (copy)".
+- `assets/js/content-format.js` (new, plain script, unit tested): `lessonKind(lesson)`, `assessmentKind(questionTypes)`, `questionMix(questionTypes)`, `dueLabel(date, now)` and the shared system looks, used by both portals. `assessmentKind` returns the single question type's label and icon when there is one type, "Mixed questions" with the stack icon for several, and "No questions yet" for none.
+- `database/seed_demo.php` stops setting a type.
 
 ## Files
 
 New: `assets/css/content-studio.css`, `assets/css/pdf-viewer.css`, `assets/js/pdf-viewer.js`, `assets/js/content-format.js`, `assets/js/lesson-reader.js` (the reader moved out of `student/lessons.html` so teachers can preview), `assets/vendor/pdfjs/`, `tests/unit/content-format.test.mjs`.
 
-Changed: `teacher/modules.html`, `teacher/assessments.html`, `teacher/lesson-plans.html` (viewer), `student/lessons.html` (viewer and shared reader), `assets/js/teacher-files.js`, `assets/js/app.js` (system looks), `assets/js/student-portal.js`, `assets/icons/interface.svg`, `api/modules.php`, `api/lessons.php`, `api/assessments.php`, `database/migrate.php`, `database/seed_demo.php`, `tests/integration.mjs`, `tests/browser.mjs`, `README.md`.
+Changed: `teacher/modules.html`, `teacher/assessments.html`, `teacher/lesson-plans.html` (viewer), `student/lessons.html` (viewer and shared reader), `assets/js/teacher-files.js`, `assets/js/app.js` (system looks), `assets/js/student-portal.js`, `assets/icons/interface.svg`, `api/modules.php`, `api/lessons.php`, `api/assessments.php`, `database/seed_demo.php`, `student/quiz.html`, `student/dashboard.html`, `student/progress.html`, `tests/integration.mjs`, `tests/browser.mjs`, `README.md`.
 
 ## Testing
 
 - Unit: `node --test "tests/unit/*.test.mjs"` covers the content-format helpers (every lesson kind from type and extension, labels, due wording around midnight and the 3-day threshold, question mix).
-- Integration (`tests/integration.mjs`): lesson reorder keeps other modules untouched; multipart lesson update replaces and deletes the old file; a student cannot reorder or update; an invalid assessment type is rejected with 422; duplicate copies questions and options and is a draft; the migration turns empty and `diagram` types into `interactive`.
+- Integration (`tests/integration.mjs`): lesson reorder keeps other modules untouched; multipart lesson update replaces and deletes the old file; a student cannot reorder or update; assessment rows carry `question_types` and no `assessment_type`, and a type sent on create is ignored; duplicate copies questions and options and is a draft.
 - Browser (`tests/browser.mjs`): the modules grid renders cards with kind chips; `?module=` opens the workspace; the lesson editor saves; the PDF viewer draws a canvas for a lesson PDF and for a material; Escape closes the full-screen viewer; no page errors.
 - Visual: re-run `mockup/capture-after.mjs` against the finished pages instead of injected markup, at 1440 px and 390 px, and compare with the mockups.
 

@@ -128,44 +128,71 @@ const qmix = mixes => {
   const total = parts.reduce((s, [n]) => s + n, 0);
   return `<span class="cs-qtotal"><b>${total}</b> question${total === 1 ? '' : 's'}</span>${parts.map(([n, label]) => `<span class="cs-qchip ${QT[label][1]}" title="${label}">${i(QT[label][0], 'cs-ico--sm')}${n}</span>`).join('')}`;
 };
-const arow = ({ q, ico, type, sys, title, mixes, meta, due, dueCls, result, st, primary }) => `<article class="cs-arow" style="--sys:${sys ? SYS[sys][0] : '#8f8f8f'}">
+// No assessment type: the label and tile come from the questions inside (one type → that type, several → Mixed).
+const kindOf = mixes => {
+  const labels = mixes.map(m => m.replace(/^\d+ /, ''));
+  if (labels.length > 1) return ['q-mixed', 'stack', 'Mixed questions'];
+  const [ico, q] = QT[labels[0]];
+  return [q, ico, { 'True/false': 'True or false' }[labels[0]] || labels[0]];
+};
+const arow = ({ sys, title, mixes, meta, due, dueCls, result, st, primary }) => { const [q, ico, type] = kindOf(mixes); return `<article class="cs-arow" style="--sys:${sys ? SYS[sys][0] : '#8f8f8f'}">
   <span class="cs-tile ${q}">${i(ico)}</span>
-  <div class="cs-acopy"><span class="cs-eyebrow">${sys ? '<i></i>' + SYS[sys][2] : 'All body systems'} · ${type}</span><h3 class="cs-h3">${title}</h3><span class="cs-meta">${meta}</span></div>
+  <div class="cs-acopy"><span class="cs-eyebrow">${sys ? '<i></i>' + SYS[sys][2] : 'All body systems'}</span><h3 class="cs-h3">${title}</h3><span class="cs-meta">${meta}</span></div>
   <div class="cs-qmix">${qmix(mixes)}</div>
   <div class="cs-due ${dueCls || ''}"><span class="cs-meta">${due[0]}</span><b>${due[1]}</b></div>
   <div class="cs-result">${result}</div>
   <div class="cs-aend">${status(st).replace('cs-status ', 'cs-status cs-status--plain ')}<button class="cs-btn cs-btn--sm">${primary}</button><button class="cs-icon-btn">${more}</button></div>
-</article>`;
+</article>`; };
 const res = (n, avg) => n ? `<span class="cs-meta">${n} attempt${n === 1 ? '' : 's'} · avg <b style="color:var(--cs-ink)">${avg}%</b></span><span class="bar ${avg < 75 ? 'low' : ''}"><i style="width:${avg}%"></i></span>` : '<span class="cs-meta">No attempts yet</span>';
 const sectionHead = (t, n) => `<div class="cs-group-head" style="margin-top:.5rem"><h2 class="cs-h2">${t}</h2><span class="cs-meta" style="margin-left:0">${n}</span></div>`;
 
 const ASSESS_PAGE = `<div class="cs">
-  <header class="cs-head page-header" style="margin:0"><div class="page-header-left"><h1>Assessments</h1><p>Quizzes, identification drills and hotspot activities. Students see only the ones that are open.</p></div>
+  <header class="cs-head page-header" style="margin:0"><div class="page-header-left"><h1>Assessments</h1><p>Mix any question types in one assessment. Students see only the ones that are open.</p></div>
     <div class="cs-actions"><button class="cs-btn cs-btn--primary">${i('plus')}New assessment</button></div></header>
-  <div class="cs-summary"><div><i style="background:var(--cs-mint)"></i><b class="cs-num">4</b><span>open</span></div><div><i style="background:var(--cs-amber)"></i><b class="cs-num">1</b><span>draft</span></div><div><i style="background:var(--cs-faint)"></i><b class="cs-num">1</b><span>closed</span></div><div><b class="cs-num">3</b><span>attempts this week</span></div></div>
+  <div class="cs-summary"><div><i style="background:var(--cs-mint)"></i><b class="cs-num">4</b><span>open</span></div><div><i style="background:var(--cs-amber)"></i><b class="cs-num">1</b><span>draft</span></div><div><i style="background:var(--cs-faint)"></i><b class="cs-num">1</b><span>closed</span></div><div><b class="cs-num">3</b><span>attempts</span></div></div>
   <div class="cs-toolbar"><label class="cs-search">${i('magnifying-glass')}Search assessments</label>
-    <div class="cs-seg"><span class="on">All <em>6</em></span><span>Quizzes <em>3</em></span><span>Identification <em>1</em></span><span>Hotspot <em>1</em></span><span>Mixed <em>1</em></span></div></div>
+    <span class="cs-select">All body systems ${i('caret-down', 'cs-ico--sm')}</span></div>
   <div class="cs-alist">
     ${sectionHead('Open now', '4')}
-    ${arow({ q: 'q-hs', ico: 'crosshair', type: 'Hotspot activity', sys: null, title: 'Find the Structure', mixes: ['3 Hotspot'], meta: '8 min · pass 67% · 3 tries', due: ['Due', 'Fri, Nov 13 · in 2 days'], dueCls: 'cs-due--soon', result: res(0), st: 'active', primary: 'Questions' })}
-    ${arow({ q: 'q-id', ico: 'textbox', type: 'Identification', sys: 'skeletal', title: 'Name That Bone', mixes: ['4 Identification'], meta: '10 min · pass 70% · 2 tries', due: ['Due', 'Mon, Nov 16'], result: res(0), st: 'active', primary: 'Questions' })}
-    ${arow({ q: 'q-mc', ico: 'list-checks', type: 'Quiz', sys: 'skeletal', title: 'Skeletal System Basics', mixes: ['4 Multiple choice', '2 True/false'], meta: '15 min · pass 75% · 3 tries', due: ['Due', 'No due date'], dueCls: 'cs-due--past', result: res(1, 83), st: 'active', primary: 'Results' })}
-    ${arow({ q: 'q-mc', ico: 'list-checks', type: 'Quiz', sys: 'circulatory', title: 'Labeled', mixes: ['2 True/false'], meta: '30 min · pass 75% · 3 tries', due: ['Due', 'No due date'], dueCls: 'cs-due--past', result: res(2, 100), st: 'active', primary: 'Results' })}
+    ${arow({ sys: null, title: 'Find the Structure', mixes: ['3 Hotspot'], meta: '8 min · pass 67% · 3 tries', due: ['Due', 'Fri, Nov 13 · in 2 days'], dueCls: 'cs-due--soon', result: res(0), st: 'active', primary: 'Questions' })}
+    ${arow({ sys: 'skeletal', title: 'Name That Bone', mixes: ['4 Identification'], meta: '10 min · pass 70% · 2 tries', due: ['Due', 'Mon, Nov 16'], result: res(0), st: 'active', primary: 'Questions' })}
+    ${arow({ sys: 'skeletal', title: 'Skeletal System Basics', mixes: ['4 Multiple choice', '2 True/false'], meta: '15 min · pass 75% · 3 tries', due: ['Due', 'No due date'], dueCls: 'cs-due--past', result: res(1, 83), st: 'active', primary: 'Questions' })}
+    ${arow({ sys: 'circulatory', title: 'Labeled', mixes: ['2 True/false'], meta: '30 min · pass 75% · 3 tries', due: ['Due', 'No due date'], dueCls: 'cs-due--past', result: res(2, 100), st: 'active', primary: 'Questions' })}
     ${sectionHead('Drafts', '1')}
-    ${arow({ q: 'q-mixed', ico: 'stack', type: 'Mixed', sys: 'circulatory', title: 'Heart and Vessels Check', mixes: ['1 Multiple choice', '1 True/false', '1 Identification', '1 Hotspot'], meta: '20 min · pass 75% · 2 tries', due: ['Due', 'Sat, Nov 21'], result: '<span class="cs-meta">Not published</span>', st: 'draft', primary: 'Questions' })}
+    ${arow({ sys: 'circulatory', title: 'Heart and Vessels Check', mixes: ['1 Multiple choice', '1 True/false', '1 Identification', '1 Hotspot'], meta: '20 min · pass 75% · 2 tries', due: ['Due', 'Sat, Nov 21'], result: '<span class="cs-meta">Not published</span>', st: 'draft', primary: 'Questions' })}
     ${sectionHead('Closed', '1')}
-    ${arow({ q: 'q-mc', ico: 'list-checks', type: 'Quiz', sys: 'respiratory', title: 'Breathing Review', mixes: ['2 Multiple choice', '1 True/false'], meta: '10 min · pass 75% · 1 try', due: ['Closed', 'Sun, Nov 8'], dueCls: 'cs-due--past', result: res(0), st: 'closed', primary: 'Results' })}
+    ${arow({ sys: 'respiratory', title: 'Breathing Review', mixes: ['2 Multiple choice', '1 True/false'], meta: '10 min · pass 75% · 1 try', due: ['Closed', 'Sun, Nov 8'], dueCls: 'cs-due--past', result: res(0), st: 'closed', primary: 'Questions' })}
   </div>
 </div>`;
+
+// New assessment: no type to pick; question types are chosen per question afterwards.
+const NEW_ASSESSMENT = `<div class="cs-scrim"></div><aside class="cs-sheet" style="font-family:var(--font-body)">
+  <div class="cs-sheet-head"><div><span class="cs-eyebrow">Assessments</span><h3>New assessment</h3></div><button class="cs-icon-btn">${i('x')}</button></div>
+  <div class="cs-sheet-body">
+    <div class="cs-field"><label>Title</label><div class="cs-input">Heart and Vessels Check</div></div>
+    <div class="cs-two"><div class="cs-field"><label>Body system</label><div class="cs-input">Circulatory system <span class="cs-meta">${i('caret-down', 'cs-ico--sm')}</span></div></div>
+      <div class="cs-field"><label>Module <span class="cs-meta">(optional)</span></label><div class="cs-input">The Heart and Blood Vessels <span class="cs-meta">${i('caret-down', 'cs-ico--sm')}</span></div></div></div>
+    <div class="cs-field"><label>Instructions for students</label><div class="cs-input cs-input--area" style="min-height:5rem">Answer every question. You can go back before you submit.</div></div>
+    <div class="cs-two"><div class="cs-field"><label>Time limit</label><div class="cs-input">20 <span class="cs-meta">minutes</span></div></div>
+      <div class="cs-field"><label>Pass mark</label><div class="cs-input">75 <span class="cs-meta">%</span></div></div></div>
+    <div class="cs-two"><div class="cs-field"><label>Tries per student</label><div class="cs-input">2</div></div>
+      <div class="cs-field"><label>Due</label><div class="cs-input">Sat, Nov 21 · 11:59 PM <span class="cs-meta">${i('calendar', 'cs-ico--sm')}</span></div></div></div>
+    <div class="cs-field"><span class="cs-label">Questions</span>
+      <div class="cs-attach" style="align-items:flex-start"><span class="cs-tile q-mixed">${i('stack')}</span><div><div class="cs-row-title" style="font-size:.875rem">Any mix of question types</div>
+        <div class="cs-meta" style="margin-top:.25rem">After you create it, add multiple choice, true or false, identification and hotspot questions in any order.</div>
+        <div class="cs-qmix" style="margin-top:.625rem"><span class="cs-qchip q-mc">${i('list-checks', 'cs-ico--sm')}Multiple choice</span><span class="cs-qchip q-tf">${i('toggle-left', 'cs-ico--sm')}True or false</span><span class="cs-qchip q-id">${i('textbox', 'cs-ico--sm')}Identification</span><span class="cs-qchip q-hs">${i('crosshair', 'cs-ico--sm')}Hotspot</span></div></div></div></div>
+  </div>
+  <div class="cs-sheet-foot"><span class="cs-meta">Saved as a draft</span><button class="cs-btn">Cancel</button><button class="cs-btn cs-btn--primary">Create and add questions</button></div>
+</aside>`;
 
 const opt = (t, ok) => `<div class="cs-opt ${ok ? 'ok' : ''}">${ok ? i('check-circle') : '<i></i>'}${t}${ok ? '<em>Correct</em>' : ''}</div>`;
 const qcard = (n, cls, ico, type, text, body) => `<article class="cs-q"><div class="cs-q-top"><span class="cs-q-n">${n}</span><span class="cs-qtype ${cls}">${i(ico, 'cs-ico--sm')}${type}</span><span class="cs-meta">1 point</span>
   <button class="cs-icon-btn" aria-label="More">${more}</button></div><p class="cs-q-text">${text}</p>${body}</article>`;
 const BUILDER = `<div class="cs-scrim"></div><div class="cs-modal" style="font-family:var(--font-body)">
-  <div class="cs-sheet-head"><div><span class="cs-eyebrow">Skeletal system · Quiz</span><h3>Skeletal System Basics</h3></div><button class="cs-icon-btn">${i('x')}</button></div>
+  <div class="cs-sheet-head"><div><span class="cs-eyebrow">Skeletal system</span><h3>Skeletal System Basics</h3></div><button class="cs-icon-btn">${i('x')}</button></div>
   <div class="cs-sheet-body">
     <div class="cs-qhead"><div><span class="cs-meta">Questions</span><b>6</b></div><div><span class="cs-meta">Points</span><b>6</b></div><div><span class="cs-meta">Time</span><b>15 min</b></div><div><span class="cs-meta">Pass mark</span><b>75%</b></div><div><span class="cs-meta">Status</span><b style="color:var(--cs-mint)">Open</b></div></div>
-    <div class="cs-lock">${i('lock-key')}<span>1 student has taken this quiz, so its questions are locked to keep past results fair.</span><a href="#">Duplicate to edit</a></div>
+    <div class="cs-lock">${i('lock-key')}<span>1 student has taken this assessment, so its questions are locked to keep past results fair.</span><a href="#">Duplicate to edit</a></div>
     ${qcard(1, 'q-mc', 'list-checks', 'Multiple choice', 'How many bones are in the adult human skeleton?', `<div class="cs-opts">${opt('106')}${opt('206', 1)}${opt('256')}${opt('306')}</div>`)}
     ${qcard(2, 'q-mc', 'list-checks', 'Multiple choice', 'Which bone protects the brain?', `<div class="cs-opts">${opt('Sternum')}${opt('Pelvis')}${opt('Skull', 1)}${opt('Scapula')}</div>`)}
     ${qcard(5, 'q-tf', 'toggle-left', 'True or false', 'The sternum is part of the appendicular skeleton.', `<div class="cs-opts">${opt('True')}${opt('False', 1)}</div>`)}
@@ -234,6 +261,7 @@ async function shot(page, name, full = false) {
   await shot(page, '05-materials-pdf-viewer');
   await inject(page, 'teacher/assessments.html', ASSESS_PAGE); await shot(page, '06-teacher-assessments', true);
   await inject(page, 'teacher/assessments.html', ASSESS_PAGE, BUILDER); await shot(page, '07-question-builder');
+  await inject(page, 'teacher/assessments.html', ASSESS_PAGE, NEW_ASSESSMENT); await shot(page, '09-new-assessment');
   await ctx.close();
 }
 {

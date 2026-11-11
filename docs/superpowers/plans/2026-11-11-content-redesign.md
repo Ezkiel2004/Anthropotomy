@@ -18,6 +18,7 @@
 - Phosphor icons from `assets/icons/interface.svg` only; after Task 6 every reference uses `?v=20261111-icons4`.
 - No CDN at runtime: pdf.js is served from `assets/vendor/pdfjs/`.
 - Pages must work at 390 px wide with no horizontal scroll.
+- Assessments have no type. Never read, write, filter on or show `assessment_type`; every label, icon and filter for an assessment comes from its questions (`question_types`).
 - Copy: sentence case, plain words, no exclamation marks ("Lesson saved.", not "Lesson added successfully!").
 - Every commit title ends with the date in parentheses, e.g. `Modules: workspace view (2026-11-12)`, then the Co-Authored-By line. Push fast-forward to `main` at the end of each task.
 
@@ -27,7 +28,7 @@
 2. **Reorder against a stale list** (another tab added or deleted a lesson). Expect 422 and the workspace reloads the list, never a half-applied order. Test in Task 3.
 3. **A failed attachment replace** (wrong file type, upload error). Expect the lesson to keep its old file and URL. Test in Task 3.
 4. **Closing an editor with unsaved changes** (Escape, scrim click, Close). Expect a confirm before anything is lost. Test in Task 8.
-5. **Demo content shipped to hosting.** Expect the hosting export scripts to stop while `app_settings.demo_seed` exists. Done in Task 11.
+5. **Demo content shipped to hosting.** Expect the hosting export scripts to stop while `app_settings.demo_seed` exists. Done in Task 12.
 
 ---
 
@@ -46,7 +47,7 @@
   - `KINDS`: ordered `{reading, video, pdf, image, 3d, interactive, prep}` each `{label, icon}`: Reading/`book-open`, Video/`video-camera`, PDF/`file-pdf`, Image/`image`, 3D model/`cube`, Interactive/`game-controller`, Quiz prep/`list-checks`
   - `lessonKind({lesson_type, media_url}) → keyof KINDS`
   - `kindCounts(lessons) → [{kind, label, icon, count}]` in `KINDS` order, zero counts left out
-  - `assessmentTypeLabel(type) → string`
+  - `assessmentKind(questionTypes: {[type]: number}) → {label, icon, tone}`: one type → that type's label and icon, `tone` = the type key; several → `{label: 'Mixed questions', icon: 'stack', tone: 'mixed'}`; none → `{label: 'No questions yet', icon: 'exam', tone: 'empty'}`
   - `QUESTION_TYPES`: ordered `{multiple_choice: Multiple choice/list-checks, true_false: True or false/toggle-left, identification: Identification/textbox, hotspot: Hotspot/crosshair}`
   - `questionMix(counts: {[type]: number}) → {total, parts: [{type, label, icon, count}]}`
   - `dueLabel(due: string|null, now: Date) → {label, tone: 'none'|'soon'|'later'|'past'}`
@@ -69,9 +70,11 @@ test('kindCounts keeps KINDS order and drops zeros', () => {
   const lessons = [{lesson_type: 'quiz_prep'}, {lesson_type: 'reading'}, {lesson_type: 'reading', media_url: 'a.pdf'}, {lesson_type: 'reading'}];
   assert.deepEqual(kindCounts(lessons).map(k => [k.kind, k.count]), [['reading', 2], ['pdf', 1], ['prep', 1]]);
 });
-test('assessment types have human labels', () => {
-  assert.deepEqual(['quiz', 'identification', 'interactive', 'diagram', 'mixed', ''].map(assessmentTypeLabel),
-    ['Quiz', 'Identification', 'Hotspot activity', 'Hotspot activity', 'Mixed', 'Assessment']);
+test('assessmentKind comes from the questions, not a type', () => {
+  assert.deepEqual(assessmentKind({identification: 4}), {label: 'Identification', icon: 'textbox', tone: 'identification'});
+  assert.deepEqual(assessmentKind({hotspot: 3, true_false: 0}), {label: 'Hotspot', icon: 'crosshair', tone: 'hotspot'});
+  assert.deepEqual(assessmentKind({multiple_choice: 4, true_false: 2}), {label: 'Mixed questions', icon: 'stack', tone: 'mixed'});
+  assert.deepEqual(assessmentKind({}), {label: 'No questions yet', icon: 'exam', tone: 'empty'});
 });
 test('questionMix totals and orders parts', () => {
   const mix = questionMix({hotspot: 1, multiple_choice: 4, true_false: 2});
@@ -99,29 +102,26 @@ test('circulatory no longer shares the skeletal colour', () => {
 - [ ] **Step 4: Run** `node --test "tests/unit/*.test.mjs"`. Expected: all pass. Open `student/lessons.html` and `student/dashboard.html` signed in as student01: module cards still show their art; circulatory cards are now coral.
 - [ ] **Step 5: Commit** `Content format helpers shared by both portals; circulatory turns coral (<date>)`.
 
-### Task 2: Assessment API: hotspot type fix, question mix, module filter, duplicate
+### Task 2: Assessment API: type retired, question mix, module filter, duplicate
 
 **Files:**
-- Modify: `database/migrate.php` (new idempotent step)
 - Modify: `api/assessments.php` (GET select and filters, POST, PUT, new duplicate branch)
-- Modify: `database/seed_demo.php` ("Find the Structure" uses `interactive`)
-- Test: `tests/integration.mjs`, `tests/database.php` (new action `blank-type <assessment_id>`)
+- Test: `tests/integration.mjs`
+- Already done: `database/seed_demo.php` no longer sets a type (2026-11-11).
 
 **Interfaces:**
-- Produces: GET items gain `module_id` (int|null) and `question_types` (`{[question_type]: count}`, `{}` when none); GET accepts `?module_id=`. `POST assessments.php?duplicate=<id>` → 201 `{assessment_id}`. POST/PUT reject a type outside `quiz, identification, interactive, mixed` with 422 "Choose quiz, identification, interactive or mixed.".
+- Produces: GET items lose `assessment_type` and gain `module_id` (int|null) and `question_types` (`{[question_type]: count}`, `{}` when none), for teachers and students. GET accepts `?module_id=`; the `?type=` filter is removed. POST and PUT ignore `assessment_type` (the column keeps its default). `POST assessments.php?duplicate=<id>` → 201 `{assessment_id}`.
 
 - [ ] **Step 1: Write the failing integration checks** after the existing assessment block (`aid` exists there, with questions added by the suite):
 
 ```js
-check((await teacher('assessments.php','POST',{title:'Bad type',assessment_type:'diagramz'})).status===422,'Unknown assessment type rejected');
-const hot=await teacher('assessments.php','POST',{title:'Hotspot',assessment_type:'interactive',system_id:sid,module_id:mid});
-check(hot.success,'Hotspot activity saves as interactive');
+const typed=await teacher('assessments.php','POST',{title:'Typed',assessment_type:'identification',system_id:sid,module_id:mid});
+check(typed.success,'A type sent by an old client is ignored, not an error');
 const listed=(await teacher('assessments.php?module_id='+mid)).data;
-check(listed.every(a=>a.module_id===mid)&&listed.some(a=>a.assessment_id===aid),'module_id filter');
+check(listed.every(a=>a.module_id===mid&&!('assessment_type' in a))&&listed.some(a=>a.assessment_id===aid),'module_id filter; rows carry no type');
 check(listed.find(a=>a.assessment_id===aid).question_types.multiple_choice>=1,'question_types counts per type');
-dbAction('blank-type',String(hot.data.assessment_id));
-execFileSync(phpBinary,['database/migrate.php'],{stdio:'pipe'});
-check((await teacher('assessments.php?module_id='+mid)).data.find(a=>a.assessment_id===hot.data.assessment_id).assessment_type==='interactive','Migration repairs blank types');
+check((await teacher('assessments.php?type=identification')).data.some(a=>a.assessment_id===aid),'The type filter is gone');
+check((await student('assessments.php')).data.every(a=>typeof a.question_types==='object'),'Students get the question mix too');
 const copy=await teacher('assessments.php?duplicate='+aid,'POST',{});
 check(copy.status===201||copy.success,'Duplicate created');
 const copyRow=(await teacher('assessments.php?module_id='+mid)).data.find(a=>a.assessment_id===copy.data.assessment_id);
@@ -130,10 +130,10 @@ check((await student('assessments.php?duplicate='+aid,'POST',{})).status===403,'
 ```
 
   Also compare the first copied question's options and `hotspot_data` with the original through `questions.php?assessment_id=`.
-- [ ] **Step 2: Run** the integration suite (README "isolated database" steps). Expected: FAIL at "Unknown assessment type rejected".
-- [ ] **Step 3: Implement.** Migration: `ALTER TABLE assessments MODIFY assessment_type enum('quiz','identification','diagram','exploration','mixed','interactive') NOT NULL DEFAULT 'quiz'` when `interactive` is missing, then `UPDATE assessments SET assessment_type='interactive' WHERE assessment_type IN ('','diagram')`. `question_types` comes from one grouped query over the listed ids, merged in PHP. Duplicate runs in one transaction and copies `questions` and `answer_options` with their sort orders. `tests/database.php blank-type` runs `UPDATE … SET assessment_type=''` on the test database only.
-- [ ] **Step 4: Run** the integration suite. Expected: all pass. Run `php database/migrate.php` and `php database/seed_demo.php` on the local database; "Find the Structure" is now `interactive`.
-- [ ] **Step 5: Commit** `Assessments API: hotspot type repaired and enforced, question mix, module filter, duplicate (<date>)`.
+- [ ] **Step 2: Run** the integration suite (README "isolated database" steps). Expected: FAIL at "module_id filter; rows carry no type".
+- [ ] **Step 3: Implement.** `question_types` comes from one grouped query (`SELECT assessment_id, question_type, COUNT(*) … GROUP BY 1, 2`) over the listed ids, merged in PHP. Duplicate runs in one transaction and copies `questions` and `answer_options` with their sort orders. No migration: the column stays with its default.
+- [ ] **Step 4: Run** the integration suite. Expected: all pass. Run `php database/seed_demo.php` on the local database; it still seeds five assessments.
+- [ ] **Step 5: Commit** `Assessments API: type retired, question mix, module filter, duplicate (<date>)`.
 
 ### Task 3: Module summary and lesson editing API
 
@@ -314,8 +314,8 @@ check(await waitFor(`document.querySelectorAll('.cs-mod').length>0`),'Back retur
 - Test: `tests/browser.mjs`
 
 **Interfaces:**
-- Consumes: `ContentFormat.assessmentTypeLabel/questionMix/dueLabel` (Task 1), `Studio.*` (Task 6), `question_types`, `module_id`, duplicate (Task 2)
-- Produces: `openAssessmentSheet(assessment|null)` with type tiles Quiz, Identification, Hotspot activity (`interactive`), Mixed.
+- Consumes: `ContentFormat.assessmentKind/questionMix/dueLabel/systemLook` (Task 1), `Studio.*` (Task 6), `question_types`, `module_id`, duplicate (Task 2)
+- Produces: `openAssessmentSheet(assessment|null)`: title, body system, optional module, instructions, time limit, pass mark, tries, due date, and the "Any mix of question types" note; no type field. On create the button reads **Create and add questions**, saves a draft and calls `openQuestionBuilder(newId)`.
 
 - [ ] **Step 1: Write the failing browser checks:**
 
@@ -325,13 +325,15 @@ const heads=await evaluate(`[...document.querySelectorAll('.cs-alist .cs-h2')].m
 check(heads.join()===['Open now','Drafts','Closed'].filter(h=>heads.includes(h)).join(),'Groups keep the order Open now, Drafts, Closed');
 check(await evaluate(`!/multiple_choice|diagram|submissions\\b/.test(document.querySelector('.cs-alist').textContent)`),'No raw enum names or "submissions"');
 check(await evaluate(`[...document.querySelectorAll('.cs-arow .cs-btn--primary')].length===0`),'No mint buttons inside rows');
-// Type filter "Hotspot" shows only interactive rows; Pause lives in the more menu and confirms
+check(await evaluate(`!document.querySelector('input[name="assessType"],[data-assessment-type]')`),'No assessment type anywhere on the page');
+// The body-system select narrows the rows; Pause lives in the more menu and confirms;
+// New assessment → fill title → Create and add questions → the builder opens on a draft with 0 questions
 ```
 
 - [ ] **Step 2: Run** the browser suite. Expected: FAIL.
-- [ ] **Step 3: Implement.** Summary strip: open (`active`), draft, closed, and total attempts (sum of `submission_count`). Open rows sort by due date (no due date last), drafts and closed by newest. Results read "N attempt(s) · avg N%" with an amber bar below the pass mark, or "No attempts yet"; drafts read "Not published". The row action is always **Questions**.
-- [ ] **Step 4: Run** the browser suite. Expected: pass. Compare with `after-06-teacher-assessments.png`.
-- [ ] **Step 5: Commit** `Assessments page: grouped rows with due dates and results, filters that match the data (<date>)`.
+- [ ] **Step 3: Implement.** Row tile icon and tint come from `assessmentKind(question_types)` (tint class `q-<tone>`); the eyebrow is the body system only ("All body systems" when none). Summary strip: open (`active`), draft, closed, and total attempts (sum of `submission_count`). Open rows sort by due date (no due date last), drafts and closed by newest. Results read "N attempt(s) · avg N%" with an amber bar below the pass mark, or "No attempts yet"; drafts read "Not published". The row action is always **Questions**.
+- [ ] **Step 4: Run** the browser suite. Expected: pass. Compare with `after-06-teacher-assessments.png` and `after-09-new-assessment.png`.
+- [ ] **Step 5: Commit** `Assessments page: no assessment type, grouped rows with due dates and results (<date>)`.
 
 ### Task 10: Question builder
 
@@ -350,7 +352,34 @@ check(await evaluate(`[...document.querySelectorAll('.cs-arow .cs-btn--primary')
 - [ ] **Step 4: Run** the browser suite. Expected: pass. Compare with `after-07-question-builder.png`.
 - [ ] **Step 5: Commit** `Question builder: readable answers, edit, locked quizzes duplicate to edit (<date>)`.
 
-### Task 11: Demo guard, docs and final check
+### Task 11: Student side of the retired type
+
+**Files:**
+- Modify: `student/quiz.html:73-79` (chips), `:198-300` (filter and counts), `:320` (`formatLook`)
+- Modify: `student/dashboard.html:291` (remove the type chip cell and its header)
+- Modify: `student/progress.html:207` (search drops `assessment_type`)
+- Test: `tests/browser.mjs`
+
+**Interfaces:**
+- Consumes: `question_types` on student assessment rows (Task 2), `ContentFormat.QUESTION_TYPES` and `assessmentKind` (Task 1)
+- Produces: chips with `data-qtype` = `all | multiple_choice | true_false | identification | hotspot`; `setQuestionTypeFilter(qtype)` replaces `setAssessmentTypeFilter`.
+
+- [ ] **Step 1: Write the failing browser checks** (student session; the suite's quiz has multiple choice questions, add one with a hotspot question through the teacher API first):
+
+```js
+await navigate('/student/quiz.html');
+check(await evaluate(`[...document.querySelectorAll('#typeFilterChips [data-qtype]')].map(b=>b.dataset.qtype).join()==='all,multiple_choice,true_false,identification,hotspot'`),'Chips name question types');
+await evaluate(`setQuestionTypeFilter('hotspot')`);
+check(await evaluate(`[...document.querySelectorAll('#availableAssessmentsGrid article')].every(c=>c.dataset.qtypes.split(' ').includes('hotspot'))`),'Hotspot chip shows every assessment that holds a hotspot question');
+check(await evaluate(`!/assessment_type|Chapter quizzes/.test(document.body.innerHTML)`),'No trace of the old type');
+```
+
+- [ ] **Step 2: Run** the browser suite. Expected: FAIL at "Chips name question types".
+- [ ] **Step 3: Implement.** Each card carries `data-qtypes` (the types with a count above zero, space-separated); a chip's count is the number of assessments whose `question_types[qtype] > 0`. `formatLook(kind)` takes `assessmentKind(a.question_types)` and keeps today's card tones: `hotspot` → violet, `identification` → teal, `multiple_choice` and `true_false` → coral, `mixed` and `empty` → sky; label and glyph come from the kind.
+- [ ] **Step 4: Run** the browser suite and the existing `tests/student-dashboard-states.js`. Expected: pass; delete the `assessment_type` field from that test's fixture if its check still references it.
+- [ ] **Step 5: Commit** `Student quizzes filter by the question types inside, not a fixed type (<date>)`.
+
+### Task 12: Demo guard, docs and final check
 
 **Files:**
 - Modify: `deploy/package-infinityfree.ps1`, `deploy/export-local.ps1` (stop with "Demo content is still in the database. Run php database/seed_demo.php --remove first." when `SELECT 1 FROM app_settings WHERE setting_key='demo_seed'` returns a row)
