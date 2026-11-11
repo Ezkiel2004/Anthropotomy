@@ -8,6 +8,7 @@
 const PdfViewer = (() => {
     const SCRIPT_SRC = document.currentScript?.src || document.querySelector('script[src*="pdf-viewer.js"]')?.src || location.href;
     const LIB_BASE = new URL('../vendor/pdfjs/', SCRIPT_SRC).href;
+    const LIB_VERSION = '?v=4.10.38-legacy';  // pdf.js legacy build: runs on browsers without Promise.withResolvers
     const ICONS = new URL('../icons/interface.svg?v=20261111-icons4', SCRIPT_SRC).href;
     const FIT_MAX = 896;                       // 56rem: the widest a "fit width" page gets
     const PERCENTS = [50, 75, 100, 125, 150, 200];
@@ -20,8 +21,8 @@ const PdfViewer = (() => {
     const button = (name, label, extra = '') => `<button type="button" class="pv-btn" aria-label="${label}" ${extra}>${icon(name)}</button>`;
 
     function lib() {
-        libPromise = libPromise || import(LIB_BASE + 'pdf.min.mjs').then(pdfjs => {
-            pdfjs.GlobalWorkerOptions.workerSrc = LIB_BASE + 'pdf.worker.min.mjs';
+        libPromise = libPromise || import(LIB_BASE + 'pdf.min.mjs' + LIB_VERSION).then(pdfjs => {
+            pdfjs.GlobalWorkerOptions.workerSrc = LIB_BASE + 'pdf.worker.min.mjs' + LIB_VERSION;
             return pdfjs;
         }).catch(error => { libPromise = null; throw error; });
         return libPromise;

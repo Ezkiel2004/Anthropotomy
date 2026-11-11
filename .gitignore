@@ -36,3 +36,6 @@ storage/db.ini
 
 # User profile photos
 uploads/avatars/
+
+# Lesson attachments teachers upload (and test runs leave behind)
+uploads/lessons/

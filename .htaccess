@@ -4,3 +4,7 @@
   RewriteRule ^(database|deploy|tests|storage|tools)(/|$) - [R=404,L]
   RewriteRule (^|/)\. - [R=404,L]
 </IfModule>
+# pdf.js ships as .mjs modules; a host that does not know the extension would not serve them as JavaScript.
+<IfModule mod_mime.c>
+  AddType text/javascript .mjs
+</IfModule>

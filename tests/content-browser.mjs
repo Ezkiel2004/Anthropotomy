@@ -175,7 +175,12 @@ await key('Escape');
 check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Discard changes?')`),'Escape with unsaved changes asks first');
 await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__stay').click()`);
 check(await waitFor(`!document.querySelector('dialog.toast-confirm')&&document.querySelector('.cs-sheet')`),'Keep editing leaves the sheet open');
+// The save is held back for a moment so Escape lands while it is in flight.
+await evaluate(`(()=>{const real=window.fetch;window.__realFetch=real;window.fetch=(...a)=>new Promise(r=>setTimeout(()=>r(real(...a)),800));})()`);
 await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+await key('Escape');
+check(await evaluate(`!document.querySelector('dialog.toast-confirm')&&document.querySelector('.cs-sheet [data-sheet-close]').disabled&&document.querySelector('.cs-sheet-foot [data-cancel]').disabled`),'Escape while the module saves does not ask to discard');
+await evaluate(`window.fetch=window.__realFetch`);
 check(await waitFor(`!document.querySelector('.cs-sheet')&&[...document.querySelectorAll('.cs-mod .cs-h3')].some(h=>h.textContent==='Sheet module renamed')`),'Saving edits updates the card');
 
 // Publish from the menu: a published module with no lessons shows the amber note and Add lesson.
@@ -484,6 +489,8 @@ check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==
 check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Edit lesson'&&document.querySelector('.cs-sheet [name="duration_mins"]').value==='12'&&document.querySelector('.cs-sheet [name="status"]').checked`),'Editing fills in the title, time and published switch');
 check(await evaluate(`document.querySelector('.cs-sheet .cs-sheet-head .cs-eyebrow').textContent.endsWith(' · Lesson '+([...document.querySelectorAll('#workspaceView .cs-row')].indexOf(${editorRow})+1))`),'The edit sheet names the lesson number');
 check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'The saved PDF shows a thumbnail');
+const dropOn=selector=>`(()=>{const e=new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()});document.querySelector('${selector}').dispatchEvent(e);return e.defaultPrevented;})()`;
+check(await evaluate(dropOn('.cs-sheet [name="content_text"]'))&&await evaluate(dropOn('.cs-scrim')),'A file dropped outside the attachment box is not opened by the browser');
 await evaluate(`(()=>{const t=document.querySelector('.cs-sheet [name="title"]');t.focus();t.setSelectionRange(t.value.length,t.value.length);})()`);
 await call('Input.insertText',{text:' two'});
 await key('Escape');
@@ -494,6 +501,7 @@ await key('Escape');
 await waitFor(`document.querySelector('dialog.toast-confirm[open]')`);
 await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
 check(await waitFor(`!document.querySelector('.cs-sheet')`),'Discard closes the sheet');
+check(!await evaluate(dropOn('body')),'Closing the lesson sheet stops blocking drops');
 check(await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson')&&![...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson two')`),'Discard keeps the saved title');
 // Remove attachment clears the media and the row falls back to the type.
 const editorId=await evaluate(`${editorRow}.dataset.lesson`);

@@ -86,6 +86,7 @@ if ($method === 'GET') {
             }
         }
 
+        unset($assessment['assessment_type']);   // assessments have no type; the column is kept only for old data
         $assessment['assessment_id']   = (int) $assessment['assessment_id'];
         $assessment['time_limit_mins'] = $assessment['time_limit_mins'] ? (int) $assessment['time_limit_mins'] : null;
         $assessment['passing_score']   = (float) $assessment['passing_score'];
@@ -196,7 +197,7 @@ if ($method === 'GET') {
         $a['passing_score']    = (float) $a['passing_score'];
         $a['question_count']   = (int) $a['question_count'];
         $a['submission_count'] = (int) $a['submission_count'];
-        $a['avg_score']        = $a['avg_score'] !== null ? (float) $a['avg_score'] : 0;
+        $a['avg_score']        = $a['avg_score'] !== null ? (float) $a['avg_score'] : null;   // null: no finished attempts yet
         $a['my_attempts']      = (int) ($a['my_attempts'] ?? 0);
         $a['my_best_score']    = $a['my_best_score'] !== null ? (float) $a['my_best_score'] : null;
         $a['my_passed']        = !empty($a['my_passed']);
@@ -297,6 +298,7 @@ if ($method === 'POST') {
 
     $newId = (int) $db->getConnection()->lastInsertId();
     $newAssess = $db->fetchOne("SELECT * FROM assessments WHERE assessment_id = ?", [$newId]);
+    unset($newAssess['assessment_type']);
 
     jsonSuccess($newAssess, 'Assessment created successfully.', 201);
 }

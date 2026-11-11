@@ -7,7 +7,8 @@
 # Both outputs hold private data (password hashes, the database password): delete the folder after uploading.
 # It stops while the demo content (database/seed_demo.php) is in the database. It exports the database
 # named by ANTHROPOTOMY_DB_NAME when that is set (as the app does), otherwise anthropotomy_db;
-# -OutDir builds somewhere else (the folder is emptied first).
+# -OutDir builds somewhere else. The folder is emptied first, so it must be new, empty or an earlier
+# package: one holding only htdocs\, anthropotomy.sql and app.tar, the names this script writes.
 param(
     [Parameter(Mandatory, HelpMessage = 'MySQL Host Name, e.g. sql123.infinityfree.com')][string]$DbHost,
     [Parameter(Mandatory, HelpMessage = 'MySQL Database Name, e.g. if0_12345678_anthropotomy')][string]$DbName,
@@ -26,7 +27,11 @@ if ($demo) { throw 'Demo content is still in the database. Run php database/seed
 
 $out = $OutDir
 $site = Join-Path $out 'htdocs'
-if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+if (Test-Path -LiteralPath $out) {
+    $foreign = @(Get-ChildItem -Force -LiteralPath $out | Where-Object { $_.Name -notin 'htdocs', 'anthropotomy.sql', 'app.tar' })
+    if ($foreign.Count) { throw "$out holds files this script did not make (for example $($foreign[0].Name)), so it will not empty it. Pick a new or empty folder for -OutDir." }
+    Remove-Item -Recurse -Force -LiteralPath $out
+}
 New-Item -ItemType Directory -Force $site | Out-Null
 
 # 1. App files, exactly as committed

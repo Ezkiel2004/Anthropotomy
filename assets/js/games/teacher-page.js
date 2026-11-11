@@ -4,7 +4,7 @@
 // input values and attribute setters, never parsed as HTML.
 // Importing this module touches no DOM; main() runs only in a page.
 
-import {GAMES} from './shell.js';
+import {GAMES} from './shell.js?v=20261111-redesign1';
 
 const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
 

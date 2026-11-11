@@ -21,7 +21,7 @@
 </head>
 <body class="teacher-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261106-photo1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
@@ -87,14 +87,14 @@
 <!-- Lesson preview: the student reader (assets/js/lesson-reader.js) without its 3D links -->
 <div class="sd-reader" id="lessonPreview" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<script src="../assets/js/app.js?v=20261106-review1"></script>
+<script src="../assets/js/app.js?v=20261111-redesign1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261111-pv3"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261111-redesign1"></script>
 <script src="../assets/js/lesson-reader.js?v=20261111-lr2"></script>
 <script src="../assets/js/teacher-files.js?v=20261111-files5"></script>
 <script src="../assets/js/content-studio.js?v=20261111-cs4"></script>
-<script src="../assets/js/lesson-sheet.js?v=20261111-ls3"></script>
-<script src="../assets/js/module-workspace.js?v=20261111-ws3"></script>
+<script src="../assets/js/lesson-sheet.js?v=20261111-redesign1"></script>
+<script src="../assets/js/module-workspace.js?v=20261111-redesign1"></script>
 <script>
 'use strict';
 
@@ -316,9 +316,12 @@ function openModuleSheet(module) {
     <button type="submit" class="cs-btn cs-btn--primary" form="moduleSheetForm">${editing ? 'Save details' : 'Create module'}</button>`;
 
   const sheet = Studio.sheet({ eyebrow: editing ? module.title : 'Modules', title: editing ? 'Edit details' : 'New module', body: form, footer: foot });
-  foot.querySelector('[data-cancel]').addEventListener('click', () => sheet.close());
+  const cancel = foot.querySelector('[data-cancel]');
+  cancel.addEventListener('click', () => sheet.close());
+  let saving = false;
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    if (saving) return;
     const note = foot.querySelector('#msNote');
     const save = foot.querySelector('[type="submit"]');
     const fields = form.elements;
@@ -327,13 +330,20 @@ function openModuleSheet(module) {
     if (!title) { fail('Add a title.'); fields.title.focus(); return; }
     const payload = { title, description: fields.description.value.trim(), status: fields.status.value };
     if (!editing) payload.system_id = Number(fields.system_id.value);
-    save.disabled = true;
+    saving = true;
+    save.disabled = cancel.disabled = true;
+    sheet.setBusy(true);
     note.classList.remove('is-error');
     note.textContent = 'Saving…';
     const result = await saveModule(editing ? 'PUT' : 'POST', editing ? module.module_id : null, payload);
-    save.disabled = false;
-    if (!result.success) { fail(result.message || 'The module could not be saved.'); return; }
-    sheet.setDirty(false);
+    sheet.setBusy(false);
+    if (!result.success) {
+      saving = false;
+      save.disabled = cancel.disabled = false;
+      fail(result.message || 'The module could not be saved.');
+      return;
+    }
+    sheet.setDirty(false);   // saved: stays "saving" so a stray Enter cannot submit again while the sheet closes
     await sheet.close();
     showToast(editing ? 'Details saved.' : 'Module created.', 'success');
     loadModules();

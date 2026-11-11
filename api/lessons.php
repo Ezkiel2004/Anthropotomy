@@ -74,6 +74,7 @@ if ($method === 'POST' && isset($_GET['id'])) {
     $user = requireTeacher();
     $id   = getIdParam();
     $isMultipart = strpos($_SERVER['CONTENT_TYPE'] ?? '', 'multipart') !== false;
+    _rejectUnparsedMultipart($isMultipart);
     $data = $isMultipart ? $_POST : getJsonBody();
 
     $existing = $db->fetchOne("SELECT * FROM lessons WHERE lesson_id = ?", [$id]);
@@ -120,6 +121,7 @@ if ($method === 'POST') {
 
     // Support both JSON body and multipart form data
     $isMultipart = strpos($_SERVER['CONTENT_TYPE'] ?? '', 'multipart') !== false;
+    _rejectUnparsedMultipart($isMultipart);
     $data = $isMultipart ? $_POST : getJsonBody();
 
     $moduleId    = (int) requireField($data, 'module_id',    'Module');
@@ -225,6 +227,15 @@ if ($method === 'DELETE') {
 }
 
 jsonError('Method not supported.', 405);
+
+// A multipart body bigger than post_max_size reaches PHP with $_POST and $_FILES both empty, so the
+// request would otherwise "save" nothing and report success. Any multipart body PHP could not parse
+// into a single field or file is answered the same way.
+function _rejectUnparsedMultipart(bool $isMultipart): void {
+    if (!$isMultipart || $_POST || $_FILES || (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) <= 0) return;
+    while (ob_get_level() > 0) ob_end_clean();   // drops PHP's own "exceeds the limit" warning if it was buffered
+    jsonError('File too large for this server.', 413);
+}
 
 // Delete an attachment only when it resolves to a file inside uploads/lessons/.
 // media_url may be absolute (/anthropotomy/uploads/lessons/x.pdf) or page-relative

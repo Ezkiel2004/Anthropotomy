@@ -2,7 +2,7 @@
 // score, this week's points board for their section, and the badges. Names and badge titles are
 // user-supplied, so they only ever reach the page through textContent and attribute setters.
 
-import {GAMES, bestScore} from './shell.js';
+import {GAMES, bestScore} from './shell.js?v=20261111-redesign1';
 
 const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
 

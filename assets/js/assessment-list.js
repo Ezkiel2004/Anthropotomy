@@ -47,7 +47,7 @@ const AssessmentList = (() => {
       max_attempts: Number(a.max_attempts) || 1,
       question_count: Number(a.question_count) || 0,
       submission_count: Number(a.submission_count) || 0,
-      avg_score: Number(a.avg_score) || 0,
+      avg_score: a.avg_score == null ? null : Number(a.avg_score) || 0,   // null: no finished attempts yet
       question_types: a.question_types || {},
     };
   }
@@ -171,6 +171,7 @@ const AssessmentList = (() => {
   // Attempts and the class average, with an amber bar below the pass mark.
   function resultHtml(a) {
     if (!a.submission_count) return `<span class="cs-meta">${isDraft(a) ? 'Not published' : 'No attempts yet'}</span>`;
+    if (a.avg_score == null) return '<span class="cs-meta">No finished attempts</span>';
     const avg = Math.round(a.avg_score);
     return `<span class="cs-meta">${count(a.submission_count, 'attempt')} · avg <b class="cs-num">${avg}%</b></span>`
       + `<span class="cs-bar${a.avg_score < a.passing_score ? ' cs-bar--low' : ''}" aria-hidden="true"><i style="width:${Math.min(100, Math.max(0, avg))}%"></i></span>`;

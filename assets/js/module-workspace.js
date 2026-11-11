@@ -242,7 +242,7 @@ const ModuleWorkspace = (() => {
   // ── Quizzes linked to the module ──────────────────────────────
   function quizHtml(a) {
     const kind = ContentFormat.assessmentKind(a.question_types || {});
-    const results = a.submission_count ? `${count(a.submission_count, 'attempt')} · avg ${Math.round(a.avg_score)}%`
+    const results = a.submission_count ? (a.avg_score == null ? 'No finished attempts' : `${count(a.submission_count, 'attempt')} · avg ${Math.round(a.avg_score)}%`)
       : a.due_date ? `due ${ContentFormat.dueLabel(a.due_date, new Date()).label}` : 'No attempts yet';
     const meta = [{ draft: 'Draft', closed: 'Closed' }[a.status], a.question_count ? count(a.question_count, 'question') : 'No questions yet',
       a.question_count ? results : ''].filter(Boolean).join(' · ');

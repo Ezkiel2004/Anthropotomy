@@ -68,8 +68,18 @@ const LessonSheet = (() => {
       <button type="button" class="cs-btn" data-cancel>Cancel</button>
       <button type="submit" class="cs-btn cs-btn--primary" form="lessonSheetForm">${editing ? 'Save lesson' : 'Add lesson'}</button>`;
 
+    // A file dropped anywhere but the attachment box must not make the browser open it and lose the edits.
+    const blockDrop = event => {
+      if (form.querySelector('[data-attach]')?.contains(event.target)) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
+    };
+    document.addEventListener('dragover', blockDrop);
+    document.addEventListener('drop', blockDrop);
+    const unblockDrop = () => { document.removeEventListener('dragover', blockDrop); document.removeEventListener('drop', blockDrop); };
+
     const where = moduleTitle || lesson?.module_title || 'Lessons';
-    const sheet = Studio.sheet({ eyebrow: editing && position ? `${where} · Lesson ${position}` : where, title: editing ? 'Edit lesson' : 'New lesson', body: form, footer: foot });
+    const sheet = Studio.sheet({ eyebrow: editing && position ? `${where} · Lesson ${position}` : where, title: editing ? 'Edit lesson' : 'New lesson', body: form, footer: foot, onClose: unblockDrop });
     const note = foot.querySelector('#lsNote');
     const saveButton = foot.querySelector('[type="submit"]');
     const input = form.querySelector('#lsFile');
@@ -187,7 +197,8 @@ const LessonSheet = (() => {
       let result;
       try {
         const res = await fetch(`${API_BASE}/lessons.php${editing ? `?id=${lesson.lesson_id}` : ''}`, { method: 'POST', credentials: 'same-origin', body: data });
-        result = await res.json();
+        // A web server that refuses the upload itself answers 413 with a page, not JSON.
+        result = await res.json().catch(() => ({ success: false, message: res.status === 413 ? 'File too large for this server.' : 'The lesson could not be saved.' }));
       } catch { result = { success: false, message: 'The server could not be reached. Check that XAMPP is running.' }; }
       sheet.setBusy(false);
       if (!result.success) {

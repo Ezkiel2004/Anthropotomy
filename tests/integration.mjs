@@ -5,7 +5,8 @@ const base=process.env.ANTHROPOTOMY_TEST_URL || 'http://127.0.0.1:8091';
 const credentials=JSON.parse(fs.readFileSync('.runtime/test-access.json','utf8'));
 let assertions=0;
 function check(value,message){assert.ok(value,message);assertions++;}
-function client(){let cookie='';return async(path,method='GET',body)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};}
+// contentType sends body as it is with that Content-Type (a raw, hand-made request body).
+function client(){let cookie='';return async(path,method='GET',body,contentType)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(contentType?{'Content-Type':contentType}:body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart||contentType?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};}
 const guest=client(),teacher=client(),student=client();
 const phpBinary=process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php');
 const dbAction=(...args)=>execFileSync(phpBinary,['tests/database.php',...args],{stdio:'pipe'});
@@ -59,6 +60,18 @@ check(fs.existsSync('uploads/lessons/'+up.data.media_url.split('/').pop()),'Old 
 const rm=new FormData();rm.append('remove_media','1');
 check((await teacher('lessons.php?id='+lid,'POST',rm)).data.media_url===null,'Attachment removed');
 check(!fs.existsSync('uploads/lessons/'+up.data.media_url.split('/').pop()),'Removed file is deleted from disk');
+// A body over post_max_size reaches PHP with $_POST and $_FILES empty. Raising post_max_size per request is not possible
+// from here, so a multipart body whose boundary never matches (PHP parses it to the same empty arrays) stands in for it.
+const unparsed=['multipart/form-data; boundary=never-matches-'+Date.now(),'--some-other-boundary\r\nContent-Disposition: form-data; name="title"\r\n\r\nHijacked\r\n--some-other-boundary--\r\n'];
+const lessonBefore=(await teacher('lessons.php?id='+lid)).data;
+const oversize=await teacher('lessons.php?id='+lid,'POST',unparsed[1],unparsed[0]);
+check(oversize.status===413&&oversize.message==='File too large for this server.','Unparsable multipart update answers 413 File too large');
+const lessonAfter=(await teacher('lessons.php?id='+lid)).data;
+check(['title','lesson_type','content_text','duration_mins','status','media_url'].every(k=>lessonAfter[k]===lessonBefore[k]),'Lesson unchanged after the 413');
+const lessonCount=async()=>(await teacher('lessons.php?module_id='+mid)).data.length;
+const countBefore=await lessonCount();
+check((await teacher('lessons.php','POST',unparsed[1],unparsed[0])).status===413,'Unparsable multipart create answers 413');
+check(await lessonCount()===countBefore,'No lesson created by the 413');
 check((await teacher('lessons.php?id='+lid,'PUT',{lesson_type:'podcast'})).status===422,'Unknown lesson type rejected');
 check((await student('study.php','POST',{})).success,'Study minute recorded');
 check((await student('study.php','POST',{})).success,'Second tab beat accepted');
@@ -70,8 +83,11 @@ const hot=await teacher('questions.php','POST',{assessment_id:aid,question_type:
 const bank=await student('questions.php?assessment_id='+aid);check(!JSON.stringify(bank.data).includes('SecretTerm'),'Identification key omitted entirely');check(bank.data.find(q=>q.question_type==='hotspot').hotspot_data.x===undefined,'Hotspot answer coordinates omitted');
 const typed=await teacher('assessments.php','POST',{title:'Typed',assessment_type:'identification',system_id:sid,module_id:mid});
 check(typed.success,'A type sent by an old client is ignored, not an error');
+check(!('assessment_type' in typed.data),'The create response carries no type');
+check(!('assessment_type' in (await teacher('assessments.php?id='+aid)).data)&&!('assessment_type' in (await student('assessments.php?id='+aid)).data),'The single-assessment response carries no type');
 const listed=(await teacher('assessments.php?module_id='+mid)).data;
 check(listed.every(a=>a.module_id===mid&&!('assessment_type' in a))&&listed.some(a=>a.assessment_id===aid),'module_id filter; rows carry no type');
+check(listed.find(a=>a.assessment_id===typed.data.assessment_id).avg_score===null,'No finished attempts: the average is null, not 0');
 check(listed.find(a=>a.assessment_id===aid).question_types.multiple_choice>=1,'question_types counts per type');
 check((await teacher('assessments.php?type=identification')).data.some(a=>a.assessment_id===aid),'The type filter is gone');
 check((await student('assessments.php')).data.every(a=>typeof a.question_types==='object'),'Students get the question mix too');
