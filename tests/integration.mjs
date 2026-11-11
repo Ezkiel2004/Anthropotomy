@@ -92,6 +92,7 @@ check((await teacher('questions.php?id='+mc.data.question_id,'DELETE')).status==
 const graded=await student('quiz/submit.php','POST',{submission_id:subid,answers,time_taken_secs:999999});check(graded.success && graded.data.score===100,'Server grades all three question types');check(graded.data.time_taken_secs<100,'Server calculates elapsed time');
 const duplicate=await student('quiz/submit.php','POST',{submission_id:subid,answers:[]});check(duplicate.success && duplicate.data.score===100,'Submission retry is idempotent');
 check((await student('quiz/result.php?submission_id='+subid)).data.responses.length===3,'Historical responses preserved');
+check(!JSON.stringify([await student('quiz/result.php?submission_id='+subid),await student('scores.php'),await student('scores.php?id='+subid),await student('dashboard/student-stats.php')]).includes('assessment_type'),'Student score and result responses carry no assessment_type');
 const second=await student('quiz/start.php','POST',{assessment_id:aid});check(second.success,'Second attempt');
 check((await student('quiz/save.php','POST',{submission_id:second.data.submission_id,answers:[answers[0]]})).success,'Save partial attempt');
 dbAction('expire');

@@ -70,12 +70,12 @@
             <span class="sr-only">Search quizzes</span>
             <input type="search" id="assessmentSearchInput" placeholder="Search quizzes or body systems" autocomplete="off" oninput="handleAssessmentSearch(this.value)">
           </label>
-          <div class="sd-seg" id="typeFilterChips" role="group" aria-label="Show formats">
-            <button type="button" class="filter-chip-btn active" data-type="all" aria-pressed="true" onclick="setAssessmentTypeFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
-            <button type="button" class="filter-chip-btn" data-type="quiz" aria-pressed="false" onclick="setAssessmentTypeFilter('quiz')">Chapter quizzes <span class="chip-count" id="countQuiz">0</span></button>
-            <button type="button" class="filter-chip-btn" data-type="interactive" aria-pressed="false" onclick="setAssessmentTypeFilter('interactive')">Hotspot <span class="chip-count" id="countHotspot">0</span></button>
-            <button type="button" class="filter-chip-btn" data-type="identification" aria-pressed="false" onclick="setAssessmentTypeFilter('identification')">Identification <span class="chip-count" id="countIdentification">0</span></button>
-            <button type="button" class="filter-chip-btn" data-type="mixed" aria-pressed="false" onclick="setAssessmentTypeFilter('mixed')">Mixed <span class="chip-count" id="countMixed">0</span></button>
+          <div class="sd-seg" id="typeFilterChips" role="group" aria-label="Show question types">
+            <button type="button" class="filter-chip-btn active" data-qtype="all" aria-pressed="true" onclick="setQuestionTypeFilter('all')">All <span class="chip-count" id="countAll">0</span></button>
+            <button type="button" class="filter-chip-btn" data-qtype="multiple_choice" aria-pressed="false" onclick="setQuestionTypeFilter('multiple_choice')">Multiple choice <span class="chip-count" id="countMultipleChoice">0</span></button>
+            <button type="button" class="filter-chip-btn" data-qtype="true_false" aria-pressed="false" onclick="setQuestionTypeFilter('true_false')">True or false <span class="chip-count" id="countTrueFalse">0</span></button>
+            <button type="button" class="filter-chip-btn" data-qtype="identification" aria-pressed="false" onclick="setQuestionTypeFilter('identification')">Identification <span class="chip-count" id="countIdentification">0</span></button>
+            <button type="button" class="filter-chip-btn" data-qtype="hotspot" aria-pressed="false" onclick="setQuestionTypeFilter('hotspot')">Hotspot <span class="chip-count" id="countHotspot">0</span></button>
           </div>
         </div>
 
@@ -199,17 +199,13 @@ let allAssessments = [];
 let typeFilter = 'all';
 let searchQuery = '';
 
-// Each format gets one card colour and icon from the Stage palette.
-function formatLook(type) {
-  switch ((type || '').toLowerCase()) {
-    case 'interactive':
-    case 'diagram':        return { label: 'Hotspot', tone: 'violet', glyph: 'crosshair' };
-    case 'identification': return { label: 'Identification', tone: 'teal', glyph: 'textbox' };
-    case 'quiz':           return { label: 'Chapter quiz', tone: 'coral', glyph: 'exam' };
-    case 'mixed':          return { label: 'Mixed', tone: 'sky', glyph: 'list-checks' };
-    default:               return { label: type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Quiz', tone: 'purple', glyph: 'file-text' };
-  }
+// Each card takes its colour, icon and label from the questions inside it.
+const KIND_TONES = { hotspot: 'violet', identification: 'teal', multiple_choice: 'coral', true_false: 'coral', mixed: 'sky', empty: 'sky' };
+function formatLook(questionTypes) {
+  const kind = ContentFormat.assessmentKind(questionTypes || {});
+  return { label: kind.label, tone: KIND_TONES[kind.tone], glyph: kind.icon };
 }
+const typesOf = a => Object.keys(ContentFormat.QUESTION_TYPES).filter(t => (a.question_types || {})[t] > 0);
 
 // "Due soon" only within three days; a past due date is said plainly (the quiz is still open).
 function dueChip(dueDate) {
@@ -248,12 +244,12 @@ function updateSummaryMetrics(list) {
   const tabBadge = document.getElementById('tabQuizBadge');
   if (tabBadge) { tabBadge.textContent = pending; tabBadge.hidden = !(pending > 0); }
 
-  const countType = types => list.filter(a => types.includes((a.assessment_type || '').toLowerCase())).length;
+  const countType = type => list.filter(a => typesOf(a).includes(type)).length;
   document.getElementById('countAll').textContent = total;
-  document.getElementById('countQuiz').textContent = countType(['quiz']);
-  document.getElementById('countHotspot').textContent = countType(['interactive', 'diagram']);
-  document.getElementById('countIdentification').textContent = countType(['identification']);
-  document.getElementById('countMixed').textContent = countType(['mixed']);
+  document.getElementById('countMultipleChoice').textContent = countType('multiple_choice');
+  document.getElementById('countTrueFalse').textContent = countType('true_false');
+  document.getElementById('countIdentification').textContent = countType('identification');
+  document.getElementById('countHotspot').textContent = countType('hotspot');
 }
 
 function handleAssessmentSearch(val) {
@@ -261,10 +257,10 @@ function handleAssessmentSearch(val) {
   renderAssessmentCards();
 }
 
-function setAssessmentTypeFilter(type) {
-  typeFilter = type;
+function setQuestionTypeFilter(qtype) {
+  typeFilter = qtype;
   document.querySelectorAll('#typeFilterChips .filter-chip-btn').forEach(btn => {
-    const on = btn.getAttribute('data-type') === type;
+    const on = btn.getAttribute('data-qtype') === qtype;
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-pressed', String(on));
   });
@@ -274,7 +270,7 @@ function setAssessmentTypeFilter(type) {
 function resetAssessmentFilters() {
   searchQuery = '';
   document.getElementById('assessmentSearchInput').value = '';
-  setAssessmentTypeFilter('all');
+  setQuestionTypeFilter('all');
 }
 
 function renderAssessmentCards() {
@@ -285,14 +281,7 @@ function renderAssessmentCards() {
       const haystack = [a.title, a.system_name, a.instructions].map(v => (v || '').toLowerCase());
       if (!haystack.some(v => v.includes(searchQuery))) return false;
     }
-    if (typeFilter !== 'all') {
-      const aType = (a.assessment_type || '').toLowerCase();
-      if (typeFilter === 'interactive') {
-        if (aType !== 'interactive' && aType !== 'diagram') return false;
-      } else if (aType !== typeFilter) {
-        return false;
-      }
-    }
+    if (typeFilter !== 'all' && !typesOf(a).includes(typeFilter)) return false;
     return true;
   });
 
@@ -318,7 +307,7 @@ function renderAssessmentCards() {
 }
 
 function quizCard(a) {
-    const look = formatLook(a.assessment_type);
+    const look = formatLook(a.question_types);
     const qCount = parseInt(a.question_count) || 0;
     const usedAttempts = a.my_attempts || 0;
     const maxAttempts = a.max_attempts || 3;
@@ -342,7 +331,7 @@ function quizCard(a) {
     }
 
     return `
-      <article class="sd-task" data-id="${a.assessment_id}" style="--card:${CARD_COLOURS[look.tone]}">
+      <article class="sd-task" data-id="${a.assessment_id}" data-qtypes="${typesOf(a).join(' ')}" style="--card:${CARD_COLOURS[look.tone]}">
         <div class="sd-task-top">
           <span class="sd-task-icon">${icon(look.glyph)}</span>
           <span class="sd-task-chips"><span class="sd-chip">${look.label}</span>${chip}</span>

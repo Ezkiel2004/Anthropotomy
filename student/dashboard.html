@@ -99,7 +99,7 @@
         <div class="dashboard-empty" id="recentScoresEmpty" role="status">Loading recent quiz results…</div>
         <div class="sd-table" id="recentScoresWrap" hidden>
           <table class="data-table">
-            <thead><tr><th>Assessment</th><th>Type</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
+            <thead><tr><th>Assessment</th><th>Score</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="recentScoresTable">
             </tbody>
           </table>
@@ -289,7 +289,6 @@ async function loadRecentScoresAndChart() {
       return `
         <tr>
           <td class="sd-table-title">${escHtml(s.assessment_title)}</td>
-          <td><span class="sd-chip">${escHtml(s.assessment_type || 'Quiz')}</span></td>
           <td class="sd-table-score ${state}">${hasScore ? Math.round(s.score) + '%' : 'Pending'}</td>
           <td><span class="sd-chip ${state}">${hasScore ? (s.passed ? 'Passed' : 'Review') : 'Awaiting score'}</span></td>
           <td class="sd-table-date">${fmtDate(s.submitted_at)}</td>

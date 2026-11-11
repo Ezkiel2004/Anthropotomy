@@ -204,8 +204,7 @@ function filterScores() {
   const term = document.getElementById('scoreSearchInput').value.toLowerCase();
   renderScoresTable(allSubmissions.filter(s =>
     s.assessment_title.toLowerCase().includes(term) ||
-    (s.system_name && s.system_name.toLowerCase().includes(term)) ||
-    (s.assessment_type || '').toLowerCase().includes(term)
+    (s.system_name && s.system_name.toLowerCase().includes(term))
   ));
 }
 

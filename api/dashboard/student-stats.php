@@ -50,7 +50,7 @@ $newestLesson = $db->fetchOne(
 
 // 3. Pending & upcoming assessments
 $upcomingAssessments = $db->fetchAll(
-    "SELECT a.assessment_id, a.title, a.assessment_type, a.time_limit_mins, a.passing_score, a.max_attempts,
+    "SELECT a.assessment_id, a.title, a.time_limit_mins, a.passing_score, a.max_attempts,
             a.due_date, bs.system_name, bs.icon_emoji, bs.color_hex,
             (SELECT COUNT(*) FROM assessment_submissions WHERE assessment_id = a.assessment_id AND student_id = ?) AS attempts_made
      FROM assessments a

@@ -30,7 +30,7 @@
         data.systems[0].total_lessons = 2;
         data.newest_lesson = { title: 'Learn the skeleton', module_title: 'Bones', system_name: 'Skeletal System', system_code: 'skeletal' };
         data.achievements = [{ name: 'First study day', earned: true }, { name: 'Quiz expert', earned: false }];
-        const submission = { assessment_title: 'Anatomy quiz', assessment_type: 'quiz', system_name: 'Skeletal', score: 80, passed: true, submitted_at: '2026-09-15' };
+        const submission = { assessment_title: 'Anatomy quiz', system_name: 'Skeletal', score: 80, passed: true, submitted_at: '2026-09-15' };
         submissions = [submission, { ...submission, score: 0, passed: false }];
         await render();
         assert(element('continueLearningGrid').dataset.kind === 'lesson' && element('continueLearningGrid').textContent.includes('Learn the skeleton') && element('continueLearningGrid').textContent.includes('Newest lesson'), 'The newest lesson is the next step');

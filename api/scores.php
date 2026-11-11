@@ -17,7 +17,7 @@ $db = Database::getInstance();
 if (isset($_GET['id'])) {
     $subId = (int) $_GET['id'];
     $sub = $db->fetchOne(
-        "SELECT sub.*, a.title AS assessment_title, a.assessment_type, a.passing_score,
+        "SELECT sub.*, a.title AS assessment_title, a.passing_score,
                 bs.system_name, bs.icon_emoji, bs.color_hex, u.full_name AS student_name
          FROM assessment_submissions sub
          JOIN assessments a ON a.assessment_id = sub.assessment_id
@@ -61,7 +61,7 @@ if ($user['role'] === 'teacher' || $user['role'] === 'admin') {
     } else {
         // Teacher viewing all recent submissions
         $allSubs = $db->fetchAll(
-            "SELECT sub.*, a.title AS assessment_title, a.assessment_type, a.passing_score,
+            "SELECT sub.*, a.title AS assessment_title, a.passing_score,
                     bs.system_name, bs.icon_emoji, bs.color_hex,
                     u.full_name AS student_name, sp.student_id AS school_id, sp.section
              FROM assessment_submissions sub
@@ -88,7 +88,7 @@ if ($user['role'] === 'teacher' || $user['role'] === 'admin') {
 $submissions = $db->fetchAll(
     "SELECT sub.submission_id, sub.assessment_id, sub.score, sub.raw_score, sub.max_score,
             sub.attempt_number, sub.time_taken_secs, sub.submitted_at, sub.status,
-            a.title AS assessment_title, a.assessment_type, a.passing_score,
+            a.title AS assessment_title, a.passing_score,
             bs.system_name, bs.icon_emoji, bs.color_hex
      FROM assessment_submissions sub
      JOIN assessments a ON a.assessment_id = sub.assessment_id

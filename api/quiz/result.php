@@ -14,7 +14,7 @@ $db = Database::getInstance();
 $submissionId = getIdParam('submission_id');
 
 $submission = $db->fetchOne(
-    "SELECT sub.*, a.title AS assessment_title, a.passing_score, a.assessment_type,
+    "SELECT sub.*, a.title AS assessment_title, a.passing_score,
             bs.system_name, bs.icon_emoji, u.full_name AS student_name
      FROM assessment_submissions sub
      JOIN assessments a ON a.assessment_id = sub.assessment_id

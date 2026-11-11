@@ -951,6 +951,21 @@ await key('Escape');
 await waitFor(`!document.querySelector('.cs-modal')`);
 await call('Emulation.clearDeviceMetricsOverride');
 
+// ── Student quizzes filter by question type ───────────────────────
+await signIn('fixture-student',studentPassword,'/student/');
+await navigate('/student/quiz.html');
+check(await waitFor(`document.querySelectorAll('#availableAssessmentsGrid article').length>0`),'Student quiz cards render');
+check(await evaluate(`[...document.querySelectorAll('#typeFilterChips [data-qtype]')].map(b=>b.dataset.qtype).join()==='all,multiple_choice,true_false,identification,hotspot'`),'Chips name question types');
+check(await evaluate(`document.querySelector('#typeFilterChips [data-qtype="hotspot"] .chip-count').textContent==String([...document.querySelectorAll('#availableAssessmentsGrid article')].filter(c=>c.dataset.qtypes.split(' ').includes('hotspot')).length)&&Number(document.querySelector('#typeFilterChips [data-qtype="hotspot"] .chip-count').textContent)>0`),'Hotspot chip counts the assessments that hold a hotspot question');
+await evaluate(`setQuestionTypeFilter('hotspot')`);
+check(await evaluate(`(()=>{const c=[...document.querySelectorAll('#availableAssessmentsGrid article')];return c.length>0&&c.every(x=>x.dataset.qtypes.split(' ').includes('hotspot'));})()`),'Hotspot chip shows every assessment that holds a hotspot question');
+await evaluate(`setQuestionTypeFilter('all')`);
+check(await evaluate(`!/assessment_type|Chapter quiz/i.test(document.body.innerHTML)`),'No trace of the old type');
+check(await evaluate(`[...document.querySelectorAll('#availableAssessmentsGrid article')].every(c=>c.querySelector('.sd-task-chips .sd-chip').textContent===(c.dataset.qtypes.split(' ').filter(Boolean).length>1?'Mixed questions':c.dataset.qtypes?ContentFormat.QUESTION_TYPES[c.dataset.qtypes].label:'No questions yet'))`),'Each card is labelled from its questions');
+await navigate('/student/dashboard.html');
+check(await waitFor(`document.getElementById('recentScoresTable')`),'Student dashboard loads');
+check(await evaluate(`![...document.querySelectorAll('th')].some(h=>h.textContent==='Type')`),'Recent results have no Type column');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();
