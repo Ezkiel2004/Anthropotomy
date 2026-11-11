@@ -121,7 +121,7 @@ check(await evaluate(`[...document.querySelectorAll('.cs-mod')].every(c=>c.query
 check(await evaluate(footFits),'Card actions are never clipped at 1366px');
 check(await evaluate(headingsInOrder),'Modules page headings are sequential');
 check(await evaluate(segFits),'Every status filter fits its control at 1366px');
-check(await evaluate(`!document.getElementById('addModuleModal')&&!/alert\\(|prompt\\(/.test(document.body.innerHTML)`),'Popups are gone');
+check(await evaluate(`!document.getElementById('addModuleModal')&&!document.getElementById('materialsModal')&&!/alert\\(|prompt\\(/.test(document.body.innerHTML)`),'Popups are gone');
 const testModule=(await evaluate(`fetch(API_BASE+'/modules.php',{credentials:'same-origin'}).then(r=>r.json())`)).data.find(m=>m.module_id===moduleId);
 const card=`document.querySelector('.cs-mod[data-id="${moduleId}"]')`;
 const many=(n,word)=>`${n} ${word}${n===1?'':'s'}`;
@@ -155,9 +155,9 @@ check(await waitFor(`document.querySelectorAll('.cs-mod').length>=2`),'Clearing 
 // More menu: arrow keys move, Escape closes and returns focus; Edit details opens the sheet.
 await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
 check(await waitFor(`document.querySelector('.cs-menu[role="menu"]')&&document.activeElement.getAttribute('role')==='menuitem'`),'More opens a menu with focus on the first item');
-check(await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].map(b=>b.textContent.trim()).join('|')`)==='Edit details|Materials|Publish|Archive','Menu offers Edit details, Materials, Publish and Archive');
+check(await evaluate(`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].map(b=>b.textContent.trim()).join('|')`)==='Edit details|Publish|Archive','Menu offers Edit details, Publish and Archive');
 await key('ArrowDown');
-check(await evaluate(`document.activeElement.textContent.trim()==='Materials'`),'Arrow down moves to the next item');
+check(await evaluate(`document.activeElement.textContent.trim()==='Publish'`),'Arrow down moves to the next item');
 await key('Escape');
 check(await waitFor(`!document.querySelector('.cs-menu')&&document.activeElement.matches('[data-more]')`),'Escape closes the menu and returns focus');
 await evaluate(`${sheetModule}.querySelector('[data-more]').click()`);
@@ -211,6 +211,170 @@ check(await waitFor(`document.querySelector('.cs-mod .cs-status--archived')`),'A
 await evaluate(longestFoot);
 check(await evaluate(footFits),'Long counts beside Add lesson still fit at 390px');
 check(await evaluate(`document.documentElement.scrollWidth<=390`),'Still no horizontal scroll at 390px');
+await call('Emulation.clearDeviceMetricsOverride');
+
+// ── Module workspace ────────────────────────────────────────────
+// The fixture module: lessons in a saved order with a draft among them and the PDF lesson last, the Long reader material, the Test quiz.
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+const moduleRow=async()=>(await evaluate(`fetch(API_BASE+'/modules.php',{credentials:'same-origin'}).then(r=>r.json())`)).data.find(m=>m.module_id===moduleId);
+const ws=await moduleRow();
+const lessonCount=ws.lessons.length;
+const rowIds=`[...document.querySelectorAll('.cs-row')].map(r=>Number(r.dataset.lesson))`;
+const rowById=id=>`document.querySelector('.cs-row[data-lesson="${id}"]')`;
+const savedOrderIs=order=>`fetch(API_BASE+'/modules.php',{credentials:'same-origin'}).then(r=>r.json()).then(j=>JSON.stringify(j.data.find(m=>m.module_id===${moduleId}).lessons.map(l=>l.lesson_id))===${JSON.stringify(JSON.stringify(order))})`;
+const shownOrderIs=order=>`JSON.stringify(${rowIds})===${JSON.stringify(JSON.stringify(order))}`;
+const menuItems=`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].map(b=>b.textContent.trim())`;
+const pick=label=>`[...document.querySelectorAll('.cs-menu [role="menuitem"]')].find(b=>b.textContent.trim()===${JSON.stringify(label)}).click()`;
+const openRowMenu=async id=>{await evaluate(`${rowById(id)}.querySelector('[data-row-more]').click()`);return waitFor(`document.querySelector('.cs-menu[role="menu"]')`);};
+const materialRow=name=>`[...document.querySelectorAll('[data-materials] .cs-file')].find(f=>f.textContent.includes(${JSON.stringify(name)}))`;
+const gridShown=`document.getElementById('moduleGrid').offsetParent!==null`;
+await navigate('/teacher/modules.html?module='+moduleId);
+check(await waitFor(`document.querySelector('.cs-hero h2')?.textContent==='Test module'`),'Workspace opens from the URL');
+check(await evaluate(`document.activeElement===document.querySelector('.cs-hero h2')`),'Focus starts on the module title');
+check(await evaluate(`!(${gridShown})`),'The grid is hidden in the workspace');
+check(await evaluate(`document.querySelectorAll('.cs-row').length===${lessonCount}`),'Every lesson is listed, drafts included');
+check(await evaluate(shownOrderIs(ws.lessons.map(l=>l.lesson_id))),'Lessons show in their saved order');
+const draftLesson=ws.lessons.find(l=>l.status==='draft');
+check(await evaluate(`${rowById(draftLesson.lesson_id)}.querySelector('.cs-status--draft')!==null&&${rowById(draftLesson.lesson_id)}.querySelector('.cs-meta').textContent==='Reading · no time set'`),'A draft shows its status, and a lesson without a duration says so');
+check(await waitFor(`${rowById(lessonId)}.querySelector('.cs-meta').textContent==='PDF, 3 pages · no time set'`),'A PDF lesson shows its kind and page count');
+check(await evaluate(`(()=>{const t=document.querySelector('.cs-hero .cs-meta').textContent;return t.startsWith(${JSON.stringify(many(lessonCount,'lesson'))})&&t.includes(${JSON.stringify(many(ws.material_count,'material'))})&&t.endsWith('Updated today');})()`),'Hero counts lessons and materials');
+check(await evaluate(`document.querySelector('.cs-hero .cs-eyebrow').textContent==='Test System · Module'&&document.querySelector('.cs-hero .cs-status--published')!==null`),'Hero shows the body system and the status');
+check(await evaluate(`document.querySelector('.cs-side').textContent.includes('Test quiz')`),'Linked quizzes show');
+check(await evaluate(`[...document.querySelectorAll('.cs-quiz')].find(q=>q.querySelector('.cs-row-title').textContent==='Test quiz').querySelector('.cs-meta').textContent.startsWith('3 questions · 2 attempts · avg ')`),'A quiz shows its questions, attempts and average');
+check(await evaluate(`/assessments\\.html/.test(document.querySelector('.cs-quiz').getAttribute('href'))`),'Quizzes link to the Assessments page');
+check(await waitFor(`${materialRow('Long reader')}?.querySelector('canvas[data-rendered]')`),'Materials show a first-page thumbnail');
+check(await waitFor(`${materialRow('Long reader')}.querySelector('.cs-meta').textContent.startsWith('PDF · 60 pages · ')`),'A PDF material shows its page count');
+check(await evaluate(headingsInOrder),'Workspace headings are sequential');
+check(await evaluate(`[...document.querySelectorAll('#workspaceView .cs-btn--primary')].filter(b=>b.offsetParent).length===1`),'One primary button in the workspace');
+await evaluate(`${materialRow('Long reader')}.querySelector('[data-open]').click()`);
+check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'A material PDF opens in the viewer');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes the material viewer');
+
+// Materials: Upload opens a small form; dropping a file on the panel also uploads; Delete asks first.
+const pdfTransfer=name=>`(()=>{const b=Uint8Array.from(atob(${JSON.stringify(fixture('sample.pdf'))}),c=>c.charCodeAt(0));const dt=new DataTransfer();dt.items.add(new File([b],${JSON.stringify(name)},{type:'application/pdf'}));return dt;})()`;
+await evaluate(`document.querySelector('[data-materials] [data-upload]').click()`);
+check(await waitFor(`!document.querySelector('[data-materials] form').hidden&&document.activeElement===document.querySelector('[data-materials] input[type=file]')`),'Upload opens a small form');
+await evaluate(`(()=>{const f=document.querySelector('[data-materials] form');f.elements.file.files=${pdfTransfer('form-upload.pdf')}.files;f.elements.title.value='Form handout';f.requestSubmit();})()`);
+check(await waitFor(`${materialRow('Form handout')}&&document.querySelector('[data-materials] form').hidden`),'The form uploads the file and closes');
+check(await waitFor(`document.querySelector('.cs-hero .cs-meta').textContent.includes(${JSON.stringify(many(ws.material_count+1,'material'))})`),'Hero material count follows uploads');
+await evaluate(`(()=>{const dt=${pdfTransfer('dropped-sheet.pdf')};const p=document.querySelector('[data-materials]');for(const t of ['dragenter','dragover'])p.dispatchEvent(new DragEvent(t,{bubbles:true,cancelable:true,dataTransfer:dt}));window.__dropShown=p.classList.contains('is-drop');p.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));})()`);
+check(await evaluate(`window.__dropShown===true`),'Dragging a file over Materials shows the drop target');
+check(await waitFor(`${materialRow('dropped-sheet')}&&!document.querySelector('[data-materials]').classList.contains('is-drop')`),'Dropping a file on Materials uploads it');
+for(const name of ['Form handout','dropped-sheet']){
+  await evaluate(`${materialRow(name)}.querySelector('[data-file-more]').click()`);
+  await waitFor(`document.querySelector('.cs-menu')`);
+  await evaluate(pick('Delete'));
+  check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Delete this file?')`),'Deleting a material asks first: '+name);
+  await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+  check(await waitFor(`!${materialRow(name)}`),'A deleted material leaves the list: '+name);
+}
+check(await waitFor(`document.querySelector('.cs-hero .cs-meta').textContent.includes(${JSON.stringify(many(ws.material_count,'material'))})`),'Hero material count follows deletes');
+
+// Reorder with the row menu: the first lesson cannot move up; the last moves up and stays there after a reload.
+const lastId=ws.lessons.at(-1).lesson_id;
+await openRowMenu(ws.lessons[0].lesson_id);
+const firstItems=await evaluate(menuItems);
+check(!firstItems.includes('Move up')&&firstItems.includes('Move down'),'The first lesson cannot move up');
+await key('Escape');
+await openRowMenu(lastId);
+const lastItems=await evaluate(menuItems);
+check(lastItems.includes('Move up')&&!lastItems.includes('Move down')&&lastItems.includes('Unpublish')&&lastItems.at(-1)==='Delete','Row menu offers Move up, Unpublish and Delete');
+await evaluate(pick('Move up'));
+const movedOrder=[...ws.lessons.slice(0,-2).map(l=>l.lesson_id),lastId,ws.lessons.at(-2).lesson_id];
+check(await waitFor(shownOrderIs(movedOrder)),'Move up moves the row');
+check(await evaluate(`document.activeElement===${rowById(lastId)}.querySelector('[data-row-more]')`),'Focus stays on the moved lesson');
+check(await waitFor(`document.querySelector('#workspaceView [data-announce]').textContent==='Moved to position ${lessonCount-1} of ${lessonCount}.'`),'The move is announced');
+check(await waitFor(savedOrderIs(movedOrder)),'The new order is saved');
+await navigate('/teacher/modules.html?module='+moduleId);
+check(await waitFor(shownOrderIs(movedOrder)),'The new order survives a reload');
+
+// Drag the first lesson below the third (native drag and drop; the menu is the keyboard path).
+const dragOrder=[movedOrder[1],movedOrder[2],movedOrder[0],...movedOrder.slice(3)];
+await evaluate(`(()=>{const rows=[...document.querySelectorAll('.cs-row')],dt=new DataTransfer(),src=rows[0],dst=rows[2],y=dst.getBoundingClientRect().bottom-3;const fire=(el,type)=>el.dispatchEvent(new DragEvent(type,{bubbles:true,cancelable:true,dataTransfer:dt,clientY:y}));fire(src,'dragstart');fire(dst,'dragover');window.__dropMark=dst.classList.contains('is-drop-after');fire(dst,'drop');fire(src,'dragend');})()`);
+check(await evaluate(`window.__dropMark===true`),'Dragging over a row marks where the lesson will land');
+check(await waitFor(shownOrderIs(dragOrder)),'Dragging a row reorders the lessons');
+check(await waitFor(savedOrderIs(dragOrder)),'A dragged order is saved');
+
+// Another tab adds a lesson: the next move is refused, a toast says so and the list reloads.
+const elsewhere=await evaluate(`fetch(API_BASE+'/lessons.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({module_id:${moduleId},title:'Added elsewhere',lesson_type:'reading',content_text:'From another tab',status:'draft'})}).then(r=>r.json())`);
+const added=Number(elsewhere.data?.lesson_id);
+check(elsewhere.success&&await evaluate(`document.querySelectorAll('.cs-row').length===${lessonCount}`),'Another tab adds a lesson');
+await openRowMenu(dragOrder[0]);
+await evaluate(pick('Move down'));
+check(await waitFor(`[...document.querySelectorAll('.toast')].some(t=>t.textContent.includes('The lesson list changed. Reload and try again.'))`),'A stale reorder shows a toast');
+check(await waitFor(`document.querySelectorAll('.cs-row').length===${lessonCount+1}&&${rowById(added)}!==null`),'A stale reorder reloads the list');
+check(JSON.stringify(await evaluate(rowIds))===JSON.stringify((await moduleRow()).lessons.map(l=>l.lesson_id)),'After the reload the list matches the saved order');
+
+// Publish and unpublish a lesson from its menu; Delete asks first.
+await openRowMenu(added);
+await evaluate(pick('Publish'));
+check(await waitFor(`${rowById(added)}?.querySelector('.cs-status--published')`),'Publish a lesson from its menu');
+await openRowMenu(added);
+await evaluate(pick('Unpublish'));
+check(await waitFor(`${rowById(added)}?.querySelector('.cs-status--draft')`),'Unpublish a lesson from its menu');
+await openRowMenu(added);
+await evaluate(pick('Delete'));
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Delete this lesson?')&&document.querySelector('dialog.toast-confirm .toast-confirm__go').textContent==='Delete'`),'Deleting a lesson asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`!${rowById(added)}&&document.querySelectorAll('.cs-row').length===${lessonCount}`),'A deleted lesson leaves the list');
+
+// Preview: the lesson reader without the 3D links; closing returns focus.
+await evaluate(`${rowById(lessonId)}.querySelector('[data-preview]').click()`);
+check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent==='PDF lesson'`),'Row Preview opens the lesson in the reader');
+check(await evaluate(`!/View in 3D|Practice in 3D/.test(document.getElementById('lessonPreview').textContent)`),'The teacher preview has no 3D links');
+check(await waitFor(`document.querySelector('#lessonPreview .pv canvas[data-rendered]')`),'A PDF lesson previews in the viewer');
+await key('Escape');
+check(await waitFor(`document.getElementById('lessonPreview').hidden&&document.activeElement===${rowById(lessonId)}.querySelector('[data-preview]')`),'Closing the preview returns focus to its button');
+const firstPublished=(await moduleRow()).lessons.find(l=>l.status==='published');
+await evaluate(`document.querySelector('.cs-hero [data-preview-module]').click()`);
+check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent===${JSON.stringify(firstPublished.title)}`),'Preview as student opens the first published lesson');
+await key('Escape');
+check(await waitFor(`document.getElementById('lessonPreview').hidden`),'Escape closes the preview');
+
+// Hero actions: Unpublish and Publish the module; Edit details opens the module sheet.
+await evaluate(`document.querySelector('.cs-hero [data-module-status]').click()`);
+check(await waitFor(`document.querySelector('.cs-hero .cs-status--draft')&&document.querySelector('.cs-hero [data-module-status]').textContent.trim()==='Publish'`),'Unpublish from the hero');
+await evaluate(`document.querySelector('.cs-hero [data-module-status]').click()`);
+check(await waitFor(`document.querySelector('.cs-hero .cs-status--published')&&document.querySelector('.cs-hero [data-module-status]').textContent.trim()==='Unpublish'`),'Publish from the hero');
+await evaluate(`(()=>{const b=document.querySelector('.cs-hero [data-edit-module]');b.focus();b.click();})()`);
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Test module'`),'Edit details opens the module sheet');
+await evaluate(`document.querySelector('.cs-sheet [data-sheet-close]').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&document.activeElement===document.querySelector('.cs-hero [data-edit-module]')`),'Closing the sheet returns focus to Edit details');
+check(await evaluate(`typeof openLessonSheet==='function'&&document.querySelectorAll('#workspaceView [data-add-lesson]').length===2`),'Add lesson sits in the panel header and as the last row');
+
+// History: Open from a filtered grid; Back returns to the same grid, Forward reopens the module.
+await navigate('/teacher/modules.html');
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>0&&${gridShown}`),'The grid shows without a module in the URL');
+await evaluate(`(()=>{const i=document.querySelector('.cs-search input');i.value='Test module';i.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelectorAll('.cs-mod').length===1`),'Search narrows the grid to the test module');
+await evaluate(`${card}.querySelector('.cs-mod-foot a').click()`);
+check(await waitFor(`document.querySelector('.cs-hero h2')?.textContent==='Test module'&&location.search==='?module=${moduleId}'&&!(${gridShown})`),'Open shows the workspace and updates the URL');
+check(await evaluate(`document.activeElement===document.querySelector('.cs-hero h2')`),'Focus moves to the module title');
+await evaluate(`history.back()`);
+check(await waitFor(`document.querySelectorAll('.cs-mod').length>0&&${gridShown}&&!document.querySelector('.cs-hero')`),'Back returns to the grid');
+check(await evaluate(`location.search===''&&document.querySelector('.cs-search input').value==='Test module'&&document.querySelectorAll('.cs-mod').length===1`),'Back keeps the grid filters');
+check(await evaluate(`document.activeElement===${card}.querySelector('.cs-mod-foot a')`),'Focus returns to the module card');
+await evaluate(`history.forward()`);
+check(await waitFor(`document.querySelector('.cs-hero h2')?.textContent==='Test module'&&!(${gridShown})`),'Forward reopens the workspace');
+await evaluate(`document.querySelector('#workspaceView .cs-crumb').click()`);
+check(await waitFor(`location.search===''&&${gridShown}&&!document.querySelector('.cs-hero')`),'All modules returns to the grid');
+await navigate('/teacher/modules.html?module_id='+moduleId);
+check(await waitFor(`document.querySelector('.cs-hero h2')?.textContent==='Test module'`),'The explorer link (?module_id=) opens the workspace');
+
+// Phone width: panels stack, rows fit with their actions showing, no sideways scroll; Preview opens the reader.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await navigate('/teacher/modules.html?module='+moduleId);
+check(await waitFor(`document.querySelectorAll('.cs-row').length===${lessonCount}&&document.querySelector('[data-materials] .cs-file')`),'Workspace renders at 390px');
+check(await evaluate(`document.documentElement.scrollWidth<=390`),'No horizontal scroll in the workspace at 390px');
+check(await evaluate(`(()=>{const l=document.querySelector('.cs-lessons').getBoundingClientRect(),s=document.querySelector('.cs-side').getBoundingClientRect();return s.top>=l.bottom&&Math.abs(s.left-l.left)<1;})()`),'Panels stack at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-row')].every(row=>[...row.children].filter(c=>c.offsetParent).every(c=>${inside('row','c')}))`),'Row contents fit at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-row-actions')].every(a=>getComputedStyle(a).opacity==='1')`),'Row actions show without hover at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-hero-row > *, .cs-panel-head > *, .cs-file > *, .cs-quiz > *')].filter(el=>el.getClientRects().length).every(el=>${inside(`el.closest('.cs-hero, .cs-panel')`,'el')})`),'Hero, panel headers, materials and quizzes fit at 390px');
+await evaluate(`document.querySelector('.cs-hero [data-preview-module]').click()`);
+check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-doc')`),'Preview opens the reader at 390px');
+check(await evaluate(`!/View in 3D/.test(document.getElementById('lessonPreview').textContent)`),'No View in 3D in the teacher preview at 390px');
+await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
 // ── Student ─────────────────────────────────────────────────────

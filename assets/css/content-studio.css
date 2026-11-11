@@ -31,6 +31,7 @@ body.stage-portal {
 body.stage-portal .cs > .cs-head { margin: 0; }
 .cs-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
 .cs-head h1 { margin: 0; }
+.cs-head h1:focus { outline: none; }   /* focus lands here when the grid comes back; it is not a control */
 .cs-head p { margin: .5rem 0 0; color: var(--cs-muted); font-size: .9375rem; max-width: 46rem; }
 .cs-actions { display: flex; gap: .625rem; align-items: center; flex-wrap: wrap; }
 
@@ -152,6 +153,46 @@ body.stage-portal .cs-select select:focus { box-shadow: none; outline: none; }
 .cs-side { display: flex; flex-direction: column; gap: 1.25rem; }
 .cs-quiz { display: flex; align-items: center; gap: .75rem; padding: .75rem; }
 
+/* Workspace: what the mockup leaves out for the live page (assets/js/module-workspace.js) */
+.cs[hidden] { display: none; }
+.cs-crumb { align-self: flex-start; border-radius: var(--cs-r-xs); }
+.cs-hero > :not(img) { position: relative; }   /* text paints above the system art when they meet */
+.cs-hero img { pointer-events: none; }
+.cs-hero h2:focus { outline: none; }   /* focus lands here when the view opens; it is not a control */
+.cs-hero h2, .cs-hero p { overflow-wrap: anywhere; }
+.cs-panel-head > :is(.cs-btn, .cs-icon-btn) { margin-left: auto; }
+.cs-panel-head .cs-h2 { flex: none; }
+.cs-panel-empty, .tf-panel .tf-empty { margin: 0; padding: 1rem 1.25rem 1.125rem; font-size: .8125rem; line-height: 1.5; color: var(--cs-muted); }
+.cs-rows[hidden] { display: none; }
+.cs-row > :is(.cs-grip, .cs-idx, .cs-tile, .cs-row-actions, .cs-status) { flex: none; }
+.cs-row[draggable="true"] { cursor: default; }
+.cs-row.is-dragging { opacity: .45; }
+.cs-rows > .cs-row.is-drop-before { box-shadow: inset 0 2px 0 var(--cs-mint); }
+.cs-rows > .cs-row.is-drop-after { box-shadow: inset 0 -2px 0 var(--cs-mint); }
+.cs-add-row:focus-visible, .cs-crumb:focus-visible, a.cs-quiz:focus-visible { outline: none; box-shadow: var(--cs-focus); }
+.cs-file .cs-row-title, .cs-quiz .cs-row-title { font-size: .875rem; }
+.tf-panel { position: relative; }
+.tf-panel .tf-files, .cs-quizzes { padding: .375rem; }
+.tf-panel .tf-files:has(> .tf-empty), .cs-quizzes:has(> .cs-panel-empty) { padding: 0; }
+.tf-mini { display: flex; flex-direction: column; gap: .875rem; padding: 1rem 1.25rem 1.125rem; box-shadow: 0 1px 0 var(--cs-line); }
+.tf-mini[hidden] { display: none; }
+body.stage-portal .tf-mini input[type=file] { width: 100%; padding: 0; border: 0; background: none; box-shadow: none; color: var(--cs-soft); font: 500 .8125rem/1.2 var(--font-body); }
+body.stage-portal .tf-mini input[type=file]::file-selector-button { margin-right: .75rem; height: 2.125rem; padding: 0 .875rem; border: 0; border-radius: 999px; background: var(--cs-s3); color: var(--cs-ink); font: 600 .8125rem/1 var(--font-body); cursor: pointer; }
+body.stage-portal .tf-mini input[type=file]:focus-visible { outline: none; box-shadow: var(--cs-focus); border-radius: 999px; }
+.tf-mini .tf-error { margin: 0; color: var(--cs-coral); font-size: .8125rem; }
+.tf-mini-actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.tf-drop { display: none; }
+.tf-panel.is-drop { box-shadow: var(--cs-shadow), inset 0 0 0 1.5px var(--cs-mint); }
+.tf-panel.is-drop .tf-drop { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; gap: .5rem; margin: 0; border-radius: inherit; background: color-mix(in srgb, var(--cs-s1) 90%, transparent); color: var(--cs-mint); font-size: .875rem; font-weight: 600; pointer-events: none; }
+a.cs-quiz { color: inherit; text-decoration: none; border-radius: var(--cs-r-sm); }
+a.cs-quiz:hover { background: var(--cs-s2); }
+.cs-quiz + .cs-quiz { box-shadow: 0 -1px 0 var(--cs-line); }
+.cs-quiz:hover + .cs-quiz, .cs-quiz:hover { box-shadow: none; }
+
+/* Quiz tints from the question mix (ContentFormat.assessmentKind tone) */
+.q-multiple_choice { --t: #8ec5ff; } .q-true_false { --t: #c4a7ff; } .q-identification { --t: #f5d76e; } .q-hotspot { --t: #ff8a8f; }
+.q-mixed { --t: var(--cs-mint); } .q-empty { --t: var(--cs-muted); }
+
 /* More menu (Studio.menu) */
 .cs-menu { position: fixed; z-index: 2050; min-width: 12rem; max-width: calc(100vw - 1rem); padding: .375rem; border-radius: var(--cs-r-sm); background: var(--cs-s3); color: var(--cs-ink); box-shadow: 0 18px 44px -12px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.06); font-family: var(--font-body); }
 .cs-menu-item { display: flex; align-items: center; gap: .625rem; width: 100%; padding: .625rem .75rem; border: 0; border-radius: var(--cs-r-xs); background: transparent; color: var(--cs-soft); font: 600 .875rem/1.2 var(--font-body); text-align: left; cursor: pointer; white-space: nowrap; }
@@ -207,8 +248,31 @@ body.stage-portal .cs-pick select.cs-input:invalid { color: var(--cs-muted); }
 /* Toasts stay readable above an open sheet. */
 body.stage-portal .toast { z-index: 2100; }
 
+/* Touch screens have no hover: row actions always show. */
+@media (hover: none) { .cs-row-actions { opacity: 1; } }
+
+/* Narrow: the side panels move under the lessons, side by side while they fit. */
+@media (max-width: 1100px) {
+  .cs-split { grid-template-columns: minmax(0, 1fr); }
+  .cs-side { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items: start; }
+}
+
 /* Phone */
 @media (max-width: 640px) {
+  .cs-hero { min-height: 0; padding: 1.5rem 1.25rem; }
+  .cs-hero img { right: -2rem; top: -1rem; height: 10rem; opacity: .4; }
+  .cs-hero h2 { font-size: 1.625rem; }
+  .cs-hero-row { max-width: none; }
+  .cs-panel-head { padding: 1rem; }
+  .cs-lessons .cs-panel-head > .cs-meta { display: none; }   /* drag needs a pointer; the row menu moves lessons */
+  /* A lesson row: title and meta across the top, status and actions under them. */
+  .cs-row { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "idx tile copy copy" "idx tile status actions"; column-gap: .625rem; row-gap: .25rem; padding: .625rem .375rem .5rem .5rem; }
+  .cs-row .cs-grip { display: none; }
+  .cs-row .cs-idx { grid-area: idx; width: auto; min-width: .75rem; }
+  .cs-row .cs-tile { grid-area: tile; }
+  .cs-row .cs-row-copy { grid-area: copy; }
+  .cs-row .cs-row-actions { grid-area: actions; opacity: 1; }
+  .cs-row > .cs-status { grid-area: status; justify-self: start; align-self: center; }
   .cs-summary { flex-wrap: wrap; }
   .cs-summary > div { flex: 1 1 45%; padding: .75rem 1rem; }
   .cs-summary > div:nth-child(3) { box-shadow: none; }

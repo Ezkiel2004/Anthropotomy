@@ -1,7 +1,8 @@
 /* One PDF viewer for lessons, materials and lesson plans. Renders with the vendored pdf.js (assets/vendor/pdfjs/), no browser tab, no iframe.
    PdfViewer.mount(container, {url, title, downloadUrl}) → Promise<{destroy()}>   inline viewer
    PdfViewer.open({url, title, downloadUrl}) → {close()}                          full-screen viewer with a thumbnail rail
-   PdfViewer.thumbnail(canvas, url) → Promise<void>                               draws page 1 into a canvas
+   PdfViewer.thumbnail(canvas, url) → Promise<number>                             draws page 1 into a canvas, resolves to the page count
+   PdfViewer.pageCount(url) → Promise<number>                                     reads the page count without drawing
    Pages are empty placeholders; only the ones near the viewport are drawn, and they are released again when they scroll far away.
    Needs pdf-viewer.css. pdf.js is loaded the first time a document is opened. */
 const PdfViewer = (() => {
@@ -50,7 +51,13 @@ const PdfViewer = (() => {
             const page = await pdf.getPage(1);
             await paint(page, canvas, canvas.clientWidth || canvas.width || 160).promise;
             canvas.dataset.rendered = '1';
+            return pdf.numPages;
         } finally { task.destroy(); }
+    }
+
+    async function pageCount(url) {
+        const {task, pdf} = await load(url);
+        try { return pdf.numPages; } finally { task.destroy(); }
     }
 
     /* Builds the viewer into root and returns {destroy()}. full: draw the thumbnail rail and answer keys anywhere (Escape included). */
@@ -302,5 +309,5 @@ const PdfViewer = (() => {
         return handle;
     }
 
-    return {mount, open, thumbnail};
+    return {mount, open, thumbnail, pageCount};
 })();

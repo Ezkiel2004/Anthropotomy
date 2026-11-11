@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv1"/>
-  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs1"/>
+  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs2"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
@@ -51,10 +51,10 @@
     </header>
 
     <div class="page-content">
-      <div class="cs">
+      <div class="cs" id="gridView">
         <header class="cs-head page-header">
           <div class="page-header-left">
-            <h1>Modules and lessons</h1>
+            <h1 id="pageTitle" tabindex="-1">Modules and lessons</h1>
             <p>Build each body system’s lessons, attach handouts and publish when they’re ready.</p>
           </div>
           <div class="cs-actions">
@@ -79,9 +79,13 @@
         <div class="cs-grid" id="moduleGrid" aria-labelledby="moduleGridTitle" role="region"></div>
         <p class="cs-sr" id="moduleResults" role="status"></p>
       </div>
+      <div class="cs" id="workspaceView" hidden></div>
     </div>
   </main>
 </div>
+
+<!-- Lesson preview: the student reader (assets/js/lesson-reader.js) without its 3D links -->
+<div class="sd-reader" id="lessonPreview" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
 <!-- Add Lesson Modal -->
 <div class="modal-overlay" id="addLessonModal" style="display:none;" onclick="if(event.target===this)closeModal('addLessonModal')">
@@ -149,23 +153,13 @@
   </div>
 </div>
 
-<!-- Module Materials Modal -->
-<div class="modal-overlay" id="materialsModal" style="display:none;" onclick="if(event.target===this)closeModal('materialsModal')">
-  <div class="modal-box">
-    <div class="modal-header"><h3 id="materialsModalTitle">Materials</h3><button class="modal-close" onclick="closeModal('materialsModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
-    <div class="modal-body">
-      <p style="margin:0 0 var(--space-4);color:var(--text-muted);font-size:.875rem;">Students see these files in this module's lessons. They stay here for every new batch.</p>
-      <div id="materialsModalBody"></div>
-    </div>
-  </div>
-</div>
-
 <script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261111-pv1"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261111-pv2"></script>
 <script src="../assets/js/lesson-reader.js?v=20261111-lr1"></script>
-<script src="../assets/js/teacher-files.js?v=20261102-files3"></script>
+<script src="../assets/js/teacher-files.js?v=20261111-files4"></script>
 <script src="../assets/js/content-studio.js?v=20261111-cs1"></script>
+<script src="../assets/js/module-workspace.js?v=20261111-ws1"></script>
 <script>
 'use strict';
 
@@ -197,9 +191,16 @@ async function loadModules() {
     renderSummary();
     renderFilters();
     renderModules();
+    if (openModuleId !== null) {
+      const open = moduleById(openModuleId);
+      if (open) { ModuleWorkspace.update(open); document.title = `${open.title} | Anthropotomy`; }
+      else { history.replaceState(null, '', 'modules.html'); showGrid(); }
+    }
+    return true;
   } catch (err) {
     console.error(err);
     grid.innerHTML = '<div class="cs-empty" role="alert"><p>Modules could not load. Check that XAMPP is running, then reload the page.</p></div>';
+    return false;
   }
 }
 
@@ -317,7 +318,6 @@ function moduleMenu(m) {
   if (m.status === 'archived') return [edit, { label: 'Restore as draft', onSelect: () => setModuleStatus(m, 'draft') }];
   return [
     edit,
-    { label: 'Materials', onSelect: () => openMaterials(m.module_id) },
     m.status === 'published'
       ? { label: 'Unpublish', onSelect: () => setModuleStatus(m, 'draft') }
       : { label: 'Publish', onSelect: () => setModuleStatus(m, 'published') },
@@ -414,17 +414,16 @@ function openModuleSheet(module) {
   });
 }
 
-// ── Module materials (PPT/PDF kept for every batch) ───────────
-function openMaterials(moduleId) {
-  const module = moduleById(moduleId);
-  document.getElementById('materialsModalTitle').textContent = `Materials: ${module?.title || 'Module'}`;
-  TeacherFiles.mount(document.getElementById('materialsModalBody'), {kind: 'material', moduleId});
-  openModal('materialsModal');
-}
-
 // ── Page events ───────────────────────────────────────────────
 document.getElementById('newModuleBtn').addEventListener('click', () => openModuleSheet(null));
 document.getElementById('moduleGrid').addEventListener('click', event => {
+  const open = event.target.closest('a[href*="?module="]');
+  if (open && isPlainClick(event)) {
+    event.preventDefault();
+    history.pushState({ fromGrid: true }, '', open.getAttribute('href'));
+    route();
+    return;
+  }
   const more = event.target.closest('[data-more]');
   if (more) {
     const module = moduleById(Number(more.dataset.more));
@@ -501,8 +500,100 @@ document.getElementById('addLessonForm').addEventListener('submit', async (e) =>
   }
 });
 
+// ── Views: the grid, or one module's workspace (?module=<id>) ───
+// Opening a module adds a history entry, so Back returns to the grid as it was left, filters included.
+// ?module_id= is the 3D explorer's older link and opens the same view. The workspace itself is
+// assets/js/module-workspace.js.
+const gridView = document.getElementById('gridView');
+const workspaceView = document.getElementById('workspaceView');
+const GRID_TITLE = document.title;
+let openModuleId = null;
+let gridScroll = 0;
+const isPlainClick = event => event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
+
+function moduleParam() {
+  const params = new URLSearchParams(location.search);
+  return Number(params.get('module') || params.get('module_id')) || null;
+}
+
+const workspaceHooks = {
+  previewRoot: document.getElementById('lessonPreview'),
+  reload: () => loadModules(),
+  editDetails: module => openModuleSheet(module),
+  setStatus: (module, status) => setModuleStatus(module, status),
+  addLesson: moduleId => openLessonSheet(moduleId, null),
+  editLesson: (moduleId, lesson) => openLessonSheet(moduleId, lesson),
+  back(event) {
+    if (!isPlainClick(event)) return;
+    event.preventDefault();
+    if (history.state?.fromGrid) { history.back(); return; }
+    history.pushState(null, '', 'modules.html');
+    route();
+  },
+};
+
+function showWorkspace(moduleId) {
+  const module = moduleById(moduleId);
+  if (!module) {
+    showToast('That module could not be found.', 'error');
+    history.replaceState(null, '', 'modules.html');
+    showGrid();
+    return;
+  }
+  if (!gridView.hidden) gridScroll = scrollY;
+  gridView.hidden = true;
+  workspaceView.hidden = false;
+  if (openModuleId === moduleId) ModuleWorkspace.update(module);
+  else ModuleWorkspace.open(workspaceView, module, workspaceHooks);
+  openModuleId = moduleId;
+  document.title = `${module.title} | Anthropotomy`;
+  scrollTo(0, 0);
+  document.getElementById('wsTitle').focus({ preventScroll: true });
+}
+
+function showGrid() {
+  const from = openModuleId;
+  openModuleId = null;
+  ModuleWorkspace.close();
+  workspaceView.textContent = '';
+  workspaceView.hidden = true;
+  gridView.hidden = false;
+  document.title = GRID_TITLE;
+  if (allModules.length) { renderSummary(); renderModules(); }
+  scrollTo(0, from ? gridScroll : 0);
+  const card = from && document.querySelector(`#moduleGrid .cs-mod[data-id="${from}"] .cs-mod-foot a`);
+  (card || document.getElementById('pageTitle')).focus({ preventScroll: true });
+}
+
+function route() {
+  const id = moduleParam();
+  if (id) showWorkspace(id);
+  else if (openModuleId !== null || gridView.hidden) showGrid();
+}
+
+// ── Lesson sheet ──────────────────────────────────────────────
+// Placeholder until the lesson editor sheet (Task 8) replaces it: a new lesson uses the old form, preset to
+// this module; editing an existing lesson is not offered yet.
+function openLessonSheet(moduleId, lesson) {
+  if (lesson) { showToast('Lesson editing is not available yet.', 'info'); return; }
+  document.getElementById('lesModuleId').value = String(moduleId);
+  openModal('addLessonModal');
+  document.getElementById('lesTitle').focus();
+}
+
 // ── Init ──────────────────────────────────────────────────────
-loadModules();
+history.scrollRestoration = 'manual';
+if (moduleParam()) {
+  gridView.hidden = true;
+  workspaceView.hidden = false;
+  workspaceView.innerHTML = '<div class="cs-empty" role="status"><p>Loading module…</p></div>';
+  if (new URLSearchParams(location.search).has('module_id')) history.replaceState(null, '', `modules.html?module=${moduleParam()}`);
+}
+addEventListener('popstate', route);
+loadModules().then(loaded => {
+  if (loaded) route();
+  else if (gridView.hidden) { workspaceView.hidden = true; workspaceView.textContent = ''; gridView.hidden = false; }
+});
 </script>
 <script src="../assets/js/site-config.js"></script>
 </body>
