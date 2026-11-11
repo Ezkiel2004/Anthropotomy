@@ -513,9 +513,7 @@ function initials(name = '') {
     return name.trim().split(/\s+/).map(n => n[0] || '').slice(0, 2).join('').toUpperCase() || '?';
 }
 function escHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+    return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── Dynamic Greeting ────────────────────────────────────────────

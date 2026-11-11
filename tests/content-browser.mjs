@@ -126,6 +126,16 @@ check(await waitFor(`document.querySelectorAll('.pv-stage [data-page]').length==
 await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes the material viewer');
 
+// A title that tries to break out of an attribute stays inert text.
+await signIn(credentials.username,credentials.password,'/teacher/');
+const evil=await upload('files.php',{kind:'material',module_id:moduleId,title:'x" data-pwned="1'},'sample.pdf','file','evil.pdf');
+check(evil.success,'Upload a material with a quote in its title');
+await signIn('fixture-student',studentPassword,'/student/');
+await navigate('/student/lessons.html');
+await evaluate(`viewModule(${moduleId})`);
+check(await waitFor(`document.querySelectorAll('#lessonModalBody [data-material]').length>=2`),'Student sees the quoted-title material');
+check(await evaluate(`!document.querySelector('[data-pwned]')&&[...document.querySelectorAll('#lessonModalBody [data-material]')].some(e=>e.dataset.title==='x" data-pwned="1')`),'A quote in a title cannot add an attribute');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);
 socket.close();

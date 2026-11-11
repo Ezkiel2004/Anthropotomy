@@ -16,7 +16,7 @@ const TeacherFiles = (() => {
               ${isPdf
                 ? `<button type="button" class="btn btn-secondary btn-sm" data-open="${f.file_id}">${icon('eye')} Open</button>`
                 : `<a class="btn btn-secondary btn-sm" href="${API_BASE}/files.php?id=${f.file_id}" download>${icon('download-simple')} Download</a>`}
-              <button type="button" class="btn btn-secondary btn-sm" data-delete="${f.file_id}" aria-label="Delete ${escHtml(f.title).replace(/"/g, '&quot;')}">${icon('trash')}</button>
+              <button type="button" class="btn btn-secondary btn-sm" data-delete="${f.file_id}" aria-label="Delete ${escHtml(f.title)}">${icon('trash')}</button>
             </li>`;
         }).join('')}</ul>`;
     }

@@ -43,13 +43,45 @@ if ($method === 'GET' && isset($_GET['id'])) {
     if (!is_file($path)) jsonError('File not found.', 404);
     $ext = pathinfo($file['stored_name'], PATHINFO_EXTENSION);
     $ascii = preg_replace('/[^A-Za-z0-9._ -]/', '_', $file['original_name']);
+    $size = filesize($path);
+    $start = 0;
+    $end = $size - 1;
+    $partial = false;
+    // One byte range (start-end, start-, -suffix) is served as 206; a malformed or multi-range header is ignored.
+    if (preg_match('/^bytes=(\d*)-(\d*)$/', trim($_SERVER['HTTP_RANGE'] ?? ''), $range) && ($range[1] !== '' || $range[2] !== '')) {
+        if ($range[1] === '') {
+            $length = (int)$range[2];
+            $start = max(0, $size - $length);
+        } else {
+            $start = (int)$range[1];
+            if ($range[2] !== '') $end = min($end, (int)$range[2]);
+        }
+        if ($start >= $size || ($range[2] !== '' && $range[1] !== '' && (int)$range[2] < $start) || ($range[1] === '' && (int)$range[2] === 0)) {
+            http_response_code(416);
+            header("Content-Range: bytes */$size");
+            exit;
+        }
+        $partial = true;
+    }
+    header('Accept-Ranges: bytes');
     header('Content-Type: ' . FILE_TYPES[$ext][0]);
-    header('Content-Length: ' . filesize($path));
+    if ($partial) {
+        http_response_code(206);
+        header("Content-Range: bytes $start-$end/$size");
+    }
+    header('Content-Length: ' . ($end - $start + 1));
     header(($ext === 'pdf' ? 'Content-Disposition: inline' : 'Content-Disposition: attachment') . "; filename=\"{$ascii}\"; filename*=UTF-8''" . rawurlencode($file['original_name']));
     header('X-Content-Type-Options: nosniff');
     header('Cache-Control: private, no-store');
     session_write_close(); // a long download must not hold the session lock and stall the user's other requests
-    readfile($path);
+    $handle = fopen($path, 'rb');
+    fseek($handle, $start);
+    for ($left = $end - $start + 1; $left > 0 && !feof($handle); $left -= strlen($chunk)) {
+        $chunk = fread($handle, min(65536, $left));
+        if ($chunk === false || $chunk === '') break;
+        echo $chunk;
+    }
+    fclose($handle);
     exit;
 }
 

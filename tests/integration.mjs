@@ -417,4 +417,21 @@ check((await student('auth/login.php','POST',{username:'fixture-student',passwor
 check((await teacher('auth/reset-password.php','POST',{action:'teacher_reset',student_id:uid,new_password:'replacement-test-password'})).success,'Teacher-managed reset');
 check((await student('auth/session.php')).status===401,'Password reset revokes existing sessions');
 for(const path of ['/database/reset_student_progress.php','/database/schema.php','/.runtime/test-access.json'])check((await fetch(base+path)).status===404,'Private route protected: '+path);
+{
+    const login=await fetch(base+'/api/auth/login.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(credentials)});
+    const cookie=login.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
+    const form=new FormData();form.append('kind','material');form.append('module_id',mid);form.append('title','Range fixture');
+    form.append('file',new Blob([fs.readFileSync('tests/fixtures/sample.pdf')],{type:'application/pdf'}),'sample.pdf');
+    const material=await teacher('files.php','POST',form);check(material.success,'Upload a material for range checks');
+    const url=base+'/api/files.php?id='+material.data.file_id,whole=fs.readFileSync('tests/fixtures/sample.pdf'),size=whole.length;
+    const get=range=>fetch(url,{headers:{Cookie:cookie,...(range?{Range:range}:{})}});
+    let r=await get();check(r.status===200&&r.headers.get('accept-ranges')==='bytes'&&Number(r.headers.get('content-length'))===size,'File served whole advertises byte ranges');
+    r=await get('bytes=0-99');check(r.status===206&&r.headers.get('content-range')===`bytes 0-99/${size}`&&Buffer.from(await r.arrayBuffer()).equals(whole.subarray(0,100)),'Range 0-99 returns 100 bytes');
+    r=await get('bytes=-10');check(r.status===206&&r.headers.get('content-range')===`bytes ${size-10}-${size-1}/${size}`&&Buffer.from(await r.arrayBuffer()).equals(whole.subarray(size-10)),'Suffix range returns the last 10 bytes');
+    r=await get(`bytes=${size-5}-`);check(r.status===206&&Buffer.from(await r.arrayBuffer()).equals(whole.subarray(size-5)),'Open range runs to the end');
+    r=await get(`bytes=${size}-`);check(r.status===416&&r.headers.get('content-range')===`bytes */${size}`,'Range past the end is 416');
+    r=await get('bytes=0-1,5-9');check(r.status===200&&Number(r.headers.get('content-length'))===size,'Multi-range is ignored');
+    r=await get('bytes=abc');check(r.status===200,'Malformed range is ignored');
+    check((await fetch(url,{headers:{Range:'bytes=0-9'}})).status===401,'Ranges do not skip the access check');
+}
 console.log(`Integration checks passed: ${assertions}`);
