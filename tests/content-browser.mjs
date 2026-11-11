@@ -952,6 +952,14 @@ await waitFor(`!document.querySelector('.cs-modal')`);
 await call('Emulation.clearDeviceMetricsOverride');
 
 // ── Student quizzes filter by question type ───────────────────────
+// Known fixtures, made as the teacher: one mixed quiz (multiple choice + hotspot) and one with no questions.
+await signIn(credentials.username,credentials.password,'/teacher/');
+await navigate('/teacher/assessments.html');
+const fxSystem=(await api('assessments.php')).data.find(a=>a.title==='Test quiz').system_id;
+const mixedFx=await api('assessments.php','POST',{title:'Mixed filter fixture',system_id:fxSystem,status:'active'});
+const emptyFx=await api('assessments.php','POST',{title:'Empty filter fixture',system_id:fxSystem,status:'active'});
+check(mixedFx.success&&emptyFx.success,'Create the mixed and the empty fixture quizzes');
+check((await api('questions.php','POST',{assessment_id:Number(mixedFx.data.assessment_id),question_type:'multiple_choice',question_text:'Pick',points:1,options:[{option_text:'A',is_correct:true},{option_text:'B',is_correct:false}]})).success&&(await api('questions.php','POST',{assessment_id:Number(mixedFx.data.assessment_id),question_type:'hotspot',question_text:'Click it',points:1,hotspot_data:{target_label:'Spot',image_url:'/test-image.png',x:.4,y:.6,radius:.1}})).success,'Give the mixed fixture a multiple choice and a hotspot question');
 await signIn('fixture-student',studentPassword,'/student/');
 await navigate('/student/quiz.html');
 check(await waitFor(`document.querySelectorAll('#availableAssessmentsGrid article').length>0`),'Student quiz cards render');
@@ -962,6 +970,14 @@ check(await evaluate(`(()=>{const c=[...document.querySelectorAll('#availableAss
 await evaluate(`setQuestionTypeFilter('all')`);
 check(await evaluate(`!/assessment_type|Chapter quiz/i.test(document.body.innerHTML)`),'No trace of the old type');
 check(await evaluate(`[...document.querySelectorAll('#availableAssessmentsGrid article')].every(c=>c.querySelector('.sd-task-chips .sd-chip').textContent===(c.dataset.qtypes.split(' ').filter(Boolean).length>1?'Mixed questions':c.dataset.qtypes?ContentFormat.QUESTION_TYPES[c.dataset.qtypes].label:'No questions yet'))`),'Each card is labelled from its questions');
+const titlesUnder=async qtype=>{await evaluate(`setQuestionTypeFilter(${JSON.stringify(qtype)})`);return evaluate(`[...document.querySelectorAll('#availableAssessmentsGrid article .sd-task-title')].map(h=>h.textContent)`);};
+check((await titlesUnder('multiple_choice')).includes('Mixed filter fixture')&&(await titlesUnder('hotspot')).includes('Mixed filter fixture'),'A mixed quiz appears under both Multiple choice and Hotspot');
+check(!(await titlesUnder('identification')).includes('Mixed filter fixture')&&!(await titlesUnder('true_false')).includes('Mixed filter fixture'),'A mixed quiz does not appear under types it does not hold');
+await evaluate(`setQuestionTypeFilter('all')`);
+check(await evaluate(`(()=>{const c=[...document.querySelectorAll('#availableAssessmentsGrid article')].find(x=>x.querySelector('.sd-task-title').textContent==='Mixed filter fixture');return c&&c.querySelector('.sd-task-chips .sd-chip').textContent==='Mixed questions'&&c.style.getPropertyValue('--card')===CARD_COLOURS.sky&&c.dataset.qtypes==='multiple_choice hotspot';})()`),'The mixed quiz says Mixed questions in the sky tone');
+check(!(await titlesUnder('all')).includes('Empty filter fixture'),'A quiz with no questions is not offered to students');
+const rows=(await api('assessments.php')).data;
+check(await evaluate(`${JSON.stringify(['multiple_choice','true_false','identification','hotspot'])}.every(t=>document.querySelector('#typeFilterChips [data-qtype="'+t+'"] .chip-count').textContent===${JSON.stringify('')}+({${['multiple_choice','true_false','identification','hotspot'].map(t=>`${t}:${rows.filter(r=>r.question_types[t]>0).length}`).join(',')}})[t])&&document.getElementById('countAll').textContent===${JSON.stringify(String(rows.length))}`),'Each chip count equals the API rows holding that question type');
 await navigate('/student/dashboard.html');
 check(await waitFor(`document.getElementById('recentScoresTable')`),'Student dashboard loads');
 check(await evaluate(`![...document.querySelectorAll('th')].some(h=>h.textContent==='Type')`),'Recent results have no Type column');
