@@ -88,6 +88,9 @@ await evaluate(`(()=>{const v=PdfViewer.open({url:API_BASE+'/files.php?id=${file
 check(await evaluate(`document.querySelectorAll('.pv-overlay').length===0`),'close() twice leaves no overlay');
 await navigate('/teacher/modules.html');
 check(await evaluate(`typeof PdfViewer==='object'`),'Modules page loads the PDF viewer');
+check(await evaluate(`typeof LessonReader==='object'&&typeof LessonReader.show==='function'`),'Modules page loads the lesson reader');
+check(await evaluate(`(()=>{const r=document.createElement('div');r.className='sd-reader';r.id='lrtest';r.hidden=true;document.body.append(r);let closed=0;LessonReader.show(r,{lesson_id:1,title:'Preview <b>',system_code:'MUS',system_name:'Muscular System',module_title:'Mod',content_text:'Body text'},{exploreHref:null,onClose:()=>closed++});const ok=!r.hidden&&r.querySelector('.sd-reader-doc')&&!/View in 3D|Practice in 3D/.test(r.textContent)&&!r.querySelector('a[href*="anatomy"]');r.querySelector('.sd-reader-foot button').click();window.__lrClosed=closed;return !!ok&&r.hidden&&document.body.style.overflow==='';})()`),'Reader without exploreHref has no 3D link and closes cleanly');
+check(await evaluate(`window.__lrClosed===1`),'onClose runs once on close');
 
 // A file that does not exist falls back to a download link.
 await evaluate(`(()=>{const d=document.createElement('div');d.id='pvbad';document.body.append(d);PdfViewer.mount(d,{url:API_BASE+'/files.php?id=999999',title:'Missing'});})()`);
