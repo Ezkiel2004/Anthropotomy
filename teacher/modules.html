@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv1"/>
-  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs2"/>
+  <link rel="stylesheet" href="../assets/css/content-studio.css?v=20261111-cs3"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
 <body class="teacher-dashboard stage-portal">
@@ -87,78 +87,13 @@
 <!-- Lesson preview: the student reader (assets/js/lesson-reader.js) without its 3D links -->
 <div class="sd-reader" id="lessonPreview" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<!-- Add Lesson Modal -->
-<div class="modal-overlay" id="addLessonModal" style="display:none;" onclick="if(event.target===this)closeModal('addLessonModal')">
-  <div class="modal-box">
-    <div class="modal-header"><h3>New lesson</h3><button class="modal-close" onclick="closeModal('addLessonModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button></div>
-    <form id="addLessonForm">
-      <div class="modal-body">
-        <div style="display:flex;flex-direction:column;gap:var(--space-4);">
-          <div class="form-group">
-            <label for="lesTitle">Lesson Title</label>
-            <div class="input-wrapper"><input type="text" id="lesTitle" placeholder="e.g. Structure of Long Bones" required/></div>
-          </div>
-          <div class="form-group">
-            <label for="lesModuleId">Parent Module</label>
-            <div class="input-wrapper">
-              <select id="lesModuleId" class="anatomy-system-select" style="width:100%;background:transparent;" required>
-                <option value="">Select Module…</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Lesson Type</label>
-            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="reading" checked/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#book-open"/></svg> Reading</label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="video"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#video-camera"/></svg> Video</label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="3d_model"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg> 3D Model</label>
-              <label style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-md);cursor:pointer;font-size:0.85rem;">
-                <input type="radio" name="lessonType" value="interactive"/> <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#game-controller"/></svg> Interactive</label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="lesContent">Lesson Content</label>
-            <div class="input-wrapper">
-              <textarea id="lesContent" rows="4" placeholder="Enter the lesson text..." style="resize:vertical;width:100%;background:transparent;border:none;outline:none;color:var(--text-primary);font-family:var(--font-body);"></textarea>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Upload Media File (optional)</label>
-            <div style="border:2px dashed var(--border-default);border-radius:var(--radius-md);padding:var(--space-6);text-align:center;cursor:pointer;"
-                 onclick="document.getElementById('lesFileInput').click()"
-                 onmouseenter="this.style.borderColor='var(--primary-500)'"
-                 onmouseleave="this.style.borderColor='var(--border-default)'">
-              <div style="margin:0 auto var(--space-2);width:32px;color:var(--text-muted);"><svg class="ui-icon" style="width:32px;height:32px;" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cloud-arrow-up"/></svg></div>
-              <div style="font-size:0.875rem;font-weight:600;" id="lesFileLabel">Drop files here or click to upload</div>
-              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">PDF, MP4, WebM, GLB, Images (max 500MB)</div>
-              <input type="file" id="lesFileInput" style="display:none;" accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.glb"
-                     onchange="document.getElementById('lesFileLabel').textContent = this.files[0]?.name || 'Drop files here or click to upload'"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="lesDuration">Estimated Duration (minutes)</label>
-            <div class="input-wrapper"><input type="number" id="lesDuration" placeholder="e.g. 15" min="1" max="999"/></div>
-          </div>
-          <div id="lesFormError" style="display:none;color:var(--error);font-size:0.85rem;padding:0.5rem;border:1px solid var(--error);border-radius:6px;"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('addLessonModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="lesSubmitBtn">Add Lesson</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <script src="../assets/js/app.js?v=20261106-review1"></script>
 <script src="../assets/js/content-format.js?v=20261111-cf1"></script>
 <script src="../assets/js/pdf-viewer.js?v=20261111-pv2"></script>
 <script src="../assets/js/lesson-reader.js?v=20261111-lr1"></script>
 <script src="../assets/js/teacher-files.js?v=20261111-files4"></script>
 <script src="../assets/js/content-studio.js?v=20261111-cs1"></script>
+<script src="../assets/js/lesson-sheet.js?v=20261111-ls1"></script>
 <script src="../assets/js/module-workspace.js?v=20261111-ws1"></script>
 <script>
 'use strict';
@@ -187,7 +122,6 @@ async function loadModules() {
     if (!modsData.success) throw new Error(modsData.message || 'Modules did not load.');
     allModules = modsData.data || [];
     if (sysData?.success) allSystems = sysData.data || [];
-    fillLessonModuleSelect();
     renderSummary();
     renderFilters();
     renderModules();
@@ -202,14 +136,6 @@ async function loadModules() {
     grid.innerHTML = '<div class="cs-empty" role="alert"><p>Modules could not load. Check that XAMPP is running, then reload the page.</p></div>';
     return false;
   }
-}
-
-// Parent-module choices for the old Add lesson form, until lessons are added inside a module.
-function fillLessonModuleSelect() {
-  const select = document.getElementById('lesModuleId');
-  if (!select) return;
-  select.length = 1;
-  liveModules().forEach(m => select.add(new Option(`${m.system_name} / ${m.title}`, m.module_id)));
 }
 
 // ── Summary and filters ───────────────────────────────────────
@@ -449,57 +375,6 @@ document.getElementById('moduleSearch').addEventListener('input', event => {
   renderModules();
 });
 
-// ── Add Lesson Form ───────────────────────────────────────────
-document.getElementById('addLessonForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('lesSubmitBtn');
-  const err = document.getElementById('lesFormError');
-  btn.disabled    = true;
-  btn.textContent = 'Saving…';
-  err.style.display = 'none';
-
-  const formData = new FormData();
-  formData.append('title',        document.getElementById('lesTitle').value.trim());
-  formData.append('module_id',    document.getElementById('lesModuleId').value);
-  formData.append('lesson_type',  document.querySelector('input[name="lessonType"]:checked')?.value || 'reading');
-  formData.append('content_text', document.getElementById('lesContent').value.trim());
-  formData.append('duration_mins',document.getElementById('lesDuration').value || '0');
-  formData.append('status',       'published');
-
-  const fileInput = document.getElementById('lesFileInput');
-  if (fileInput.files[0]?.size > 500 * 1024 * 1024) {
-    err.textContent   = 'File too large. Maximum size is 500 MB.';
-    err.style.display = 'block';
-    btn.disabled    = false;
-    btn.textContent = 'Add Lesson';
-    return;
-  }
-  if (fileInput.files[0]) formData.append('lesson_file', fileInput.files[0]);
-
-  try {
-    const res    = await fetch(`${API_BASE}/lessons.php`, {
-      method: 'POST', credentials: 'same-origin', body: formData,
-    });
-    const result = await res.json();
-    if (result.success) {
-      closeModal('addLessonModal');
-      document.getElementById('addLessonForm').reset();
-      document.getElementById('lesFileLabel').textContent = 'Drop files here or click to upload';
-      showToast('Lesson added successfully!', 'success');
-      loadModules();
-    } else {
-      err.textContent   = result.message || 'Failed to add lesson.';
-      err.style.display = 'block';
-    }
-  } catch (ex) {
-    err.textContent   = 'Server error. Make sure XAMPP is running.';
-    err.style.display = 'block';
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = 'Add Lesson';
-  }
-});
-
 // ── Views: the grid, or one module's workspace (?module=<id>) ───
 // Opening a module adds a history entry, so Back returns to the grid as it was left, filters included.
 // ?module_id= is the 3D explorer's older link and opens the same view. The workspace itself is
@@ -571,14 +446,10 @@ function route() {
   else if (openModuleId !== null || gridView.hidden) showGrid();
 }
 
-// ── Lesson sheet ──────────────────────────────────────────────
-// Placeholder until the lesson editor sheet (Task 8) replaces it: a new lesson uses the old form, preset to
-// this module; editing an existing lesson is not offered yet.
+// ── Lesson sheet (assets/js/lesson-sheet.js) ──────────────────
+// A save reloads the module list, which redraws the open workspace.
 function openLessonSheet(moduleId, lesson) {
-  if (lesson) { showToast('Lesson editing is not available yet.', 'info'); return; }
-  document.getElementById('lesModuleId').value = String(moduleId);
-  openModal('addLessonModal');
-  document.getElementById('lesTitle').focus();
+  return LessonSheet.open(moduleId, lesson, { onSaved: () => loadModules(), moduleTitle: moduleById(moduleId)?.title });
 }
 
 // ── Init ──────────────────────────────────────────────────────

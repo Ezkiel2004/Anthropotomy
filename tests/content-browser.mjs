@@ -2,6 +2,7 @@
 // Run through .superpowers/sdd/2026-11-11-content-redesign/run-suites.sh content: it starts PHP on 8091 and
 // Chrome on 9225 after tests/integration.mjs has set up the fixtures (fixture-student and its password).
 import fs from 'node:fs';
+import path from 'node:path';
 const base='http://127.0.0.1:8091';
 const credentials=JSON.parse(fs.readFileSync('.runtime/test-access.json','utf8'));
 const studentPassword='replacement-test-password';
@@ -429,6 +430,89 @@ socket.addEventListener('message',event=>{const data=JSON.parse(event.data);if(d
 await evaluate(deleteButton+'.click()');
 check(await waitFor('true')&&dialogs.length===1&&dialogs[0].includes(hostile),'Delete asks for confirmation with the full title');
 check(await evaluate('window.__pwned===undefined'),'The title did not run as script');
+
+// ── Lesson editor sheet ─────────────────────────────────────────
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+await navigate('/teacher/modules.html?module='+moduleId);
+check(await waitFor(`document.querySelector('#workspaceView [data-add-lesson]')`),'Workspace is open for the lesson editor');
+check(await evaluate(`!document.getElementById('addLessonModal')&&!/Lesson added successfully/.test(document.documentElement.innerHTML)`),'The old Add lesson modal is gone');
+const sheetSet=(sel,v)=>evaluate(`(()=>{const el=document.querySelector('.cs-sheet ${sel}');el.value=${JSON.stringify(v)};el.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+async function attachFile(file){
+    const doc=await call('DOM.getDocument',{depth:1});
+    const node=await call('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'.cs-sheet input[type="file"]'});
+    await call('DOM.setFileInputFiles',{nodeId:node.nodeId,files:[path.resolve('tests/fixtures/'+file)]});
+}
+await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"]')`),'Add lesson opens the sheet');
+check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='New lesson'`),'The sheet is titled New lesson');
+check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].map(t=>t.textContent.trim()).join('|')==='Reading|Video|3D model|Interactive|Quiz prep'`),'The five type tiles are shown');
+check(await evaluate(`document.querySelectorAll('.cs-sheet [name="lesson_type"]').length===5&&document.querySelector('.cs-sheet [name="lesson_type"]:checked').value==='reading'`),'Reading is the default type');
+// WCAG contrast of each tile's text over its own background (flattened onto the sheet colour).
+const contrast=`(()=>{const nums=c=>c.match(/[\\d.]+/g).map(Number);const lum=([r,g,b])=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);};return .2126*f(r)+.7152*f(g)+.0722*f(b);};
+  return [...document.querySelectorAll('.cs-sheet .cs-type')].map(t=>{const base=nums(getComputedStyle(document.querySelector('.cs-sheet')).backgroundColor);const raw=nums(getComputedStyle(t).backgroundColor);const a=raw.length>3?raw[3]:1;const back=[0,1,2].map(i=>raw[i]*a+base[i]*(1-a));const l1=lum(nums(getComputedStyle(t).color)),l2=lum(back);return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);});})()`;
+check((await evaluate(contrast)).every(r=>r>=4.5),'Type tile text has at least 4.5:1 contrast');
+await evaluate(`document.querySelector('.cs-sheet [name="lesson_type"][value="video"]').click()`);
+check((await evaluate(contrast)).every(r=>r>=4.5),'Contrast holds with another tile selected');
+await evaluate(`document.querySelector('.cs-sheet [name="lesson_type"][value="reading"]').click()`);
+// Size guard: a 600 MB file is refused before any upload starts.
+await evaluate(`window.__posts=0;const realFetch=window.fetch;window.fetch=(...a)=>{if(a[1]&&a[1].method==='POST')window.__posts++;return realFetch(...a);};`);
+await evaluate(`(()=>{const input=document.querySelector('.cs-sheet input[type="file"]');const big=new File([new Blob(['x'])],'big.mp4',{type:'video/mp4'});Object.defineProperty(big,'size',{value:600*1024*1024});const dt=new DataTransfer();dt.items.add(big);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+check(await waitFor(`document.querySelector('.cs-sheet').textContent.includes('File too large. Maximum size is 500 MB.')`),'A file over 500 MB is refused');
+check(await evaluate(`!document.querySelector('.cs-sheet .cs-attach')&&window.__posts===0`),'The oversize file is not attached and nothing was uploaded');
+await sheetSet('[name="title"]','Editor lesson');
+await sheetSet('[name="content_text"]','Written in the sheet.');
+await sheetSet('[name="duration_mins"]','12');
+await attachFile('sample.pdf');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach')?.textContent.includes('sample.pdf')`),'The attachment card shows the file name');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')&&/\\d+ pages?/.test(document.querySelector('.cs-sheet .cs-attach').textContent)`),'The attachment card shows a thumbnail and the page count');
+check(await evaluate(`/\\d+(\\.\\d+)? (KB|MB)/.test(document.querySelector('.cs-sheet .cs-attach').textContent)`),'The attachment card shows the size');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson')`),'Saving adds the lesson to the list');
+const editorRow=`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.querySelector('.cs-row-title').textContent==='Editor lesson')`;
+check(await waitFor(`${editorRow}.querySelector('[data-meta]').textContent.startsWith('PDF')`),'The new row shows kind PDF');
+// Reopen: fields are filled in; Escape with a change asks first.
+await evaluate(`${editorRow}.querySelector('[data-edit]').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Editor lesson'&&document.querySelector('.cs-sheet [name="content_text"]').value==='Written in the sheet.'`),'Editing fills in the saved lesson text');
+check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Edit lesson'&&document.querySelector('.cs-sheet [name="duration_mins"]').value==='12'&&document.querySelector('.cs-sheet [name="status"]').checked`),'Editing fills in the title, time and published switch');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'The saved PDF shows a thumbnail');
+await evaluate(`(()=>{const t=document.querySelector('.cs-sheet [name="title"]');t.focus();t.setSelectionRange(t.value.length,t.value.length);})()`);
+await call('Input.insertText',{text:' two'});
+await key('Escape');
+check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textContent.includes('Discard changes?')`),'Escape with unsaved edits asks first');
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__stay').click()`);
+check(await waitFor(`!document.querySelector('dialog.toast-confirm')&&document.querySelector('.cs-sheet')`),'Keep editing leaves the sheet open');
+await key('Escape');
+await waitFor(`document.querySelector('dialog.toast-confirm[open]')`);
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')`),'Discard closes the sheet');
+check(await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson')&&![...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson two')`),'Discard keeps the saved title');
+// Remove attachment clears the media and the row falls back to the type.
+const editorId=await evaluate(`${editorRow}.dataset.lesson`);
+await evaluate(`${editorRow}.querySelector('[data-edit]').click()`);
+await waitFor(`document.querySelector('.cs-sheet .cs-attach')`);
+await evaluate(`document.querySelector('.cs-sheet .cs-attach [aria-label="Remove attachment"]').click()`);
+check(await evaluate(`!document.querySelector('.cs-sheet .cs-attach')&&document.querySelector('.cs-sheet .cs-drop')!==null`),'Remove attachment empties the card');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${editorRow}.querySelector('[data-meta]').textContent.startsWith('Reading')`),'Saving after Remove drops the attachment');
+check(!(await evaluate(`fetch(API_BASE+'/lessons.php?id=${editorId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url,'The server cleared media_url');
+// Replace on a lesson that already has an attachment.
+const oldMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;
+await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.dataset.lesson==='${lessonId}').querySelector('[data-edit]').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'A lesson with an attachment shows the card');
+await attachFile('sample.pdf');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach .cs-meta')?.textContent.includes('Replaces the current file')`),'Choosing a file shows it as the replacement');
+await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')`),'Saving a replacement closes the sheet');
+const newMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;
+check(newMedia&&newMedia!==oldMedia,'The replacement changed the stored file');
+// Phone width: the sheet is full screen with no sideways scroll.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet')&&document.querySelector('.cs-sheet').getAnimations().length===0`),'The sheet opens at 390px');
+check(await evaluate(`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect();const b=document.querySelector('.cs-sheet-body');return s.width===innerWidth&&s.height===innerHeight&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`),'The sheet is full screen with no sideways scroll at 390px');
+check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].every(t=>{const r=t.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&t.scrollWidth<=t.clientWidth;})`),'The type tiles fit at 390px');
+await key('Escape');
+await call('Emulation.clearDeviceMetricsOverride');
 
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);

@@ -244,6 +244,22 @@ body.stage-portal .cs-pick select.cs-input:invalid { color: var(--cs-muted); }
 .cs-switch { display: inline-flex; align-items: center; gap: .625rem; font-size: .875rem; font-weight: 600; }
 .cs-switch i { width: 2.5rem; height: 1.5rem; border-radius: 999px; background: var(--cs-mint); position: relative; }
 .cs-switch i::after { content: ""; position: absolute; right: .1875rem; top: .1875rem; width: 1.125rem; height: 1.125rem; border-radius: 50%; background: #0d0d0d; }
+.cs-type { position: relative; cursor: pointer; line-height: 1.2; min-width: 0; }
+.cs-type input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.cs-type:hover { background: var(--cs-s3); color: var(--cs-ink); }
+.cs-type:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--cs-mint); background: color-mix(in srgb, var(--cs-mint) 8%, var(--cs-s2)); color: var(--cs-ink); }
+.cs-type:has(input:focus-visible) { box-shadow: var(--cs-focus); }
+.cs-attach .cs-thumb { width: 3.25rem; height: 4.25rem; }
+.cs-attach .cs-row-title { font-size: .875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.cs-drop { width: 100%; background: none; border: 0; font-family: var(--font-body); text-align: left; cursor: pointer; }
+button.cs-drop:hover, button.cs-drop.is-over { color: var(--cs-ink); box-shadow: inset 0 0 0 1.5px var(--cs-mint); }
+button.cs-drop:focus-visible { outline: none; box-shadow: var(--cs-focus); }
+.cs-switch { position: relative; cursor: pointer; min-height: 2.75rem; }
+.cs-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.cs-switch input:not(:checked) + i { background: var(--cs-s4); box-shadow: inset 0 0 0 1px var(--cs-line-2); }
+.cs-switch input:not(:checked) + i::after { right: auto; left: .1875rem; background: var(--cs-soft); }
+.cs-switch input:focus-visible + i { box-shadow: var(--cs-focus); }
+.cs-sheet-foot .cs-meta.is-ok { color: var(--cs-mint); }
 
 /* Toasts stay readable above an open sheet. */
 body.stage-portal .toast { z-index: 2100; }
@@ -284,6 +300,8 @@ body.stage-portal .toast { z-index: 2100; }
   .cs-head .cs-actions .cs-btn--primary { flex: 1; justify-content: center; }
   .cs-sheet, .cs-modal { inset: 0; top: 0; right: 0; bottom: 0; left: 0; width: auto; max-height: none; transform: none; border-radius: 0; }
   .cs-two { grid-template-columns: 1fr; }
+  .cs-types { gap: .375rem; }
+  .cs-type { font-size: .6875rem; padding-left: .125rem; padding-right: .125rem; }
   .cs-sheet-head, .cs-sheet-body, .cs-sheet-foot { padding-left: 1rem; padding-right: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) {
