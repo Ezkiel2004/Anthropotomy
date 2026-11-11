@@ -259,7 +259,6 @@ button.cs-drop:focus-visible { outline: none; box-shadow: var(--cs-focus); }
 .cs-switch input:not(:checked) + i { background: var(--cs-s4); box-shadow: inset 0 0 0 1px var(--cs-line-2); }
 .cs-switch input:not(:checked) + i::after { right: auto; left: .1875rem; background: var(--cs-soft); }
 .cs-switch input:focus-visible + i { box-shadow: var(--cs-focus); }
-.cs-sheet-foot .cs-meta.is-ok { color: var(--cs-mint); }
 
 /* Toasts stay readable above an open sheet. */
 body.stage-portal .toast { z-index: 2100; }

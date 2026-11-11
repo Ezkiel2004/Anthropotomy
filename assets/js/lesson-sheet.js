@@ -24,7 +24,6 @@ const LessonSheet = (() => {
     if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     return `${(bytes / 1024 / 1024).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
   }
-  const clock = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
   async function fetchLesson(id) {
     try {
@@ -74,7 +73,7 @@ const LessonSheet = (() => {
     const input = form.querySelector('#lsFile');
     const attach = form.querySelector('[data-attach]');
     const switchBox = form.elements.status;
-    const say = (message, kind = '') => { note.textContent = message; note.classList.toggle('is-error', kind === 'error'); note.classList.toggle('is-ok', kind === 'ok'); };
+    const say = (message, kind = '') => { note.textContent = message; note.classList.toggle('is-error', kind === 'error'); };
     foot.querySelector('[data-cancel]').addEventListener('click', () => sheet.close());
     const syncSwitch = () => { form.querySelector('[data-switch-label]').textContent = switchBox.checked ? 'Published' : 'Draft'; };
     switchBox.addEventListener('change', syncSwitch);
@@ -161,8 +160,11 @@ const LessonSheet = (() => {
     drawAttach();
 
     // ── Save ─────────────────────────────────────────────────────
+    let saving = false;
+    const cancelButton = foot.querySelector('[data-cancel]');
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      if (saving) return;
       const title = form.elements.title.value.trim();
       if (!title) { say('Add a title.', 'error'); form.elements.title.focus(); return; }
       if (state.picked && state.picked.size > MAX_BYTES) { say(TOO_LARGE, 'error'); return; }
@@ -175,20 +177,28 @@ const LessonSheet = (() => {
       if (!editing) data.append('module_id', String(moduleId));
       if (state.picked) data.append('lesson_file', state.picked, state.picked.name);
       else if (editing && state.removed && state.current) data.append('remove_media', '1');
+      saving = true;
+      sheet.setBusy(true);
       saveButton.disabled = true;
+      cancelButton.disabled = true;
       say(state.picked ? 'Uploading…' : 'Saving…');
       let result;
       try {
         const res = await fetch(`${API_BASE}/lessons.php${editing ? `?id=${lesson.lesson_id}` : ''}`, { method: 'POST', credentials: 'same-origin', body: data });
         result = await res.json();
       } catch { result = { success: false, message: 'The server could not be reached. Check that XAMPP is running.' }; }
-      saveButton.disabled = false;
-      if (!result.success) { say(result.message || 'The lesson could not be saved.', 'error'); return; }
-      say('Saved ' + clock(), 'ok');
-      sheet.setDirty(false);
+      sheet.setBusy(false);
+      if (!result.success) {
+        saving = false;
+        saveButton.disabled = false;
+        cancelButton.disabled = false;
+        say(result.message || 'The lesson could not be saved.', 'error');
+        return;
+      }
+      sheet.setDirty(false);   // saved: stays "saving" so a stray Enter cannot submit again while the sheet closes
       await sheet.close();
       dropBlob();
-      showToast('Lesson saved.', 'success');
+      showToast(editing ? 'Lesson saved.' : 'Lesson added.', 'success');
       if (onSaved) await onSaved();
     });
     return sheet;

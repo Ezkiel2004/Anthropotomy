@@ -505,6 +505,28 @@ await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click(
 check(await waitFor(`!document.querySelector('.cs-sheet')`),'Saving a replacement closes the sheet');
 const newMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;
 check(newMedia&&newMedia!==oldMedia,'The replacement changed the stored file');
+// One save at a time, no closing mid-upload, and a toast instead of a footer note.
+const lessonsTitled=title=>evaluate(`fetch(API_BASE+'/lessons.php?module_id=${moduleId}',{credentials:'same-origin'}).then(r=>r.json()).then(j=>j.data.filter(l=>l.title===${JSON.stringify(title)}).length)`);
+await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
+await waitFor(`document.querySelector('.cs-sheet')`);
+await sheetSet('[name="title"]','Once only');
+await evaluate(`window.__slow=true;const slowFetch=window.fetch;window.fetch=(url,opts)=>String(url).includes('lessons.php')&&opts&&opts.method==='POST'&&window.__slow?new Promise(r=>setTimeout(r,1500)).then(()=>slowFetch(url,opts)):slowFetch(url,opts);`);
+await evaluate(`(()=>{const f=document.querySelector('.cs-sheet form');f.requestSubmit();f.requestSubmit();})()`);
+check(await waitFor(`document.querySelector('.cs-sheet [type="submit"]').disabled`),'Save is disabled while saving');
+await key('Escape');
+await new Promise(resolve=>setTimeout(resolve,300));
+check(await evaluate(`document.querySelector('.cs-sheet')!==null&&!document.querySelector('dialog.toast-confirm')`),'Escape does not close the sheet mid-save');
+check(await evaluate(`document.querySelector('.cs-sheet [data-cancel]').disabled&&document.querySelector('.cs-sheet [data-sheet-close]').disabled`),'Cancel and Close are disabled mid-save');
+await evaluate(`document.querySelector('.cs-scrim').click()`);
+await new Promise(resolve=>setTimeout(resolve,200));
+check(await evaluate(`document.querySelector('.cs-sheet')!==null`),'The scrim does not close the sheet mid-save');
+check(await evaluate(`!/Saved/.test(document.querySelector('.cs-sheet-foot').textContent)`),'The footer never says Saved');
+check(await waitFor(`!document.querySelector('.cs-sheet')`),'The sheet closes once the save finishes');
+check(await waitFor(`[...document.querySelectorAll('.toast')].some(t=>t.textContent==='Lesson added.')`),'A toast says Lesson added.');
+check(await waitFor(`[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Once only')`),'The list is refreshed after the save');
+check(await lessonsTitled('Once only')===1,'Submitting twice creates exactly one lesson');
+await evaluate(`window.__slow=false`);
+check(await evaluate(`document.body.style.overflow!=='hidden'&&![...document.body.children].some(el=>el.inert)`),'The page is usable again after the sheet closes');
 // Phone width: the sheet is full screen with no sideways scroll.
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
 await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);

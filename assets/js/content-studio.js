@@ -123,7 +123,7 @@ const Studio = (() => {
     document.body.style.overflow = 'hidden';
     document.body.append(scrim, root);
 
-    let dirty = false, closed = false, pending = null;
+    let dirty = false, closed = false, pending = null, busy = false;
     const markDirty = () => { dirty = true; };
     root.addEventListener('input', markDirty);
     root.addEventListener('change', markDirty);
@@ -153,6 +153,7 @@ const Studio = (() => {
     }
     function close() {
       if (closed) return Promise.resolve(true);
+      if (busy) return Promise.resolve(false);
       if (pending) return pending;
       pending = (async () => {
         if (dirty) {
@@ -168,7 +169,8 @@ const Studio = (() => {
     const first = root.querySelector('[autofocus]') || focusables().find(el => !el.matches('[data-sheet-close]')) || root.querySelector('[data-sheet-close]');
     first.focus({ preventScroll: true });
     if (first.matches('input[type="text"], input:not([type]), textarea')) first.setSelectionRange(first.value.length, first.value.length);
-    return { root, close, setDirty(value) { dirty = Boolean(value); } };
+    // setBusy(true) while a save is in flight: close() refuses (Escape, scrim, Close) and the Close button is disabled.
+    return { root, close, setDirty(value) { dirty = Boolean(value); }, setBusy(value) { busy = Boolean(value); root.querySelector('[data-sheet-close]').disabled = busy; } };
   }
 
   return { icon, status, menu, closeMenu, sheet };
