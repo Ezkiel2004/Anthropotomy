@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../assets/css/teacher.css?v=20261016-stage4"/>
   <link rel="stylesheet" href="../assets/css/teacher-dashboard.css?v=20261106-study1"/>
   <link rel="stylesheet" href="../assets/css/teacher-portal.css?v=20261016-stage4"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-shelf1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-fullcard"></script>
 </head>
@@ -21,13 +21,13 @@
 <div class="app-layout">
 
   <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="teacher" aria-label="Teacher portal"><script src="../assets/js/sidebar.js?v=20261112-files1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#list"/></svg></button>
       <div class="topbar-breadcrumb">
         <span class="breadcrumb-item">Teacher Portal</span><span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Student Management</span>
@@ -35,7 +35,7 @@
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#bell"/></svg>
             <span class="notif-dot"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -62,11 +62,11 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-secondary btn-sm" onclick="exportStudentCSV()">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#download-simple"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#download-simple"/></svg>
             Export CSV
           </button>
           <button class="btn btn-primary btn-sm" onclick="openModal('addStudentModal')">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#plus"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#plus"/></svg>
             Add Student
           </button>
         </div>
@@ -112,7 +112,7 @@
         <div style="display:flex;gap:var(--space-3);align-items:center;">
           <select id="sectionFilter" onchange="filterStudents()" aria-label="Section"></select>
           <div class="search-bar">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#magnifying-glass"/></svg>
             <input type="text" id="studentSearchInput" placeholder="Search by name, ID, username..." oninput="filterStudents()"/>
           </div>
         </div>
@@ -148,7 +148,7 @@
   <div class="modal-box" style="width:min(95%,560px);">
     <div class="modal-header">
       <h3>Add a student</h3>
-      <button class="modal-close" onclick="closeModal('addStudentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('addStudentModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#x-circle"/></svg></button>
     </div>
     <form id="addStudentForm" onsubmit="handleAddStudent(event)">
       <div class="modal-body">
@@ -200,7 +200,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="addStudentSubmitBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#floppy-disk"/></svg> Save Student</button>
+        <button type="submit" class="btn btn-primary" id="addStudentSubmitBtn"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#floppy-disk"/></svg> Save Student</button>
       </div>
     </form>
   </div>
@@ -211,7 +211,7 @@
   <div class="modal-box" style="width:min(95%,680px);">
     <div class="modal-header">
       <h3 id="detailStudentTitle">Student profile</h3>
-      <button class="modal-close" onclick="closeModal('studentDetailModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('studentDetailModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="detailStudentBody">Loading student details…</div>
     <div class="modal-footer">
@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
+<script src="../assets/js/app.js?v=20261112-files1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('teacher');

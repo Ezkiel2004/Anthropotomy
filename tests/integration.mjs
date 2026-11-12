@@ -60,6 +60,31 @@ check(fs.existsSync('uploads/lessons/'+up.data.media_url.split('/').pop()),'Old 
 const rm=new FormData();rm.append('remove_media','1');
 check((await teacher('lessons.php?id='+lid,'POST',rm)).data.media_url===null,'Attachment removed');
 check(!fs.existsSync('uploads/lessons/'+up.data.media_url.split('/').pop()),'Removed file is deleted from disk');
+// Lesson files can be PowerPoint and Word too: checked by extension and by the file's first bytes, stored with their real extension.
+const office=(file,name,bytes)=>{const fd=new FormData();fd.append('lesson_file',new Blob([bytes||fs.readFileSync('tests/fixtures/'+file)],{type:'application/octet-stream'}),name);return fd;};
+const onDisk=url=>'uploads/lessons/'+url.split('/').pop();
+const word=await teacher('lessons.php?id='+lid,'POST',office('sample.docx','worksheet.docx'));
+check(word.success&&word.data.media_url.endsWith('.docx')&&fs.existsSync(onDisk(word.data.media_url)),'A Word .docx lesson file uploads and keeps its extension');
+const slides=office('sample.pptx','deck.pptx');slides.append('module_id',String(mid));slides.append('title','Slides lesson');slides.append('status','draft');
+const deck=await teacher('lessons.php','POST',slides);
+check(deck.success&&deck.data.media_url.endsWith('.pptx')&&fs.existsSync(onDisk(deck.data.media_url)),'A new lesson with a PowerPoint .pptx file is created with a .pptx media_url');
+const ole=Buffer.concat([Buffer.from([0xD0,0xCF,0x11,0xE0,0xA1,0xB1,0x1A,0xE1]),Buffer.alloc(504)]);
+const legacyDoc=await teacher('lessons.php?id='+deck.data.lesson_id,'POST',office(null,'old.ppt',ole));
+check(legacyDoc.success&&legacyDoc.data.media_url.endsWith('.ppt')&&!fs.existsSync(onDisk(deck.data.media_url)),'An old .ppt (OLE file) replaces the .pptx and keeps its extension');
+const legacyWord=await teacher('lessons.php?id='+deck.data.lesson_id,'POST',office(null,'old.doc',ole));
+check(legacyWord.success&&legacyWord.data.media_url.endsWith('.doc'),'An old .doc (OLE file) uploads');
+const lessonWithWord=(await teacher('lessons.php?id='+lid)).data;
+const fakeDeck=await teacher('lessons.php?id='+lid,'POST',office('sample.pdf','fake.pptx'));
+check(fakeDeck.status===422&&fakeDeck.message==='That file does not look like a real .pptx file.','A .pptx that is not a zip is refused with 422');
+check(JSON.stringify((await teacher('lessons.php?id='+lid)).data)===JSON.stringify(lessonWithWord)&&fs.existsSync(onDisk(lessonWithWord.media_url)),'A refused .pptx leaves the lesson and its file unchanged');
+const zipAsDoc=await teacher('lessons.php?id='+lid,'POST',office('sample.docx','renamed.doc'));
+check(zipAsDoc.status===422&&zipAsDoc.message==='That file does not look like a real .doc file.','A zip named .doc is refused');
+const fakeCreate=office(null,'fake.docx',Buffer.from('not really a word file'));fakeCreate.append('module_id',String(mid));fakeCreate.append('title','Fake word');
+const countBeforeFake=(await teacher('lessons.php?module_id='+mid)).data.length;
+check((await teacher('lessons.php','POST',fakeCreate)).status===422&&(await teacher('lessons.php?module_id='+mid)).data.length===countBeforeFake,'A fake .docx on create is refused and no lesson is made');
+for(const id of [lid,deck.data.lesson_id]){const clear=new FormData();clear.append('remove_media','1');await teacher('lessons.php?id='+id,'POST',clear);}
+check(!fs.existsSync(onDisk(word.data.media_url))&&!fs.existsSync(onDisk(legacyWord.data.media_url)),'Office test files are removed again');
+check((await teacher('lessons.php?id='+deck.data.lesson_id,'DELETE')).success,'The slides test lesson is archived');
 // A body over post_max_size reaches PHP with $_POST and $_FILES empty. Raising post_max_size per request is not possible
 // from here, so a multipart body whose boundary never matches (PHP parses it to the same empty arrays) stands in for it.
 const unparsed=['multipart/form-data; boundary=never-matches-'+Date.now(),'--some-other-boundary\r\nContent-Disposition: form-data; name="title"\r\n\r\nHijacked\r\n--some-other-boundary--\r\n'];

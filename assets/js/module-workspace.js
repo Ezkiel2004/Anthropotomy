@@ -183,12 +183,34 @@ const ModuleWorkspace = (() => {
     (root?.querySelector(`[data-lesson="${neighbour}"] [data-row-more]`) || root?.querySelector('.cs-panel-head [data-add-lesson]'))?.focus({ preventScroll: true });
   }
 
-  // Teacher preview: the student reader without the 3D links. The list rows carry no lesson text, so fetch the lesson.
+  // A PowerPoint or Word lesson file downloads under the lesson's title, as it does for students.
+  function download(lesson) {
+    const ext = String(lesson.media_url).split(/[?#]/)[0].split('.').pop().toLowerCase();
+    const link = document.createElement('a');
+    link.href = lesson.media_url;
+    link.download = `${lesson.title}.${ext}`;
+    link.hidden = true;
+    document.body.append(link);
+    link.click();
+    link.remove();
+  }
+
+  // Teacher preview, the way a student opens the lesson: a PDF full screen in the viewer with the note for students,
+  // a PowerPoint or Word file as a download, anything else in the lesson reader without the 3D links.
+  // The list rows carry no lesson text, so the lesson is fetched.
   async function preview(lesson, opener) {
     if (!lesson) return;
+    if (['slides', 'document'].includes(ContentFormat.lessonKind(lesson))) { download(lesson); return; }
+    const context = `${module.title} · Lesson ${module.lessons.indexOf(lesson) + 1}`;
     const result = await api(`lessons.php?id=${lesson.lesson_id}`);
     if (!result.success) { showToast(result.message || 'The lesson could not be opened.', 'error'); return; }
-    LessonReader.show(hooks.previewRoot, result.data, {
+    const full = result.data;
+    if (ContentFormat.opensInViewer(ContentFormat.lessonKind(full))) {
+      if (opener?.isConnected) opener.focus({ preventScroll: true });   // the viewer hands focus back to what had it when it opened
+      PdfViewer.open({ url: full.media_url, title: full.title, context, note: full.content_text || '' });
+      return;
+    }
+    LessonReader.show(hooks.previewRoot, full, {
       exploreHref: null,
       onClose: () => { if (opener?.isConnected) opener.focus({ preventScroll: true }); },
     });

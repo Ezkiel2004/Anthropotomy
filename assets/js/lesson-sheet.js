@@ -1,21 +1,24 @@
-/* Lesson editor: one side sheet that creates a lesson or edits an existing one, attachment included.
+/* Lesson editor: one side sheet that creates a lesson or edits an existing one. File first: the lesson file (PDF,
+   PowerPoint or Word) is the main field, the title fills in from its name and the lesson kind comes from the file.
    LessonSheet.open(moduleId, lesson|null, {onSaved, moduleTitle, position}) → Promise (resolves once the sheet is on screen)
-   lesson is any row of the module's list; the full lesson (text, attachment) is fetched when editing.
+   lesson is any row of the module's list; the full lesson (note, file) is fetched when editing.
    position (1-based) names the lesson's place in the module in the sheet's eyebrow when editing.
    onSaved() runs after a successful save so the page can reload its list.
+   A new lesson needs a file. An existing lesson without one, or with a legacy attachment (video, image, GLB), saves
+   without a new file and keeps its lesson_type; a new file makes it a 'reading' lesson.
    Needs app.js (API_BASE, showToast, escHtml), content-format.js, content-studio.js and pdf-viewer.js. */
 'use strict';
 const LessonSheet = (() => {
   const MAX_BYTES = 500 * 1024 * 1024;
-  const ACCEPT = ['pdf', 'mp4', 'webm', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'glb'];
-  const TYPES = [
-    ['reading', 'Reading', 'reading', 'book-open'],
-    ['video', 'Video', 'video', 'video-camera'],
-    ['3d_model', '3D model', '3d', 'cube'],
-    ['interactive', 'Interactive', 'interactive', 'game-controller'],
-    ['quiz_prep', 'Quiz prep', 'prep', 'list-checks'],
-  ];
+  const ACCEPT = ['pdf', 'ppt', 'pptx', 'doc', 'docx'];
   const TOO_LARGE = 'File too large. Maximum size is 500 MB.';
+  const WRONG_TYPE = 'Use a PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx) file.';
+  const KINDS_HINT = 'PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx), up to 500 MB.';
+  const STUDENTS_GET = {
+    pdf: 'Students read it here in the viewer',
+    slides: 'Students download it and open it in PowerPoint',
+    document: 'Students download it and open it in Word',
+  };
 
   const extensionOf = name => (String(name).split(/[?#]/)[0].split('.').pop() || '').toLowerCase();
   const baseName = url => { try { return decodeURIComponent(String(url).split(/[?#]/)[0].split('/').pop()); } catch { return String(url).split('/').pop(); } };
@@ -24,6 +27,11 @@ const LessonSheet = (() => {
     if (!(bytes > 0)) return '';
     if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
     return `${(bytes / 1024 / 1024).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+  }
+  // "axial-and-appendicular-skeleton.pdf" → "Axial and appendicular skeleton"
+  function titleFromFile(name) {
+    const words = String(name).replace(/\.[^.]*$/, '').replace(/[-_\s]+/g, ' ').trim();
+    return words ? words[0].toUpperCase() + words.slice(1) : '';
   }
 
   async function fetchLesson(id) {
@@ -42,22 +50,24 @@ const LessonSheet = (() => {
     const editing = Boolean(lesson);
     const type = lesson?.lesson_type || 'reading';
 
-    // The attachment: what is saved (current), a file chosen in this sheet (picked), or nothing (removed).
+    // The file: what is saved (current), a file chosen in this sheet (picked), or nothing (removed).
     const state = { current: lesson?.media_url || null, picked: null, removed: false, size: 0, pageCount: 0, blobUrl: null };
+    let autoTitle = '';   // the last title filled in from a file name; typing anything else stops the auto-fill
 
     const form = document.createElement('form');
     form.id = 'lessonSheetForm';
     form.noValidate = true;
     form.innerHTML = `
+      <div class="cs-field cs-file-field" data-file-panel><span class="cs-label" id="lsFileLabel">Lesson file</span>
+        <div data-attach role="group" aria-labelledby="lsFileLabel" aria-describedby="lsFileHint"></div>
+        <span class="cs-meta" id="lsFileHint" data-file-hint></span>
+        <input type="file" id="lsFile" hidden accept="${ACCEPT.map(ext => '.' + ext).join(',')}"/></div>
       <div class="cs-field"><label for="lsTitle">Title</label>
-        <input class="cs-input" id="lsTitle" name="title" type="text" maxlength="200" autocomplete="off" placeholder="What this lesson is called" value="${escHtml(lesson?.title || '')}"/></div>
-      <div class="cs-field" role="radiogroup" aria-labelledby="lsTypeLabel"><span class="cs-label" id="lsTypeLabel">What students get</span>
-        <div class="cs-types">${TYPES.map(([value, label, kind, icon]) => `<label class="cs-type t-${kind}"><input type="radio" name="lesson_type" value="${value}"${value === type ? ' checked' : ''}/>${Studio.icon(icon)}${label}</label>`).join('')}</div></div>
-      <div class="cs-field"><span class="cs-label" id="lsAttachLabel">Attachment <span class="cs-meta">(optional)</span></span>
-        <div data-attach aria-labelledby="lsAttachLabel"></div>
-        <input type="file" id="lsFile" hidden accept=".pdf,.mp4,.webm,.jpg,.jpeg,.png,.webp,.gif,.glb"/></div>
-      <div class="cs-field"><label for="lsText">Lesson text <span class="cs-meta">(optional)</span></label>
-        <textarea class="cs-input cs-input--area" id="lsText" name="content_text" rows="5" placeholder="What students read, or how to use the attachment">${escHtml(lesson?.content_text || '')}</textarea></div>
+        <input class="cs-input" id="lsTitle" name="title" type="text" maxlength="200" autocomplete="off" placeholder="What this lesson is called" value="${escHtml(lesson?.title || '')}"/>
+        <span class="cs-meta" id="lsTitleHint" data-title-hint hidden>Filled in from the file name. Change it if you like.</span></div>
+      <div class="cs-field"><label for="lsText">Note for students <span class="cs-meta">(optional)</span></label>
+        <textarea class="cs-input cs-input--area" id="lsText" name="content_text" rows="3" aria-describedby="lsTextHint" placeholder="For example: read pages 1 and 2, then answer the questions at the end.">${escHtml(lesson?.content_text || '')}</textarea>
+        <span class="cs-meta" id="lsTextHint">Shown above the file when a student opens it.</span></div>
       <div class="cs-two"><div class="cs-field"><label for="lsMins">Time to study<span class="cs-sr"> in minutes</span></label>
           <span class="cs-unit"><input class="cs-input" id="lsMins" name="duration_mins" type="number" min="0" max="999" inputmode="numeric" placeholder="For example 15" value="${lesson?.duration_mins > 0 ? lesson.duration_mins : ''}"/><span class="cs-meta" aria-hidden="true">minutes</span></span></div>
         <div class="cs-field"><span class="cs-label">Visible to students</span>
@@ -68,9 +78,10 @@ const LessonSheet = (() => {
       <button type="button" class="cs-btn" data-cancel>Cancel</button>
       <button type="submit" class="cs-btn cs-btn--primary" form="lessonSheetForm">${editing ? 'Save lesson' : 'Add lesson'}</button>`;
 
-    // A file dropped anywhere but the attachment box must not make the browser open it and lose the edits.
+    const panel = form.querySelector('[data-file-panel]');
+    // A file dropped anywhere but the file panel must not make the browser open it and lose the edits.
     const blockDrop = event => {
-      if (form.querySelector('[data-attach]')?.contains(event.target)) return;
+      if (panel.contains(event.target)) return;
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
     };
@@ -84,38 +95,53 @@ const LessonSheet = (() => {
     const saveButton = foot.querySelector('[type="submit"]');
     const input = form.querySelector('#lsFile');
     const attach = form.querySelector('[data-attach]');
+    const fileHint = form.querySelector('[data-file-hint]');
+    const titleField = form.elements.title;
+    const titleHint = form.querySelector('[data-title-hint]');
     const switchBox = form.elements.status;
     const say = (message, kind = '') => { note.textContent = message; note.classList.toggle('is-error', kind === 'error'); };
     foot.querySelector('[data-cancel]').addEventListener('click', () => sheet.close());
     const syncSwitch = () => { form.querySelector('[data-switch-label]').textContent = switchBox.checked ? 'Published' : 'Draft'; };
     switchBox.addEventListener('change', syncSwitch);
     syncSwitch();
+    const syncTitleHint = () => {
+      const auto = Boolean(autoTitle) && titleField.value === autoTitle;
+      titleHint.hidden = !auto;
+      if (auto) titleField.setAttribute('aria-describedby', 'lsTitleHint'); else titleField.removeAttribute('aria-describedby');
+    };
+    titleField.addEventListener('input', syncTitleHint);
 
-    // ── Attachment card ──────────────────────────────────────────
+    // ── File panel ───────────────────────────────────────────────
     function dropBlob() { if (state.blobUrl) { URL.revokeObjectURL(state.blobUrl); state.blobUrl = null; } }
     const shown = () => state.picked ? { name: state.picked.name } : state.removed || !state.current ? null : { name: baseName(state.current) };
     function drawAttach() {
       const file = shown();
-      const dropHint = `${Studio.icon('cloud-arrow-up')}<span>${file ? 'Or drop' : 'Drop'} a PDF, video (MP4, WebM), image or GLB model here, or choose a file. Max 500 MB.</span>`;
+      fileHint.textContent = file ? `${KINDS_HINT} Drop a file on this panel to replace it.` : KINDS_HINT;
       if (!file) {
-        attach.innerHTML = `<button type="button" class="cs-drop" data-drop>${dropHint}</button>`;
+        attach.innerHTML = `<div class="cs-drop cs-drop--file" data-drop>${Studio.icon('cloud-arrow-up')}
+          <span>Drop the lesson file here</span>
+          <button type="button" class="cs-btn cs-btn--sm" data-choose>Choose file</button></div>`;
         return;
       }
       const kind = ContentFormat.lessonKind({ lesson_type: type, media_url: file.name });
       const url = state.picked ? (state.blobUrl = state.blobUrl || URL.createObjectURL(state.picked)) : state.current;
-      const thumb = kind === 'pdf' ? '<canvas aria-hidden="true"></canvas>'
-        : kind === 'image' ? `<img src="${escHtml(url)}" alt=""/>` : Studio.icon(ContentFormat.KINDS[kind].icon);
-      attach.innerHTML = `<div class="cs-attach"><span class="cs-thumb">${thumb}</span>
-          <div><div class="cs-row-title" title="${escHtml(file.name)}">${escHtml(file.name)}</div><div class="cs-meta" data-attach-meta></div></div>
+      const ext = extensionOf(file.name);
+      const thumb = kind === 'pdf' ? '<span class="cs-thumb"><canvas aria-hidden="true"></canvas></span>'
+        : kind === 'slides' || kind === 'document'
+          ? `<span class="cs-thumb cs-thumb--doc${kind === 'slides' ? ' cs-thumb--ppt' : ''}" aria-hidden="true"><span class="cs-thumb-file">${Studio.icon(ContentFormat.KINDS[kind].icon)}${escHtml(ext.toUpperCase())}</span></span>`
+          : kind === 'image' ? `<span class="cs-thumb"><img src="${escHtml(url)}" alt=""/></span>`
+            : `<span class="cs-thumb">${Studio.icon(ContentFormat.KINDS[kind].icon)}</span>`;
+      attach.innerHTML = `<div class="cs-attach cs-attach--file">${thumb}
+          <div><div class="cs-row-title" title="${escHtml(file.name)}">${escHtml(file.name)}</div><div class="cs-meta" data-attach-meta></div>
+            <div class="cs-meta cs-attach-gets">${STUDENTS_GET[kind] || 'Students open it in the lesson reader'}</div></div>
           <button type="button" class="cs-btn cs-btn--sm" data-replace>Replace</button>
-          <button type="button" class="cs-icon-btn" data-remove aria-label="Remove attachment">${Studio.icon('trash')}</button></div>
-        <button type="button" class="cs-drop" data-drop>${dropHint}</button>`;
+          <button type="button" class="cs-icon-btn" data-remove aria-label="Remove file">${Studio.icon('trash')}</button></div>`;
       state.pageCount = 0;
       const meta = () => {
         const parts = [ContentFormat.KINDS[kind].label];
         if (state.pageCount) parts.push(pages(state.pageCount));
         if (state.size) parts.push(sizeLabel(state.size));
-        parts.push(state.picked ? (state.current && !state.removed ? 'replaces the current file' : 'uploads when you save') : kind === 'pdf' ? 'opens in the lesson viewer' : 'saved with the lesson');
+        if (state.picked && state.current && !state.removed) parts.push('replaces the current file');
         const el = attach.querySelector('[data-attach-meta]');
         if (el) el.textContent = parts.join(' · ');
       };
@@ -136,19 +162,25 @@ const LessonSheet = (() => {
 
     function choose(file) {
       if (!file) return;
+      if (!ACCEPT.includes(extensionOf(file.name))) { input.value = ''; say(WRONG_TYPE, 'error'); return; }
       if (file.size > MAX_BYTES) { input.value = ''; say(TOO_LARGE, 'error'); return; }
-      if (!ACCEPT.includes(extensionOf(file.name))) { input.value = ''; say('That file type is not supported. Use PDF, MP4, WebM, JPG, PNG, WebP, GIF or GLB.', 'error'); return; }
       dropBlob();
       state.picked = file;
       state.removed = false;
       state.size = file.size;
       say('');
+      // The title follows the file name until the teacher types their own.
+      const current = titleField.value.trim();
+      if (!current || current === autoTitle) {
+        const next = titleFromFile(file.name);
+        if (next) { titleField.value = next; autoTitle = next; }
+      }
+      syncTitleHint();
       drawAttach();
       sheet.setDirty(true);
     }
 
-    attach.addEventListener('click', event => {
-      if (event.target.closest('[data-drop], [data-replace]')) { input.click(); return; }
+    panel.addEventListener('click', event => {
       if (event.target.closest('[data-remove]')) {
         dropBlob();
         state.picked = null;
@@ -157,17 +189,20 @@ const LessonSheet = (() => {
         input.value = '';
         say('');
         drawAttach();
-        attach.querySelector('[data-drop]').focus({ preventScroll: true });
+        attach.querySelector('[data-choose]').focus({ preventScroll: true });
         sheet.setDirty(true);
+        return;
       }
+      if (event.target.closest('[data-choose], [data-replace], [data-drop]')) input.click();
     });
     input.addEventListener('change', () => choose(input.files[0]));
-    attach.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) { event.preventDefault(); attach.querySelector('[data-drop]')?.classList.add('is-over'); } });
-    attach.addEventListener('dragleave', () => attach.querySelector('[data-drop]')?.classList.remove('is-over'));
-    attach.addEventListener('drop', event => {
+    // Panel-wide drop: the drop zone, the file card and the hint all take a file.
+    panel.addEventListener('dragover', event => { if (event.dataTransfer?.types.includes('Files')) { event.preventDefault(); panel.classList.add('is-over'); } });
+    panel.addEventListener('dragleave', event => { if (!panel.contains(event.relatedTarget)) panel.classList.remove('is-over'); });
+    panel.addEventListener('drop', event => {
       event.preventDefault();
-      attach.querySelector('[data-drop]')?.classList.remove('is-over');
-      choose(event.dataTransfer.files[0]);
+      panel.classList.remove('is-over');
+      choose(event.dataTransfer?.files[0]);
     });
     drawAttach();
 
@@ -177,12 +212,14 @@ const LessonSheet = (() => {
     form.addEventListener('submit', async event => {
       event.preventDefault();
       if (saving) return;
-      const title = form.elements.title.value.trim();
-      if (!title) { say('Add a title.', 'error'); form.elements.title.focus(); return; }
+      if (!editing && !state.picked) { say('Choose the lesson file.', 'error'); attach.querySelector('[data-choose]')?.focus(); return; }
+      const title = titleField.value.trim();
+      if (!title) { say('Add a title.', 'error'); titleField.focus(); return; }
       if (state.picked && state.picked.size > MAX_BYTES) { say(TOO_LARGE, 'error'); return; }
       const data = new FormData();
       data.append('title', title);
-      data.append('lesson_type', form.elements.lesson_type.value);
+      // A new file makes it a reading lesson; a legacy lesson edited without one keeps its kind.
+      data.append('lesson_type', state.picked || !editing ? 'reading' : type);
       data.append('content_text', form.elements.content_text.value.trim());
       data.append('duration_mins', String(Math.max(0, Math.floor(Number(form.elements.duration_mins.value) || 0))));
       data.append('status', switchBox.checked ? 'published' : 'draft');

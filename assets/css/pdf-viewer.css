@@ -21,6 +21,14 @@
 .pv-pages input { width: 2.5rem; height: 2rem; padding: 0; text-align: center; border: 0; border-radius: .5rem; background: var(--pv-s3); color: var(--pv-ink); font: inherit; font-weight: 600; }
 .pv-sep { width: 1px; height: 1.25rem; background: var(--pv-line-2); margin: 0 .25rem; }
 .pv-zoom { font-size: .8125rem; font-weight: 600; color: var(--pv-soft); min-width: 4.5rem; text-align: center; }
+/* The teacher's note: a strip under the toolbar, about six lines tall at most, with its own scroll. Values from .pv-note in the file-first mockup. */
+.pv-note { flex: none; display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1rem; background: #1b1f1e; box-shadow: 0 1px 0 var(--pv-line); color: #d9d9d9; font-size: .875rem; line-height: 1.5; }
+.pv-note > .ui-icon { color: var(--pv-mint); margin-top: .15rem; flex: none; }
+.pv-note-body { flex: 1; min-width: 0; margin: 0; max-height: 9em; overflow-y: auto; white-space: pre-line; overflow-wrap: anywhere; }
+.pv-note-body b { color: var(--pv-ink); font-weight: 700; }
+.pv-note-toggle { flex: none; margin: -.25rem -.375rem -.25rem auto; padding: .25rem .375rem; border: 0; border-radius: .375rem; background: none; color: var(--pv-muted); font: inherit; font-size: .8125rem; font-weight: 600; cursor: pointer; }
+.pv-note-toggle:hover { color: var(--pv-ink); }
+.pv-note-toggle:focus-visible { outline: 2px solid var(--pv-mint); outline-offset: 2px; }
 .pv-body { display: grid; grid-template-columns: minmax(0, 1fr); min-height: 0; flex: 1; }
 .pv--full .pv-body { grid-template-columns: 7.5rem minmax(0, 1fr); }
 .pv-rail { padding: 1rem .875rem; display: flex; flex-direction: column; gap: .875rem; background: #101010; box-shadow: 1px 0 0 var(--pv-line); overflow: auto; min-height: 0; }

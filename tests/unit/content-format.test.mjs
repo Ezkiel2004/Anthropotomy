@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 const require = createRequire(import.meta.url);
-const {lessonKind, kindCounts, assessmentKind, questionMix, dueLabel, systemLook} = require('../../assets/js/content-format.js');
+const {KINDS, lessonKind, kindCounts, opensInViewer, assessmentKind, questionMix, dueLabel, systemLook} = require('../../assets/js/content-format.js');
 
 test('lessonKind reads the attachment before the type', () => {
   assert.equal(lessonKind({lesson_type: 'reading', media_url: null}), 'reading');
@@ -18,6 +18,23 @@ test('lessonKind reads the attachment before the type', () => {
 test('kindCounts keeps KINDS order and drops zeros', () => {
   const lessons = [{lesson_type: 'quiz_prep'}, {lesson_type: 'reading'}, {lesson_type: 'reading', media_url: 'a.pdf'}, {lesson_type: 'reading'}];
   assert.deepEqual(kindCounts(lessons).map(k => [k.kind, k.count]), [['reading', 2], ['pdf', 1], ['prep', 1]]);
+});
+test('PowerPoint and Word files are their own kinds, read from the extension', () => {
+  assert.equal(lessonKind({lesson_type: 'reading', media_url: '../uploads/lessons/deck.pptx'}), 'slides');
+  assert.equal(lessonKind({lesson_type: 'video', media_url: '../uploads/lessons/OLD.PPT?v=2'}), 'slides');
+  assert.equal(lessonKind({lesson_type: 'reading', media_url: '../uploads/lessons/worksheet.docx#page=1'}), 'document');
+  assert.equal(lessonKind({lesson_type: 'quiz_prep', media_url: 'notes.doc'}), 'document');
+  assert.deepEqual(KINDS.slides, {label: 'PowerPoint', icon: 'file-ppt'});
+  assert.deepEqual(KINDS.document, {label: 'Word', icon: 'file-doc'});
+  assert.deepEqual(Object.keys(KINDS), ['reading', 'video', 'pdf', 'slides', 'document', 'image', '3d', 'interactive', 'prep']);
+});
+test('kindCounts puts PowerPoint and Word right after PDF', () => {
+  const lessons = [{lesson_type: 'quiz_prep'}, {media_url: 'w.docx'}, {lesson_type: 'reading'}, {media_url: 'a.pdf'}, {media_url: 's.ppt'}, {media_url: 'v.mp4'}, {media_url: 't.pptx'}];
+  assert.deepEqual(kindCounts(lessons).map(k => [k.kind, k.count]), [['reading', 1], ['video', 1], ['pdf', 1], ['slides', 2], ['document', 1], ['prep', 1]]);
+});
+test('opensInViewer is true only for PDF', () => {
+  assert.equal(opensInViewer('pdf'), true);
+  for (const kind of ['slides', 'document', 'reading', 'video', 'image', '3d', 'interactive', 'prep', undefined]) assert.equal(opensInViewer(kind), false);
 });
 test('assessmentKind comes from the questions, not a type', () => {
   assert.deepEqual(assessmentKind({identification: 4}), {label: 'Identification', icon: 'textbox', tone: 'identification'});

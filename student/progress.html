@@ -11,24 +11,24 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-shelf1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261112-files1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#list"/></svg></button>
       <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Progress &amp; Scores</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -84,7 +84,7 @@
         <div class="sd-h">
           <h2 id="scoresTitle" class="sd-h-title">Quiz results</h2>
           <label class="sd-search sd-search--sm">
-            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg>
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#magnifying-glass"/></svg>
             <span class="sr-only">Search quiz results</span>
             <input type="search" id="scoreSearchInput" placeholder="Search results" autocomplete="off" oninput="filterScores()"/>
           </label>
@@ -108,15 +108,15 @@
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
     <div class="modal-header">
       <h3 id="reviewModalTitle">Quiz review</h3>
-      <button class="modal-close" onclick="closeModal('scoreReviewModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('scoreReviewModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="reviewModalBody"><div class="sd-loading">Loading review…</div></div>
   </div>
 </div>
 
-<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
-<script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/student-portal.js?v=20261112-shelf1"></script>
+<script src="../assets/js/app.js?v=20261112-files1"></script>
+<script src="../assets/js/content-format.js?v=20261112-files1"></script>
+<script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');

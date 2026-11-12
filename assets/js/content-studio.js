@@ -2,7 +2,7 @@
    menu and the side sheet editor. One global, Studio. Needs app.js (confirmToast) and content-studio.css. */
 'use strict';
 const Studio = (() => {
-  const SPRITE = new URL('../icons/interface.svg?v=20261111-icons4', document.currentScript.src).href;
+  const SPRITE = new URL('../icons/interface.svg?v=20261112-icons5', document.currentScript.src).href;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const token = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
   let uid = 0;

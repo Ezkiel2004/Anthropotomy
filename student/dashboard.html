@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-shelf1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -19,14 +19,14 @@
 <div class="app-layout">
 
   <!-- Student Sidebar (desktop). Phones use the tab bar at the bottom instead. -->
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261112-files1"></script></aside>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
-        <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg>
+        <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#list"/></svg>
       </button>
       <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb">
@@ -37,7 +37,7 @@
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -85,7 +85,7 @@
         <section class="sd-block" aria-labelledby="scoreTitle">
           <div class="sd-h"><h2 id="scoreTitle" class="sd-h-title">Score history</h2><span class="sd-legend" id="scoreLegend" hidden><i class="is-pass"></i>Passed<i class="is-review"></i>Review</span></div>
           <div id="scoreChartEmpty" class="dashboard-empty" role="status">Loading score history…</div>
-          <p class="sd-empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="sd-go sd-go--light">Try a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#arrow-right"/></svg></span></a></p>
+          <p class="sd-empty-action" id="scoreChartCta" hidden><a href="quiz.html" class="sd-go sd-go--light">Try a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#arrow-right"/></svg></span></a></p>
           <div id="scoreChartContainer" class="sd-chart" role="img" aria-label="Recent quiz scores" hidden></div>
         </section>
         <section class="sd-block" id="achievementsCard" aria-labelledby="achievementsTitle" hidden>
@@ -109,9 +109,9 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
-<script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/student-portal.js?v=20261112-shelf1"></script>
+<script src="../assets/js/app.js?v=20261112-files1"></script>
+<script src="../assets/js/content-format.js?v=20261112-files1"></script>
+<script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');

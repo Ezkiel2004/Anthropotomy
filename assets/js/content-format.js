@@ -19,6 +19,8 @@ const ContentFormat = (() => {
     reading: { label: 'Reading', icon: 'book-open' },
     video: { label: 'Video', icon: 'video-camera' },
     pdf: { label: 'PDF', icon: 'file-pdf' },
+    slides: { label: 'PowerPoint', icon: 'file-ppt' },
+    document: { label: 'Word', icon: 'file-doc' },
     image: { label: 'Image', icon: 'image' },
     '3d': { label: '3D model', icon: 'cube' },
     interactive: { label: 'Interactive', icon: 'game-controller' },
@@ -26,6 +28,8 @@ const ContentFormat = (() => {
   };
   const EXTENSION_KINDS = {
     pdf: 'pdf',
+    ppt: 'slides', pptx: 'slides',
+    doc: 'document', docx: 'document',
     png: 'image', jpg: 'image', jpeg: 'image', webp: 'image', gif: 'image', svg: 'image',
     mp4: 'video', webm: 'video', mov: 'video',
     glb: '3d', gltf: '3d',
@@ -40,6 +44,8 @@ const ContentFormat = (() => {
   function lessonKind({ lesson_type, media_url }) {
     return (media_url && EXTENSION_KINDS[extension(media_url)]) || TYPE_KINDS[lesson_type] || 'reading';
   }
+  // Only a PDF opens in the in-app viewer; PowerPoint and Word files download and open in the app on the device.
+  const opensInViewer = kind => kind === 'pdf';
   function kindCounts(lessons) {
     const counts = {};
     for (const lesson of lessons) {
@@ -81,6 +87,6 @@ const ContentFormat = (() => {
     return { label: day, tone: 'later' };
   }
 
-  return { CARD_COLOURS, SYSTEM_LOOKS, systemLook, KINDS, lessonKind, kindCounts, QUESTION_TYPES, questionMix, assessmentKind, dueLabel };
+  return { CARD_COLOURS, SYSTEM_LOOKS, systemLook, KINDS, lessonKind, opensInViewer, kindCounts, QUESTION_TYPES, questionMix, assessmentKind, dueLabel };
 })();
 if (typeof module === 'object' && module.exports) module.exports = ContentFormat;

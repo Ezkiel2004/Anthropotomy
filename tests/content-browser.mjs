@@ -99,6 +99,12 @@ check(await evaluate(`window.__lrClosed===1`),'onClose runs once on close');
 // A file that does not exist falls back to a download link.
 await evaluate(`(()=>{const d=document.createElement('div');d.id='pvbad';document.body.append(d);PdfViewer.mount(d,{url:API_BASE+'/files.php?id=999999',title:'Missing'});})()`);
 check(await waitFor(`document.querySelector('#pvbad .pv-fallback a[href*="files.php?id=999999"]')`),'A broken file shows the fallback with a Download link');
+// A note from the teacher sits in a strip under the toolbar, as text; a blank note adds nothing.
+check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Noted',note:'Line one\\n<img src=x onerror=window.__noted=1>two'});
+  const n=d.querySelector('.pv-bar + .pv-note'),t=n?.querySelector('.pv-note-text');const ok=!!t&&t.textContent==='Line one\\n<img src=x onerror=window.__noted=1>two'&&!n.querySelector('img')&&getComputedStyle(t).whiteSpace==='pre-line'&&n.querySelector('use').getAttribute('href').endsWith('#info');v.destroy();d.remove();return ok&&window.__noted===undefined;})()`),'The inline viewer shows the note under its toolbar as plain text');
+check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Plain',note:'  \\n '});const ok=!d.querySelector('.pv-note');v.destroy();d.remove();return ok;})()`),'A blank note adds no strip');
+check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Long',note:Array.from({length:30},(_,i)=>'Line '+(i+1)).join('\\n')});
+  const b=d.querySelector('.pv-note-body'),h=b.getBoundingClientRect().height,lh=parseFloat(getComputedStyle(b).lineHeight);const ok=h<=lh*6.5&&b.scrollHeight>b.clientHeight&&['auto','scroll'].includes(getComputedStyle(b).overflowY);v.destroy();d.remove();return ok;})()`),'A long note stops at about six lines and scrolls');
 
 // Phone width: the toolbar wraps, there is no rail and no sideways scroll.
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
@@ -329,18 +335,28 @@ check(await waitFor(`document.querySelector('dialog.toast-confirm[open]')?.textC
 await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
 check(await waitFor(`!${rowById(added)}&&document.querySelectorAll('.cs-row').length===${lessonCount}`),'A deleted lesson leaves the list');
 
-// Preview: the lesson reader without the 3D links; closing returns focus.
+// Preview: a PDF lesson opens full screen in the viewer with its note; a text lesson opens the reader without the 3D links; closing returns focus.
+const lessonPosition=async id=>(await moduleRow()).lessons.findIndex(l=>l.lesson_id===id)+1;
 await evaluate(`${rowById(lessonId)}.querySelector('[data-preview]').click()`);
-check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent==='PDF lesson'`),'Row Preview opens the lesson in the reader');
+check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Row Preview opens a PDF lesson in the full-screen viewer');
+check(await evaluate(`document.getElementById('lessonPreview').hidden`),'A PDF lesson preview skips the lesson reader');
+check(await evaluate(`document.querySelector('.pv-overlay .pv-note')?.textContent.includes('Read the handout.')`),'The PDF preview shows the note for students');
+check(await evaluate(`document.querySelector('.pv-overlay .pv-context').textContent==='Test module · Lesson '+${await lessonPosition(lessonId)}`),'The PDF preview names the module and the lesson number');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.pv-overlay')&&document.activeElement===${rowById(lessonId)}.querySelector('[data-preview]')`),'Closing the PDF preview returns focus to its button');
+const textLesson=(await moduleRow()).lessons.find(l=>l.status==='published'&&!l.media_url);
+await evaluate(`${rowById(textLesson.lesson_id)}.querySelector('[data-preview]').click()`);
+check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent===${JSON.stringify(textLesson.title)}`),'Row Preview opens a text lesson in the reader');
 check(await evaluate(`!/View in 3D|Practice in 3D/.test(document.getElementById('lessonPreview').textContent)`),'The teacher preview has no 3D links');
-check(await waitFor(`document.querySelector('#lessonPreview .pv canvas[data-rendered]')`),'A PDF lesson previews in the viewer');
 await key('Escape');
-check(await waitFor(`document.getElementById('lessonPreview').hidden&&document.activeElement===${rowById(lessonId)}.querySelector('[data-preview]')`),'Closing the preview returns focus to its button');
+check(await waitFor(`document.getElementById('lessonPreview').hidden&&document.activeElement===${rowById(textLesson.lesson_id)}.querySelector('[data-preview]')`),'Closing the preview returns focus to its button');
 const firstPublished=(await moduleRow()).lessons.find(l=>l.status==='published');
+const firstIsPdf=/\.pdf$/i.test(String(firstPublished.media_url||'').split(/[?#]/)[0]);
 await evaluate(`document.querySelector('.cs-hero [data-preview-module]').click()`);
-check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent===${JSON.stringify(firstPublished.title)}`),'Preview as student opens the first published lesson');
+check(await waitFor(firstIsPdf?`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')&&document.querySelector('.pv-overlay').getAttribute('aria-label')===${JSON.stringify(firstPublished.title)}`
+  :`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-title')?.textContent===${JSON.stringify(firstPublished.title)}`),'Preview as student opens the first published lesson');
 await key('Escape');
-check(await waitFor(`document.getElementById('lessonPreview').hidden`),'Escape closes the preview');
+check(await waitFor(`document.getElementById('lessonPreview').hidden&&!document.querySelector('.pv-overlay')`),'Escape closes the preview');
 
 // Hero actions: Unpublish and Publish the module; Edit details opens the module sheet.
 await evaluate(`document.querySelector('.cs-hero [data-module-status]').click()`);
@@ -381,11 +397,29 @@ check(await evaluate(`(()=>{const l=document.querySelector('.cs-lessons').getBou
 check(await evaluate(`[...document.querySelectorAll('.cs-row')].every(row=>[...row.children].filter(c=>c.offsetParent).every(c=>${inside('row','c')}))`),'Row contents fit at 390px');
 check(await evaluate(`[...document.querySelectorAll('.cs-row-actions')].every(a=>getComputedStyle(a).opacity==='1')`),'Row actions show without hover at 390px');
 check(await evaluate(`[...document.querySelectorAll('.cs-hero-row > *, .cs-panel-head > *, .cs-file > *, .cs-quiz > *')].filter(el=>el.getClientRects().length).every(el=>${inside(`el.closest('.cs-hero, .cs-panel')`,'el')})`),'Hero, panel headers, materials and quizzes fit at 390px');
-await evaluate(`document.querySelector('.cs-hero [data-preview-module]').click()`);
+await evaluate(`${rowById(textLesson.lesson_id)}.querySelector('[data-preview]').click()`);
 check(await waitFor(`!document.getElementById('lessonPreview').hidden&&document.querySelector('#lessonPreview .sd-reader-doc')`),'Preview opens the reader at 390px');
 check(await evaluate(`!/View in 3D/.test(document.getElementById('lessonPreview').textContent)`),'No View in 3D in the teacher preview at 390px');
 await key('Escape');
+await evaluate(`${rowById(lessonId)}.querySelector('[data-preview]').click()`);
+check(await waitFor(`document.querySelector('.pv-overlay .pv-note')&&document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'A PDF preview with its note opens at 390px');
+check(await evaluate(`(()=>{const o=document.querySelector('.pv-overlay'),n=o.querySelector('.pv-note');return o.scrollWidth<=o.clientWidth&&n.scrollWidth<=n.clientWidth+1&&document.documentElement.scrollWidth<=innerWidth;})()`),'The note strip fits at 390px');
+await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
+
+// A Word lesson: its row says Word, Preview downloads the file, and the module card counts it.
+const wordLesson=await upload('lessons.php',{module_id:moduleId,title:'Word worksheet',lesson_type:'reading',content_text:'Print it.',duration_mins:'10',status:'published'},'sample.docx','lesson_file','worksheet.docx');
+check(wordLesson.success&&/\.docx$/.test(wordLesson.data.media_url),'Create a published Word lesson');
+await navigate('/teacher/modules.html?module='+moduleId);
+const wordRow=rowById(wordLesson.data.lesson_id);
+check(await waitFor(`${wordRow}?.querySelector('[data-meta]').textContent==='Word · 10 min'`),'A Word lesson row says Word and its time');
+check(await evaluate(`${wordRow}.querySelector('.cs-tile').classList.contains('t-document')&&${wordRow}.querySelector('.cs-tile use').getAttribute('href').endsWith('#file-doc')`),'A Word lesson row shows the Word icon');
+await evaluate(`window.__downloads=[];document.addEventListener('click',e=>{const a=e.target.closest?.('a[download]');if(a){e.preventDefault();window.__downloads.push(a.getAttribute('href'));}},true);`);
+await evaluate(`${wordRow}.querySelector('[data-preview]').click()`);
+check(await waitFor(`window.__downloads.length===1&&/\\.docx$/.test(window.__downloads[0])`),'Preview on a Word lesson downloads the file');
+check(await evaluate(`!document.querySelector('.pv-overlay')&&document.getElementById('lessonPreview').hidden&&!document.querySelector('body > a[download]')`),'A Word preview opens no viewer and leaves no link behind');
+await navigate('/teacher/modules.html');
+check(await waitFor(`[...(${card}?.querySelectorAll('.cs-mix span')||[])].some(s=>s.classList.contains('t-document')&&s.textContent.includes('Word')&&s.querySelector('use').getAttribute('href').endsWith('#file-doc'))`),'The module card counts Word lessons with their own chip');
 
 // ── Student ─────────────────────────────────────────────────────
 await signIn('fixture-student',studentPassword,'/student/');
@@ -421,6 +455,57 @@ check(await evaluate(`window.__reads>=4`),'Opening a material counts as study ti
 check(await waitFor(`document.querySelectorAll('.pv-stage [data-page]').length===60`),'Student sees all 60 pages');
 await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'Escape closes the material viewer');
+
+// File cards: a module's lessons are files. Read opens a PDF full screen with the teacher's note, Download hands over
+// a Word file, a text lesson still opens the lesson reader.
+await navigate('/student/lessons.html');
+await evaluate(`StudyClock.reading=()=>{window.__reads=(window.__reads||0)+1};window.__downloads=[];document.addEventListener('click',e=>{const a=e.target.closest?.('a[download]');if(a){e.preventDefault();window.__downloads.push(a.getAttribute('href'));}},true);`);
+await evaluate(`viewModule(${moduleId})`);
+const fileCard=title=>`[...document.querySelectorAll('#lessonModalBody .sd-file')].find(c=>c.querySelector('.sd-file-title').textContent===${JSON.stringify(title)})`;
+const studentLessons=(await evaluate(`fetch(API_BASE+'/lessons.php?module_id=${moduleId}',{credentials:'same-origin'}).then(r=>r.json())`)).data;
+check(await waitFor(`document.querySelectorAll('#lessonModalBody .sd-file').length===${studentLessons.length}`),'The module dialog lists every published lesson as a file card');
+check(await evaluate(`[...document.querySelectorAll('#lessonModalBody .sd-file')].every((c,i)=>c.querySelector('.sd-file-num').textContent===String(i+1)&&c.dataset.lesson)`),'File cards are numbered in order and carry their lesson id');
+check(await evaluate(`![...document.querySelectorAll('#lessonModalBody .sd-files, #lessonModalBody .sd-files *')].some(el=>[...el.attributes].some(a=>a.name.startsWith('on')))`),'File cards use no inline handlers');
+check(await waitFor(`${fileCard('PDF lesson')}?.querySelector('.sd-file-meta').textContent==='PDF · 3 pages'`),'A PDF card shows PDF and its page count');
+check(await waitFor(`${fileCard('PDF lesson')}.querySelector('.sd-file-thumb img, .sd-file-thumb canvas[data-rendered]')`),'A PDF card shows its first page');
+check(await evaluate(`${fileCard('PDF lesson')}.querySelector('.sd-file-go').textContent.trim().startsWith('Read')`),'A PDF card offers Read');
+check(await evaluate(`${fileCard('Word worksheet')}.querySelector('.sd-file-meta').textContent==='Word · opens in Word · 10 min'`),'A Word card says it opens in Word');
+check(await evaluate(`${fileCard('Word worksheet')}.querySelector('.sd-file-thumb').textContent.trim()==='DOCX'&&${fileCard('Word worksheet')}.querySelector('.sd-file-thumb use').getAttribute('href').endsWith('#file-doc')`),'A Word card shows a DOCX tile with the Word icon');
+check(await evaluate(`(()=>{const a=${fileCard('Word worksheet')}.querySelector('a.sd-file-go[download]');return !!a&&/\\.docx$/.test(a.getAttribute('href'))&&a.textContent.trim().startsWith('Download');})()`),'The Word card is a Download link to the file');
+check(await evaluate(`${fileCard('Second lesson')}.querySelector('.sd-file-meta').textContent==='Reading'&&${fileCard('Second lesson')}.querySelector('.sd-file-go').textContent.trim().startsWith('Open')`),'A text lesson keeps a kind tile and Open');
+check(await evaluate(`document.querySelector('#lessonModalBody .sd-files-hint')?.textContent.trim()==='PDFs open here. PowerPoint and Word files download and open in the app on your device.'`),'A hint says PDFs open here and the other files download');
+check(await evaluate(`document.querySelector('#lessonModalBody .sd-materials-title')!==null`),'Materials still follow the lessons');
+const readsBefore=await evaluate(`window.__reads||0`);
+await evaluate(`${fileCard('Word worksheet')}.querySelector('a[download]').click()`);
+check(await evaluate(`window.__reads===${readsBefore}+1&&window.__downloads.length===1&&/\\.docx$/.test(window.__downloads[0])`),'Downloading a Word lesson counts as study time');
+check(await evaluate(`document.getElementById('lessonModal').style.display!=='none'`),'The module stays open after a download');
+await evaluate(`${fileCard('PDF lesson')}.querySelector('.sd-file-go').click()`);
+check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Read opens a PDF lesson full screen');
+check(await evaluate(`document.querySelector('.pv-overlay .pv-context').textContent==='Test module · Lesson '+([...document.querySelectorAll('#lessonModalBody .sd-file')].indexOf(${fileCard('PDF lesson')})+1)`),'The viewer names the module and the lesson number');
+check(await evaluate(`(()=>{const n=document.querySelector('.pv-overlay .pv-note');return !!n&&n.previousElementSibling===document.querySelector('.pv-overlay .pv-bar')&&n.querySelector('b').textContent==='Note from your teacher:'&&n.querySelector('.pv-note-text').textContent==='Read the handout.';})()`),'The teacher note shows in a strip under the toolbar');
+const noteToggle=`document.querySelector('.pv-overlay .pv-note button')`;
+check(await evaluate(`${noteToggle}.getAttribute('aria-expanded')==='true'&&${noteToggle}.textContent.trim()==='Hide'&&document.getElementById(${noteToggle}.getAttribute('aria-controls'))===document.querySelector('.pv-overlay .pv-note-text')`),'The note starts open with Hide controlling it');
+await evaluate(`${noteToggle}.click()`);
+check(await evaluate(`${noteToggle}.getAttribute('aria-expanded')==='false'&&${noteToggle}.textContent.trim()==='Show note'&&document.querySelector('.pv-overlay .pv-note-text').getClientRects().length===0`),'Hide collapses the note and sets aria-expanded false');
+await evaluate(`${noteToggle}.click()`);
+check(await evaluate(`${noteToggle}.getAttribute('aria-expanded')==='true'&&document.querySelector('.pv-overlay .pv-note-text').getClientRects().length>0`),'Show note opens it again');
+check(await evaluate(`window.__reads>${readsBefore}+1`),'Reading a PDF lesson counts as study time');
+await key('Escape');
+check(await waitFor(`!document.querySelector('.pv-overlay')&&document.activeElement===${fileCard('PDF lesson')}.querySelector('.sd-file-go')`),'Closing the viewer returns to the lesson list');
+await evaluate(`${fileCard('Second lesson')}.querySelector('.sd-file-go').click()`);
+check(await waitFor(`!document.getElementById('lessonContentViewer').hidden&&document.querySelector('#lessonContentViewer .sd-reader-title')?.textContent==='Second lesson'`),'A text lesson still opens the lesson reader');
+await evaluate(`closeLessonViewer()`);
+// Phone width: the cards fit and nothing scrolls sideways.
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
+await navigate('/student/lessons.html');
+await evaluate(`viewModule(${moduleId})`);
+check(await waitFor(`document.querySelectorAll('#lessonModalBody .sd-file').length===${studentLessons.length}&&${fileCard('PDF lesson')}.querySelector('.sd-file-meta').textContent==='PDF · 3 pages'`),'File cards render at 390px');
+check(await evaluate(`(()=>{const box=document.querySelector('#lessonModal .modal-box');return document.documentElement.scrollWidth<=innerWidth&&box.scrollWidth<=box.clientWidth&&[...document.querySelectorAll('#lessonModalBody .sd-file')].every(c=>[...c.children].every(el=>${inside('c','el')}));})()`),'File cards fit at 390px with no sideways scroll');
+await evaluate(`${fileCard('PDF lesson')}.querySelector('.sd-file-go').click()`);
+check(await waitFor(`document.querySelector('.pv-overlay .pv-note')&&document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Read opens the PDF with its note at 390px');
+check(await evaluate(`(()=>{const o=document.querySelector('.pv-overlay');return o.scrollWidth<=o.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`),'The viewer with the note has no sideways scroll at 390px');
+await key('Escape');
+await call('Emulation.clearDeviceMetricsOverride');
 
 // A title that tries to break out of an attribute stays inert text.
 await signIn(credentials.username,credentials.password,'/teacher/');
@@ -469,6 +554,7 @@ await evaluate(`document.querySelector('dialog.toast-confirm[open] .toast-confir
 check(await waitFor(`!document.querySelector('dialog.toast-confirm')`),'Cancel leaves the account as it was');
 
 // ── Lesson editor sheet ─────────────────────────────────────────
+// File first: the lesson file is the main field, the title comes from its name, the kind comes from the file.
 await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
 await navigate('/teacher/modules.html?module='+moduleId);
 check(await waitFor(`document.querySelector('#workspaceView [data-add-lesson]')`),'Workspace is open for the lesson editor');
@@ -479,42 +565,81 @@ async function attachFile(file){
     const node=await call('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'.cs-sheet input[type="file"]'});
     await call('DOM.setFileInputFiles',{nodeId:node.nodeId,files:[path.resolve('tests/fixtures/'+file)]});
 }
+// A fixture under any file name, as the picker or a drop would hand it over.
+const fileFrom=(file,name,type)=>`(()=>{const b=Uint8Array.from(atob(${JSON.stringify(file?fixture(file):'')}),c=>c.charCodeAt(0));const dt=new DataTransfer();dt.items.add(new File([b],${JSON.stringify(name)},{type:${JSON.stringify(type)}}));return dt;})()`;
+const chooseAs=(file,name,type='application/pdf')=>evaluate(`(()=>{const input=document.querySelector('.cs-sheet input[type="file"]');input.files=${fileFrom(file,name,type)}.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+const dropAs=(file,name,type)=>evaluate(`(()=>{const dt=${fileFrom(file,name,type)};const at=document.querySelector('.cs-sheet [data-file-panel] [data-file-hint]');for(const t of ['dragenter','dragover'])at.dispatchEvent(new DragEvent(t,{bubbles:true,cancelable:true,dataTransfer:dt}));at.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:dt}));})()`);
+const titleIs=`document.querySelector('.cs-sheet [name="title"]').value`;
+const sheetNote=`document.querySelector('.cs-sheet-foot #lsNote').textContent`;
+const titleHint=`[...document.querySelector('.cs-sheet [name="title"]').closest('.cs-field').querySelectorAll('.cs-meta')].some(m=>m.getClientRects().length&&m.textContent==='Filled in from the file name. Change it if you like.')`;
+const sheetCard=`document.querySelector('.cs-sheet .cs-attach')`;
+const cardMeta=`document.querySelector('.cs-sheet .cs-attach [data-attach-meta]').textContent`;
+const WRONG_TYPE='Use a PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx) file.';
+const saveSheet=()=>evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+const rowTitled=title=>`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.querySelector('.cs-row-title').textContent===${JSON.stringify(title)})`;
+const savedLesson=async title=>(await moduleRow()).lessons.find(l=>l.title===title);
 await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"]')`),'Add lesson opens the sheet');
 check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='New lesson'`),'The sheet is titled New lesson');
-check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].map(t=>t.textContent.trim()).join('|')==='Reading|Video|3D model|Interactive|Quiz prep'`),'The five type tiles are shown');
-check(await evaluate(`document.querySelectorAll('.cs-sheet [name="lesson_type"]').length===5&&document.querySelector('.cs-sheet [name="lesson_type"]:checked').value==='reading'`),'Reading is the default type');
-// WCAG contrast of each tile's text over its own background (flattened onto the sheet colour).
-const contrast=`(()=>{const nums=c=>c.match(/[\\d.]+/g).map(Number);const lum=([r,g,b])=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);};return .2126*f(r)+.7152*f(g)+.0722*f(b);};
-  return [...document.querySelectorAll('.cs-sheet .cs-type')].map(t=>{const base=nums(getComputedStyle(document.querySelector('.cs-sheet')).backgroundColor);const raw=nums(getComputedStyle(t).backgroundColor);const a=raw.length>3?raw[3]:1;const back=[0,1,2].map(i=>raw[i]*a+base[i]*(1-a));const l1=lum(nums(getComputedStyle(t).color)),l2=lum(back);return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);});})()`;
-check((await evaluate(contrast)).every(r=>r>=4.5),'Type tile text has at least 4.5:1 contrast');
-await evaluate(`document.querySelector('.cs-sheet [name="lesson_type"][value="video"]').click()`);
-check((await evaluate(contrast)).every(r=>r>=4.5),'Contrast holds with another tile selected');
-await evaluate(`document.querySelector('.cs-sheet [name="lesson_type"][value="reading"]').click()`);
-// Size guard: a 600 MB file is refused before any upload starts.
+check(await evaluate(`!document.querySelector('.cs-sheet .cs-type')&&!document.querySelector('.cs-sheet [name="lesson_type"]')`),'There are no lesson kind tiles');
+check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-field > label:not(.cs-switch), .cs-sheet .cs-field > .cs-label')].map(l=>l.firstChild.textContent.trim()).join('|')`)==='Lesson file|Title|Note for students|Time to study|Visible to students','The file comes first, then title, note for students, time and visibility');
+check(await evaluate(`(()=>{const d=document.querySelector('.cs-sheet [data-file-panel] [data-drop]');return !!d&&[...d.querySelectorAll('button')].some(b=>b.textContent.trim()==='Choose file')&&!document.querySelector('.cs-sheet .cs-attach');})()`),'A new lesson starts with a drop zone and Choose file');
+check(await evaluate(`document.querySelector('.cs-sheet [data-file-hint]').textContent.startsWith('PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx), up to 500 MB.')`),'The hint names the file kinds and the size limit');
+check(await evaluate(`document.querySelector('.cs-sheet input[type="file"]').accept==='.pdf,.ppt,.pptx,.doc,.docx'`),'The picker offers PDF, PowerPoint and Word');
+check(await evaluate(`(()=>{const f=document.querySelector('.cs-sheet [name="content_text"]').closest('.cs-field');return f.querySelector('label').textContent.includes('(optional)')&&f.textContent.includes('Shown above the file when a student opens it.');})()`),'The note for students is optional and says where students see it');
+// A file is required: saving without one keeps the sheet open and sends nothing.
 await evaluate(`window.__posts=0;const realFetch=window.fetch;window.fetch=(...a)=>{if(a[1]&&a[1].method==='POST')window.__posts++;return realFetch(...a);};`);
-await evaluate(`(()=>{const input=document.querySelector('.cs-sheet input[type="file"]');const big=new File([new Blob(['x'])],'big.mp4',{type:'video/mp4'});Object.defineProperty(big,'size',{value:600*1024*1024});const dt=new DataTransfer();dt.items.add(big);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
-check(await waitFor(`document.querySelector('.cs-sheet').textContent.includes('File too large. Maximum size is 500 MB.')`),'A file over 500 MB is refused');
-check(await evaluate(`!document.querySelector('.cs-sheet .cs-attach')&&window.__posts===0`),'The oversize file is not attached and nothing was uploaded');
-await sheetSet('[name="title"]','Editor lesson');
-await sheetSet('[name="content_text"]','Written in the sheet.');
+await saveSheet();
+check(await waitFor(`${sheetNote}==='Choose the lesson file.'`),'Saving without a file says Choose the lesson file.');
+check(await evaluate(`document.querySelector('.cs-sheet')!==null&&window.__posts===0`),'The sheet stays open and nothing is sent');
+// Size guard: a 600 MB file is refused before any upload starts.
+await evaluate(`(()=>{const input=document.querySelector('.cs-sheet input[type="file"]');const big=new File([new Blob(['x'])],'big.pdf',{type:'application/pdf'});Object.defineProperty(big,'size',{value:600*1024*1024});const dt=new DataTransfer();dt.items.add(big);input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+check(await waitFor(`${sheetNote}==='File too large. Maximum size is 500 MB.'`),'A file over 500 MB is refused');
+check(await evaluate(`!${sheetCard}&&window.__posts===0&&${titleIs}===''`),'The oversize file is not attached, names nothing and nothing was uploaded');
+// Wrong type: refused with the file-kinds message.
+await chooseAs(null,'notes.txt','text/plain');
+check(await waitFor(`${sheetNote}===${JSON.stringify(WRONG_TYPE)}`),'A .txt file is refused with the wrong-type message');
+check(await evaluate(`!${sheetCard}&&${titleIs}===''`),'The refused file is not attached and fills in no title');
+// The title fills in from the file name.
+await chooseAs('sample.pdf','axial-and-appendicular-skeleton.pdf');
+check(await waitFor(`${titleIs}==='Axial and appendicular skeleton'`),'Choosing axial-and-appendicular-skeleton.pdf fills in the title');
+check(await evaluate(titleHint),'The title hint says it came from the file name');
+check(await evaluate(`${sheetNote}===''`),'A good file clears the error');
+check(await waitFor(`${sheetCard}?.querySelector('canvas[data-rendered]')&&/^PDF · 3 pages · \\d+ KB$/.test(${cardMeta})`),'The file card shows the first page and PDF · pages · size');
+check(await evaluate(`${sheetCard}.textContent.includes('axial-and-appendicular-skeleton.pdf')&&${sheetCard}.textContent.includes('Students read it here in the viewer')`),'The file card names the file and says students read it in the viewer');
+check(await evaluate(`${sheetCard}.querySelector('[data-replace]').textContent.trim()==='Replace'&&!!${sheetCard}.querySelector('[aria-label="Remove file"]')`),'The file card offers Replace and Remove');
+check(await evaluate(`document.querySelector('.cs-sheet [data-file-hint]').textContent.includes('Drop a file on this panel to replace it.')`),'With a file the hint says a drop replaces it');
+// Dropping on the panel: a video is refused, another PDF replaces the file and renames the still-automatic title.
+await dropAs(null,'clip.mp4','video/mp4');
+check(await waitFor(`${sheetNote}===${JSON.stringify(WRONG_TYPE)}`),'A video dropped on the panel is refused');
+check(await evaluate(`${sheetCard}.textContent.includes('axial-and-appendicular-skeleton.pdf')`),'The chosen file stays after a refused drop');
+await dropAs('sample.pdf','second_handout  final.pdf','application/pdf');
+check(await waitFor(`${titleIs}==='Second handout final'&&${sheetCard}.textContent.includes('second_handout  final.pdf')`),'A PDF dropped on the panel replaces the file and refills the automatic title');
+// Typing a title stops the auto-fill; emptying it lets the file name fill it again.
+await sheetSet('[name="title"]','My own title');
+check(await evaluate(`!${titleHint}`),'Typing a title drops the file-name hint');
+await chooseAs('sample.pdf','another-file.pdf');
+check(await waitFor(`${sheetCard}.textContent.includes('another-file.pdf')`)&&await evaluate(`${titleIs}==='My own title'`),'Typing a title stops auto-fill');
+await sheetSet('[name="title"]','');
+await chooseAs('sample.pdf','axial-and-appendicular-skeleton.pdf');
+check(await waitFor(`${titleIs}==='Axial and appendicular skeleton'`),'An empty title fills in from the file again');
+await sheetSet('[name="content_text"]','Read pages 1 and 2.');
 await sheetSet('[name="duration_mins"]','12');
-await attachFile('sample.pdf');
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach')?.textContent.includes('sample.pdf')`),'The attachment card shows the file name');
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')&&/\\d+ pages?/.test(document.querySelector('.cs-sheet .cs-attach').textContent)`),'The attachment card shows a thumbnail and the page count');
-check(await evaluate(`/\\d+(\\.\\d+)? (KB|MB)/.test(document.querySelector('.cs-sheet .cs-attach').textContent)`),'The attachment card shows the size');
-await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
-check(await waitFor(`!document.querySelector('.cs-sheet')&&[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson')`),'Saving adds the lesson to the list');
-const editorRow=`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.querySelector('.cs-row-title').textContent==='Editor lesson')`;
-check(await waitFor(`${editorRow}.querySelector('[data-meta]').textContent.startsWith('PDF')`),'The new row shows kind PDF');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Axial and appendicular skeleton')}`),'Saving adds the lesson to the list');
+const editorRow=rowTitled('Axial and appendicular skeleton');
+check(await waitFor(`${editorRow}.querySelector('[data-meta]').textContent==='PDF, 3 pages · 12 min'`),'The new row shows kind PDF, its pages and time');
+const axial=await savedLesson('Axial and appendicular skeleton');
+check(axial.lesson_type==='reading'&&/\.pdf$/.test(axial.media_url),'A new file lesson is saved as a reading lesson with its PDF');
 // Reopen: fields are filled in; Escape with a change asks first.
 await evaluate(`${editorRow}.querySelector('[data-edit]').click()`);
-check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Editor lesson'&&document.querySelector('.cs-sheet [name="content_text"]').value==='Written in the sheet.'`),'Editing fills in the saved lesson text');
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Axial and appendicular skeleton'&&document.querySelector('.cs-sheet [name="content_text"]').value==='Read pages 1 and 2.'`),'Editing fills in the saved note for students');
 check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Edit lesson'&&document.querySelector('.cs-sheet [name="duration_mins"]').value==='12'&&document.querySelector('.cs-sheet [name="status"]').checked`),'Editing fills in the title, time and published switch');
+check(await evaluate(`!${titleHint}`),'A saved title is not marked as filled in from the file');
 check(await evaluate(`document.querySelector('.cs-sheet .cs-sheet-head .cs-eyebrow').textContent.endsWith(' · Lesson '+([...document.querySelectorAll('#workspaceView .cs-row')].indexOf(${editorRow})+1))`),'The edit sheet names the lesson number');
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'The saved PDF shows a thumbnail');
+check(await waitFor(`${sheetCard}?.querySelector('canvas[data-rendered]')&&/^PDF · 3 pages · \\d+ KB$/.test(${cardMeta})`),'The saved PDF shows a thumbnail, its pages and size');
 const dropOn=selector=>`(()=>{const e=new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:new DataTransfer()});document.querySelector('${selector}').dispatchEvent(e);return e.defaultPrevented;})()`;
-check(await evaluate(dropOn('.cs-sheet [name="content_text"]'))&&await evaluate(dropOn('.cs-scrim')),'A file dropped outside the attachment box is not opened by the browser');
+check(await evaluate(dropOn('.cs-sheet [name="content_text"]'))&&await evaluate(dropOn('.cs-scrim')),'A file dropped outside the file panel is not opened by the browser');
 await evaluate(`(()=>{const t=document.querySelector('.cs-sheet [name="title"]');t.focus();t.setSelectionRange(t.value.length,t.value.length);})()`);
 await call('Input.insertText',{text:' two'});
 await key('Escape');
@@ -526,30 +651,79 @@ await waitFor(`document.querySelector('dialog.toast-confirm[open]')`);
 await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
 check(await waitFor(`!document.querySelector('.cs-sheet')`),'Discard closes the sheet');
 check(!await evaluate(dropOn('body')),'Closing the lesson sheet stops blocking drops');
-check(await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson')&&![...document.querySelectorAll('#workspaceView .cs-row-title')].some(t=>t.textContent==='Editor lesson two')`),'Discard keeps the saved title');
-// Remove attachment clears the media and the row falls back to the type.
+check(await evaluate(`!!${rowTitled('Axial and appendicular skeleton')}&&!${rowTitled('Axial and appendicular skeleton two')}`),'Discard keeps the saved title');
+// Remove on an existing lesson: it may be saved without a file and falls back to its type.
 const editorId=await evaluate(`${editorRow}.dataset.lesson`);
 await evaluate(`${editorRow}.querySelector('[data-edit]').click()`);
 await waitFor(`document.querySelector('.cs-sheet .cs-attach')`);
-await evaluate(`document.querySelector('.cs-sheet .cs-attach [aria-label="Remove attachment"]').click()`);
-check(await evaluate(`!document.querySelector('.cs-sheet .cs-attach')&&document.querySelector('.cs-sheet .cs-drop')!==null`),'Remove attachment empties the card');
-await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
-check(await waitFor(`!document.querySelector('.cs-sheet')&&${editorRow}.querySelector('[data-meta]').textContent.startsWith('Reading')`),'Saving after Remove drops the attachment');
+await evaluate(`document.querySelector('.cs-sheet .cs-attach [aria-label="Remove file"]').click()`);
+check(await evaluate(`!document.querySelector('.cs-sheet .cs-attach')&&document.querySelector('.cs-sheet [data-drop]')!==null&&document.activeElement.textContent.trim()==='Choose file'`),'Remove empties the panel and focuses Choose file');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${editorRow}.querySelector('[data-meta]').textContent.startsWith('Reading')`),'Saving after Remove drops the file');
 check(!(await evaluate(`fetch(API_BASE+'/lessons.php?id=${editorId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url,'The server cleared media_url');
-// Replace on a lesson that already has an attachment.
+// Replace on a lesson that already has a file.
 const oldMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;
 await evaluate(`[...document.querySelectorAll('#workspaceView .cs-row')].find(r=>r.dataset.lesson==='${lessonId}').querySelector('[data-edit]').click()`);
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'A lesson with an attachment shows the card');
+check(await waitFor(`document.querySelector('.cs-sheet .cs-attach canvas[data-rendered]')`),'A lesson with a file shows the card');
 await attachFile('sample.pdf');
-check(await waitFor(`document.querySelector('.cs-sheet .cs-attach .cs-meta')?.textContent.includes('replaces the current file')`),'Choosing a file shows it as the replacement');
-await evaluate(`document.querySelector('.cs-sheet-foot .cs-btn--primary').click()`);
+check(await waitFor(`${cardMeta}.includes('replaces the current file')`),'Choosing a file shows it as the replacement');
+check(await evaluate(`${titleIs}==='PDF lesson'`),'Replacing the file keeps a title the teacher saved');
+await saveSheet();
 check(await waitFor(`!document.querySelector('.cs-sheet')`),'Saving a replacement closes the sheet');
 const newMedia=(await evaluate(`fetch(API_BASE+'/lessons.php?id=${lessonId}',{credentials:'same-origin'}).then(r=>r.json())`)).data.media_url;
 check(newMedia&&newMedia!==oldMedia,'The replacement changed the stored file');
+// Word and PowerPoint lessons: a tile instead of a thumbnail, students download them, the row names the kind.
+await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
+await waitFor(`document.querySelector('.cs-sheet')`);
+await chooseAs('sample.docx','bone-labeling-worksheet.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+check(await waitFor(`${titleIs}==='Bone labeling worksheet'`),'A Word file fills in the title');
+check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--doc')?.textContent.trim()==='DOCX'&&${cardMeta}==='Word · 1 KB'&&${sheetCard}.textContent.includes('Students download it and open it in Word')`),'The Word card shows a DOCX tile, Word · size and that students download it');
+await sheetSet('[name="duration_mins"]','10');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Bone labeling worksheet')}?.querySelector('[data-meta]').textContent==='Word · 10 min'`),'Saving a .docx lesson makes the workspace row say Word');
+check(await evaluate(`${rowTitled('Bone labeling worksheet')}.querySelector('.cs-tile.t-document use').getAttribute('href').endsWith('#file-doc')`),'The Word row shows the Word icon');
+const worksheet=await savedLesson('Bone labeling worksheet');
+check(worksheet.lesson_type==='reading'&&/\.docx$/.test(worksheet.media_url),'The Word lesson is saved as a reading lesson with its .docx');
+await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
+await waitFor(`document.querySelector('.cs-sheet')`);
+await chooseAs('sample.pptx','Parts of a long bone.PPTX','application/vnd.openxmlformats-officedocument.presentationml.presentation');
+check(await waitFor(`${titleIs}==='Parts of a long bone'`),'A PowerPoint file fills in the title');
+check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--ppt')?.textContent.trim()==='PPTX'&&${cardMeta}==='PowerPoint · 1 KB'&&${sheetCard}.textContent.includes('Students download it and open it in PowerPoint')`),'The PowerPoint card shows a PPTX tile and that students download it');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Parts of a long bone')}?.querySelector('[data-meta]').textContent==='PowerPoint · no time set'`),'Saving a .pptx lesson makes the workspace row say PowerPoint');
+check(await evaluate(`${rowTitled('Parts of a long bone')}.querySelector('.cs-tile.t-slides use').getAttribute('href').endsWith('#file-ppt')`),'The PowerPoint row shows the PowerPoint icon');
+// Legacy lessons: no file needed, the kind is kept, an old attachment still shows and can be replaced.
+const legacyInteractive=await evaluate(`fetch(API_BASE+'/lessons.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({module_id:${moduleId},title:'Legacy interactive',lesson_type:'interactive',content_text:'Work with a partner.',status:'draft'})}).then(r=>r.json())`);
+const legacyImage=await evaluate(`(async()=>{const c=document.createElement('canvas');c.width=c.height=8;const blob=await new Promise(r=>c.toBlob(r,'image/png'));const fd=new FormData();for(const [k,v] of Object.entries({module_id:'${moduleId}',title:'Legacy image',lesson_type:'quiz_prep',content_text:'Label the figure.',status:'draft'}))fd.append(k,v);fd.append('lesson_file',blob,'figure.png');return fetch(API_BASE+'/lessons.php',{method:'POST',credentials:'same-origin',body:fd}).then(r=>r.json());})()`);
+check(legacyInteractive.success&&legacyImage.success&&/\.png$/.test(legacyImage.data.media_url),'Create a legacy interactive lesson and a legacy lesson with an image');
+await navigate('/teacher/modules.html?module='+moduleId);
+check(await waitFor(`${rowTitled('Legacy interactive')}?.querySelector('[data-meta]').textContent==='Interactive · no time set'`),'A legacy interactive lesson keeps its row');
+await evaluate(`${rowTitled('Legacy interactive')}.querySelector('[data-edit]').click()`);
+check(await waitFor(`document.querySelector('.cs-sheet [name="title"]')?.value==='Legacy interactive'&&document.querySelector('.cs-sheet [data-drop]')`),'A legacy lesson without a file opens with the drop zone');
+await sheetSet('[name="title"]','Legacy interactive edited');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Legacy interactive edited')}?.querySelector('[data-meta]').textContent==='Interactive · no time set'`),'A legacy lesson saves without a file');
+check((await savedLesson('Legacy interactive edited')).lesson_type==='interactive','Editing a legacy lesson keeps its kind');
+await evaluate(`${rowTitled('Legacy image')}.querySelector('[data-edit]').click()`);
+check(await waitFor(`${sheetCard}?.querySelector('img')&&${cardMeta}.startsWith('Image')&&${sheetCard}.querySelector('[data-replace]')&&${sheetCard}.querySelector('[aria-label="Remove file"]')`),'A legacy image attachment still shows with Replace and Remove');
+await sheetSet('[name="title"]','Legacy image edited');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Legacy image edited')}`),'A lesson with a legacy attachment saves without a new file');
+const keptImage=await savedLesson('Legacy image edited');
+check(keptImage.lesson_type==='quiz_prep'&&keptImage.media_url===legacyImage.data.media_url,'The legacy kind and attachment are kept');
+await evaluate(`${rowTitled('Legacy image edited')}.querySelector('[data-edit]').click()`);
+await waitFor(`${sheetCard}?.querySelector('img')`);
+await chooseAs('sample.docx','labels.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+check(await waitFor(`${cardMeta}.startsWith('Word')`)&&await evaluate(`${titleIs}==='Legacy image edited'`),'Replacing a legacy attachment with a Word file keeps the saved title');
+await saveSheet();
+check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Legacy image edited')}?.querySelector('[data-meta]').textContent==='Word · no time set'`),'The replaced lesson becomes a Word lesson');
+check((await savedLesson('Legacy image edited')).lesson_type==='reading','A file replaced by a document makes the lesson a reading lesson');
 // One save at a time, no closing mid-upload, and a toast instead of a footer note.
 const lessonsTitled=title=>evaluate(`fetch(API_BASE+'/lessons.php?module_id=${moduleId}',{credentials:'same-origin'}).then(r=>r.json()).then(j=>j.data.filter(l=>l.title===${JSON.stringify(title)}).length)`);
 await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
 await waitFor(`document.querySelector('.cs-sheet')`);
+await chooseAs('sample.pdf','once.pdf');
+await waitFor(`${titleIs}==='Once'`);
 await sheetSet('[name="title"]','Once only');
 await evaluate(`window.__slow=true;const slowFetch=window.fetch;window.fetch=(url,opts)=>String(url).includes('lessons.php')&&opts&&opts.method==='POST'&&window.__slow?new Promise(r=>setTimeout(r,1500)).then(()=>slowFetch(url,opts)):slowFetch(url,opts);`);
 await evaluate(`(()=>{const f=document.querySelector('.cs-sheet form');f.requestSubmit();f.requestSubmit();})()`);
@@ -568,13 +742,20 @@ check(await waitFor(`[...document.querySelectorAll('#workspaceView .cs-row-title
 check(await lessonsTitled('Once only')===1,'Submitting twice creates exactly one lesson');
 await evaluate(`window.__slow=false`);
 check(await evaluate(`document.body.style.overflow!=='hidden'&&![...document.body.children].some(el=>el.inert)`),'The page is usable again after the sheet closes');
-// Phone width: the sheet is full screen with no sideways scroll.
+// Phone width: the sheet is full screen with no sideways scroll; the drop zone and the file card fit.
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:800,deviceScaleFactor:2,mobile:true});
 await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet')&&document.querySelector('.cs-sheet').getAnimations().length===0`),'The sheet opens at 390px');
-check(await evaluate(`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect();const b=document.querySelector('.cs-sheet-body');return s.width===innerWidth&&s.height===innerHeight&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`),'The sheet is full screen with no sideways scroll at 390px');
-check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-type')].every(t=>{const r=t.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&t.scrollWidth<=t.clientWidth;})`),'The type tiles fit at 390px');
+const sheetFits=`(()=>{const s=document.querySelector('.cs-sheet').getBoundingClientRect();const b=document.querySelector('.cs-sheet-body');return s.width===innerWidth&&s.height===innerHeight&&b.scrollWidth<=b.clientWidth&&document.documentElement.scrollWidth<=innerWidth;})()`;
+const panelFits=`(()=>{const p=document.querySelector('.cs-sheet [data-file-panel]');return [...p.querySelectorAll('button, .cs-thumb, .cs-row-title, [data-attach-meta]')].every(el=>${inside('p','el')});})()`;
+check(await evaluate(sheetFits),'The sheet is full screen with no sideways scroll at 390px');
+check(await evaluate(panelFits),'The drop zone and Choose file fit at 390px');
+await chooseAs('sample.pdf','a-very-long-file-name-for-the-phone-check-of-the-lesson-file-card.pdf');
+check(await waitFor(`${sheetCard}?.querySelector('canvas[data-rendered]')`)&&await evaluate(sheetFits)&&await evaluate(panelFits),'The file card with Replace and Remove fits at 390px');
 await key('Escape');
+await waitFor(`document.querySelector('dialog.toast-confirm[open]')`);
+await evaluate(`document.querySelector('dialog.toast-confirm .toast-confirm__go').click()`);
+check(await waitFor(`!document.querySelector('.cs-sheet')`),'Discarding a chosen file closes the sheet at 390px');
 await call('Emulation.clearDeviceMetricsOverride');
 
 // ── Assessments ─────────────────────────────────────────────────

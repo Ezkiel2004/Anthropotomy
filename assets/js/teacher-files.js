@@ -8,7 +8,7 @@ const TeacherFiles = (() => {
     const MAX_BYTES = 100 * 1024 * 1024;
     const TYPES = ['pdf', 'ppt', 'pptx', 'doc', 'docx'];
     const size = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
-    const icon = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#${name}"/></svg>`;
+    const icon = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#${name}"/></svg>`;
     const extOf = name => String(name).split('.').pop().toLowerCase();
     const fileUrl = id => `${API_BASE}/files.php?id=${id}`;
     const contextFor = (kind, context) => context || (kind === 'lesson_plan' ? 'Lesson plans' : 'Materials');

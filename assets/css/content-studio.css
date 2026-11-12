@@ -117,6 +117,7 @@ body.stage-portal .cs-select select:focus { box-shadow: none; outline: none; }
 /* Lesson kind colours */
 .t-reading { --t: #8ec5ff; } .t-video { --t: #ff8a8f; } .t-pdf { --t: #ffb86b; } .t-image { --t: #c4a7ff; }
 .t-3d { --t: var(--cs-mint); } .t-interactive { --t: #7fe0ff; } .t-prep { --t: #f5d76e; }
+.t-slides { --t: #ff8f6b; } .t-document { --t: #82a4ff; }
 .cs-tile { width: 2.5rem; height: 2.5rem; border-radius: .75rem; display: grid; place-items: center; flex: none; color: var(--t); background: color-mix(in srgb, var(--t) 13%, var(--cs-s2)); }
 
 /* Module workspace */
@@ -150,6 +151,9 @@ body.stage-portal .cs-select select:focus { box-shadow: none; outline: none; }
 .cs-thumb { width: 2.75rem; height: 3.5rem; border-radius: .375rem; background: #f4f4f4; flex: none; overflow: hidden; display: grid; place-items: center; color: #555; box-shadow: 0 6px 14px -6px rgba(0,0,0,.6); }
 .cs-thumb canvas, .cs-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .cs-thumb--doc { background: #2b5797; color: #fff; font: 700 .625rem/1 var(--font-body); }
+.cs-thumb--ppt { background: #c4462b; }
+.cs-thumb-file { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.cs-thumb-file .cs-ico { width: 1.35rem; height: 1.35rem; }
 .cs-side { display: flex; flex-direction: column; gap: 1.25rem; }
 .cs-quiz { display: flex; align-items: center; gap: .75rem; padding: .75rem; }
 
@@ -378,6 +382,15 @@ body.stage-portal .cs-pick select.cs-input:invalid { color: var(--cs-muted); }
 button.cs-drop { width: 100%; background: none; border: 0; font-family: var(--font-body); text-align: left; cursor: pointer; }
 button.cs-drop:hover, button.cs-drop.is-over { color: var(--cs-ink); box-shadow: inset 0 0 0 1.5px var(--cs-mint); }
 button.cs-drop:focus-visible { outline: none; box-shadow: var(--cs-focus); }
+/* Lesson editor, file first (assets/js/lesson-sheet.js): the lesson file panel takes a drop anywhere on it. */
+.cs-drop--file { flex-direction: column; justify-content: center; gap: .625rem; padding: 1.75rem 1rem; text-align: center; cursor: pointer; }
+.cs-drop--file > .cs-ico { width: 1.75rem; height: 1.75rem; color: var(--cs-soft); }
+.cs-drop--file:hover { color: var(--cs-ink); }
+.cs-attach--file { padding: 1rem; }
+.cs-attach--file .cs-thumb { width: 4rem; height: 5.25rem; }
+.cs-attach--file .cs-row-title { font-size: .9375rem; }
+.cs-attach-gets { margin-top: .35rem; color: var(--cs-mint); }
+.cs-file-field.is-over .cs-drop, .cs-file-field.is-over .cs-attach { color: var(--cs-ink); box-shadow: inset 0 0 0 1.5px var(--cs-mint); }
 .cs-switch { position: relative; cursor: pointer; min-height: 2.75rem; }
 .cs-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
 .cs-switch input:not(:checked) + i { background: var(--cs-s4); box-shadow: inset 0 0 0 1px var(--cs-line-2); }
@@ -437,6 +450,8 @@ body.stage-portal .toast { z-index: 2100; }
   .cs-head .cs-actions .cs-btn--primary { flex: 1; justify-content: center; }
   .cs-sheet, .cs-modal { inset: 0; top: 0; right: 0; bottom: 0; left: 0; width: auto; max-height: none; transform: none; border-radius: 0; }
   .cs-two { grid-template-columns: 1fr; }
+  .cs-attach--file { gap: .75rem; padding: .875rem; }
+  .cs-attach--file .cs-thumb { width: 3.25rem; height: 4.25rem; }
   .cs-types { gap: .375rem; }
   .cs-type { font-size: .6875rem; padding-left: .125rem; padding-right: .125rem; }
   .cs-sheet-head, .cs-sheet-body, .cs-sheet-foot { padding-left: 1rem; padding-right: 1rem; }

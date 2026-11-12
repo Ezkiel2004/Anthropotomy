@@ -1,6 +1,7 @@
 /* One PDF viewer for lessons, materials and lesson plans. Renders with the vendored pdf.js (assets/vendor/pdfjs/), no browser tab, no iframe.
-   PdfViewer.mount(container, {url, title, downloadUrl}) → Promise<{destroy()}>   inline viewer
-   PdfViewer.open({url, title, downloadUrl, context}) → {close()}                 full-screen viewer with a thumbnail rail; context labels where it came from
+   PdfViewer.mount(container, {url, title, downloadUrl, note}) → Promise<{destroy()}>   inline viewer
+   PdfViewer.open({url, title, downloadUrl, context, note}) → {close()}                 full-screen viewer with a thumbnail rail; context labels where it came from
+   note (optional): the teacher's note, shown as plain text in a strip under the toolbar that the reader can hide.
    PdfViewer.thumbnail(canvas, url) → Promise<number>                             draws page 1 into a canvas, resolves to the page count
    PdfViewer.pageCount(url) → Promise<number>                                     reads the page count without drawing
    Pages are empty placeholders; only the ones near the viewport are drawn, and they are released again when they scroll far away.
@@ -9,12 +10,12 @@ const PdfViewer = (() => {
     const SCRIPT_SRC = document.currentScript?.src || document.querySelector('script[src*="pdf-viewer.js"]')?.src || location.href;
     const LIB_BASE = new URL('../vendor/pdfjs/', SCRIPT_SRC).href;
     const LIB_VERSION = '?v=4.10.38-legacy';  // pdf.js legacy build: runs on browsers without Promise.withResolvers
-    const ICONS = new URL('../icons/interface.svg?v=20261111-icons4', SCRIPT_SRC).href;
+    const ICONS = new URL('../icons/interface.svg?v=20261112-icons5', SCRIPT_SRC).href;
     const FIT_MAX = 896;                       // 56rem: the widest a "fit width" page gets
     const PERCENTS = [50, 75, 100, 125, 150, 200];
     const PX_PER_PT = 96 / 72;
     const NEAR = '600px 0px';                  // how far outside the view a page is still drawn
-    let libPromise = null, active = null;
+    let libPromise = null, active = null, notes = 0;
 
     const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
     const icon = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICONS}#${name}"/></svg>`;
@@ -61,8 +62,18 @@ const PdfViewer = (() => {
         try { return pdf.numPages; } finally { task.destroy(); }
     }
 
+    // The teacher's note under the toolbar: escaped text that keeps its line breaks, with a Hide / Show note toggle.
+    // One line, no stray whitespace: the body keeps line breaks (white-space: pre-line).
+    function noteStrip(note) {
+        const text = String(note ?? '').trim();
+        if (!text) return '';
+        const id = 'pv-note-' + ++notes;
+        return `<div class="pv-note">${icon('info')}<p class="pv-note-body"><b>Note from your teacher<span class="pv-note-colon">:</span></b> <span class="pv-note-text" id="${id}">${esc(text)}</span></p>`
+            + `<button type="button" class="pv-note-toggle" data-note-toggle aria-expanded="true" aria-controls="${id}">Hide</button></div>`;
+    }
+
     /* Builds the viewer into root and returns {destroy()}. full: draw the thumbnail rail and answer keys anywhere (Escape included). */
-    function build(root, {url, title = 'Document', downloadUrl = url}, {full, onClose, onFullScreen}) {
+    function build(root, {url, title = 'Document', downloadUrl = url, note = ''}, {full, onClose, onFullScreen}) {
         const name = esc(title), cleanups = [];
         let pdf = null, task = null, dead = false, zoom = 'fit', current = 1, natural = null, stageWidth = 0;
         root.innerHTML = `
@@ -79,6 +90,7 @@ const PdfViewer = (() => {
             <a class="pv-btn" href="${esc(downloadUrl)}" download aria-label="Download">${icon('download-simple')}</a>
             ${full ? '' : button('corners-out', 'Full screen', 'data-full')}
           </div>
+          ${noteStrip(note)}
           <div class="pv-body">
             ${full ? '<div class="pv-rail" aria-hidden="true"></div>' : ''}
             <div class="pv-stage" tabindex="0" role="document" aria-label="${name} pages"><p class="pv-loading">Loading document…</p></div>
@@ -199,6 +211,13 @@ const PdfViewer = (() => {
             else if (control.dataset.zoomOut !== undefined) stepZoom(-1);
             else if (control.dataset.full !== undefined) onFullScreen?.();
             else if (control.dataset.rail) goTo(control.dataset.rail);
+            else if (control.dataset.noteToggle !== undefined) {
+                const open = control.getAttribute('aria-expanded') !== 'true';
+                control.setAttribute('aria-expanded', String(open));
+                control.textContent = open ? 'Hide' : 'Show note';
+                $('.pv-note-text').hidden = !open;
+                $('.pv-note-colon').hidden = !open;
+            }
         });
         listen(input, 'keydown', e => { if (e.key === 'Enter') { goTo(input.value); stage.focus(); } });
         listen(input, 'blur', () => { input.value = current; });

@@ -11,24 +11,24 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-shelf1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261112-files1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#list"/></svg></button>
       <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Quizzes and Activities</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -66,7 +66,7 @@
       <section class="sd-block" aria-labelledby="availableAssessmentsTitle">
         <div class="sd-stack">
           <label class="sd-search">
-            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg>
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#magnifying-glass"/></svg>
             <span class="sr-only">Search quizzes</span>
             <input type="search" id="assessmentSearchInput" placeholder="Search quizzes or body systems" autocomplete="off" oninput="handleAssessmentSearch(this.value)">
           </label>
@@ -93,7 +93,7 @@
             <p class="sd-run-progress" id="questionProgress">Question 1 of 1</p>
           </div>
           <div class="sd-timer" id="quizTimer">
-            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#clock"/></svg>
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#clock"/></svg>
             <span id="timerDisplay">—</span><span class="sr-only"> left</span>
           </div>
           <button type="button" class="sd-ghost" onclick="confirmExitQuiz()">Exit</button>
@@ -128,9 +128,9 @@
         </section>
 
         <div class="sd-run-nav">
-          <button type="button" class="sd-ghost" id="prevBtn" onclick="prevQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#arrow-left"/></svg>Back</button>
-          <button type="button" class="sd-ghost" id="flagBtn" aria-pressed="false" onclick="toggleFlagCurrentQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#flag"/></svg><span id="flagLabel">Flag</span></button>
-          <button type="button" class="sd-go sd-go--accent" id="nextBtn" onclick="nextQuestion()"><span id="nextLabel">Next</span><span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#arrow-right"/></svg></span></button>
+          <button type="button" class="sd-ghost" id="prevBtn" onclick="prevQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#arrow-left"/></svg>Back</button>
+          <button type="button" class="sd-ghost" id="flagBtn" aria-pressed="false" onclick="toggleFlagCurrentQuestion()"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#flag"/></svg><span id="flagLabel">Flag</span></button>
+          <button type="button" class="sd-go sd-go--accent" id="nextBtn" onclick="nextQuestion()"><span id="nextLabel">Next</span><span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#arrow-right"/></svg></span></button>
         </div>
 
         <section class="sd-block" aria-labelledby="qmapTitle">
@@ -165,7 +165,7 @@
         </section>
 
         <div class="sd-actions">
-          <a id="resultStudyLink" href="anatomy.html" class="sd-go sd-go--accent">Explore this system in 3D<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#arrow-right"/></svg></span></a>
+          <a id="resultStudyLink" href="anatomy.html" class="sd-go sd-go--accent">Explore this system in 3D<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#arrow-right"/></svg></span></a>
           <button type="button" class="sd-ghost" onclick="exitQuiz()">Back to quizzes</button>
           <a href="progress.html#scores" class="sd-ghost">All my scores</a>
         </div>
@@ -174,9 +174,9 @@
   </main>
 </div>
 
-<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
-<script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/student-portal.js?v=20261112-shelf1"></script>
+<script src="../assets/js/app.js?v=20261112-files1"></script>
+<script src="../assets/js/content-format.js?v=20261112-files1"></script>
+<script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');

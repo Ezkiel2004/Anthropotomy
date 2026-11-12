@@ -4,9 +4,9 @@
 // input values and attribute setters, never parsed as HTML.
 // Importing this module touches no DOM; main() runs only in a page.
 
-import {GAMES} from './shell.js?v=20261111-redesign1';
+import {GAMES} from './shell.js?v=20261112-files1';
 
-const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
+const SPRITE = '../assets/icons/interface.svg?v=20261112-icons5';
 
 // The only icons a badge can use, in picker order.
 export const BADGE_ICONS = [

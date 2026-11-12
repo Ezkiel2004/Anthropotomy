@@ -11,25 +11,25 @@
   <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-shelf1"/>
+  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-files1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
-  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261111-pv2"/>
+  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261112-files1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
 <div class="app-layout">
-  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261111-redesign1"></script></aside>
+  <aside class="sidebar" id="sidebar" data-portal="student" aria-label="Student portal"><script src="../assets/js/sidebar.js?v=20261112-files1"></script></aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <main class="main-content" id="mainContent">
     <header class="topbar">
-      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#list"/></svg></button>
+      <button class="topbar-toggle" id="sidebarToggle" aria-label="Toggle navigation"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#list"/></svg></button>
       <a class="sd-brand" href="dashboard.html" aria-label="Dashboard"><img src="../assets/brand/mark-96.png" width="36" height="36" alt=""/></a>
       <div class="topbar-breadcrumb"><span class="breadcrumb-item">Student Portal</span><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Lessons</span></div>
       <div class="topbar-actions">
         <div style="position:relative;">
           <button class="notif-btn" id="notifBtn" aria-label="Notifications">
-            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#bell"/></svg>
+            <svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#bell"/></svg>
             <span class="notif-dot" style="display:none;" aria-hidden="true"></span>
           </button>
           <div class="notif-dropdown" id="notifDropdown" style="display:none;">
@@ -59,7 +59,7 @@
       <section class="sd-block" aria-labelledby="availableModulesTitle">
         <div class="sd-stack">
           <label class="sd-search">
-            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#magnifying-glass"/></svg>
+            <svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#magnifying-glass"/></svg>
             <span class="sr-only">Search modules</span>
             <input type="search" id="lessonSearchInput" placeholder="Search modules or body systems" autocomplete="off" oninput="handleLessonSearch(this.value)">
           </label>
@@ -77,13 +77,13 @@
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="lessonModalTitle">
     <div class="modal-header">
       <h3 id="lessonModalTitle">Module</h3>
-      <button class="modal-close" onclick="closeModal('lessonModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#x-circle"/></svg></button>
+      <button class="modal-close" onclick="closeModal('lessonModal')" aria-label="Close dialog"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#x-circle"/></svg></button>
     </div>
     <div class="modal-body" id="lessonModalBody"></div>
     <div class="modal-footer">
-      <a id="lessonModalExploreBtn" href="anatomy.html" class="sd-ghost"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#cube"/></svg>View in 3D</a>
+      <a id="lessonModalExploreBtn" href="anatomy.html" class="sd-ghost"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#cube"/></svg>View in 3D</a>
       <span class="sd-modal-spacer"></span>
-      <a id="lessonModalQuizBtn" href="quiz.html" class="sd-go sd-go--light sd-go--sm">Take a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261111-icons4#arrow-right"/></svg></span></a>
+      <a id="lessonModalQuizBtn" href="quiz.html" class="sd-go sd-go--light sd-go--sm">Take a quiz<span class="sd-go-disc"><svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#arrow-right"/></svg></span></a>
     </div>
   </div>
 </div>
@@ -91,11 +91,11 @@
 <!-- Lesson reader: a full-screen page, filled when a lesson opens -->
 <div class="sd-reader" id="lessonContentViewer" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<script src="../assets/js/app.js?v=20261112-dialogs1"></script>
-<script src="../assets/js/content-format.js?v=20261111-cf1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261111-redesign1"></script>
-<script src="../assets/js/lesson-reader.js?v=20261111-lr2"></script>
-<script src="../assets/js/student-portal.js?v=20261112-shelf1"></script>
+<script src="../assets/js/app.js?v=20261112-files1"></script>
+<script src="../assets/js/content-format.js?v=20261112-files1"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261112-files1"></script>
+<script src="../assets/js/lesson-reader.js?v=20261112-files1"></script>
+<script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
 'use strict';
 Auth.requireAuthSync('student');
@@ -212,23 +212,16 @@ async function viewModule(moduleId) {
     ]);
     const lessons = result.success ? result.data : [];
     const materials = filesResult?.success ? filesResult.data : [];
+    const downloads = lessons.some(l => ['slides', 'document'].includes(ContentFormat.lessonKind(l)));
+    shownModule = module;
 
     body.innerHTML = `
       <div class="sd-modsum" style="--card:${systemLook(module.system_code).colour}">
         ${module.description ? `<p>${escHtml(module.description)}</p>` : ''}
         <div class="sd-mod-foot"><span class="sd-mod-count">${escHtml(module.system_name || '')} · ${plural(lessons.length, 'lesson')}</span></div>
       </div>
-      <div class="sd-lessons">
-        ${lessons.length ? lessons.map((l, i) => {
-          const meta = [l.duration_mins ? l.duration_mins + ' min' : 'Self-paced', l.lesson_type ? l.lesson_type.replace('_', ' ') : 'Theory'].join(' · ');
-          return `
-            <button type="button" class="sd-lesson" onclick="startLesson(${l.lesson_id})">
-              <span class="sd-lesson-num">${i + 1}</span>
-              <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(l.title)}</span><span class="sd-lesson-meta">${escHtml(meta)}</span></span>
-              <span class="sd-lesson-go">Open${icon('arrow-right')}</span>
-            </button>`;
-        }).join('') : '<div class="dashboard-empty">This module has no lessons yet.</div>'}
-      </div>
+      ${lessons.length ? `<ol class="sd-files">${lessons.map(lessonCard).join('')}</ol>` : '<div class="dashboard-empty">This module has no lessons yet.</div>'}
+      ${downloads ? `<p class="sd-files-hint">${icon('info')}PDFs open here. PowerPoint and Word files download and open in the app on your device.</p>` : ''}
       ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
         return `<${isPdf ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}" data-context="${escHtml(module.title)} · Materials"` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
@@ -237,8 +230,93 @@ async function viewModule(moduleId) {
           <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
         </${isPdf ? 'button' : 'a'}>`;
       }).join('')}</div>` : ''}`;
+    body.querySelectorAll('.sd-file[data-kind="pdf"]').forEach(showPdfPreview);
   } catch (e) {
     body.innerHTML = '<div class="dashboard-empty sd-error" role="status">We couldn’t load this module’s lessons. Please try again.</div>';
+  }
+}
+
+// ── Lesson files ───────────────────────────────────────────────
+// A module's lessons are files. A PDF opens full screen in the viewer with the teacher's note; PowerPoint and Word
+// download and open in the app on the device; older lessons (text, video, image, 3D) open in the lesson reader.
+// Cards carry only lesson ids; one delegated listener below opens them.
+let shownModule = null;
+const lessonMeta = (label, parts) => `<b>${escHtml(label)}</b>${parts.filter(Boolean).map(p => ' · ' + escHtml(p)).join('')}`;
+const minutes = lesson => (Number(lesson.duration_mins) > 0 ? `${lesson.duration_mins} min` : '');
+
+function lessonCard(lesson, i) {
+  const kind = ContentFormat.lessonKind(lesson);
+  const { label, icon: kindIcon } = ContentFormat.KINDS[kind];
+  const title = escHtml(lesson.title);
+  const named = `<span class="sr-only"> ${title}</span>`;
+  let thumb, meta, go;
+  if (kind === 'pdf') {
+    thumb = `<span class="sd-file-thumb sd-file-thumb--page" aria-hidden="true">${icon('file-pdf')}</span>`;
+    meta = lessonMeta(label, [minutes(lesson)]);
+    go = `<button type="button" class="sd-file-go">Read${named}${icon('arrow-right')}</button>`;
+  } else if (kind === 'slides' || kind === 'document') {
+    const ext = String(lesson.media_url).split(/[?#]/)[0].split('.').pop().toLowerCase();
+    thumb = `<span class="sd-file-thumb sd-file-thumb--${kind}" aria-hidden="true"><span>${icon(kindIcon)}${escHtml(ext.toUpperCase())}</span></span>`;
+    meta = lessonMeta(label, [`opens in ${label}`, minutes(lesson)]);
+    go = `<a class="sd-file-go sd-file-go--file" href="${escHtml(lesson.media_url)}" download="${escHtml(`${lesson.title}.${ext}`)}">${icon('download-simple')}Download${named}</a>`;
+  } else {
+    thumb = `<span class="sd-file-thumb sd-file-thumb--kind t-${kind}" aria-hidden="true">${icon(kindIcon)}</span>`;
+    meta = lessonMeta(label, [minutes(lesson)]);
+    go = `<button type="button" class="sd-file-go">Open${named}${icon('arrow-right')}</button>`;
+  }
+  return `<li class="sd-file" data-lesson="${Number(lesson.lesson_id)}" data-kind="${kind}"${kind === 'pdf' ? ` data-pdf="${escHtml(lesson.media_url)}" data-mins="${Number(lesson.duration_mins) || 0}"` : ''}>
+      <span class="sd-file-num" aria-hidden="true">${i + 1}</span>${thumb}
+      <span class="sd-file-copy"><span class="sd-file-title">${title}</span><span class="sd-file-meta">${meta}</span></span>
+      ${go}
+    </li>`;
+}
+
+// First page and page count of each PDF lesson, kept for the visit and loaded at most two at a time.
+const pdfPreviews = new Map();
+const twoAtATime = (() => {
+  let running = 0;
+  const waiting = [];
+  const next = () => {
+    if (running >= 2 || !waiting.length) return;
+    running++;
+    const { job, resolve, reject } = waiting.shift();
+    job().then(resolve, reject).finally(() => { running--; next(); });
+  };
+  return job => new Promise((resolve, reject) => { waiting.push({ job, resolve, reject }); next(); });
+})();
+function pdfPreview(url) {
+  if (!pdfPreviews.has(url)) {
+    const preview = twoAtATime(async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 104;   // twice the card's thumbnail width
+      const pages = await PdfViewer.thumbnail(canvas, url);
+      return { pages, src: canvas.toDataURL('image/png') };
+    });
+    preview.catch(() => pdfPreviews.delete(url));   // a file that failed to load is tried again next time
+    pdfPreviews.set(url, preview);
+  }
+  return pdfPreviews.get(url);
+}
+function showPdfPreview(card) {
+  pdfPreview(card.dataset.pdf).then(({ pages, src }) => {
+    if (!card.isConnected) return;
+    card.querySelector('.sd-file-thumb').innerHTML = `<img src="${src}" alt=""/>`;
+    card.querySelector('.sd-file-meta').innerHTML = lessonMeta('PDF', [plural(pages, 'page'), minutes({ duration_mins: card.dataset.mins })]);
+  }).catch(() => {});
+}
+
+// Read: the full lesson carries the teacher's note, shown in a strip under the viewer's toolbar.
+async function readLesson(card) {
+  const go = card.querySelector('.sd-file-go');
+  const position = [...card.parentElement.children].indexOf(card) + 1;
+  const module = shownModule;
+  try {
+    const result = await fetch(`${API_BASE}/lessons.php?id=${Number(card.dataset.lesson)}`, { credentials: 'same-origin' }).then(r => r.json());
+    if (!result.success || !result.data?.media_url) { showToast('This lesson isn’t available right now.', 'warning'); return; }
+    if (go.isConnected) go.focus({ preventScroll: true });   // the viewer gives focus back here when it closes
+    PdfViewer.open({ url: result.data.media_url, title: result.data.title, context: `${module.title} · Lesson ${position}`, note: result.data.content_text || '' });
+  } catch (e) {
+    showToast('We couldn’t open the lesson. Check your connection and try again.', 'error');
   }
 }
 
@@ -264,9 +342,15 @@ const lessonReaderRoot = document.getElementById('lessonContentViewer');
 const showLessonContent = lesson => LessonReader.show(lessonReaderRoot, lesson);
 const closeLessonViewer = () => LessonReader.close(lessonReaderRoot);
 // Material PDFs open in the in-app viewer; Word and PowerPoint files stay plain downloads.
+// Lesson cards: Read opens a PDF, Download hands over the file (and counts as study time), Open starts the reader.
 document.getElementById('lessonModalBody').addEventListener('click', e => {
   const item = e.target.closest('[data-material]');
-  if (item) PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title, context: item.dataset.context });
+  if (item) { PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title, context: item.dataset.context }); return; }
+  const go = e.target.closest('.sd-file-go');
+  const card = go?.closest('.sd-file');
+  if (!card) return;
+  if (go.matches('a[download]')) { if (typeof StudyClock !== 'undefined') StudyClock.reading(); return; }
+  if (card.dataset.kind === 'pdf') readLesson(card); else startLesson(Number(card.dataset.lesson));
 });
 
 // ── Init ───────────────────────────────────────────────────────

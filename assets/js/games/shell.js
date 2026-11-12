@@ -158,7 +158,7 @@ export function boardView(board, userId) {
 // Nothing below runs until the page calls boot(); it owns every screen, the settings, sound,
 // the one requestAnimationFrame loop and saving the score.
 
-const ICONS = '../assets/icons/interface.svg?v=20261111-icons4';
+const ICONS = '../assets/icons/interface.svg?v=20261112-icons5';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const MAX_DT = 0.05;                      // a long frame never jumps the game ahead
 const COUNTDOWN = ['3', '2', '1', 'Go'];

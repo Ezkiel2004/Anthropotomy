@@ -10,7 +10,7 @@
  *
  * File upload: POST with Content-Type: multipart/form-data
  *   Fields: module_id, title, lesson_type, content_text, duration_mins, sort_order, status
- *   File:   lesson_file (optional media attachment)
+ *   File:   lesson_file (optional): PDF, PowerPoint (.ppt, .pptx), Word (.doc, .docx), or a legacy video, image or GLB
  */
 
 require_once __DIR__ . '/helpers.php';
@@ -22,6 +22,14 @@ $method = $_SERVER['REQUEST_METHOD'];
 // Upload directory (relative to project root)
 define('UPLOAD_DIR', __DIR__ . '/../uploads/lessons/');
 const LESSON_TYPES = ['reading', 'video', '3d_model', 'interactive', 'quiz_prep'];
+// PowerPoint and Word files: finfo names Office files inconsistently, so the extension decides and the first bytes
+// must match it (a zip for .pptx/.docx, an OLE compound file for the older .ppt/.doc).
+const OFFICE_SIGNATURES = [
+    'pptx' => "PK\x03\x04",
+    'docx' => "PK\x03\x04",
+    'ppt'  => "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",
+    'doc'  => "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",
+];
 
 // ── GET ─────────────────────────────────────────────────────────
 if ($method === 'GET') {
@@ -254,6 +262,15 @@ function _deleteLessonFile(?string $mediaUrl): void {
 
 // ── File Upload Helper ───────────────────────────────────────────
 function _handleFileUpload(array $file, int $userId): string {
+    $origExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (isset(OFFICE_SIGNATURES[$origExt])) {
+        $signature = OFFICE_SIGNATURES[$origExt];
+        if (file_get_contents($file['tmp_name'], false, null, 0, strlen($signature)) !== $signature) {
+            jsonError('That file does not look like a real .' . $origExt . ' file.', 422);
+        }
+        return _storeLessonFile($file, $userId, $origExt);
+    }
+
     $allowedTypes = [
         'image/jpeg'       => 'jpg',
         'image/png'        => 'png',
@@ -272,7 +289,6 @@ function _handleFileUpload(array $file, int $userId): string {
 
     $ext = $allowedTypes[$mimeType] ?? null;
     // Also check extension for .glb and .obj since MIME can be unreliable
-    $origExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!$ext && $origExt === 'glb') {
         $ext = $origExt;
     }
@@ -282,6 +298,10 @@ function _handleFileUpload(array $file, int $userId): string {
     }
 
     if ($ext === 'glb' && file_get_contents($file['tmp_name'], false, null, 0, 4) !== 'glTF') jsonError('Upload a valid GLB model.', 422);
+    return _storeLessonFile($file, $userId, $ext);
+}
+
+function _storeLessonFile(array $file, int $userId, string $ext): string {
     // Max 500 MB (videos); api/.htaccess raises PHP's own limits to match
     if ($file['size'] > 500 * 1024 * 1024) {
         jsonError('File too large. Maximum size is 500 MB.', 422);

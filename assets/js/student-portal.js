@@ -1,7 +1,7 @@
 /* Student notification controls (the account menu lives in app.js), plus the Anthropotomy Stage
    helpers every student page draws with (icons, card colours, body-system art). */
 'use strict';
-const ICON_SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
+const ICON_SPRITE = '../assets/icons/interface.svg?v=20261112-icons5';
 const icon = name => `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="${ICON_SPRITE}#${name}"/></svg>`;
 const plural = (count, word, many = word + 's') => `${count} ${count === 1 ? word : many}`;
 

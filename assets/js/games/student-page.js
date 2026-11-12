@@ -2,9 +2,9 @@
 // score, this week's points board for their section, and the badges. Names and badge titles are
 // user-supplied, so they only ever reach the page through textContent and attribute setters.
 
-import {GAMES, bestScore} from './shell.js?v=20261111-redesign1';
+import {GAMES, bestScore} from './shell.js?v=20261112-files1';
 
-const SPRITE = '../assets/icons/interface.svg?v=20261111-icons4';
+const SPRITE = '../assets/icons/interface.svg?v=20261112-icons5';
 
 // Units for a badge's progress line ("7 / 10 games"); percentages read "40% / 75%".
 const UNITS = {

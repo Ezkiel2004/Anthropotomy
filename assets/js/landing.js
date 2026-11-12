@@ -6,7 +6,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const media = query => window.matchMedia(query);
 const reducedMotion = media('(prefers-reduced-motion: reduce)');
 const wideNav = media('(min-width: 72rem)');
-const ICONS = 'assets/icons/interface.svg?v=20261111-icons4';
+const ICONS = 'assets/icons/interface.svg?v=20261112-icons5';
 
 function setIcon(svg, name) {
   svg?.querySelector('use')?.setAttribute('href', `${ICONS}#${name}`);
