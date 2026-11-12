@@ -90,7 +90,7 @@ const LessonSheet = (() => {
     const unblockDrop = () => { document.removeEventListener('dragover', blockDrop); document.removeEventListener('drop', blockDrop); };
 
     const where = moduleTitle || lesson?.module_title || 'Lessons';
-    const sheet = Studio.sheet({ eyebrow: editing && position ? `${where} · Lesson ${position}` : where, title: editing ? 'Edit lesson' : 'New lesson', body: form, footer: foot, onClose: unblockDrop });
+    const sheet = Studio.sheet({ eyebrow: editing && position ? `${where} · Lesson ${position}` : where, title: editing ? 'Edit lesson' : 'Add lesson', body: form, footer: foot, onClose: unblockDrop });
     const note = foot.querySelector('#lsNote');
     const saveButton = foot.querySelector('[type="submit"]');
     const input = form.querySelector('#lsFile');

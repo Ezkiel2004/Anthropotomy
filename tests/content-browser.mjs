@@ -580,7 +580,7 @@ const rowTitled=title=>`[...document.querySelectorAll('#workspaceView .cs-row')]
 const savedLesson=async title=>(await moduleRow()).lessons.find(l=>l.title===title);
 await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click()`);
 check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"]')`),'Add lesson opens the sheet');
-check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='New lesson'`),'The sheet is titled New lesson');
+check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Add lesson'`),'The sheet is titled Add lesson');
 check(await evaluate(`!document.querySelector('.cs-sheet .cs-type')&&!document.querySelector('.cs-sheet [name="lesson_type"]')`),'There are no lesson kind tiles');
 check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-field > label:not(.cs-switch), .cs-sheet .cs-field > .cs-label')].map(l=>l.firstChild.textContent.trim()).join('|')`)==='Lesson file|Title|Note for students|Time to study|Visible to students','The file comes first, then title, note for students, time and visibility');
 check(await evaluate(`(()=>{const d=document.querySelector('.cs-sheet [data-file-panel] [data-drop]');return !!d&&[...d.querySelectorAll('button')].some(b=>b.textContent.trim()==='Choose file')&&!document.querySelector('.cs-sheet .cs-attach');})()`),'A new lesson starts with a drop zone and Choose file');
