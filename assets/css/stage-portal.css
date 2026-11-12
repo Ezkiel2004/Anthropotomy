@@ -625,3 +625,23 @@ a.sd-lesson{text-decoration:none}
 .sd-next[data-kind="explore"] .sd-next-kicker{font-size:.75rem;letter-spacing:.04em}
 .sd-next[data-kind="explore"] .sd-next-title{font-size:clamp(1.5rem,2.6vw,2.125rem);line-height:1.05}
 @media (max-width:47.99rem){.sd-next-lineup{left:30%;opacity:.4}}
+
+/* In-app dialogs (confirmToast / promptToast in app.js) on portal pages: the dark Studio card
+   instead of the landing page's cream cartoon card. One mint confirm button, a neutral cancel. */
+body.stage-portal .toast-confirm{width:min(26rem,calc(100vw - 2rem));padding:1.375rem 1.5rem 1.25rem;border:0;border-radius:1.25rem;background:#191919;color:#f5f5f5;box-shadow:0 30px 80px -20px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06)}
+body.stage-portal .toast-confirm::backdrop{background:rgba(0,0,0,.62)}
+body.stage-portal .toast-confirm h2{margin:0 0 .5rem;font-family:var(--font-body);font-size:1.125rem;font-weight:700;letter-spacing:-.01em;line-height:1.3;color:#f5f5f5;text-transform:none}
+body.stage-portal .toast-confirm p{margin:0 0 1.25rem;font-size:.9375rem;font-weight:400;line-height:1.55;color:#c9c9c9}
+body.stage-portal .toast-confirm__row{justify-content:flex-end;gap:.625rem}
+body.stage-portal .toast-confirm__row button{height:2.5rem;padding:0 1.125rem;border:0;border-radius:999px;box-shadow:none;font-family:var(--font-body);font-size:.875rem;font-weight:600;transition:background-color .15s}
+body.stage-portal .toast-confirm__row button:hover,body.stage-portal .toast-confirm__row button:active{transform:none;box-shadow:none}
+body.stage-portal .toast-confirm__row button:focus-visible{outline:2px solid #36e2c0;outline-offset:2px}
+body.stage-portal .toast-confirm__stay{background:#282828;color:#f5f5f5}
+body.stage-portal .toast-confirm__stay:hover{background:#313131}
+body.stage-portal .toast-confirm__go{background:#36e2c0;color:#0d0d0d}
+body.stage-portal .toast-confirm__go:hover{background:#5ee9cd}
+body.stage-portal .toast-confirm__field{gap:.5rem;margin:0 0 1rem;font-size:.8125rem;font-weight:600;color:#c9c9c9}
+body.stage-portal .toast-confirm__field input{min-height:2.75rem;padding:.75rem .875rem;border:0;border-radius:.75rem;background:#202020;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);color:#f5f5f5;font-family:var(--font-body);font-size:.9375rem}
+body.stage-portal .toast-confirm__field input:focus-visible{outline:2px solid #36e2c0;outline-offset:2px}
+body.stage-portal .toast-confirm__field input[aria-invalid="true"]{box-shadow:inset 0 0 0 1.5px #f2545b}
+body.stage-portal .toast-confirm p.toast-confirm__error{margin:-.5rem 0 1rem;font-size:.8125rem;font-weight:600;color:#ff8a8f}
