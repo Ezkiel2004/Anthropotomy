@@ -1023,6 +1023,23 @@ await navigate('/student/dashboard.html');
 check(await waitFor(`document.getElementById('recentScoresTable')`),'Student dashboard loads');
 check(await evaluate(`![...document.querySelectorAll('th')].some(h=>h.textContent==='Type')`),'Recent results have no Type column');
 
+// ── Body-system shelf: hidden scrollbar, but the mouse can still reach every card ──
+await call('Emulation.setDeviceMetricsOverride',{width:1366,height:900,deviceScaleFactor:1,mobile:false});
+check(await waitFor(`document.querySelector('#systemProgressGrid .sd-sys')`),'The body-system shelf has cards');
+await evaluate(`(()=>{const s=document.getElementById('systemProgressGrid');const c=s.querySelector('.sd-sys');for(let k=0;k<14;k++)s.appendChild(c.cloneNode(true));s.scrollLeft=0;s.scrollIntoView({block:'center'});})()`);
+await new Promise(r=>setTimeout(r,300));
+const shelfAt=await evaluate(`(()=>{const r=document.getElementById('systemProgressGrid').getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)};})()`);
+check(await evaluate(`(()=>{const s=document.getElementById('systemProgressGrid');return s.scrollWidth>s.clientWidth&&getComputedStyle(s).scrollbarWidth==='none'&&s.offsetHeight===s.clientHeight;})()`),'The shelf overflows with no visible scrollbar');
+await call('Input.dispatchMouseEvent',{type:'mouseWheel',x:shelfAt.x,y:shelfAt.y,deltaX:0,deltaY:240});
+check(await waitFor(`document.getElementById('systemProgressGrid').scrollLeft>0`),'A mouse wheel moves the shelf sideways');
+const shelfLeft=await evaluate(`document.getElementById('systemProgressGrid').scrollLeft`), shelfUrl=await evaluate('location.href');
+await call('Input.dispatchMouseEvent',{type:'mousePressed',x:shelfAt.x,y:shelfAt.y,button:'left',buttons:1,clickCount:1});
+for(const step of [20,120,220,300])await call('Input.dispatchMouseEvent',{type:'mouseMoved',x:shelfAt.x-step,y:shelfAt.y,button:'left',buttons:1});
+await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:shelfAt.x-300,y:shelfAt.y,button:'left',buttons:0,clickCount:1});
+check(await evaluate(`document.getElementById('systemProgressGrid').scrollLeft`)>=shelfLeft+250,'Dragging with the mouse pans the shelf');
+await new Promise(r=>setTimeout(r,600));
+check(await evaluate('location.href')===shelfUrl&&await evaluate(`!document.getElementById('systemProgressGrid').classList.contains('is-dragging')`),'The click that ends a drag does not open a card');
+
 check(errors.length===0,'No uncaught page errors: '+errors.join(' | '));
 check(nativeDialogs.length===0,'No native alert, confirm or prompt box ever opened: '+nativeDialogs.join(' | '));
 console.log(`Content browser checks passed: ${checks}`);

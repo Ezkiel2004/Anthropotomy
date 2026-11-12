@@ -38,3 +38,47 @@ const systemLook = code => ContentFormat.systemLook(code);
     // Refresh unread receipts and newly arrived notifications when returning to the portal.
     window.addEventListener('focus', () => Notifications.load(true));
 })();
+
+// Shelves (.sd-shelf) scroll sideways with no visible scrollbar. Touch swipes them natively; a mouse
+// wheel moves them sideways (until an end is reached, then the page scrolls on) and a mouse drag pans them.
+(() => {
+    document.querySelectorAll('.sd-shelf').forEach(shelf => {
+        shelf.addEventListener('wheel', event => {
+            if (event.ctrlKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return; // pinch zoom, or already sideways
+            const max = shelf.scrollWidth - shelf.clientWidth;
+            if (max <= 0) return;
+            if ((event.deltaY < 0 && shelf.scrollLeft <= 0) || (event.deltaY > 0 && shelf.scrollLeft >= max - 1)) return;
+            event.preventDefault();
+            shelf.scrollLeft += event.deltaY * (event.deltaMode === 1 ? 40 : 1);
+        }, { passive: false });
+
+        let drag = null;
+        const swallowClick = event => { event.preventDefault(); event.stopPropagation(); };
+        shelf.addEventListener('pointerdown', event => {
+            if (event.pointerType === 'mouse' && event.button === 0) drag = { id: event.pointerId, x: event.clientX, left: shelf.scrollLeft, moved: false };
+        });
+        shelf.addEventListener('pointermove', event => {
+            if (!drag || event.pointerId !== drag.id) return;
+            const dx = event.clientX - drag.x;
+            if (!drag.moved) {
+                if (Math.abs(dx) < 6) return;
+                drag.moved = true;
+                shelf.setPointerCapture(event.pointerId);
+                shelf.classList.add('is-dragging');
+            }
+            shelf.scrollLeft = drag.left - dx;
+        });
+        const endDrag = () => {
+            if (drag?.moved) {
+                shelf.classList.remove('is-dragging');
+                // The click that ends a drag must not open the card under the pointer.
+                shelf.addEventListener('click', swallowClick, { capture: true });
+                setTimeout(() => shelf.removeEventListener('click', swallowClick, { capture: true }));
+            }
+            drag = null;
+        };
+        shelf.addEventListener('pointerup', endDrag);
+        shelf.addEventListener('pointercancel', endDrag);
+        shelf.addEventListener('dragstart', event => event.preventDefault()); // links and images would start a native drag
+    });
+})();

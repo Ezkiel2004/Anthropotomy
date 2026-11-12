@@ -139,6 +139,7 @@
 /* Body systems: a sideways shelf of cards that bleeds to the page edge */
 .sd-shelf{display:flex;gap:.875rem;margin:-.75rem calc(var(--gutter) * -1) -1rem;padding:.75rem var(--gutter) 1rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gutter);scrollbar-width:none}
 .sd-shelf::-webkit-scrollbar{display:none}
+@media (hover:hover) and (pointer:fine){.sd-shelf{scroll-snap-type:none;cursor:grab}.sd-shelf.is-dragging{cursor:grabbing;user-select:none}}
 .sd-shelf>.dashboard-empty{flex:1}
 .sd-sys{--card:var(--st-sky);position:relative;isolation:isolate;flex:0 0 10.5rem;height:13.75rem;overflow:hidden;padding:.9375rem;border-radius:1.25rem;background:linear-gradient(180deg,color-mix(in srgb,var(--card) 55%,#fff) 0%,var(--card) 48%);color:var(--st-dark);text-decoration:none;scroll-snap-align:start;box-shadow:inset 0 2px 0 rgba(255,255,255,.4);transition:transform .6s var(--st-ease)}
 .sd-sys:hover{color:var(--st-dark);text-decoration:none;transform:translateY(-.375rem) rotate(-1.5deg)}
