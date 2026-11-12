@@ -149,6 +149,15 @@
         "value": "geist sans",
         "createdAt": "2026-10-22T04:05:12.132Z",
         "reason": "gpt-taste skill, invoked by the user, restricts the body font to Satoshi, Cabinet Grotesk, Outfit or Geist; Geist was its deterministic draw (disclosed in the design plan). Not a direct user choice of Geist."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "assets/css/games.css"
+        ],
+        "createdAt": "2026-10-25T02:59:46.247Z",
+        "reason": "Claude: games.css L266 is a disclosure chevron (rotated two-border caret on .tg-paste summary::after), not a side accent border on a card"
       }
     ]
   }

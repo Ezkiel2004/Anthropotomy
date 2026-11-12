@@ -368,6 +368,7 @@ if (!teacherExplorer) {
 window.AnatomyExplorer = {
     get contextSystem() { return contextSystem; },
     set activeSeconds(value) { activeSeconds = value; },
+    selectPart: handlePartClick, // what clicking a part on the model does (null clicks empty space)
     flushExploration
 };
 

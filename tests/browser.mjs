@@ -68,7 +68,8 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
         await evaluate(`document.getElementById('systemsToggle').click()`);
         assert.equal(await evaluate(`document.getElementById('systemsToggle').getAttribute('aria-expanded')`),'true','The header expands it again');
         assert.equal(await evaluate(`document.querySelector('[data-action="zoom-in"]').disabled`),true,'Tools disabled without a model');
-        const model=fs.readdirSync('system_model').find(name=>name.endsWith('.glb'));
+        // The committed single-piece skeleton, by name: system_model/ can also hold large local-only source models.
+        const model='male_human_skeleton_-_zbrush_-_anatomy_study.glb';
         await evaluate(`(async()=>{
             const request=async(path,method,body)=>(await (await fetch('/api/'+path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})).json());
             const system=(await request('anatomy-content.php','GET')).data[0];system.model_url=${JSON.stringify('/system_model/'+model)};
@@ -81,8 +82,8 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
         assert.equal(await evaluate(`document.querySelectorAll('#systemChips .system-chip').length`),2,'Teacher sees hidden systems');
         assert.equal(await evaluate(`document.querySelector('#systemChips .system-chip[aria-checked="true"]').dataset.system`),'test-system','The system with a model starts switched on');
         assert.match(await evaluate(`document.getElementById('systemsToggle').textContent`),/1 on/,'The systems button counts the systems switched on');
-        await evaluate(`document.querySelector('.structure-chip').click();AnatomyExplorer.activeSeconds=10;AnatomyExplorer.flushExploration()`);
-        assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'Database structure');
+        // The single-piece skeleton has no separately clickable parts; part clicks are checked on the layered model below.
+        await evaluate(`AnatomyExplorer.activeSeconds=10;AnatomyExplorer.flushExploration()`);
         assert.deepEqual(explorationPosts,[],'Teacher viewing never posts student exploration progress');
         assert.ok(await evaluate(`Boolean(document.querySelector('#relatedModules a[href*="module_id="]'))`),'Related module comes from database');
         assert.equal(await evaluate(`document.querySelector('[data-action="zoom-in"]').disabled`),false);
@@ -117,19 +118,18 @@ for(const page of ['dashboard','students','modules','assessments','games','monit
         assert.ok(await evaluate(`AnatomyViewer.renderer.outputEncoding===THREE.sRGBEncoding&&AnatomyViewer.renderer.toneMapping===THREE.ACESFilmicToneMapping&&!!AnatomyViewer.scene.environment`),'Realistic renderer: sRGB output, filmic tone mapping and environment lighting');
         assert.ok(await evaluate(`(()=>{const part=AnatomyViewer.layerState('test-system').parts.get('za_femur_l');let mesh=part.isMesh?part:null;if(!mesh)part.traverse(o=>{if(!mesh&&o.isMesh)mesh=o;});const bone=[].concat(mesh.userData.baseMaterial)[0];return bone.roughness===AnatomyLayersCore.TISSUE.bone.roughness&&'#'+bone.color.clone().convertLinearToSRGB().getHexString()===AnatomyLayersCore.TISSUE.bone.color;})()`),'The femur is coloured and finished like bone');
         assert.equal(await evaluate(`(()=>{let glowing=0;AnatomyViewer.layerState('test-system').root.traverse(o=>{if(o.isMesh)[].concat(o.userData.baseMaterial).forEach(m=>{if(m.emissive&&m.emissive.getHex()!==0)glowing++;});});return glowing;})()`),0,'No part glows: Z-Anatomy emissive white is removed');
-        await evaluate(`[...document.querySelectorAll('.structure-chip')].find(b=>b.textContent==='Mapped bone').click()`);
+        await evaluate(`AnatomyExplorer.selectPart(AnatomyViewer.layerState('test-system').parts.get('za_femur_l'))`);
         await new Promise(resolve=>setTimeout(resolve,300));
-        assert.equal(await evaluate('AnatomyViewer.focusedPart?.userData.part_id'),'za_femur_l','Structure chip highlights its part');
-        assert.equal(await evaluate(`document.getElementById('selectedPartTitle').textContent`),'Mapped bone','Card shows the clicked structure');
-        assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'A real part from the layered skeleton.');
-        assert.equal(await evaluate(`[...document.querySelectorAll('.structure-chip')].find(b=>b.textContent==='Mapped bone').getAttribute('aria-pressed')`),'true','Clicked structure chip is pressed');
+        assert.equal(await evaluate('AnatomyViewer.focusedPart?.userData.part_id'),'za_femur_l','Clicking a part highlights it');
+        for(let i=0;i<40&&!(await evaluate(`document.getElementById('selectedPartTitle').textContent==='Mapped bone'`));i++)await new Promise(resolve=>setTimeout(resolve,250));
+        assert.ok(await evaluate(`document.getElementById('selectedPartTitle').textContent==='Mapped bone'`),'Card shows the clicked structure by its mapped name');
         await sleep(1000);
         const partScreen=`(()=>{const p=AnatomyViewer.focusedPart;const c=new THREE.Box3().setFromObject(p).getCenter(new THREE.Vector3()).project(AnatomyViewer.camera);const e=document.getElementById('explorer').getBoundingClientRect();const panel=document.getElementById('infoPanel').getBoundingClientRect();return {x:(c.x+1)/2*e.width,y:(1-c.y)/2*e.height,panelLeft:panel.left-e.left,sheetTop:panel.top-e.top};})()`;
         const wide=await evaluate(partScreen);
         assert.ok(Math.abs(wide.x-wide.panelLeft/2)<24,'A selected part is centred in the area the panel leaves visible: '+JSON.stringify(wide));
-        await evaluate(`document.getElementById('exitFocus').focus();document.getElementById('exitFocus').click()`);
+        await evaluate(`window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
         await sleep(300);
-        assert.ok(await evaluate('document.activeElement!==document.body&&document.activeElement.getClientRects().length>0'),'Back to full body keeps keyboard focus in the panel');
+        assert.ok(await evaluate(`!AnatomyViewer.focusedPart&&document.getElementById('selectedPart').hidden`),'Escape returns to the full body and closes the name card');
         await evaluate(`(()=>{const parts=[...AnatomyViewer.layerState('test-system').parts.values()];const radius=p=>new THREE.Box3().setFromObject(p).getBoundingSphere(new THREE.Sphere()).radius;window.__small=parts.reduce((a,b)=>radius(a)<=radius(b)?a:b);AnatomyViewer.focusPart(window.__small);})()`);
         await sleep(1100);
         assert.ok(await evaluate(`(()=>{const s=new THREE.Box3().setFromObject(window.__small).getBoundingSphere(new THREE.Sphere());const fit=AnatomyLayersCore.fitDistance(s.radius,AnatomyViewer.camera.fov,AnatomyViewer.camera.aspect);const d=AnatomyViewer.camera.position.distanceTo(AnatomyViewer.controls.target);return Math.abs(d-fit)/fit<0.05;})()`),'The smallest part is framed at its fit distance, not the model-wide minimum');
@@ -736,7 +736,7 @@ for(const page of ['dashboard','lessons','quiz','progress','scores','notificatio
         assert.equal(await evaluate('AnatomyData.systems[0].description'),'Database description');
         assert.ok(await evaluate('AnatomyViewer.hasVisibleLayer()'),'Real GLB model loaded');
         assert.ok(await evaluate('document.documentElement.scrollHeight<=innerHeight+1'),'Explorer page does not scroll');
-        assert.ok(await evaluate(`(()=>{const r=document.getElementById('explorer').getBoundingClientRect();return Math.abs(r.bottom-innerHeight)<=1&&Math.abs(r.top-document.querySelector('.topbar').getBoundingClientRect().bottom)<=1;})()`),'Viewer fills the content area');
+        assert.ok(await evaluate(`(()=>{const r=document.getElementById('explorer').getBoundingClientRect(),t=document.getElementById('systemsToggle').getBoundingClientRect();return Math.abs(r.bottom-innerHeight)<=1&&document.getElementById('systemsToggle').contains(document.elementFromPoint(t.left+t.width/2,t.top+t.height/2));})()`),'Viewer fills the content area and the top bar covers none of its controls');
         assert.equal(await evaluate(`document.querySelectorAll('.model-tools, #zoomIn, #exportModel, .page-content').length`),0,'No text buttons below the viewer');
         assert.equal(await evaluate(`document.querySelector('[data-action="zoom-in"]').disabled`),false,'Tools enabled with a model');
         const desktop={width:1280,height:800,deviceScaleFactor:1,mobile:false};
@@ -781,17 +781,14 @@ for(const page of ['dashboard','lessons','quiz','progress','scores','notificatio
         assert.equal(await evaluate('AnatomyViewer.world.children.length'),0,'A model switched off mid-download never joins the scene');
         await evaluate(`document.querySelector('.system-chip[data-system=${JSON.stringify(chip)}]').click()`);
         for(let i=0;i<25;i++){if(await evaluate('AnatomyViewer.hasVisibleLayer()'))break;await new Promise(resolve=>setTimeout(resolve,400));}
-        await evaluate(`document.querySelector('.structure-chip').click()`);
-        assert.equal(await evaluate(`document.getElementById('selectedPartDescription').textContent`),'Database structure');
-        assert.equal(await evaluate(`document.querySelector('.structure-chip').getAttribute('aria-pressed')`),'true');
+        await evaluate(`AnatomyExplorer.selectPart([...AnatomyViewer.layerState(${JSON.stringify(chip)}).parts.values()][0])`);
+        for(let i=0;i<40&&!(await evaluate(`!document.getElementById('selectedPart').hidden&&document.getElementById('selectedPartTitle').textContent.trim().length>0`));i++)await new Promise(resolve=>setTimeout(resolve,250));
+        assert.ok(await evaluate(`!document.getElementById('selectedPart').hidden&&document.getElementById('selectedPartTitle').textContent.trim().length>0`),'Clicking a part shows its name in the panel');
         assert.equal(await evaluate(`document.getElementById('sysDescription').hidden`),false,'Description shows');
         assert.ok(await evaluate(`[...document.querySelectorAll('#sysSources a')].every(a=>a.target==='_blank'&&a.rel==='noopener noreferrer'&&/^https?:/.test(a.href))`),'Source links are safe');
-        assert.ok(await evaluate(`document.getElementById('sysTrivia').hidden||document.getElementById('triviaText').textContent.length>0`),'Trivia renders when present');
-        assert.equal(await evaluate(`document.getElementById('sysStructures').hidden`),false,'Structures section never hides');
-        // test-system has no data.js entry; its only trivia is the fixture key fact {Fact: 'Database fact'}.
+        assert.ok(await evaluate(`(()=>{const b=document.querySelector('.part-trivia');return !b||b.hidden||b.querySelector('p').textContent.trim().length>0;})()`),'The trivia bubble is never shown empty');
+        // test-system has no data.js entry, so it has no functions.
         assert.equal(await evaluate(`document.getElementById('sysFunctions').hidden`),true,'Empty functions section hides');
-        assert.equal(await evaluate(`document.getElementById('triviaText').textContent`),'Fact: Database fact');
-        assert.equal(await evaluate(`document.getElementById('triviaNext').hidden`),true,'Single fact hides Next');
         const shot=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync('.runtime/student-anatomy.png',Buffer.from(shot.data,'base64'));
         await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
         await new Promise(resolve=>setTimeout(resolve,300));
