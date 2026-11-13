@@ -76,12 +76,8 @@
 /* ── Dashboard ── */
 .stage-portal .page-content.sd{display:grid;gap:2.75rem;max-width:78rem;margin:0 auto;padding:calc(var(--topbar-height) + 2rem) var(--gutter) 4rem}
 .sd-date{margin:0;color:var(--st-muted);font-size:.875rem;font-weight:700}
-<<<<<<< HEAD
-.sd-title{margin:.375rem 0 0;font-family:var(--st-display);font-size:clamp(1.875rem,4vw,3rem);font-weight:400;line-height:1.02;text-transform:uppercase;font-variant-ligatures:none;text-wrap:balance}
-=======
 /* Page titles are sentence case. Bungee (--st-display) has no lowercase letters, so titles use the body face in bold. */
 .sd-title{margin:.375rem 0 0;font-family:var(--font-body);font-size:clamp(1.875rem,4vw,3rem);font-weight:700;line-height:1.1;letter-spacing:-.02em;text-transform:none;text-wrap:balance}
->>>>>>> 6288eaf (50%% revision)
 .sd-sub{margin:.5rem 0 0;color:var(--st-muted);font-size:.9375rem}
 .sd-top{display:grid;gap:1rem}
 .sd-block{min-width:0}

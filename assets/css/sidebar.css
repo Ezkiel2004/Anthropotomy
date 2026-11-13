@@ -145,28 +145,6 @@
 }
 .sidebar.collapsed .nav-badge { opacity: 0; }
 
-<<<<<<< HEAD
-/* Tooltip on collapse */
-.sidebar.collapsed .nav-item::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  left: calc(var(--sidebar-collapsed, 64px) + 8px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #2a3548;
-  border: none;
-  color: #ffffff;
-  font-size: 0.8rem;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 10;
-}
-.sidebar.collapsed .nav-item:hover::after { opacity: 1; }
-=======
 /* Collapsed rail: the icon rail is narrow, so the nav, logo and items are centred on it and the
    labels, badges and hover tooltip take no room. The sidebar clips overflow, so a tooltip placed
    beside the rail was cut off and left a stray box; items keep the native title tooltip instead. */
@@ -176,7 +154,6 @@
 .sidebar.collapsed .nav-label,
 .sidebar.collapsed .nav-badge,
 .sidebar.collapsed .nav-item::after { display: none; }
->>>>>>> 6288eaf (50%% revision)
 
 /* Sidebar Footer */
 .sidebar-footer {

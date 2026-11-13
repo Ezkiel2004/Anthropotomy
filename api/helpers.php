@@ -316,8 +316,6 @@ function getIdParam(string $param = 'id'): int {
     return (int) $id;
 }
 
-<<<<<<< HEAD
-=======
 // ── File streaming ──────────────────────────────────────────────
 
 /**
@@ -369,7 +367,6 @@ function streamFile(string $path, string $contentType, bool $inline, string $dow
     exit;
 }
 
->>>>>>> 6288eaf (50%% revision)
 // ── Pagination Helper ───────────────────────────────────────────
 
 /**

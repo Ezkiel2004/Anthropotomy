@@ -183,20 +183,12 @@ const ModuleWorkspace = (() => {
     (root?.querySelector(`[data-lesson="${neighbour}"] [data-row-more]`) || root?.querySelector('.cs-panel-head [data-add-lesson]'))?.focus({ preventScroll: true });
   }
 
-<<<<<<< HEAD
-  // A PowerPoint or Word lesson file downloads under the lesson's title, as it does for students.
-  function download(lesson) {
-    const ext = String(lesson.media_url).split(/[?#]/)[0].split('.').pop().toLowerCase();
-    const link = document.createElement('a');
-    link.href = lesson.media_url;
-=======
   // A PowerPoint or Word lesson file with no preview downloads under the lesson's title, as it does for students. The address is
   // the API's: direct links to these files are blocked, and the API always lets a teacher have the original.
   function download(lesson, url) {
     const ext = String(lesson.media_url).split(/[?#]/)[0].split('.').pop().toLowerCase();
     const link = document.createElement('a');
     link.href = url || `${API_BASE}/lessons.php?id=${lesson.lesson_id}&file=original`;
->>>>>>> 6288eaf (50%% revision)
     link.download = `${lesson.title}.${ext}`;
     link.hidden = true;
     document.body.append(link);
@@ -204,34 +196,22 @@ const ModuleWorkspace = (() => {
     link.remove();
   }
 
-<<<<<<< HEAD
-  // Teacher preview, the way a student opens the lesson: a PDF full screen in the viewer with the note for students,
-  // a PowerPoint or Word file as a download, anything else in the lesson reader without the 3D links.
-  // The list rows carry no lesson text, so the lesson is fetched.
-  async function preview(lesson, opener) {
-    if (!lesson) return;
-    if (['slides', 'document'].includes(ContentFormat.lessonKind(lesson))) { download(lesson); return; }
-=======
   // Teacher preview, the way a student opens the lesson: a PDF full screen in the viewer with the note for students, a
   // PowerPoint or Word file the same way from its PDF preview (with a Download button for the original, which a teacher always
   // has) or, when it has no preview, as a download, anything else in the lesson reader without the 3D links.
   // The list rows carry no lesson text, so the lesson is fetched.
   async function preview(lesson, opener) {
     if (!lesson) return;
->>>>>>> 6288eaf (50%% revision)
     const context = `${module.title} · Lesson ${module.lessons.indexOf(lesson) + 1}`;
     const result = await api(`lessons.php?id=${lesson.lesson_id}`);
     if (!result.success) { showToast(result.message || 'The lesson could not be opened.', 'error'); return; }
     const full = result.data;
-<<<<<<< HEAD
-=======
     if (['slides', 'document'].includes(ContentFormat.lessonKind(lesson))) {
       if (!full.view_url) { download(lesson, full.download_url); return; }
       if (opener?.isConnected) opener.focus({ preventScroll: true });
       PdfViewer.open({ url: full.view_url, title: full.title, context, note: full.content_text || '', downloadUrl: full.download_url });
       return;
     }
->>>>>>> 6288eaf (50%% revision)
     if (ContentFormat.opensInViewer(ContentFormat.lessonKind(full))) {
       if (opener?.isConnected) opener.focus({ preventScroll: true });   // the viewer hands focus back to what had it when it opened
       PdfViewer.open({ url: full.media_url, title: full.title, context, note: full.content_text || '' });

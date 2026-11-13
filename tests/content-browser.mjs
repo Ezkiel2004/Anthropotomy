@@ -99,8 +99,6 @@ check(await evaluate(`window.__lrClosed===1`),'onClose runs once on close');
 // A file that does not exist falls back to a download link.
 await evaluate(`(()=>{const d=document.createElement('div');d.id='pvbad';document.body.append(d);PdfViewer.mount(d,{url:API_BASE+'/files.php?id=999999',title:'Missing'});})()`);
 check(await waitFor(`document.querySelector('#pvbad .pv-fallback a[href*="files.php?id=999999"]')`),'A broken file shows the fallback with a Download link');
-<<<<<<< HEAD
-=======
 // downloadUrl: null makes the viewer view-only (no Download button anywhere); leaving it out keeps the default.
 check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'View only',downloadUrl:null});const ok=Boolean(d.querySelector('.pv-bar'))&&!d.querySelector('a[download]');v.destroy();d.remove();return ok;})()`),'downloadUrl null hides the toolbar Download button');
 check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Default'});const a=d.querySelector('.pv-bar a[aria-label="Download"]');const ok=Boolean(a)&&a.getAttribute('href').endsWith('files.php?id=${fileId}');v.destroy();d.remove();return ok;})()`),'Leaving downloadUrl out keeps the Download button');
@@ -110,7 +108,6 @@ await evaluate(`PdfViewer.open({url:API_BASE+'/files.php?id=${fileId}',title:'Vi
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`)&&await evaluate(`!document.querySelector('.pv-overlay a[download]')`),'The full-screen viewer has no Download button for a view-only file');
 await evaluate(`document.querySelector('.pv-overlay [aria-label="Close"]').click()`);
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'The view-only viewer closes');
->>>>>>> 6288eaf (50%% revision)
 // A note from the teacher sits in a strip under the toolbar, as text; a blank note adds nothing.
 check(await evaluate(`(async()=>{const d=document.createElement('div');document.body.append(d);const v=await PdfViewer.mount(d,{url:API_BASE+'/files.php?id=${fileId}',title:'Noted',note:'Line one\\n<img src=x onerror=window.__noted=1>two'});
   const n=d.querySelector('.pv-bar + .pv-note'),t=n?.querySelector('.pv-note-text');const ok=!!t&&t.textContent==='Line one\\n<img src=x onerror=window.__noted=1>two'&&!n.querySelector('img')&&getComputedStyle(t).whiteSpace==='pre-line'&&n.querySelector('use').getAttribute('href').endsWith('#info');v.destroy();d.remove();return ok&&window.__noted===undefined;})()`),'The inline viewer shows the note under its toolbar as plain text');
@@ -299,8 +296,6 @@ for(const name of ['Form handout','dropped-sheet']){
 }
 check(await waitFor(`document.querySelector('.cs-hero .cs-meta').textContent.includes(${JSON.stringify(many(ws.material_count,'material'))})`),'Hero material count follows deletes');
 
-<<<<<<< HEAD
-=======
 // PowerPoint materials: a preview opens in the viewer, downloads are a per-file switch, and the upload says what happened.
 const PPTX='application/vnd.openxmlformats-officedocument.presentationml.presentation';
 const deckTransfer=(file,name)=>`(()=>{const b=Uint8Array.from(atob(${JSON.stringify(fixture(file))}),c=>c.charCodeAt(0));const dt=new DataTransfer();dt.items.add(new File([b],${JSON.stringify(name)},{type:${JSON.stringify(PPTX)}}));return dt;})()`;
@@ -354,7 +349,6 @@ for(const name of ['Deck form','Deck open','Deck old']){
   check(await waitFor(`!${materialRow(name)}`),'Clean up the deck material: '+name);
 }
 
->>>>>>> 6288eaf (50%% revision)
 // Reorder with the row menu: the first lesson cannot move up; the last moves up and stays there after a reload.
 const lastId=ws.lessons.at(-1).lesson_id;
 await openRowMenu(ws.lessons[0].lesson_id);
@@ -476,13 +470,9 @@ await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
 // A Word lesson: its row says Word, Preview downloads the file, and the module card counts it.
-<<<<<<< HEAD
-const wordLesson=await upload('lessons.php',{module_id:moduleId,title:'Word worksheet',lesson_type:'reading',content_text:'Print it.',duration_mins:'10',status:'published'},'sample.docx','lesson_file','worksheet.docx');
-=======
 // unconvertible.docx is a Word file the (fake) converter cannot make a preview of, so it stays a plain download for students;
 // the decks further down (sample.pptx) do get a preview.
 const wordLesson=await upload('lessons.php',{module_id:moduleId,title:'Word worksheet',lesson_type:'reading',content_text:'Print it.',duration_mins:'10',status:'published'},'unconvertible.docx','lesson_file','worksheet.docx');
->>>>>>> 6288eaf (50%% revision)
 check(wordLesson.success&&/\.docx$/.test(wordLesson.data.media_url),'Create a published Word lesson');
 await navigate('/teacher/modules.html?module='+moduleId);
 const wordRow=rowById(wordLesson.data.lesson_id);
@@ -490,11 +480,7 @@ check(await waitFor(`${wordRow}?.querySelector('[data-meta]').textContent==='Wor
 check(await evaluate(`${wordRow}.querySelector('.cs-tile').classList.contains('t-document')&&${wordRow}.querySelector('.cs-tile use').getAttribute('href').endsWith('#file-doc')`),'A Word lesson row shows the Word icon');
 await evaluate(`window.__downloads=[];document.addEventListener('click',e=>{const a=e.target.closest?.('a[download]');if(a){e.preventDefault();window.__downloads.push(a.getAttribute('href'));}},true);`);
 await evaluate(`${wordRow}.querySelector('[data-preview]').click()`);
-<<<<<<< HEAD
-check(await waitFor(`window.__downloads.length===1&&/\\.docx$/.test(window.__downloads[0])`),'Preview on a Word lesson downloads the file');
-=======
 check(await waitFor(`window.__downloads.length===1&&window.__downloads[0].includes('lessons.php?id=${wordLesson.data.lesson_id}&file=original')`),'Preview on a Word lesson with no preview downloads the file through the API');
->>>>>>> 6288eaf (50%% revision)
 check(await evaluate(`!document.querySelector('.pv-overlay')&&document.getElementById('lessonPreview').hidden&&!document.querySelector('body > a[download]')`),'A Word preview opens no viewer and leaves no link behind');
 await navigate('/teacher/modules.html');
 check(await waitFor(`[...(${card}?.querySelectorAll('.cs-mix span')||[])].some(s=>s.classList.contains('t-document')&&s.textContent.includes('Word')&&s.querySelector('use').getAttribute('href').endsWith('#file-doc'))`),'The module card counts Word lessons with their own chip');
@@ -549,21 +535,13 @@ check(await waitFor(`${fileCard('PDF lesson')}.querySelector('.sd-file-thumb img
 check(await evaluate(`${fileCard('PDF lesson')}.querySelector('.sd-file-go').textContent.trim().startsWith('Read')`),'A PDF card offers Read');
 check(await evaluate(`${fileCard('Word worksheet')}.querySelector('.sd-file-meta').textContent==='Word · opens in Word · 10 min'`),'A Word card says it opens in Word');
 check(await evaluate(`${fileCard('Word worksheet')}.querySelector('.sd-file-thumb').textContent.trim()==='DOCX'&&${fileCard('Word worksheet')}.querySelector('.sd-file-thumb use').getAttribute('href').endsWith('#file-doc')`),'A Word card shows a DOCX tile with the Word icon');
-<<<<<<< HEAD
-check(await evaluate(`(()=>{const a=${fileCard('Word worksheet')}.querySelector('a.sd-file-go[download]');return !!a&&/\\.docx$/.test(a.getAttribute('href'))&&a.textContent.trim().startsWith('Download');})()`),'The Word card is a Download link to the file');
-=======
 check(await evaluate(`(()=>{const a=${fileCard('Word worksheet')}.querySelector('a.sd-file-go[download]');const href=a?.getAttribute('href')||'';return !!a&&href.includes('lessons.php?id=${wordLesson.data.lesson_id}&file=original')&&!href.includes('uploads/')&&a.textContent.trim().startsWith('Download');})()`),'A Word card with no preview is a Download link that goes through the API, not the uploads folder');
->>>>>>> 6288eaf (50%% revision)
 check(await evaluate(`${fileCard('Second lesson')}.querySelector('.sd-file-meta').textContent==='Reading'&&${fileCard('Second lesson')}.querySelector('.sd-file-go').textContent.trim().startsWith('Open')`),'A text lesson keeps a kind tile and Open');
 check(await evaluate(`document.querySelector('#lessonModalBody .sd-files-hint')?.textContent.trim()==='PDFs open here. PowerPoint and Word files download and open in the app on your device.'`),'A hint says PDFs open here and the other files download');
 check(await evaluate(`document.querySelector('#lessonModalBody .sd-materials-title')!==null`),'Materials still follow the lessons');
 const readsBefore=await evaluate(`window.__reads||0`);
 await evaluate(`${fileCard('Word worksheet')}.querySelector('a[download]').click()`);
-<<<<<<< HEAD
-check(await evaluate(`window.__reads===${readsBefore}+1&&window.__downloads.length===1&&/\\.docx$/.test(window.__downloads[0])`),'Downloading a Word lesson counts as study time');
-=======
 check(await evaluate(`window.__reads===${readsBefore}+1&&window.__downloads.length===1&&window.__downloads[0].includes('lessons.php?id=${wordLesson.data.lesson_id}&file=original')`),'Downloading a Word lesson counts as study time');
->>>>>>> 6288eaf (50%% revision)
 check(await evaluate(`document.getElementById('lessonModal').style.display!=='none'`),'The module stays open after a download');
 await evaluate(`${fileCard('PDF lesson')}.querySelector('.sd-file-go').click()`);
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`),'Read opens a PDF lesson full screen');
@@ -593,8 +571,6 @@ check(await evaluate(`(()=>{const o=document.querySelector('.pv-overlay');return
 await key('Escape');
 await call('Emulation.clearDeviceMetricsOverride');
 
-<<<<<<< HEAD
-=======
 // PowerPoint lessons and materials that have a preview open in the viewer, view-only unless the teacher allows downloads.
 await signIn(credentials.username,credentials.password,'/teacher/');
 const deckLesson=await upload('lessons.php',{module_id:moduleId,title:'Slides deck',lesson_type:'reading',content_text:'Study the slides.',duration_mins:'12',status:'published'},'sample.pptx','lesson_file','deck.pptx');
@@ -638,7 +614,6 @@ await evaluate(`${fileCard('Slides deck')}.querySelector('.sd-file-go').click()`
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`)&&await evaluate(`(()=>{const a=document.querySelector('.pv-overlay a[aria-label="Download"]');return !!a&&a.getAttribute('href').includes('lessons.php?id=${deckLesson.data.lesson_id}&file=original');})()`),'The viewer now offers Download, pointing at the original through the API');
 await key('Escape');
 
->>>>>>> 6288eaf (50%% revision)
 // A title that tries to break out of an attribute stays inert text.
 await signIn(credentials.username,credentials.password,'/teacher/');
 const evil=await upload('files.php',{kind:'material',module_id:moduleId,title:'x" data-pwned="1'},'sample.pdf','file','evil.pdf');
@@ -714,11 +689,7 @@ await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click
 check(await waitFor(`document.querySelector('.cs-sheet[role="dialog"]')`),'Add lesson opens the sheet');
 check(await evaluate(`document.querySelector('.cs-sheet h3').textContent==='Add lesson'`),'The sheet is titled Add lesson');
 check(await evaluate(`!document.querySelector('.cs-sheet .cs-type')&&!document.querySelector('.cs-sheet [name="lesson_type"]')`),'There are no lesson kind tiles');
-<<<<<<< HEAD
-check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-field > label:not(.cs-switch), .cs-sheet .cs-field > .cs-label')].map(l=>l.firstChild.textContent.trim()).join('|')`)==='Lesson file|Title|Note for students|Time to study|Visible to students','The file comes first, then title, note for students, time and visibility');
-=======
 check(await evaluate(`[...document.querySelectorAll('.cs-sheet .cs-field:not([hidden]) > label:not(.cs-switch), .cs-sheet .cs-field:not([hidden]) > .cs-label')].map(l=>l.firstChild.textContent.trim()).join('|')`)==='Lesson file|Title|Note for students|Time to study|Visible to students','The file comes first, then title, note for students, time and visibility (the download switch appears only for PowerPoint and Word)');
->>>>>>> 6288eaf (50%% revision)
 check(await evaluate(`(()=>{const d=document.querySelector('.cs-sheet [data-file-panel] [data-drop]');return !!d&&[...d.querySelectorAll('button')].some(b=>b.textContent.trim()==='Choose file')&&!document.querySelector('.cs-sheet .cs-attach');})()`),'A new lesson starts with a drop zone and Choose file');
 check(await evaluate(`document.querySelector('.cs-sheet [data-file-hint]').textContent.startsWith('PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx), up to 500 MB.')`),'The hint names the file kinds and the size limit');
 check(await evaluate(`document.querySelector('.cs-sheet input[type="file"]').accept==='.pdf,.ppt,.pptx,.doc,.docx'`),'The picker offers PDF, PowerPoint and Word');
@@ -813,12 +784,8 @@ await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click
 await waitFor(`document.querySelector('.cs-sheet')`);
 await chooseAs('sample.docx','bone-labeling-worksheet.docx','application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 check(await waitFor(`${titleIs}==='Bone labeling worksheet'`),'A Word file fills in the title');
-<<<<<<< HEAD
-check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--doc')?.textContent.trim()==='DOCX'&&${cardMeta}==='Word · 1 KB'&&${sheetCard}.textContent.includes('Students download it and open it in Word')`),'The Word card shows a DOCX tile, Word · size and that students download it');
-=======
 check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--doc')?.textContent.trim()==='DOCX'&&${cardMeta}==='Word · 1 KB'&&${sheetCard}.textContent.includes('Students read it here in the viewer')`),'The Word card shows a DOCX tile, Word · size and that students read it in the viewer');
 check(await evaluate(`(()=>{const f=document.querySelector('.cs-sheet [data-allow-field]');return !!f&&!f.hidden&&f.textContent.includes('Let students download this file')&&f.querySelector('input[name="allow_download"]').checked===false;})()`),'A Word file shows the download switch, off');
->>>>>>> 6288eaf (50%% revision)
 await sheetSet('[name="duration_mins"]','10');
 await saveSheet();
 check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Bone labeling worksheet')}?.querySelector('[data-meta]').textContent==='Word · 10 min'`),'Saving a .docx lesson makes the workspace row say Word');
@@ -829,11 +796,6 @@ await evaluate(`document.querySelector('#workspaceView [data-add-lesson]').click
 await waitFor(`document.querySelector('.cs-sheet')`);
 await chooseAs('sample.pptx','Parts of a long bone.PPTX','application/vnd.openxmlformats-officedocument.presentationml.presentation');
 check(await waitFor(`${titleIs}==='Parts of a long bone'`),'A PowerPoint file fills in the title');
-<<<<<<< HEAD
-check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--ppt')?.textContent.trim()==='PPTX'&&${cardMeta}==='PowerPoint · 1 KB'&&${sheetCard}.textContent.includes('Students download it and open it in PowerPoint')`),'The PowerPoint card shows a PPTX tile and that students download it');
-await saveSheet();
-check(await waitFor(`!document.querySelector('.cs-sheet')&&${rowTitled('Parts of a long bone')}?.querySelector('[data-meta]').textContent==='PowerPoint · no time set'`),'Saving a .pptx lesson makes the workspace row say PowerPoint');
-=======
 check(await evaluate(`${sheetCard}.querySelector('.cs-thumb--ppt')?.textContent.trim()==='PPTX'&&${cardMeta}==='PowerPoint · 1 KB'&&${sheetCard}.textContent.includes('Students read it here in the viewer')`),'The PowerPoint card shows a PPTX tile and that students read it in the viewer');
 check(await evaluate(`!document.querySelector('.cs-sheet [data-allow-field]').hidden`),'A PowerPoint file shows the download switch');
 // Saving a deck says it is preparing the preview, then that students can view it; the switch is saved with the lesson.
@@ -859,7 +821,6 @@ await evaluate(`${rowTitled('Parts of a long bone')}.querySelector('[data-previe
 check(await waitFor(`document.querySelector('.pv-overlay .pv-stage canvas[data-rendered]')`)&&await evaluate(`/lessons\\.php\\?id=${deckSaved.lesson_id}&file=original$/.test(document.querySelector('.pv-overlay a[aria-label="Download"]').getAttribute('href'))`),'Preview on a deck lesson opens the viewer, with a Download button for the original');
 await key('Escape');
 check(await waitFor(`!document.querySelector('.pv-overlay')`),'The deck preview closes');
->>>>>>> 6288eaf (50%% revision)
 check(await evaluate(`${rowTitled('Parts of a long bone')}.querySelector('.cs-tile.t-slides use').getAttribute('href').endsWith('#file-ppt')`),'The PowerPoint row shows the PowerPoint icon');
 // Legacy lessons: no file needed, the kind is kept, an old attachment still shows and can be replaced.
 const legacyInteractive=await evaluate(`fetch(API_BASE+'/lessons.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({module_id:${moduleId},title:'Legacy interactive',lesson_type:'interactive',content_text:'Work with a partner.',status:'draft'})}).then(r=>r.json())`);

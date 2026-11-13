@@ -2,11 +2,8 @@
 <FilesMatch "\.(php\d?|phtml|phar)$">
   Require all denied
 </FilesMatch>
-<<<<<<< HEAD
-=======
 # PowerPoint and Word lesson files and their PDF previews are never fetched by direct link: students may be view-only,
 # so api/lessons.php serves them after checking who may have what.
 <FilesMatch "(?i)\.(pptx?|docx?)$|\.preview\.pdf$">
   Require all denied
 </FilesMatch>
->>>>>>> 6288eaf (50%% revision)

@@ -19,9 +19,6 @@ const LessonReader = (() => {
       return exploreHref === null ? '<p>This lesson has a 3D model attached.</p>'
         : `<a class="sd-go sd-go--light" href="anatomy.html?system=${encodeURIComponent(lesson.system_code)}&lesson_id=${Number(lesson.lesson_id)}">Open the lesson model in 3D<span class="sd-go-disc">${icon('arrow-right')}</span></a>`;
     }
-<<<<<<< HEAD
-    if (['ppt', 'pptx'].includes(ext)) return `<p><a href="${url}" download data-reading>Download the slides</a></p>`;
-=======
     if (['ppt', 'pptx', 'doc', 'docx'].includes(ext)) {
       // With a PDF preview the file is read in the viewer; its Download button is only there when the teacher allowed it
       // (data-download present but empty means view-only). Without a preview it is a download, through the API, never the uploads folder.
@@ -30,7 +27,6 @@ const LessonReader = (() => {
       return ext.startsWith('p') ? `<p><a href="${file}" download data-reading>Download the slides</a></p>`
         : `<p><a href="${file}" target="_blank" rel="noopener" data-reading>Open the lesson attachment</a></p>`;
     }
->>>>>>> 6288eaf (50%% revision)
     return `<p><a href="${url}" target="_blank" rel="noopener" data-reading>Open the lesson attachment</a></p>`;
   }
 
@@ -40,12 +36,8 @@ const LessonReader = (() => {
     const look = ContentFormat.systemLook(lesson.system_code);
     const system = String(lesson.system_name || '').replace(/\s+System$/i, '') || 'Anatomy';
     const kicker = [lesson.module_title, lesson.duration_mins ? lesson.duration_mins + ' min read' : 'Self-paced'].filter(Boolean).map(escHtml).join(' · ');
-<<<<<<< HEAD
-    const isPdf = /\.pdf$/i.test(String(lesson.media_url || '').split('?')[0]);   // a PDF lesson reads on a wider page (pdf-viewer.css)
-=======
     // A PDF lesson, or a PowerPoint or Word lesson read from its PDF preview, reads on a wider page (pdf-viewer.css)
     const isPdf = /\.pdf$/i.test(String(lesson.media_url || '').split('?')[0]) || Boolean(lesson.view_url);
->>>>>>> 6288eaf (50%% revision)
 
     root.innerHTML = `
     <div class="sd-reader-bar">
@@ -93,13 +85,9 @@ const LessonReader = (() => {
     document.body.style.overflow = 'hidden';
     const pdfHost = root.querySelector('.sd-pdf');
     if (pdfHost) {
-<<<<<<< HEAD
-      PdfViewer.mount(pdfHost, { url: pdfHost.dataset.pdf, title: pdfHost.dataset.title }).then(v => {
-=======
       // data-download absent: the PDF's own address (default). Present but empty: view-only, no Download button.
       const downloadUrl = pdfHost.hasAttribute('data-download') ? (pdfHost.dataset.download || null) : undefined;
       PdfViewer.mount(pdfHost, { url: pdfHost.dataset.pdf, title: pdfHost.dataset.title, downloadUrl }).then(v => {
->>>>>>> 6288eaf (50%% revision)
         // The reader may have closed or moved to another lesson while the PDF loaded.
         if (state.get(root) === entry && !root.hidden && root.contains(pdfHost)) entry.pdf = v; else v.destroy();
       });

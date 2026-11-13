@@ -94,8 +94,6 @@ Skip this if you imported your data in step 5. On a new, empty database, create 
 sudo ANTHROPOTOMY_BOOTSTRAP_USERNAME=teacher ANTHROPOTOMY_BOOTSTRAP_NAME="Your Name" ANTHROPOTOMY_BOOTSTRAP_TEACHER_ID=T-001 ANTHROPOTOMY_BOOTSTRAP_PASSWORD='a-long-password' bash -c 'set -a; . /etc/anthropotomy/db.env; php /var/www/anthropotomy/database/create_teacher.php'
 ```
 
-<<<<<<< HEAD
-=======
 ## 9. Slide and document previews (optional)
 
 So students can read PowerPoint and Word files inside the site (view-only), the server needs LibreOffice to make a PDF copy of each file when a teacher uploads it. Install it once, then make copies for files that were imported:
@@ -107,7 +105,6 @@ cd /var/www/anthropotomy && sudo -u www-data php database/convert_previews.php
 
 A `storage/db.ini` copied over from the Windows PC is harmless: its `soffice=` path does not exist here, so the usual Linux location is used. Run the second command again after any import. New uploads get their copy automatically. Without LibreOffice the site still works: students download those files instead. To check that lesson files cannot be fetched directly, open `https://` followed by your address and `/uploads/lessons/` and the name of an uploaded `.pptx` file; the browser must show **Forbidden**.
 
->>>>>>> 6288eaf (50%% revision)
 ## Keeping it up to date
 
 After new changes are pushed to GitHub, sign in to the server (step 7) and run:

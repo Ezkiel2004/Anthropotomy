@@ -14,13 +14,9 @@
  */
 
 require_once __DIR__ . '/helpers.php';
-<<<<<<< HEAD
-requireLogin();
-=======
 require_once __DIR__ . '/../database/preview.php';
 $viewer    = requireLogin();
 $isTeacher = in_array($viewer['role'], ['teacher', 'admin'], true);
->>>>>>> 6288eaf (50%% revision)
 
 $db     = Database::getInstance();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -36,8 +32,6 @@ const OFFICE_SIGNATURES = [
     'ppt'  => "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",
     'doc'  => "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",
 ];
-<<<<<<< HEAD
-=======
 // Content types for the original file when it is streamed through ?file=original (anything else is detected from its content).
 const LESSON_FILE_TYPES = [
     'pdf'  => 'application/pdf',
@@ -46,7 +40,6 @@ const LESSON_FILE_TYPES = [
     'ppt'  => 'application/vnd.ms-powerpoint',
     'doc'  => 'application/msword',
 ];
->>>>>>> 6288eaf (50%% revision)
 
 // ── GET ─────────────────────────────────────────────────────────
 if ($method === 'GET') {
@@ -67,8 +60,6 @@ if ($method === 'GET') {
         $lesson['lesson_id']     = (int) $lesson['lesson_id'];
         $lesson['module_id']     = (int) $lesson['module_id'];
         $lesson['duration_mins'] = (int) $lesson['duration_mins'];
-<<<<<<< HEAD
-=======
         $flags = _lessonFlags($lesson, $isTeacher);
 
         // ?file=preview|original: the PowerPoint or Word file's PDF copy (for the viewer) or the file itself. Students may
@@ -91,7 +82,6 @@ if ($method === 'GET') {
             'view_url'     => $flags['has_preview'] ? _lessonFileUrl($id, 'preview') : null,
             'download_url' => $flags['can_download'] && $lesson['media_url'] ? _lessonFileUrl($id, 'original') : null,
         ]);
->>>>>>> 6288eaf (50%% revision)
         jsonSuccess($lesson);
     }
 
@@ -108,27 +98,19 @@ if ($method === 'GET') {
 
     $lessons = $db->fetchAll(
         "SELECT l.lesson_id, l.title, l.lesson_type, l.duration_mins,
-<<<<<<< HEAD
-                l.sort_order, l.status, l.created_at, l.media_url
-=======
                 l.sort_order, l.status, l.created_at, l.media_url, l.allow_download
->>>>>>> 6288eaf (50%% revision)
          FROM lessons l
          WHERE l.module_id = ? {$statusFilter}
          ORDER BY l.sort_order",
         [$moduleId]
     );
 
-<<<<<<< HEAD
-    jsonSuccess($lessons);
-=======
     // Each row says whether its PowerPoint or Word file has a preview and whether this user may also download it.
     jsonSuccess(array_map(function (array $row) use ($isTeacher) {
         $flags = _lessonFlags($row, $isTeacher);
         unset($row['allow_download']);
         return $row + ['has_preview' => $flags['has_preview'], 'can_download' => $flags['can_download']];
     }, $lessons));
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── POST (Create with optional file upload) ─────────────────────
@@ -148,10 +130,7 @@ if ($method === 'POST' && isset($_GET['id'])) {
     $contentText = optionalField($data, 'content_text', $existing['content_text']);
     $durationMin = (int) optionalField($data, 'duration_mins', $existing['duration_mins']);
     $status      = optionalField($data, 'status',       $existing['status']);
-<<<<<<< HEAD
-=======
     $allowDownload = _allowDownload($data, (int) $existing['allow_download']);
->>>>>>> 6288eaf (50%% revision)
     if (!in_array($lessonType, LESSON_TYPES, true)) jsonError('Invalid lesson_type.', 422);
     if (!in_array($status, ['draft', 'published', 'archived'], true)) jsonError('Invalid status.', 422);
 
@@ -164,11 +143,8 @@ if ($method === 'POST' && isset($_GET['id'])) {
         $newUrl = _handleFileUpload($_FILES['lesson_file'], $user['user_id']);
         $oldUrl = $existing['media_url'];
         $mediaUrl = $newUrl;
-<<<<<<< HEAD
-=======
         $newPath = _lessonFilePath($newUrl);
         if ($newPath !== null) makePreview($newPath);   // a PowerPoint or Word file also gets a PDF copy; the save never fails because of it
->>>>>>> 6288eaf (50%% revision)
     } elseif (optionalField($data, 'remove_media', '') === '1' || optionalField($data, 'remove_media', false) === true) {
         $oldUrl = $existing['media_url'];
         $mediaUrl = null;
@@ -176,27 +152,16 @@ if ($method === 'POST' && isset($_GET['id'])) {
 
     try {
         $db->query(
-<<<<<<< HEAD
-            "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=?, media_url=? WHERE lesson_id=?",
-            [$title, $lessonType, $contentText, $durationMin, $status, $mediaUrl, $id]
-=======
             "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=?, media_url=?, allow_download=? WHERE lesson_id=?",
             [$title, $lessonType, $contentText, $durationMin, $status, $mediaUrl, $allowDownload, $id]
->>>>>>> 6288eaf (50%% revision)
         );
     } catch (Throwable $e) {
         if ($mediaUrl !== $existing['media_url'] && $mediaUrl) _deleteLessonFile($mediaUrl);
         throw $e;
     }
-<<<<<<< HEAD
-    // Old file goes only after the new state is saved
-    if ($oldUrl && $oldUrl !== $mediaUrl) _deleteLessonFile($oldUrl);
-    jsonSuccess(['media_url' => $mediaUrl], 'Lesson updated successfully.');
-=======
     // Old file (and its preview) goes only after the new state is saved
     if ($oldUrl && $oldUrl !== $mediaUrl) _deleteLessonFile($oldUrl);
     jsonSuccess(['media_url' => $mediaUrl, 'preview' => _lessonFlags(['media_url' => $mediaUrl, 'allow_download' => $allowDownload], true)['has_preview']], 'Lesson updated successfully.');
->>>>>>> 6288eaf (50%% revision)
 }
 
 if ($method === 'POST') {
@@ -213,10 +178,7 @@ if ($method === 'POST') {
     $contentText = optionalField($data, 'content_text', '');
     $durationMin = (int) optionalField($data, 'duration_mins', 0);
     $status      = optionalField($data, 'status', 'draft');
-<<<<<<< HEAD
-=======
     $allowDownload = _allowDownload($data, 0);
->>>>>>> 6288eaf (50%% revision)
 
     if (!in_array($lessonType, LESSON_TYPES, true)) {
         jsonError('Invalid lesson_type.', 422);
@@ -232,10 +194,7 @@ if ($method === 'POST') {
     );
 
     $mediaUrl = null;
-<<<<<<< HEAD
-=======
     $preview  = false;
->>>>>>> 6288eaf (50%% revision)
 
     // Handle file upload
     $uploadError = $isMultipart && isset($_FILES['lesson_file']) ? $_FILES['lesson_file']['error'] : UPLOAD_ERR_NO_FILE;
@@ -243,18 +202,6 @@ if ($method === 'POST') {
     if ($uploadError !== UPLOAD_ERR_NO_FILE && $uploadError !== UPLOAD_ERR_OK) jsonError('File upload failed. Please try again.', 500);
     if ($uploadError === UPLOAD_ERR_OK) {
         $mediaUrl = _handleFileUpload($_FILES['lesson_file'], $user['user_id']);
-<<<<<<< HEAD
-    }
-
-    $db->query(
-        "INSERT INTO lessons (module_id, teacher_id, title, lesson_type, content_text, media_url, duration_mins, sort_order, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [$moduleId, $user['user_id'], $title, $lessonType, $contentText, $mediaUrl, $durationMin, (int)$maxOrd['mo'] + 1, $status]
-    );
-    $newId  = (int) $db->getConnection()->lastInsertId();
-    $lesson = $db->fetchOne("SELECT * FROM lessons WHERE lesson_id = ?", [$newId]);
-    jsonSuccess($lesson, 'Lesson created successfully.', 201);
-=======
         $path = _lessonFilePath($mediaUrl);
         if ($path !== null) $preview = makePreview($path);   // a PowerPoint or Word file also gets a PDF copy; the save never fails because of it
     }
@@ -268,7 +215,6 @@ if ($method === 'POST') {
     $lesson = $db->fetchOne("SELECT * FROM lessons WHERE lesson_id = ?", [$newId]);
     $lesson['allow_download'] = (bool) $lesson['allow_download'];
     jsonSuccess($lesson + ['preview' => $preview], 'Lesson created successfully.', 201);
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── PUT (Update) ────────────────────────────────────────────────
@@ -314,20 +260,12 @@ if ($method === 'PUT') {
     $contentText = optionalField($body, 'content_text', $existing['content_text']);
     $durationMin = (int) optionalField($body, 'duration_mins', $existing['duration_mins']);
     $status      = optionalField($body, 'status',       $existing['status']);
-<<<<<<< HEAD
-    if (!in_array($lessonType, LESSON_TYPES, true)) jsonError('Invalid lesson_type.', 422);
-
-    $db->query(
-        "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=? WHERE lesson_id=?",
-        [$title, $lessonType, $contentText, $durationMin, $status, $id]
-=======
     $allowDownload = _allowDownload($body, (int) $existing['allow_download']);
     if (!in_array($lessonType, LESSON_TYPES, true)) jsonError('Invalid lesson_type.', 422);
 
     $db->query(
         "UPDATE lessons SET title=?, lesson_type=?, content_text=?, duration_mins=?, status=?, allow_download=? WHERE lesson_id=?",
         [$title, $lessonType, $contentText, $durationMin, $status, $allowDownload, $id]
->>>>>>> 6288eaf (50%% revision)
     );
     jsonSuccess(null, 'Lesson updated successfully.');
 }
@@ -353,23 +291,6 @@ function _rejectUnparsedMultipart(bool $isMultipart): void {
     jsonError('File too large for this server.', 413);
 }
 
-<<<<<<< HEAD
-// Delete an attachment only when it resolves to a file inside uploads/lessons/.
-// media_url may be absolute (/anthropotomy/uploads/lessons/x.pdf) or page-relative
-// (../uploads/lessons/x.pdf); resolve by basename inside the upload directory.
-function _deleteLessonFile(?string $mediaUrl): void {
-    if (!$mediaUrl) return;
-    $base = realpath(UPLOAD_DIR);
-    if ($base === false) return;
-    $name = basename(str_replace('\\', '/', parse_url($mediaUrl, PHP_URL_PATH) ?? ''));
-    if ($name === '' || $name === '.' || $name === '..') return;
-    $path = realpath($base . DIRECTORY_SEPARATOR . $name);
-    if ($path === false || !is_file($path)) return;
-    if (strpos($path, $base . DIRECTORY_SEPARATOR) !== 0) return;
-    @unlink($path);
-}
-
-=======
 // The file a media_url points at, only when it resolves to a file inside uploads/lessons/, else null.
 // media_url may be absolute (/anthropotomy/uploads/lessons/x.pdf) or page-relative
 // (../uploads/lessons/x.pdf); resolve by basename inside the upload directory.
@@ -411,7 +332,6 @@ function _allowDownload(array $data, int $current): int {
     return array_key_exists('allow_download', $data) ? (filter_var($data['allow_download'], FILTER_VALIDATE_BOOLEAN) ? 1 : 0) : $current;
 }
 
->>>>>>> 6288eaf (50%% revision)
 // ── File Upload Helper ───────────────────────────────────────────
 function _handleFileUpload(array $file, int $userId): string {
     $origExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));

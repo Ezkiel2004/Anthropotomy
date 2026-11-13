@@ -553,15 +553,9 @@ function escHtml(str) {
 // ── Dynamic Greeting ────────────────────────────────────────────
 function getGreeting() {
     const h = new Date().getHours();
-<<<<<<< HEAD
-    if (h < 12) return 'Good Morning';
-    if (h < 18) return 'Good Afternoon';
-    return 'Good Evening';
-=======
     if (h < 12) return 'Good morning';
     if (h < 18) return 'Good afternoon';
     return 'Good evening';
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── Charts – Bar ────────────────────────────────────────────────

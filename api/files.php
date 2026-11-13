@@ -13,10 +13,7 @@
  */
 
 require_once __DIR__ . '/helpers.php';
-<<<<<<< HEAD
-=======
 require_once __DIR__ . '/../database/preview.php';
->>>>>>> 6288eaf (50%% revision)
 $user   = requireLogin();
 $db     = Database::getInstance();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -38,8 +35,6 @@ function canOpenFile(array $file, array $user, bool $isTeacher, Database $db): b
     return (bool)$db->fetchOne("SELECT 1 FROM modules WHERE module_id = ? AND status = 'published'", [(int)$file['module_id']]);
 }
 
-<<<<<<< HEAD
-=======
 /** What this user may do with a PowerPoint or Word file: view its PDF preview, and get the original (see previewOriginalAllowed). */
 function fileFlags(array $file, bool $isTeacher): array {
     $hasPreview = previewSupported($file['stored_name']) && is_file(previewPath(FILE_STORE . $file['stored_name']));
@@ -56,7 +51,6 @@ function fileRows(array $rows, bool $isTeacher): array {
     }, $rows);
 }
 
->>>>>>> 6288eaf (50%% revision)
 // ── GET: one file ───────────────────────────────────────────────
 if ($method === 'GET' && isset($_GET['id'])) {
     $file = $db->fetchOne("SELECT * FROM teacher_files WHERE file_id = ?", [getIdParam()]);
@@ -64,50 +58,6 @@ if ($method === 'GET' && isset($_GET['id'])) {
     if (!$file || !canOpenFile($file, $user, $isTeacher, $db)) jsonError('File not found.', 404);
     $path = FILE_STORE . $file['stored_name'];
     if (!is_file($path)) jsonError('File not found.', 404);
-<<<<<<< HEAD
-    $ext = pathinfo($file['stored_name'], PATHINFO_EXTENSION);
-    $ascii = preg_replace('/[^A-Za-z0-9._ -]/', '_', $file['original_name']);
-    $size = filesize($path);
-    $start = 0;
-    $end = $size - 1;
-    $partial = false;
-    // One byte range (start-end, start-, -suffix) is served as 206; a malformed or multi-range header is ignored.
-    if (preg_match('/^bytes=(\d*)-(\d*)$/', trim($_SERVER['HTTP_RANGE'] ?? ''), $range) && ($range[1] !== '' || $range[2] !== '')) {
-        if ($range[1] === '') {
-            $length = (int)$range[2];
-            $start = max(0, $size - $length);
-        } else {
-            $start = (int)$range[1];
-            if ($range[2] !== '') $end = min($end, (int)$range[2]);
-        }
-        if ($start >= $size || ($range[2] !== '' && $range[1] !== '' && (int)$range[2] < $start) || ($range[1] === '' && (int)$range[2] === 0)) {
-            http_response_code(416);
-            header("Content-Range: bytes */$size");
-            exit;
-        }
-        $partial = true;
-    }
-    header('Accept-Ranges: bytes');
-    header('Content-Type: ' . FILE_TYPES[$ext][0]);
-    if ($partial) {
-        http_response_code(206);
-        header("Content-Range: bytes $start-$end/$size");
-    }
-    header('Content-Length: ' . ($end - $start + 1));
-    header(($ext === 'pdf' ? 'Content-Disposition: inline' : 'Content-Disposition: attachment') . "; filename=\"{$ascii}\"; filename*=UTF-8''" . rawurlencode($file['original_name']));
-    header('X-Content-Type-Options: nosniff');
-    header('Cache-Control: private, no-store');
-    session_write_close(); // a long download must not hold the session lock and stall the user's other requests
-    $handle = fopen($path, 'rb');
-    fseek($handle, $start);
-    for ($left = $end - $start + 1; $left > 0 && !feof($handle); $left -= strlen($chunk)) {
-        $chunk = fread($handle, min(65536, $left));
-        if ($chunk === false || $chunk === '') break;
-        echo $chunk;
-    }
-    fclose($handle);
-    exit;
-=======
     // ?preview=1: the PDF copy of a PowerPoint or Word file, opened in the viewer (never an attachment).
     if (isset($_GET['preview'])) {
         $preview = previewPath($path);
@@ -117,43 +67,26 @@ if ($method === 'GET' && isset($_GET['id'])) {
     if (!fileFlags($file, $isTeacher)['can_download']) jsonError('This file is view-only.', 403);
     $ext = pathinfo($file['stored_name'], PATHINFO_EXTENSION);
     streamFile($path, FILE_TYPES[$ext][0], $ext === 'pdf', $file['original_name']);
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── GET: list ───────────────────────────────────────────────────
 if ($method === 'GET') {
     $kind = $_GET['kind'] ?? '';
-<<<<<<< HEAD
-    $select = "SELECT f.file_id, f.kind, f.module_id, f.title, f.original_name, f.size_bytes, f.created_at, m.title AS module_title
-               FROM teacher_files f LEFT JOIN modules m ON m.module_id = f.module_id";
-    if ($kind === 'lesson_plan') {
-        if (!$isTeacher) jsonError('Access denied. Teacher privileges required.', 403);
-        jsonSuccess($db->fetchAll("$select WHERE f.kind = 'lesson_plan' AND f.teacher_id = ? ORDER BY f.created_at DESC", [$user['user_id']]));
-=======
     $select = "SELECT f.file_id, f.kind, f.module_id, f.title, f.original_name, f.stored_name, f.allow_download, f.size_bytes, f.created_at, m.title AS module_title
                FROM teacher_files f LEFT JOIN modules m ON m.module_id = f.module_id";
     if ($kind === 'lesson_plan') {
         if (!$isTeacher) jsonError('Access denied. Teacher privileges required.', 403);
         jsonSuccess(fileRows($db->fetchAll("$select WHERE f.kind = 'lesson_plan' AND f.teacher_id = ? ORDER BY f.created_at DESC", [$user['user_id']]), $isTeacher));
->>>>>>> 6288eaf (50%% revision)
     }
     if ($kind !== 'material') jsonError('kind must be material or lesson_plan.', 422);
     $moduleId = (int)($_GET['module_id'] ?? 0);
     if (!$isTeacher) {
         if (!$moduleId) jsonError('module_id is required.', 422);
-<<<<<<< HEAD
-        jsonSuccess($db->fetchAll("$select WHERE f.kind = 'material' AND f.module_id = ? AND m.status = 'published' ORDER BY f.created_at", [$moduleId]));
-    }
-    jsonSuccess($moduleId
-        ? $db->fetchAll("$select WHERE f.kind = 'material' AND f.module_id = ? ORDER BY f.created_at", [$moduleId])
-        : $db->fetchAll("$select WHERE f.kind = 'material' ORDER BY m.title, f.created_at"));
-=======
         jsonSuccess(fileRows($db->fetchAll("$select WHERE f.kind = 'material' AND f.module_id = ? AND m.status = 'published' ORDER BY f.created_at", [$moduleId]), $isTeacher));
     }
     jsonSuccess(fileRows($moduleId
         ? $db->fetchAll("$select WHERE f.kind = 'material' AND f.module_id = ? ORDER BY f.created_at", [$moduleId])
         : $db->fetchAll("$select WHERE f.kind = 'material' ORDER BY m.title, f.created_at"), $isTeacher));
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── POST: upload ────────────────────────────────────────────────
@@ -184,13 +117,6 @@ if ($method === 'POST') {
     $stored = bin2hex(random_bytes(16)) . '.' . $ext;
     if (!move_uploaded_file($upload['tmp_name'], FILE_STORE . $stored)) jsonError('File upload failed. Check server permissions.', 500);
 
-<<<<<<< HEAD
-    $id = $db->insert('teacher_files', [
-        'teacher_id' => $user['user_id'], 'kind' => $kind, 'module_id' => $moduleId, 'title' => $title,
-        'original_name' => mb_substr($original, 0, 255), 'stored_name' => $stored, 'size_bytes' => $upload['size'],
-    ]);
-    jsonSuccess($db->fetchOne("SELECT file_id, kind, module_id, title, original_name, size_bytes, created_at FROM teacher_files WHERE file_id = ?", [$id]), 'File uploaded.', 201);
-=======
     // A PowerPoint or Word file also gets a PDF copy for the viewer, made BEFORE the row is saved: converting can take a minute,
     // and a row listed with no preview yet would let a student download the original of a view-only file in the meantime.
     // The upload never fails because that copy could not be made.
@@ -221,7 +147,6 @@ if ($method === 'PUT') {
     $file['allow_download'] = filter_var($body['allow_download'], FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
     $db->query("UPDATE teacher_files SET allow_download = ? WHERE file_id = ?", [$file['allow_download'], $file['file_id']]);
     jsonSuccess(['file_id' => (int)$file['file_id']] + fileFlags($file, $isTeacher), 'Saved.');
->>>>>>> 6288eaf (50%% revision)
 }
 
 // ── DELETE ──────────────────────────────────────────────────────
@@ -231,10 +156,7 @@ if ($method === 'DELETE') {
     if (!$file || (int)$file['teacher_id'] !== (int)$user['user_id']) jsonError('File not found.', 404);
     $db->query("DELETE FROM teacher_files WHERE file_id = ?", [$file['file_id']]);
     @unlink(FILE_STORE . $file['stored_name']);
-<<<<<<< HEAD
-=======
     removePreview(FILE_STORE . $file['stored_name']);
->>>>>>> 6288eaf (50%% revision)
     jsonSuccess(null, 'File deleted.');
 }
 

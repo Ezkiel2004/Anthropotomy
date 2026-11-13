@@ -14,13 +14,6 @@ const LessonSheet = (() => {
   const TOO_LARGE = 'File too large. Maximum size is 500 MB.';
   const WRONG_TYPE = 'Use a PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx) file.';
   const KINDS_HINT = 'PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx), up to 500 MB.';
-<<<<<<< HEAD
-  const STUDENTS_GET = {
-    pdf: 'Students read it here in the viewer',
-    slides: 'Students download it and open it in PowerPoint',
-    document: 'Students download it and open it in Word',
-  };
-=======
   // A PowerPoint or Word file gets a PDF preview when it is saved, so students read it in the viewer too (view-only unless
   // the switch below is on). If no preview can be made the save says so and students download the file instead.
   const STUDENTS_GET = {
@@ -30,7 +23,6 @@ const LessonSheet = (() => {
   };
   const SAVED = 'Saved. Students can view it in the app.';
   const NO_PREVIEW = 'Saved, but no preview could be made, so students will download this file instead.';
->>>>>>> 6288eaf (50%% revision)
 
   const extensionOf = name => (String(name).split(/[?#]/)[0].split('.').pop() || '').toLowerCase();
   const baseName = url => { try { return decodeURIComponent(String(url).split(/[?#]/)[0].split('/').pop()); } catch { return String(url).split('/').pop(); } };
@@ -80,12 +72,9 @@ const LessonSheet = (() => {
       <div class="cs-field"><label for="lsText">Note for students <span class="cs-meta">(optional)</span></label>
         <textarea class="cs-input cs-input--area" id="lsText" name="content_text" rows="3" aria-describedby="lsTextHint" placeholder="For example: read pages 1 and 2, then answer the questions at the end.">${escHtml(lesson?.content_text || '')}</textarea>
         <span class="cs-meta" id="lsTextHint">Shown above the file when a student opens it.</span></div>
-<<<<<<< HEAD
-=======
       <div class="cs-field" data-allow-field hidden><span class="cs-label">Download</span>
         <label class="cs-switch"><input type="checkbox" role="switch" name="allow_download"${lesson?.allow_download ? ' checked' : ''}/><i></i><span>Let students download this file</span></label>
         <span class="cs-meta">Off: students can only read it here. Teachers can always download it.</span></div>
->>>>>>> 6288eaf (50%% revision)
       <div class="cs-two"><div class="cs-field"><label for="lsMins">Time to study<span class="cs-sr"> in minutes</span></label>
           <span class="cs-unit"><input class="cs-input" id="lsMins" name="duration_mins" type="number" min="0" max="999" inputmode="numeric" placeholder="For example 15" value="${lesson?.duration_mins > 0 ? lesson.duration_mins : ''}"/><span class="cs-meta" aria-hidden="true">minutes</span></span></div>
         <div class="cs-field"><span class="cs-label">Visible to students</span>
@@ -132,11 +121,6 @@ const LessonSheet = (() => {
     // ── File panel ───────────────────────────────────────────────
     function dropBlob() { if (state.blobUrl) { URL.revokeObjectURL(state.blobUrl); state.blobUrl = null; } }
     const shown = () => state.picked ? { name: state.picked.name } : state.removed || !state.current ? null : { name: baseName(state.current) };
-<<<<<<< HEAD
-    function drawAttach() {
-      const file = shown();
-      fileHint.textContent = file ? `${KINDS_HINT} Drop a file on this panel to replace it.` : KINDS_HINT;
-=======
     // The download switch only means something for a PowerPoint or Word file.
     const allowField = form.querySelector('[data-allow-field]');
     const isOfficeKind = file => Boolean(file) && ['slides', 'document'].includes(ContentFormat.lessonKind({ lesson_type: type, media_url: file.name }));
@@ -144,7 +128,6 @@ const LessonSheet = (() => {
       const file = shown();
       fileHint.textContent = file ? `${KINDS_HINT} Drop a file on this panel to replace it.` : KINDS_HINT;
       allowField.hidden = !isOfficeKind(file);
->>>>>>> 6288eaf (50%% revision)
       if (!file) {
         attach.innerHTML = `<div class="cs-drop cs-drop--file" data-drop>${Studio.icon('cloud-arrow-up')}
           <span>Drop the lesson file here</span>
@@ -181,13 +164,9 @@ const LessonSheet = (() => {
       }
       if (!state.picked && state.size === 0) {
         const saved = state.current;
-<<<<<<< HEAD
-        fetch(saved, { method: 'HEAD', credentials: 'same-origin' }).then(r => {
-=======
         // A PowerPoint or Word file's direct address is blocked; its size comes from the API's download address.
         const sizeUrl = (kind === 'slides' || kind === 'document') && lesson?.download_url ? lesson.download_url : saved;
         fetch(sizeUrl, { method: 'HEAD', credentials: 'same-origin' }).then(r => {
->>>>>>> 6288eaf (50%% revision)
           const bytes = Number(r.headers.get('Content-Length'));
           if (r.ok && bytes > 0 && state.current === saved && !state.picked && !state.removed) { state.size = bytes; meta(); }
         }).catch(() => {});
@@ -260,22 +239,15 @@ const LessonSheet = (() => {
       if (!editing) data.append('module_id', String(moduleId));
       if (state.picked) data.append('lesson_file', state.picked, state.picked.name);
       else if (editing && state.removed && state.current) data.append('remove_media', '1');
-<<<<<<< HEAD
-=======
       // The download switch is saved with a PowerPoint or Word file; for any other file it is left alone.
       const office = isOfficeKind(shown());
       if (office) data.append('allow_download', form.elements.allow_download.checked ? '1' : '0');
->>>>>>> 6288eaf (50%% revision)
       saving = true;
       sheet.setBusy(true);
       saveButton.disabled = true;
       cancelButton.disabled = true;
-<<<<<<< HEAD
-      say(state.picked ? 'Uploading…' : 'Saving…');
-=======
       // Saving a new PowerPoint or Word file also makes its PDF preview, which takes a few seconds.
       say(state.picked ? (office ? (extensionOf(state.picked.name).startsWith('p') ? 'Preparing slides for viewing…' : 'Preparing document for viewing…') : 'Uploading…') : 'Saving…');
->>>>>>> 6288eaf (50%% revision)
       let result;
       try {
         const res = await fetch(`${API_BASE}/lessons.php${editing ? `?id=${lesson.lesson_id}` : ''}`, { method: 'POST', credentials: 'same-origin', body: data });
@@ -293,13 +265,9 @@ const LessonSheet = (() => {
       sheet.setDirty(false);   // saved: stays "saving" so a stray Enter cannot submit again while the sheet closes
       await sheet.close();
       dropBlob();
-<<<<<<< HEAD
-      showToast(editing ? 'Lesson saved.' : 'Lesson added.', 'success');
-=======
       // A new PowerPoint or Word file says whether students can view it in the app or will download it.
       if (office && state.picked) showToast(result.data?.preview ? SAVED : NO_PREVIEW, result.data?.preview ? 'success' : 'warning');
       else showToast(editing ? 'Lesson saved.' : 'Lesson added.', 'success');
->>>>>>> 6288eaf (50%% revision)
       if (onSaved) await onSaved();
     });
     return sheet;

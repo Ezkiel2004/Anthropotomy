@@ -9,17 +9,10 @@
   <link rel="preload" href="../assets/fonts/bungee-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="preload" href="../assets/fonts/plus-jakarta-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="../assets/css/global.css?v=20261112-dialogs1"/>
-<<<<<<< HEAD
-  <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261005-brand1"/>
-  <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
-  <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-dialogs2"/>
-  <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261104-mint1"/>
-=======
   <link rel="stylesheet" href="../assets/css/sidebar.css?v=20261112-rail1"/>
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-title1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261112-expl1"/>
->>>>>>> 6288eaf (50%% revision)
   <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261112-files1"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
@@ -98,17 +91,10 @@
 <!-- Lesson reader: a full-screen page, filled when a lesson opens -->
 <div class="sd-reader" id="lessonContentViewer" role="dialog" aria-modal="true" aria-labelledby="readerTitle" hidden></div>
 
-<<<<<<< HEAD
-<script src="../assets/js/app.js?v=20261112-files1"></script>
-<script src="../assets/js/content-format.js?v=20261112-files1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261112-files1"></script>
-<script src="../assets/js/lesson-reader.js?v=20261112-files1"></script>
-=======
 <script src="../assets/js/app.js?v=20261112-greet1"></script>
 <script src="../assets/js/content-format.js?v=20261112-files1"></script>
 <script src="../assets/js/pdf-viewer.js?v=20261112-view1"></script>
 <script src="../assets/js/lesson-reader.js?v=20261112-view1"></script>
->>>>>>> 6288eaf (50%% revision)
 <script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
 'use strict';
@@ -226,13 +212,9 @@ async function viewModule(moduleId) {
     ]);
     const lessons = result.success ? result.data : [];
     const materials = filesResult?.success ? filesResult.data : [];
-<<<<<<< HEAD
-    const downloads = lessons.some(l => ['slides', 'document'].includes(ContentFormat.lessonKind(l)));
-=======
     // The hint is only true while some file still downloads: a PowerPoint or Word file with no preview to read instead.
     const downloads = lessons.some(l => ['slides', 'document'].includes(ContentFormat.lessonKind(l)) && !l.has_preview)
       || materials.some(f => !f.original_name.toLowerCase().endsWith('.pdf') && !f.has_preview);
->>>>>>> 6288eaf (50%% revision)
     shownModule = module;
 
     body.innerHTML = `
@@ -243,14 +225,6 @@ async function viewModule(moduleId) {
       ${lessons.length ? `<ol class="sd-files">${lessons.map(lessonCard).join('')}</ol>` : '<div class="dashboard-empty">This module has no lessons yet.</div>'}
       ${downloads ? `<p class="sd-files-hint">${icon('info')}PDFs open here. PowerPoint and Word files download and open in the app on your device.</p>` : ''}
       ${materials.length ? `<h4 class="sd-materials-title">Materials</h4><div class="sd-lessons">${materials.map(f => {
-<<<<<<< HEAD
-        const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
-        return `<${isPdf ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}" data-context="${escHtml(module.title)} · Materials"` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
-          <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
-          <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : 'Download · ' + escHtml(f.original_name.split('.').pop().toUpperCase())}</span></span>
-          <span class="sd-lesson-go">${isPdf ? 'Open' : 'Download'}${icon(isPdf ? 'arrow-right' : 'download-simple')}</span>
-        </${isPdf ? 'button' : 'a'}>`;
-=======
         // A PDF, or a PowerPoint or Word file with a preview, opens in the viewer (view-only unless the teacher allowed downloads);
         // anything else downloads.
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
@@ -261,7 +235,6 @@ async function viewModule(moduleId) {
           <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : f.has_preview ? ext + (f.can_download ? '' : ' · view only') : 'Download · ' + ext}</span></span>
           <span class="sd-lesson-go">${viewable ? 'Open' : 'Download'}${icon(viewable ? 'arrow-right' : 'download-simple')}</span>
         </${viewable ? 'button' : 'a'}>`;
->>>>>>> 6288eaf (50%% revision)
       }).join('')}</div>` : ''}`;
     body.querySelectorAll('.sd-file[data-kind="pdf"]').forEach(showPdfPreview);
   } catch (e) {
@@ -270,14 +243,9 @@ async function viewModule(moduleId) {
 }
 
 // ── Lesson files ───────────────────────────────────────────────
-<<<<<<< HEAD
-// A module's lessons are files. A PDF opens full screen in the viewer with the teacher's note; PowerPoint and Word
-// download and open in the app on the device; older lessons (text, video, image, 3D) open in the lesson reader.
-=======
 // A module's lessons are files. A PDF opens full screen in the viewer with the teacher's note, and so does a PowerPoint
 // or Word file that has a PDF preview (view-only unless the teacher allowed downloads); one with no preview downloads
 // through the API and opens in the app on the device; older lessons (text, video, image, 3D) open in the lesson reader.
->>>>>>> 6288eaf (50%% revision)
 // Cards carry only lesson ids; one delegated listener below opens them.
 let shownModule = null;
 const lessonMeta = (label, parts) => `<b>${escHtml(label)}</b>${parts.filter(Boolean).map(p => ' · ' + escHtml(p)).join('')}`;
@@ -296,10 +264,6 @@ function lessonCard(lesson, i) {
   } else if (kind === 'slides' || kind === 'document') {
     const ext = String(lesson.media_url).split(/[?#]/)[0].split('.').pop().toLowerCase();
     thumb = `<span class="sd-file-thumb sd-file-thumb--${kind}" aria-hidden="true"><span>${icon(kindIcon)}${escHtml(ext.toUpperCase())}</span></span>`;
-<<<<<<< HEAD
-    meta = lessonMeta(label, [`opens in ${label}`, minutes(lesson)]);
-    go = `<a class="sd-file-go sd-file-go--file" href="${escHtml(lesson.media_url)}" download="${escHtml(`${lesson.title}.${ext}`)}">${icon('download-simple')}Download${named}</a>`;
-=======
     if (lesson.has_preview) {
       meta = lessonMeta(label, [lesson.can_download ? '' : 'view only', minutes(lesson)]);
       go = `<button type="button" class="sd-file-go">Open${named}${icon('arrow-right')}</button>`;
@@ -307,17 +271,12 @@ function lessonCard(lesson, i) {
       meta = lessonMeta(label, [`opens in ${label}`, minutes(lesson)]);
       go = `<a class="sd-file-go sd-file-go--file" href="${API_BASE}/lessons.php?id=${Number(lesson.lesson_id)}&file=original" download="${escHtml(`${lesson.title}.${ext}`)}">${icon('download-simple')}Download${named}</a>`;
     }
->>>>>>> 6288eaf (50%% revision)
   } else {
     thumb = `<span class="sd-file-thumb sd-file-thumb--kind t-${kind}" aria-hidden="true">${icon(kindIcon)}</span>`;
     meta = lessonMeta(label, [minutes(lesson)]);
     go = `<button type="button" class="sd-file-go">Open${named}${icon('arrow-right')}</button>`;
   }
-<<<<<<< HEAD
-  return `<li class="sd-file" data-lesson="${Number(lesson.lesson_id)}" data-kind="${kind}"${kind === 'pdf' ? ` data-pdf="${escHtml(lesson.media_url)}" data-mins="${Number(lesson.duration_mins) || 0}"` : ''}>
-=======
   return `<li class="sd-file" data-lesson="${Number(lesson.lesson_id)}" data-kind="${kind}"${kind === 'pdf' ? ` data-pdf="${escHtml(lesson.media_url)}" data-mins="${Number(lesson.duration_mins) || 0}"` : ''}${lesson.has_preview ? ' data-preview="1"' : ''}>
->>>>>>> 6288eaf (50%% revision)
       <span class="sd-file-num" aria-hidden="true">${i + 1}</span>${thumb}
       <span class="sd-file-copy"><span class="sd-file-title">${title}</span><span class="sd-file-meta">${meta}</span></span>
       ${go}
@@ -365,11 +324,6 @@ async function readLesson(card) {
   const module = shownModule;
   try {
     const result = await fetch(`${API_BASE}/lessons.php?id=${Number(card.dataset.lesson)}`, { credentials: 'same-origin' }).then(r => r.json());
-<<<<<<< HEAD
-    if (!result.success || !result.data?.media_url) { showToast('This lesson isn’t available right now.', 'warning'); return; }
-    if (go.isConnected) go.focus({ preventScroll: true });   // the viewer gives focus back here when it closes
-    PdfViewer.open({ url: result.data.media_url, title: result.data.title, context: `${module.title} · Lesson ${position}`, note: result.data.content_text || '' });
-=======
     // A PowerPoint or Word lesson is read from its PDF preview (view_url) and keeps its Download button only when the teacher allowed it.
     const office = Boolean(card.dataset.preview);
     const url = office ? result.data?.view_url : result.data?.media_url;
@@ -377,7 +331,6 @@ async function readLesson(card) {
     if (go.isConnected) go.focus({ preventScroll: true });   // the viewer gives focus back here when it closes
     PdfViewer.open({ url, title: result.data.title, context: `${module.title} · Lesson ${position}`, note: result.data.content_text || '',
       ...(office ? { downloadUrl: result.data.can_download ? result.data.download_url : null } : {}) });
->>>>>>> 6288eaf (50%% revision)
   } catch (e) {
     showToast('We couldn’t open the lesson. Check your connection and try again.', 'error');
   }
@@ -404,13 +357,6 @@ async function startLesson(lessonId) {
 const lessonReaderRoot = document.getElementById('lessonContentViewer');
 const showLessonContent = lesson => LessonReader.show(lessonReaderRoot, lesson);
 const closeLessonViewer = () => LessonReader.close(lessonReaderRoot);
-<<<<<<< HEAD
-// Material PDFs open in the in-app viewer; Word and PowerPoint files stay plain downloads.
-// Lesson cards: Read opens a PDF, Download hands over the file (and counts as study time), Open starts the reader.
-document.getElementById('lessonModalBody').addEventListener('click', e => {
-  const item = e.target.closest('[data-material]');
-  if (item) { PdfViewer.open({ url: `${API_BASE}/files.php?id=${item.dataset.material}`, title: item.dataset.title, context: item.dataset.context }); return; }
-=======
 // Material PDFs, and PowerPoint or Word materials with a preview, open in the in-app viewer; the rest stay plain downloads.
 // Lesson cards: Read opens a PDF, Open shows a PowerPoint or Word file's preview (or starts the reader for older lessons),
 // Download hands over a file that has no preview (and counts as study time).
@@ -423,16 +369,11 @@ document.getElementById('lessonModalBody').addEventListener('click', e => {
     else PdfViewer.open({ url: original, title: item.dataset.title, context: item.dataset.context });
     return;
   }
->>>>>>> 6288eaf (50%% revision)
   const go = e.target.closest('.sd-file-go');
   const card = go?.closest('.sd-file');
   if (!card) return;
   if (go.matches('a[download]')) { if (typeof StudyClock !== 'undefined') StudyClock.reading(); return; }
-<<<<<<< HEAD
-  if (card.dataset.kind === 'pdf') readLesson(card); else startLesson(Number(card.dataset.lesson));
-=======
   if (card.dataset.kind === 'pdf' || card.dataset.preview) readLesson(card); else startLesson(Number(card.dataset.lesson));
->>>>>>> 6288eaf (50%% revision)
 });
 
 // ── Init ───────────────────────────────────────────────────────

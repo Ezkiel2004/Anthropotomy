@@ -51,8 +51,6 @@ body.stage-portal {
   body.stage-portal .main-content .topbar { margin: calc(var(--mn-d) + .5rem) 1.5rem 0; }
   body.stage-portal .page-content.sd,
   body.stage-portal .page-content { padding-top: calc(var(--topbar-height, 56px) + 3.25rem); }
-<<<<<<< HEAD
-=======
   /* The 3D explorer is a full-bleed canvas. It starts below the floating top bar (16px frame inset,
      8px gap, 56px bar) instead of at the bare bar height, which left the top 24px under the bar,
      and it stops at the frame's bottom edge. */
@@ -60,7 +58,6 @@ body.stage-portal {
     --topbar-h: calc(var(--mn-d) + .5rem + var(--topbar-height, 56px));
     height: calc(100dvh - var(--topbar-h) - var(--mn-d));
   }
->>>>>>> 6288eaf (50%% revision)
 }
 
 /* ── Top bar: a flat floating pill ── */

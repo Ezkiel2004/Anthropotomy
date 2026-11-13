@@ -1,22 +1,15 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-<<<<<<< HEAD
-=======
 import os from 'node:os';
->>>>>>> 6288eaf (50%% revision)
 const base=process.env.ANTHROPOTOMY_TEST_URL || 'http://127.0.0.1:8091';
 const credentials=JSON.parse(fs.readFileSync('.runtime/test-access.json','utf8'));
 let assertions=0;
 function check(value,message){assert.ok(value,message);assertions++;}
 // contentType sends body as it is with that Content-Type (a raw, hand-made request body).
-<<<<<<< HEAD
-function client(){let cookie='';return async(path,method='GET',body,contentType)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(contentType?{'Content-Type':contentType}:body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart||contentType?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};}
-=======
 // client() returns a function that sends a request and parses the JSON answer; its .raw(path,{method,headers}) returns the fetch Response
 // itself (a served file, a range, headers) with the same session cookie.
 function client(){let cookie='';const call=async(path,method='GET',body,contentType)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(contentType?{'Content-Type':contentType}:body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart||contentType?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};call.raw=(path,{method='GET',headers={}}={})=>fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...headers}});return call;}
->>>>>>> 6288eaf (50%% revision)
 const guest=client(),teacher=client(),student=client();
 const phpBinary=process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php');
 const dbAction=(...args)=>execFileSync(phpBinary,['tests/database.php',...args],{stdio:'pipe'});
@@ -486,8 +479,6 @@ for(const path of ['/database/reset_student_progress.php','/database/schema.php'
     r=await get('bytes=abc');check(r.status===200,'Malformed range is ignored');
     check((await fetch(url,{headers:{Range:'bytes=0-9'}})).status===401,'Ranges do not skip the access check');
 }
-<<<<<<< HEAD
-=======
 // Headers of a served file (the streaming function is shared by materials, lesson files and previews).
 {
     const upload=(file,name,type)=>{const form=new FormData();form.append('kind','material');form.append('module_id',mid);form.append('title','Header fixture '+name);form.append('file',new Blob([fs.readFileSync('tests/fixtures/'+file)],{type}),name);return teacher('files.php','POST',form);};
@@ -642,5 +633,4 @@ for(const path of ['/database/reset_student_progress.php','/database/schema.php'
     const pdf=await make('Notes.pdf',{file:'sample.pdf'});
     s=await one(student,pdf.data.lesson_id);check(pdf.data.preview===false&&s.has_preview===false&&s.can_download===true,'A PDF lesson has no preview and stays downloadable');
 }
->>>>>>> 6288eaf (50%% revision)
 console.log(`Integration checks passed: ${assertions}`);

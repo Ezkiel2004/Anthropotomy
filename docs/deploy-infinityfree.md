@@ -9,10 +9,7 @@ InfinityFree is free PHP and MySQL hosting, the same kind of setup as XAMPP. Thi
 - **Busy times:** the account allows a fixed number of requests a day. A class of about 40 using the site for a couple of hours a day fits; if the limit is reached the site pauses until the next day.
 - **Backups and database upgrades are manual:** there is no command line. Export the database from phpMyAdmin now and then (step 9).
 - **First visit:** each browser sees a short "checking your browser" page once. That is InfinityFree's protection and is normal.
-<<<<<<< HEAD
-=======
 - **Slide and document previews:** students read PowerPoint and Word files inside the site from a PDF copy made with LibreOffice, and the free host cannot run it. Copies made on this PC arrive with the site (step 4 packs `uploads\` and `storage\`), so before step 4 run `C:\xampp\php\php.exe database\convert_previews.php` here once to give every deck and document its copy. A PowerPoint or Word file uploaded directly on the online site has no copy, so students download it instead.
->>>>>>> 6288eaf (50%% revision)
 
 ## 1. Create the InfinityFree account
 
@@ -72,11 +69,8 @@ Open `https://` followed by your address. If the browser says the connection is 
 1. Open your address and sign in with your usual teacher account.
 2. Open a lesson, the 3D explorer and a quiz.
 3. Upload a profile photo in Settings.
-<<<<<<< HEAD
-=======
 4. Sign in as a student and open a PowerPoint lesson: it should open in the viewer with no Download button (unless you turned downloads on for it).
 5. Type the direct address of one of its files, `https://` followed by your address and `/uploads/lessons/` and the file's name (the `lesson_...pptx` name in the `uploads\lessons` folder you uploaded). The browser must show **Forbidden** (403), not download the file. If it downloads, the host is ignoring `.htaccess`: tell whoever maintains the site before students use it.
->>>>>>> 6288eaf (50%% revision)
 
 Then delete `C:\xampp\anthropotomy-infinityfree\` from this PC: it holds the database password and student records.
 
