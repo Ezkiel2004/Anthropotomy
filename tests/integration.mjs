@@ -1,12 +1,22 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+<<<<<<< HEAD
+=======
+import os from 'node:os';
+>>>>>>> 6288eaf (50%% revision)
 const base=process.env.ANTHROPOTOMY_TEST_URL || 'http://127.0.0.1:8091';
 const credentials=JSON.parse(fs.readFileSync('.runtime/test-access.json','utf8'));
 let assertions=0;
 function check(value,message){assert.ok(value,message);assertions++;}
 // contentType sends body as it is with that Content-Type (a raw, hand-made request body).
+<<<<<<< HEAD
 function client(){let cookie='';return async(path,method='GET',body,contentType)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(contentType?{'Content-Type':contentType}:body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart||contentType?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};}
+=======
+// client() returns a function that sends a request and parses the JSON answer; its .raw(path,{method,headers}) returns the fetch Response
+// itself (a served file, a range, headers) with the same session cookie.
+function client(){let cookie='';const call=async(path,method='GET',body,contentType)=>{const multipart=body instanceof FormData;const response=await fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(contentType?{'Content-Type':contentType}:body===undefined||multipart?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:multipart||contentType?body:JSON.stringify(body)});const received=response.headers.getSetCookie();if(received.length)cookie=received.map(c=>c.split(';')[0]).join('; ');let result;const raw=await response.text();try{result=JSON.parse(raw);}catch{throw new Error(path+' returned invalid JSON: '+raw.slice(0,300));}return {status:response.status,...result};};call.raw=(path,{method='GET',headers={}}={})=>fetch(base+'/api/'+path,{method,headers:{...(cookie?{Cookie:cookie}:{}),...headers}});return call;}
+>>>>>>> 6288eaf (50%% revision)
 const guest=client(),teacher=client(),student=client();
 const phpBinary=process.env.PHP_BINARY||(fs.existsSync('C:/xampp/php/php.exe')?'C:/xampp/php/php.exe':'php');
 const dbAction=(...args)=>execFileSync(phpBinary,['tests/database.php',...args],{stdio:'pipe'});
@@ -476,4 +486,161 @@ for(const path of ['/database/reset_student_progress.php','/database/schema.php'
     r=await get('bytes=abc');check(r.status===200,'Malformed range is ignored');
     check((await fetch(url,{headers:{Range:'bytes=0-9'}})).status===401,'Ranges do not skip the access check');
 }
+<<<<<<< HEAD
+=======
+// Headers of a served file (the streaming function is shared by materials, lesson files and previews).
+{
+    const upload=(file,name,type)=>{const form=new FormData();form.append('kind','material');form.append('module_id',mid);form.append('title','Header fixture '+name);form.append('file',new Blob([fs.readFileSync('tests/fixtures/'+file)],{type}),name);return teacher('files.php','POST',form);};
+    const pdf=await upload('sample.pdf','sample.pdf','application/pdf');check(pdf.success,'Upload a PDF material for header checks');
+    let r=await teacher.raw('files.php?id='+pdf.data.file_id);
+    check(r.status===200&&r.headers.get('content-type')==='application/pdf','A PDF material is served as application/pdf');
+    const disposition=r.headers.get('content-disposition')||'';
+    check(disposition.startsWith('inline;')&&disposition.includes("filename*=UTF-8''sample.pdf"),'A PDF opens inline under its own name');
+    check(r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('cache-control')==='private, no-store','Served files are never sniffed or cached');
+    await r.arrayBuffer();
+    const deck=await upload('sample.pptx','deck.pptx','application/octet-stream');check(deck.success,'Upload a PowerPoint material for header checks');
+    r=await teacher.raw('files.php?id='+deck.data.file_id);
+    check(r.status===200&&(r.headers.get('content-disposition')||'').startsWith('attachment;'),'A PowerPoint material still downloads as an attachment');
+    await r.arrayBuffer();
+}
+// Previews of PowerPoint and Word materials. The suite's server runs the fake converter (tests/fixtures/fake-soffice.cmd, run with -Stub):
+// a file containing FAIL-CONVERT cannot be converted and one containing HANG-CONVERT never finishes (the server's timeout is 5 seconds).
+{
+    const teacher2=client();
+    dbAction('add-teacher','fixture-teacher-2','second-teacher-test-password');
+    check((await teacher2('auth/login.php','POST',{username:'fixture-teacher-2',password:'second-teacher-test-password'})).success,'Second teacher signs in');
+    check((await student('auth/login.php','POST',{username:'fixture-student',password:'replacement-test-password'})).success,'Student signs in for preview checks');
+    const send=(who,file,name,{kind='material',title=name,allow,bytes}={})=>{const form=new FormData();form.append('kind',kind);if(kind==='material')form.append('module_id',mid);form.append('title',title);if(allow!==undefined)form.append('allow_download',allow?'1':'0');form.append('file',new Blob([bytes||fs.readFileSync('tests/fixtures/'+file)],{type:'application/octet-stream'}),name);return who('files.php','POST',form);};
+    const previewFiles=()=>fs.readdirSync('storage/files').filter(n=>n.endsWith('.preview.pdf')).length;
+    const workFolders=()=>fs.existsSync('storage/preview-work')?fs.readdirSync('storage/preview-work').length:0;
+    const row=async(who,id)=>(await who('files.php?kind=material&module_id='+mid)).data.find(f=>f.file_id===id);
+    const drain=async r=>{await r.arrayBuffer();return r;};
+
+    const deck=await send(teacher,'sample.pptx','Deck.pptx',{title:'Skeleton deck'});const fid=deck.data?.file_id;
+    check(deck.success&&deck.data.preview===true,'Material upload makes a preview');
+    let r=await row(teacher,fid);
+    check(r.has_preview===true&&r.allow_download===false&&r.can_download===true&&!('stored_name' in r),'Teacher list row: preview made, downloads off, teacher may still download, no stored name leaks');
+    let res=await teacher.raw('files.php?id='+fid+'&preview=1');
+    check(res.status===200&&res.headers.get('content-type')==='application/pdf'&&(res.headers.get('content-disposition')||'').startsWith('inline;')&&(res.headers.get('content-disposition')||'').includes("filename*=UTF-8''Deck.pdf"),'Preview streams inline as a PDF named after the file');
+    check(Buffer.from(await res.arrayBuffer()).subarray(0,4).toString()==='%PDF','Preview body is a PDF');
+    res=await drain(await teacher.raw('files.php?id='+fid+'&preview=1',{headers:{Range:'bytes=0-3'}}));check(res.status===206,'Preview supports byte ranges');
+
+    // A student of a published module views the preview but is not sent the original.
+    res=await drain(await student.raw('files.php?id='+fid+'&preview=1'));check(res.status===200&&res.headers.get('content-type')==='application/pdf','Student gets the preview');
+    let denied=await student('files.php?id='+fid);check(denied.status===403&&denied.message==='This file is view-only.','Student is refused the original of a view-only file');
+    r=await row(student,fid);check(r.has_preview===true&&r.can_download===false,'Student list row says view-only');
+    check((await student('files.php?id='+fid,'PUT',{allow_download:true})).status===403,'A student cannot change the download switch');
+    check((await teacher2('files.php?id='+fid,'PUT',{allow_download:true})).status===404,'Another teacher cannot change the download switch');
+    // The teacher's switch.
+    check((await teacher('files.php?id='+fid,'PUT',{allow_download:true})).success,'Teacher switches downloads on');
+    res=await drain(await student.raw('files.php?id='+fid));check(res.status===200&&(res.headers.get('content-disposition')||'').startsWith('attachment;'),'Student gets the original once downloads are on');
+    r=await row(student,fid);check(r.can_download===true&&r.allow_download===true,'Student list row says downloadable');
+    check((await teacher('files.php?id='+fid,'PUT',{allow_download:false})).success,'Teacher switches downloads off again');
+    check((await student('files.php?id='+fid)).status===403,'The original is refused again');
+    // An upload can start with downloads on.
+    const open=await send(teacher,'sample.docx','Handout.docx',{allow:true});check(open.success&&(await row(student,open.data.file_id)).can_download===true,'Upload with the switch on is downloadable for students');
+    // Unpublished module.
+    check((await teacher('modules.php?id='+mid,'PUT',{status:'draft'})).success,'Module set to draft');
+    check((await student('files.php?id='+fid+'&preview=1')).status===404&&(await student('files.php?id='+fid)).status===404,'A draft module hides both the preview and the original');
+    check((await teacher('modules.php?id='+mid,'PUT',{status:'published'})).success,'Module published again');
+    // Lesson plans stay private.
+    const plan=await send(teacher,'sample.pptx','Plan.pptx',{kind:'lesson_plan'});
+    check(plan.success&&plan.data.preview===true,'A lesson plan gets a preview too');
+    res=await drain(await teacher.raw('files.php?id='+plan.data.file_id+'&preview=1'));check(res.status===200,'Its owner opens the plan preview');
+    check((await student('files.php?id='+plan.data.file_id+'&preview=1')).status===404&&(await teacher2('files.php?id='+plan.data.file_id+'&preview=1')).status===404,'Nobody else can open a lesson plan preview');
+    // A file that cannot be converted still uploads and still downloads.
+    const bad=await send(teacher,'','bad.pptx',{bytes:Buffer.from('PK\x03\x04FAIL-CONVERT')});
+    check(bad.success&&bad.data.preview===false,'A deck the converter rejects still uploads, with no preview');
+    r=await row(student,bad.data.file_id);check(r.has_preview===false&&r.can_download===true,'Without a preview the student may download it');
+    res=await drain(await student.raw('files.php?id='+bad.data.file_id));check(res.status===200,'The student gets the original of a deck with no preview');
+    check((await student('files.php?id='+bad.data.file_id+'&preview=1')).status===404,'There is no preview to open');
+    // The material's row is saved only after its preview exists. Saved first, a student could list the material and download the
+    // original while a slow conversion was still running. The fake converter records how many "Probe deck" rows exist when it runs.
+    const probeFile=os.tmpdir()+'/anthropotomy-probe.txt';fs.rmSync(probeFile,{force:true});
+    const probe=await send(teacher,'','probe.pptx',{title:'Probe deck',bytes:Buffer.from('PK\x03\x04PROBE-ROWS')});
+    check(probe.success&&probe.data.preview===true&&fs.existsSync(probeFile),'A probe deck uploads, gets a preview and the converter saw it');
+    check(fs.readFileSync(probeFile,'utf8').trim()==='0','The material row does not exist yet while the converter runs');
+    // A converter that never finishes does not hang the upload.
+    const started=Date.now();const hung=await send(teacher,'','hang.pptx',{bytes:Buffer.from('PK\x03\x04HANG-CONVERT')});
+    check(hung.success&&hung.data.preview===false&&Date.now()-started<20000,'A hung converter is stopped and the upload still succeeds ('+(Date.now()-started)+' ms)');
+    check(workFolders()===0,'The hung run leaves no work folder');
+    // Two uploads at once.
+    const both=await Promise.all([send(teacher,'sample.pptx','one.pptx'),send(teacher2,'sample.docx','two.docx')]);
+    check(both.every(x=>x.success&&x.data.preview===true),'Two simultaneous uploads both get previews');
+    // Unusual file name.
+    const odd=await send(teacher,'sample.docx','Ligaments & Joints - réview.docx');
+    res=await drain(await teacher.raw('files.php?id='+odd.data.file_id+'&preview=1'));
+    check(res.status===200&&(res.headers.get('content-disposition')||'').includes("filename*=UTF-8''Ligaments%20%26%20Joints%20-%20r%C3%A9view.pdf"),'A name with spaces, an ampersand and an accent streams under a sane name');
+    // PDFs are unchanged.
+    const pdf=await send(teacher,'sample.pdf','Notes.pdf');
+    check(pdf.success&&pdf.data.preview===false,'A PDF gets no preview');
+    r=await row(student,pdf.data.file_id);check(r.has_preview===false&&r.can_download===true,'A PDF stays downloadable whatever the switch says');
+    // Deleting removes the preview.
+    const before=previewFiles();check((await teacher('files.php?id='+both[0].data.file_id,'DELETE')).success,'Delete a deck material');
+    check(previewFiles()===before-1,'Deleting a material deletes its preview');
+}
+// Previews of PowerPoint and Word lesson files (same fake converter). A lesson file is only fetched through lessons.php?id=N&file=preview|original.
+{
+    const make=(name,{file='sample.pptx',bytes,title=name,status='published',allow}={})=>{const fd=office(file,name,bytes);fd.append('module_id',String(mid));fd.append('title',title);fd.append('lesson_type','reading');fd.append('status',status);if(allow!==undefined)fd.append('allow_download',allow?'1':'0');return teacher('lessons.php','POST',fd);};
+    const one=async(who,id)=>(await who('lessons.php?id='+id)).data;
+    const listed=async(who,id)=>(await who('lessons.php?module_id='+mid)).data.find(l=>l.lesson_id===id);
+    const drain=async r=>{await r.arrayBuffer();return r;};
+    const previewOf=url=>onDisk(url)+'.preview.pdf';
+
+    const deck=await make('Deck.pptx',{title:'Skeleton slides'});const lid=deck.data?.lesson_id;
+    check(deck.success&&deck.data.preview===true&&fs.existsSync(previewOf(deck.data.media_url)),'A new PowerPoint lesson gets a preview next to its file');
+    let t=await one(teacher,lid);
+    check(t.has_preview===true&&t.allow_download===false&&t.can_download===true&&t.view_url?.endsWith('lessons.php?id='+lid+'&file=preview')&&t.download_url?.endsWith('lessons.php?id='+lid+'&file=original'),'Teacher sees the preview and download addresses');
+    let s=await one(student,lid);
+    check(s.has_preview===true&&s.can_download===false&&s.download_url===null&&s.view_url?.endsWith('&file=preview'),'Student gets a view address and no download address');
+    let row=await listed(student,lid);check(row.has_preview===true&&row.can_download===false&&!('allow_download' in row),'The student lesson list says view-only');
+    let res=await student.raw('lessons.php?id='+lid+'&file=preview');
+    check(res.status===200&&res.headers.get('content-type')==='application/pdf'&&(res.headers.get('content-disposition')||'').startsWith('inline;')&&(res.headers.get('content-disposition')||'').includes("filename*=UTF-8''Skeleton%20slides.pdf"),'Student streams the preview inline under the lesson title');
+    check(Buffer.from(await res.arrayBuffer()).subarray(0,4).toString()==='%PDF','The preview is a PDF');
+    res=await drain(await student.raw('lessons.php?id='+lid+'&file=preview',{headers:{Range:'bytes=0-3'}}));check(res.status===206,'The preview supports byte ranges');
+    let denied=await student('lessons.php?id='+lid+'&file=original');check(denied.status===403&&denied.message==='This file is view-only.','Student is refused the original of a view-only lesson file');
+    check((await student('lessons.php?id='+lid+'&file=other')).status===422,'An unknown file kind is rejected');
+    // The switch: JSON update, and a multipart update that carries only the switch.
+    check((await teacher('lessons.php?id='+lid,'PUT',{allow_download:true})).success,'Teacher switches downloads on');
+    s=await one(student,lid);check(s.can_download===true&&s.allow_download===true&&s.download_url?.endsWith('&file=original'),'Student now gets a download address');
+    res=await drain(await student.raw('lessons.php?id='+lid+'&file=original'));check(res.status===200&&(res.headers.get('content-disposition')||'').includes("attachment;")&&(res.headers.get('content-disposition')||'').includes("Skeleton%20slides.pptx"),'Student gets the original as an attachment');
+    const off=new FormData();off.append('allow_download','0');check((await teacher('lessons.php?id='+lid,'POST',off)).success&&(await one(teacher,lid)).allow_download===false,'A multipart update can switch downloads off');
+    check((await student('lessons.php?id='+lid+'&file=original')).status===403,'The original is refused again');
+    // Drafts stay hidden.
+    check((await teacher('lessons.php?id='+lid,'PUT',{status:'draft'})).success,'Lesson set to draft');
+    check((await student('lessons.php?id='+lid+'&file=preview')).status===403&&(await student('lessons.php?id='+lid+'&file=original')).status===403,'A draft lesson file is hidden from students');
+    check((await teacher('lessons.php?id='+lid,'PUT',{status:'published'})).success,'Lesson published again');
+    // An older deck with no preview (made before this feature, or with no converter) still downloads.
+    fs.unlinkSync(previewOf(deck.data.media_url));
+    s=await one(student,lid);check(s.has_preview===false&&s.can_download===true&&s.view_url===null,'A deck with no preview is downloadable for students');
+    res=await drain(await student.raw('lessons.php?id='+lid+'&file=original'));check(res.status===200,'The original of a deck with no preview streams through the API');
+    check((await student('lessons.php?id='+lid+'&file=preview')).status===404,'There is no preview to open');
+    // A deck the converter rejects.
+    const bad=await make('bad.pptx',{bytes:Buffer.from('PK\x03\x04FAIL-CONVERT')});
+    check(bad.success&&bad.data.preview===false,'A deck the converter rejects still saves, with no preview');
+    s=await one(student,bad.data.lesson_id);check(s.has_preview===false&&s.can_download===true,'Students can download a deck that has no preview');
+    // Replacing a deck with a PDF removes the old file and its preview.
+    const swapDeck=await make('Swap.pptx');const oldUrl=swapDeck.data.media_url;
+    const toPdf=office('sample.pdf','Swap.pdf');const swapped=await teacher('lessons.php?id='+swapDeck.data.lesson_id,'POST',toPdf);
+    check(swapped.success&&swapped.data.preview===false&&!fs.existsSync(onDisk(oldUrl))&&!fs.existsSync(previewOf(oldUrl)),'Replacing a deck with a PDF deletes the old file and its preview');
+    s=await one(student,swapDeck.data.lesson_id);check(s.has_preview===false&&s.can_download===true,'The PDF lesson is downloadable and has no preview');
+    // Replacing a PDF with a deck makes a preview.
+    const toDeck=await teacher('lessons.php?id='+swapDeck.data.lesson_id,'POST',office('sample.pptx','Back.pptx'));
+    check(toDeck.success&&toDeck.data.preview===true&&fs.existsSync(previewOf(toDeck.data.media_url)),'Replacing a PDF with a deck makes a preview');
+    // Removing the file removes the preview; archiving keeps both.
+    const removeIt=new FormData();removeIt.append('remove_media','1');const goneUrl=toDeck.data.media_url;
+    check((await teacher('lessons.php?id='+swapDeck.data.lesson_id,'POST',removeIt)).success&&!fs.existsSync(onDisk(goneUrl))&&!fs.existsSync(previewOf(goneUrl)),'Removing the file deletes the preview too');
+    const keep=await make('Keep.pptx');check((await teacher('lessons.php?id='+keep.data.lesson_id,'DELETE')).success&&fs.existsSync(onDisk(keep.data.media_url))&&fs.existsSync(previewOf(keep.data.media_url)),'Archiving a lesson keeps its file and preview');
+    // A title with spaces, an ampersand and an accent.
+    const odd=await make('odd.pptx',{title:'Joints & ligaments — révision'});
+    res=await drain(await teacher.raw('lessons.php?id='+odd.data.lesson_id+'&file=preview'));
+    check(res.status===200&&(res.headers.get('content-disposition')||'').includes("filename*=UTF-8''Joints%20%26%20ligaments%20%E2%80%94%20r%C3%A9vision.pdf"),'A title with spaces, an ampersand and accents streams under a sane name');
+    // Two uploads at once.
+    const both=await Promise.all([make('one.pptx'),make('two.docx',{file:'sample.docx'})]);
+    check(both.every(x=>x.success&&x.data.preview===true),'Two simultaneous lesson uploads both get previews');
+    // A PDF lesson is unchanged.
+    const pdf=await make('Notes.pdf',{file:'sample.pdf'});
+    s=await one(student,pdf.data.lesson_id);check(pdf.data.preview===false&&s.has_preview===false&&s.can_download===true,'A PDF lesson has no preview and stays downloadable');
+}
+>>>>>>> 6288eaf (50%% revision)
 console.log(`Integration checks passed: ${assertions}`);

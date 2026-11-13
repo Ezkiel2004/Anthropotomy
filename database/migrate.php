@@ -134,4 +134,11 @@ if ($retired !== '1') {
  $pdo->exec("INSERT INTO app_settings (setting_key, setting_value) VALUES ('study_v1_badges', '1') ON DUPLICATE KEY UPDATE setting_value = '1'");
  $pdo->commit();
 }
+<<<<<<< HEAD
+=======
+// Whether students may also download a PowerPoint or Word file. Off by default: they read it in the app (its PDF preview) and
+// are never sent the original. Teachers switch it on per file; only Office files with a preview are affected.
+addColumnIfMissing($pdo, 'lessons', 'allow_download', 'TINYINT(1) NOT NULL DEFAULT 0');
+addColumnIfMissing($pdo, 'teacher_files', 'allow_download', 'TINYINT(1) NOT NULL DEFAULT 0');
+>>>>>>> 6288eaf (50%% revision)
 echo "Schema migration complete. Existing accounts and learning records preserved.\n";

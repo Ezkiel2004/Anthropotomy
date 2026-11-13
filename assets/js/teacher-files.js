@@ -11,8 +11,24 @@ const TeacherFiles = (() => {
     const icon = name => `<svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#${name}"/></svg>`;
     const extOf = name => String(name).split('.').pop().toLowerCase();
     const fileUrl = id => `${API_BASE}/files.php?id=${id}`;
+<<<<<<< HEAD
     const contextFor = (kind, context) => context || (kind === 'lesson_plan' ? 'Lesson plans' : 'Materials');
     const view = (file, context) => PdfViewer.open({url: fileUrl(file.file_id), title: file.title, context});
+=======
+    const previewUrl = id => `${fileUrl(id)}&preview=1`;
+    const contextFor = (kind, context) => context || (kind === 'lesson_plan' ? 'Lesson plans' : 'Materials');
+    // A PowerPoint or Word file gets a PDF preview when it is uploaded; the viewer shows that, and the teacher keeps a Download button
+    // for the original. Students only get one when the file's download switch is on (see api/files.php).
+    const isOffice = name => ['ppt', 'pptx', 'doc', 'docx'].includes(extOf(name));
+    const canView = f => f.original_name.toLowerCase().endsWith('.pdf') || Boolean(f.has_preview);
+    const view = (file, context) => file.has_preview
+        ? PdfViewer.open({url: previewUrl(file.file_id), title: file.title, context, downloadUrl: fileUrl(file.file_id)})
+        : PdfViewer.open({url: fileUrl(file.file_id), title: file.title, context});
+    const progressText = name => extOf(name).startsWith('p') ? 'Preparing slides for viewing…' : 'Preparing document for viewing…';
+    const SAVED = 'Saved. Students can view it in the app.';
+    const NO_PREVIEW = 'Saved, but no preview could be made, so students will download this file instead.';
+    const DOWNLOAD_SWITCH = 'Let students download this file';
+>>>>>>> 6288eaf (50%% revision)
     let uid = 0;
 
     function rows(files) {
@@ -23,7 +39,11 @@ const TeacherFiles = (() => {
               <span class="tf-icon">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
               <span class="tf-copy"><span class="tf-title">${escHtml(f.title)}</span>
                 <span class="tf-meta">${escHtml(f.original_name)} · ${size(Number(f.size_bytes))} · ${fmtDate(f.created_at)}</span></span>
+<<<<<<< HEAD
               ${isPdf
+=======
+              ${canView(f)
+>>>>>>> 6288eaf (50%% revision)
                 ? `<button type="button" class="btn btn-secondary btn-sm" data-open="${f.file_id}">${icon('eye')} Open</button>`
                 : `<a class="btn btn-secondary btn-sm" href="${fileUrl(f.file_id)}" download>${icon('download-simple')} Download</a>`}
               <button type="button" class="btn btn-secondary btn-sm" data-delete="${f.file_id}" aria-label="Delete ${escHtml(f.title)}">${icon('trash')}</button>
@@ -35,19 +55,34 @@ const TeacherFiles = (() => {
     const KIND_LABELS = {pdf: 'PDF', ppt: 'PowerPoint', pptx: 'PowerPoint', doc: 'Word', docx: 'Word'};
     function compactMeta(f, pages) {
         const ext = extOf(f.original_name);
+<<<<<<< HEAD
         return [KIND_LABELS[ext] || ext.toUpperCase(), pages ? `${pages} page${pages === 1 ? '' : 's'}` : '', size(Number(f.size_bytes)), ext === 'pdf' ? '' : 'downloads']
+=======
+        // A PowerPoint or Word file with a preview says what students get: view only, or view and download.
+        const students = ext === 'pdf' ? '' : f.has_preview ? (f.allow_download ? 'students can download' : 'view only') : 'downloads';
+        return [KIND_LABELS[ext] || ext.toUpperCase(), pages ? `${pages} page${pages === 1 ? '' : 's'}` : '', size(Number(f.size_bytes)), students]
+>>>>>>> 6288eaf (50%% revision)
             .filter(Boolean).join(' · ');
     }
     function compactRows(files) {
         if (!files.length) return '<p class="tf-empty">No materials yet. Upload a PDF, PowerPoint or Word file, or drop one here.</p>';
         return files.map(f => {
+<<<<<<< HEAD
             const ext = extOf(f.original_name), isPdf = ext === 'pdf', title = escHtml(f.title);
             const thumb = isPdf
+=======
+            const ext = extOf(f.original_name), viewable = canView(f), title = escHtml(f.title);
+            const thumb = viewable
+>>>>>>> 6288eaf (50%% revision)
                 ? `<span class="cs-thumb"><canvas data-thumb="${f.file_id}" width="44" height="56"></canvas></span>`
                 : `<span class="cs-thumb cs-thumb--doc${ext.startsWith('ppt') ? ' cs-thumb--ppt' : ''}" aria-hidden="true">${escHtml(ext.toUpperCase())}</span>`;
             return `<div class="cs-file" data-file="${f.file_id}">${thumb}
               <span class="cs-row-copy"><span class="cs-row-title" title="${title}">${title}</span><span class="cs-meta" data-file-meta>${escHtml(compactMeta(f))}</span></span>
+<<<<<<< HEAD
               ${isPdf
+=======
+              ${viewable
+>>>>>>> 6288eaf (50%% revision)
                 ? `<button type="button" class="cs-icon-btn" data-open="${f.file_id}" aria-label="Open ${title}">${Studio.icon('eye')}</button>`
                 : `<a class="cs-icon-btn" href="${fileUrl(f.file_id)}" download aria-label="Download ${title}">${Studio.icon('download-simple')}</a>`}
               <button type="button" class="cs-icon-btn" data-file-more="${f.file_id}" aria-haspopup="menu" aria-expanded="false" aria-label="More actions for ${title}">${Studio.icon('dots-three')}</button>
@@ -55,7 +90,11 @@ const TeacherFiles = (() => {
         }).join('');
     }
 
+<<<<<<< HEAD
     async function send(kind, moduleId, file, title = '') {
+=======
+    async function send(kind, moduleId, file, title = '', allowDownload = false) {
+>>>>>>> 6288eaf (50%% revision)
         if (!TYPES.includes(extOf(file.name))) return {success: false, message: 'Upload a PDF, PowerPoint (.ppt, .pptx) or Word (.doc, .docx) file.'};
         if (file.size > MAX_BYTES) return {success: false, message: 'File too large. Maximum size is 100 MB.'};
         const data = new FormData();
@@ -63,11 +102,23 @@ const TeacherFiles = (() => {
         data.append('title', title);
         data.append('kind', kind);
         if (moduleId) data.append('module_id', moduleId);
+<<<<<<< HEAD
+=======
+        if (allowDownload) data.append('allow_download', '1');
+>>>>>>> 6288eaf (50%% revision)
         return fetch(`${API_BASE}/files.php`, {method: 'POST', credentials: 'same-origin', body: data}).then(r => r.json())
             .catch(() => ({success: false, message: 'Upload failed. Make sure XAMPP is running.'}));
     }
     const remove = id => fetch(`${API_BASE}/files.php?id=${id}`, {method: 'DELETE', credentials: 'same-origin'}).then(r => r.json()).catch(() => null);
     const confirmDelete = () => confirmToast({title: 'Delete this file?', message: 'It is removed for good.', confirmText: 'Delete', cancelText: 'Keep'});
+<<<<<<< HEAD
+=======
+    const setDownloads = (id, allow) => fetch(fileUrl(id), {method: 'PUT', credentials: 'same-origin', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({allow_download: allow})}).then(r => r.json()).catch(() => null);
+    // What to tell the teacher after an upload: a PowerPoint or Word material is only viewable by students when its preview was made.
+    const savedToast = (kind, name, result) => (kind === 'material' && isOffice(name))
+        ? (result.data?.preview ? showToast(SAVED, 'success') : showToast(NO_PREVIEW, 'warning'))
+        : showToast('File uploaded.', 'success');
+>>>>>>> 6288eaf (50%% revision)
 
     function mountCompact(root, {kind, moduleId = null, title = 'Materials', context, onChange}) {
         context = contextFor(kind, context);
@@ -84,7 +135,12 @@ const TeacherFiles = (() => {
               <input type="file" id="tfFile-${n}" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx" required/></div>
             <div class="cs-field"><label for="tfName-${n}">Title <span class="cs-meta">(optional)</span></label>
               <input class="cs-input" type="text" id="tfName-${n}" name="title" maxlength="200" placeholder="Defaults to the file name" autocomplete="off"/></div>
+<<<<<<< HEAD
             <p class="cs-hint">PDFs open in the viewer; PowerPoint and Word files download. Max 100 MB. You can also drop files on this panel.</p>
+=======
+            ${kind === 'material' ? `<div class="cs-field" data-allow-field hidden><label class="cs-switch"><input type="checkbox" role="switch" name="allow_download" value="1"/><i></i><span>${DOWNLOAD_SWITCH}</span></label></div>` : ''}
+            <p class="cs-hint">Students read PDFs, PowerPoint and Word files here in the viewer; for PowerPoint and Word they can only download the original if you switch it on. Max 100 MB. You can also drop files on this panel.</p>
+>>>>>>> 6288eaf (50%% revision)
             <p class="tf-error" role="alert" hidden></p>
             <div class="tf-mini-actions"><button type="button" class="cs-btn cs-btn--sm" data-cancel>Cancel</button><button type="submit" class="cs-btn cs-btn--sm cs-btn--primary">Upload</button></div>
           </form>
@@ -105,7 +161,11 @@ const TeacherFiles = (() => {
                 const file = files.find(f => String(f.file_id) === canvas.dataset.thumb);
                 const meta = canvas.closest('.cs-file').querySelector('[data-file-meta]');
                 if (pages.has(file.file_id)) meta.textContent = compactMeta(file, pages.get(file.file_id));
+<<<<<<< HEAD
                 PdfViewer.thumbnail(canvas, fileUrl(file.file_id)).then(count => {
+=======
+                PdfViewer.thumbnail(canvas, file.has_preview ? previewUrl(file.file_id) : fileUrl(file.file_id)).then(count => {
+>>>>>>> 6288eaf (50%% revision)
                     pages.set(file.file_id, count);
                     meta.textContent = compactMeta(file, count);
                 }).catch(() => { if (canvas.isConnected) canvas.outerHTML = Studio.icon('file-pdf'); });
@@ -113,11 +173,22 @@ const TeacherFiles = (() => {
             onChange?.(files);
         }
 
+<<<<<<< HEAD
+=======
+        // The download switch only means something for a PowerPoint or Word file, so it shows once one is chosen.
+        const allowField = form.querySelector('[data-allow-field]');
+        const syncAllow = () => { if (allowField) allowField.hidden = !(form.elements.file.files[0] && isOffice(form.elements.file.files[0].name)); };
+        form.elements.file.addEventListener('change', syncAllow);
+>>>>>>> 6288eaf (50%% revision)
         function setForm(open) {
             form.hidden = !open;
             toggle.setAttribute('aria-expanded', String(open));
             if (open) form.elements.file.focus();
+<<<<<<< HEAD
             else { form.reset(); error.hidden = true; }
+=======
+            else { form.reset(); error.hidden = true; syncAllow(); }
+>>>>>>> 6288eaf (50%% revision)
         }
         toggle.addEventListener('click', () => setForm(form.hidden));
         form.querySelector('[data-cancel]').addEventListener('click', () => { setForm(false); toggle.focus(); });
@@ -128,12 +199,24 @@ const TeacherFiles = (() => {
             if (!file) { error.textContent = 'Choose a file to upload.'; error.hidden = false; return; }
             error.hidden = true;
             button.disabled = true;
+<<<<<<< HEAD
             const result = await send(kind, moduleId, file, form.elements.title.value.trim());
+=======
+            // Converting a PowerPoint or Word file takes a few seconds; the button says so.
+            const label = button.textContent;
+            if (isOffice(file.name)) button.textContent = progressText(file.name);
+            const result = await send(kind, moduleId, file, form.elements.title.value.trim(), Boolean(form.elements.allow_download?.checked));
+            button.textContent = label;
+>>>>>>> 6288eaf (50%% revision)
             button.disabled = false;
             if (!result?.success) { error.textContent = result?.message || 'Upload failed. Make sure XAMPP is running.'; error.hidden = false; return; }
             setForm(false);
             toggle.focus();
+<<<<<<< HEAD
             showToast('File uploaded.', 'success');
+=======
+            savedToast(kind, file.name, result);
+>>>>>>> 6288eaf (50%% revision)
             refresh();
         });
 
@@ -150,6 +233,7 @@ const TeacherFiles = (() => {
             depth = 0;
             root.classList.remove('is-drop');
             const dropped = [...e.dataTransfer.files];
+<<<<<<< HEAD
             let uploaded = 0;
             for (const file of dropped) {
                 const result = await send(kind, moduleId, file);
@@ -157,6 +241,17 @@ const TeacherFiles = (() => {
                 else showToast(`${file.name}: ${result?.message || 'Upload failed.'}`, 'error');
             }
             if (uploaded) showToast(uploaded === 1 ? 'File uploaded.' : `${uploaded} files uploaded.`, 'success');
+=======
+            let uploaded = 0, withoutPreview = 0;
+            for (const file of dropped) {
+                if (isOffice(file.name)) showToast(progressText(file.name), 'info');
+                const result = await send(kind, moduleId, file);
+                if (result?.success) { uploaded++; if (kind === 'material' && isOffice(file.name) && !result.data?.preview) withoutPreview++; }
+                else showToast(`${file.name}: ${result?.message || 'Upload failed.'}`, 'error');
+            }
+            if (uploaded) showToast(uploaded === 1 ? 'File uploaded.' : `${uploaded} files uploaded.`, 'success');
+            if (withoutPreview) showToast(NO_PREVIEW, 'warning');
+>>>>>>> 6288eaf (50%% revision)
             if (uploaded) refresh();
         });
 
@@ -166,9 +261,22 @@ const TeacherFiles = (() => {
             if (!file) return;
             if (open) { view(file, context); return; }
             const isPdf = extOf(file.original_name) === 'pdf';
+<<<<<<< HEAD
             Studio.menu(e.target.closest('[data-file-more]'), [
                 isPdf ? {label: 'Open', onSelect: () => view(file, context)}
                     : {label: 'Download', onSelect: () => Object.assign(document.createElement('a'), {href: fileUrl(file.file_id), download: ''}).click()},
+=======
+            const office = isOffice(file.original_name);
+            Studio.menu(e.target.closest('[data-file-more]'), [
+                ...(canView(file) ? [{label: 'Open', onSelect: () => view(file, context)}] : []),
+                ...(office ? [{label: 'Download', onSelect: () => Object.assign(document.createElement('a'), {href: fileUrl(file.file_id), download: ''}).click()}] : []),
+                ...(office && kind === 'material' ? [{label: file.allow_download ? 'Make view-only' : 'Allow student downloads', onSelect: async () => {
+                    const allow = !file.allow_download;
+                    const result = await setDownloads(file.file_id, allow);
+                    showToast(result?.success ? (allow ? 'Students can now download it.' : 'It is view-only for students again.') : result?.message || 'The change could not be saved.', result?.success ? 'success' : 'error');
+                    refresh();
+                }}] : []),
+>>>>>>> 6288eaf (50%% revision)
                 {label: 'Delete', danger: true, onSelect: async () => {
                     if (!await confirmDelete()) return;
                     const result = await remove(file.file_id);
@@ -192,7 +300,12 @@ const TeacherFiles = (() => {
               <div class="input-wrapper"><input type="text" id="tfTitle-${kind}" name="title" maxlength="200" placeholder="Defaults to the file name"/></div></div>
             <div class="form-group"><label for="tfFile-${kind}">File</label>
               <input type="file" id="tfFile-${kind}" name="file" accept=".pdf,.ppt,.pptx,.doc,.docx" required/>
+<<<<<<< HEAD
               <div class="tf-hint">PDF opens in the viewer. PowerPoint and Word files download. Max 100 MB.</div></div>
+=======
+              <div class="tf-hint">PDF, PowerPoint and Word files open in the viewer (a preview is made when you upload a PowerPoint or Word file). Max 100 MB.</div></div>
+            ${kind === 'material' ? `<div class="form-group"><label class="tf-allow"><input type="checkbox" name="allow_download" value="1"/> ${DOWNLOAD_SWITCH}</label></div>` : ''}
+>>>>>>> 6288eaf (50%% revision)
             <p class="tf-error" role="alert" hidden></p>
             <button type="submit" class="btn btn-primary btn-sm">${icon('upload-simple')} Upload</button>
           </form>
@@ -215,11 +328,22 @@ const TeacherFiles = (() => {
             data.append('kind', kind);
             if (moduleId) data.append('module_id', moduleId);
             button.disabled = true;
+<<<<<<< HEAD
             const result = await fetch(`${API_BASE}/files.php`, {method: 'POST', credentials: 'same-origin', body: data}).then(r => r.json()).catch(() => null);
             button.disabled = false;
             if (!result?.success) { error.textContent = result?.message || 'Upload failed. Make sure XAMPP is running.'; error.hidden = false; return; }
             form.reset();
             showToast('File uploaded.', 'success');
+=======
+            const label = button.innerHTML;
+            if (file && isOffice(file.name)) button.textContent = progressText(file.name);
+            const result = await fetch(`${API_BASE}/files.php`, {method: 'POST', credentials: 'same-origin', body: data}).then(r => r.json()).catch(() => null);
+            button.innerHTML = label;
+            button.disabled = false;
+            if (!result?.success) { error.textContent = result?.message || 'Upload failed. Make sure XAMPP is running.'; error.hidden = false; return; }
+            form.reset();
+            savedToast(kind, file?.name || '', result);
+>>>>>>> 6288eaf (50%% revision)
             refresh();
         });
 

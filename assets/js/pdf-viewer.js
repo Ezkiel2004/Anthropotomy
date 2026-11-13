@@ -73,6 +73,10 @@ const PdfViewer = (() => {
     }
 
     /* Builds the viewer into root and returns {destroy()}. full: draw the thumbnail rail and answer keys anywhere (Escape included). */
+<<<<<<< HEAD
+=======
+    // downloadUrl: left out it is the PDF's own address; null (or '') makes the viewer view-only, with no Download button or link anywhere.
+>>>>>>> 6288eaf (50%% revision)
     function build(root, {url, title = 'Document', downloadUrl = url, note = ''}, {full, onClose, onFullScreen}) {
         const name = esc(title), cleanups = [];
         let pdf = null, task = null, dead = false, zoom = 'fit', current = 1, natural = null, stageWidth = 0;
@@ -86,8 +90,13 @@ const PdfViewer = (() => {
             ${button('magnifying-glass-minus', 'Zoom out', 'data-zoom-out')}
             <span class="pv-zoom">Fit width</span>
             ${button('magnifying-glass-plus', 'Zoom in', 'data-zoom-in')}
+<<<<<<< HEAD
             <span class="pv-sep"></span>
             <a class="pv-btn" href="${esc(downloadUrl)}" download aria-label="Download">${icon('download-simple')}</a>
+=======
+            ${downloadUrl || !full ? '<span class="pv-sep"></span>' : ''}
+            ${downloadUrl ? `<a class="pv-btn" href="${esc(downloadUrl)}" download aria-label="Download">${icon('download-simple')}</a>` : ''}
+>>>>>>> 6288eaf (50%% revision)
             ${full ? '' : button('corners-out', 'Full screen', 'data-full')}
           </div>
           ${noteStrip(note)}
@@ -239,7 +248,11 @@ const PdfViewer = (() => {
         const failed = () => {
             if (dead) return;
             root.innerHTML = `<div class="pv-fallback" role="alert"><p>This document can’t be shown here.</p>
+<<<<<<< HEAD
               <a class="pv-download" href="${esc(downloadUrl)}" download>${icon('download-simple')} Download</a></div>`;
+=======
+              ${downloadUrl ? `<a class="pv-download" href="${esc(downloadUrl)}" download>${icon('download-simple')} Download</a>` : ''}</div>`;
+>>>>>>> 6288eaf (50%% revision)
         };
         if (typeof StudyClock !== 'undefined') StudyClock.reading();
         load(url).then(async loaded => {

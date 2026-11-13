@@ -316,6 +316,60 @@ function getIdParam(string $param = 'id'): int {
     return (int) $id;
 }
 
+<<<<<<< HEAD
+=======
+// ── File streaming ──────────────────────────────────────────────
+
+/**
+ * Sends a file from disk and ends the request. Shared by materials, lesson files and their PDF previews.
+ * One byte range (start-end, start-, -suffix) is answered as 206 and a range past the end as 416; a malformed or
+ * multi-range header is ignored and the whole file is sent. $inline chooses Content-Disposition inline or attachment;
+ * $downloadName is the name the browser offers (an ASCII fallback plus filename*).
+ */
+function streamFile(string $path, string $contentType, bool $inline, string $downloadName): never {
+    $ascii = preg_replace('/[^A-Za-z0-9._ -]/', '_', $downloadName);
+    $size = filesize($path);
+    $start = 0;
+    $end = $size - 1;
+    $partial = false;
+    if (preg_match('/^bytes=(\d*)-(\d*)$/', trim($_SERVER['HTTP_RANGE'] ?? ''), $range) && ($range[1] !== '' || $range[2] !== '')) {
+        if ($range[1] === '') {
+            $length = (int)$range[2];
+            $start = max(0, $size - $length);
+        } else {
+            $start = (int)$range[1];
+            if ($range[2] !== '') $end = min($end, (int)$range[2]);
+        }
+        if ($start >= $size || ($range[2] !== '' && $range[1] !== '' && (int)$range[2] < $start) || ($range[1] === '' && (int)$range[2] === 0)) {
+            http_response_code(416);
+            header("Content-Range: bytes */$size");
+            exit;
+        }
+        $partial = true;
+    }
+    header('Accept-Ranges: bytes');
+    header('Content-Type: ' . $contentType);
+    if ($partial) {
+        http_response_code(206);
+        header("Content-Range: bytes $start-$end/$size");
+    }
+    header('Content-Length: ' . ($end - $start + 1));
+    header(($inline ? 'Content-Disposition: inline' : 'Content-Disposition: attachment') . "; filename=\"{$ascii}\"; filename*=UTF-8''" . rawurlencode($downloadName));
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: private, no-store');
+    session_write_close(); // a long download must not hold the session lock and stall the user's other requests
+    $handle = fopen($path, 'rb');
+    fseek($handle, $start);
+    for ($left = $end - $start + 1; $left > 0 && !feof($handle); $left -= strlen($chunk)) {
+        $chunk = fread($handle, min(65536, $left));
+        if ($chunk === false || $chunk === '') break;
+        echo $chunk;
+    }
+    fclose($handle);
+    exit;
+}
+
+>>>>>>> 6288eaf (50%% revision)
 // ── Pagination Helper ───────────────────────────────────────────
 
 /**

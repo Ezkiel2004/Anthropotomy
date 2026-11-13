@@ -11,10 +11,20 @@
 .teacher-dashboard .topbar-user { border-left: 1px solid var(--border); padding-left: 16px; }
 .teacher-dashboard .page-content { max-width: 90rem; margin-inline: auto; padding: calc(var(--topbar-height) + 2rem) 2rem 4rem; }
 .teacher-dashboard .page-header { margin-bottom: 1.75rem; gap: 1rem 2rem; align-items: flex-end; }
+<<<<<<< HEAD
 .teacher-dashboard .page-header h1,
 .teacher-dashboard .page-header h2 {
   margin: 0 0 .5rem; color: #fff; font-family: var(--st-display); font-size: clamp(1.75rem, 3.2vw, 2.5rem); font-weight: 400;
   line-height: 1.05; letter-spacing: 0; text-transform: uppercase; font-variant-ligatures: none; text-wrap: balance;
+=======
+/* Page titles are sentence case. The display face (Bungee) has no lowercase letters, so it cannot show
+   sentence case; titles use the body face in bold. */
+.teacher-dashboard .page-header h1,
+.teacher-dashboard .page-header h2,
+.teacher-dashboard .cs-head h1 {
+  margin: 0 0 .5rem; color: #fff; font-family: var(--font-body); font-size: clamp(1.75rem, 3.2vw, 2.5rem); font-weight: 700;
+  line-height: 1.1; letter-spacing: -.02em; text-transform: none; text-wrap: balance;
+>>>>>>> 6288eaf (50%% revision)
 }
 .teacher-dashboard #teacherHeaderName { color: var(--st-accent); }
 .teacher-dashboard .page-header p { max-width: 65ch; color: var(--st-muted); font-size: .9375rem; }

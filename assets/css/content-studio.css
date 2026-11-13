@@ -50,10 +50,20 @@ body.stage-portal .cs > .cs-head { margin: 0; }
 
 /* Summary strip: numbers support the content, they do not lead it */
 .cs-summary { display: flex; gap: 0; background: var(--cs-s1); border-radius: var(--cs-r); box-shadow: var(--cs-shadow); padding: .375rem; }
+<<<<<<< HEAD
 .cs-summary > div { flex: 1; padding: .875rem 1.25rem; display: flex; align-items: baseline; gap: .625rem; border-radius: calc(var(--cs-r) - .375rem); }
 .cs-summary > div + div { box-shadow: -1px 0 0 var(--cs-line); }
 .cs-summary b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
 .cs-summary span { font-size: .8125rem; color: var(--cs-muted); }
+=======
+.cs-summary > div { position: relative; flex: 1; padding: .875rem 1.25rem; display: flex; align-items: baseline; gap: .625rem; }
+/* The divider is a straight line drawn inside each cell. A box-shadow on a rounded cell followed its curved corners and left notches in the strip's edge. */
+.cs-summary > div + div::before { content: ''; position: absolute; left: 0; top: 22%; bottom: 22%; width: 1px; background: var(--cs-line); }
+.cs-summary b { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
+.cs-summary span { font-size: .8125rem; color: var(--cs-muted); }
+/* Sentence case labels ("Open", "Drafts"). The words are set from JavaScript in lowercase, so the first letter is capitalised here. */
+.cs-summary span::first-letter { text-transform: uppercase; }
+>>>>>>> 6288eaf (50%% revision)
 .cs-summary i { width: .5rem; height: .5rem; border-radius: 50%; display: inline-block; align-self: center; }
 
 /* Toolbar: search, segmented filter, select */
@@ -427,7 +437,11 @@ body.stage-portal .toast { z-index: 2100; }
   .cs-row > .cs-status { grid-area: status; justify-self: start; align-self: center; }
   .cs-summary { flex-wrap: wrap; }
   .cs-summary > div { flex: 1 1 45%; padding: .75rem 1rem; }
+<<<<<<< HEAD
   .cs-summary > div:nth-child(3) { box-shadow: none; }
+=======
+  .cs-summary > div:nth-child(3)::before { display: none; }
+>>>>>>> 6288eaf (50%% revision)
   .cs-grid { grid-template-columns: 1fr; }
   /* Wraps instead of clipping when a fourth filter or long counts do not fit; one row still reads as a pill. */
   .cs-seg { width: 100%; flex-wrap: wrap; border-radius: 1.375rem; }
