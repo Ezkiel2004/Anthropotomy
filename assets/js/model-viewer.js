@@ -181,6 +181,7 @@ const AnatomyViewer = {
     },
     // Gives each part natural tissue colour and finish (AnatomyLayersCore.tissueLook, falling back to the
     // system's materialLook). Parts share Z-Anatomy materials, so each distinct look gets its own copy.
+    // Parts exported with textures keep their colour and normal maps and take the finish only.
     applySystemLooks(root, fallbackSystem) {
         const copies = new Map(), replaced = new Set();
         root.traverse(node => {
@@ -193,7 +194,9 @@ const AnatomyViewer = {
                 const key = `${material.uuid}|${look.color || ''}|${look.roughness}|${look.opacity ?? 1}`;
                 if (!copies.has(key)) {
                     const copy = material.clone();
-                    if (look.color) copy.color.set(look.color).convertSRGBToLinear();
+                    // A textured part shows its own surface; the tissue palette colours untextured parts only.
+                    if (copy.map) copy.color.setRGB(1, 1, 1);
+                    else if (look.color) copy.color.set(look.color).convertSRGBToLinear();
                     else if (look.colorScale && look.colorScale !== 1) copy.color.multiplyScalar(look.colorScale);
                     copy.roughness = look.roughness; copy.metalness = look.metalness || 0;
                     if (look.opacity < 1) { copy.transparent = true; copy.opacity = look.opacity; copy.depthWrite = false; copy.userData.seeThrough = true; }

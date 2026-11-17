@@ -25,9 +25,10 @@ What the script does:
 4. settles the organs into the Z-Anatomy pelvis, which is male and narrower: wherever an organ lies inside a hip
    bone, the sacrum or the coccyx it is pushed out (towards the midline, or forwards) by a smooth displacement, so
    it bends rather than dents;
-5. gives each part a plain material named by tissue in place of the textured ones (the viewer colours parts
-   itself), adds the part data the viewer reads and exports system_model/layers/reproductive-female.glb with the
-   same settings as the other layers (welded, about 30% of the triangles kept, Draco-compressed);
+5. gives each part a material named by tissue that keeps the model's own colour and normal textures, scaled
+   down for the web (TEXTURE_PX; the viewer shows a textured part as authored and sets only its finish), adds the
+   part data the viewer reads and exports system_model/layers/reproductive-female.glb with the same settings as
+   the other layers (welded, about 30% of the triangles kept, Draco-compressed) plus texture coordinates;
 6. deletes everything it imported and restores the selection. The .blend file is never saved.
 """
 import math
@@ -69,6 +70,10 @@ PARTS = {
     "HymenalCaruncle_UrethralOrifice_": ("Labia minora", "Labia minora", "Mucosa", False),
 }
 UTERUS_VAGINA = "UterusVagina_"
+# Source material -> (colour, normal map) size in pixels. The sources are 4096 px; the uterus, vagina, tubes and
+# ovaries share one texture, so it keeps more.
+TEXTURE_PX = {"Ovaries_M": (2048, 1024)}
+DEFAULT_PX = (1024, 512)
 # The uterus and vagina are one mesh in the source. This plane (point and normal in the source model's coordinates,
 # metres) crosses its narrowest point, between the body of the uterus and the vagina; the cervix stays with the uterus.
 UTERUS_CUT = ((-0.0045, 0.256, 0.897), (0.0, 0.26, 0.97))
@@ -246,7 +251,13 @@ def cut_part(source, name, plane, keep_above, collection):
     cut = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-7, plane_co=co, plane_no=no,
                                  clear_inner=keep_above, clear_outer=not keep_above)
     rim = [e for e in cut["geom_cut"] if isinstance(e, bmesh.types.BMEdge) and e.is_valid and e.is_boundary]
-    bmesh.ops.holes_fill(bm, edges=rim, sides=0)
+    cap = set(bmesh.ops.holes_fill(bm, edges=rim, sides=0)["faces"])
+    for face in cap:  # the cap has no texture of its own: it takes the colour at the cut's edge
+        for loop in face.loops:
+            edge_loop = next((l for l in loop.vert.link_loops if l.face not in cap), None)
+            if edge_loop is not None:
+                for layer in bm.loops.layers.uv.values():
+                    loop[layer].uv = edge_loop[layer].uv
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)
     bm.free()
@@ -260,11 +271,59 @@ def group_centre(group):
     return sum((v.co for v in verts), Vector()) / len(verts)
 
 
-def plain_material(name, cache):
-    """One untextured material per tissue; the viewer recolours parts by name and material."""
+def upstream_image(socket):
+    """The image of the first Image Texture node feeding socket, or None."""
+    stack = [link.from_node for link in socket.links]
+    while stack:
+        node = stack.pop()
+        if node.type == 'TEX_IMAGE' and node.image is not None:
+            return node.image
+        stack.extend(link.from_node for s in node.inputs for link in s.links)
+    return None
+
+
+def web_image(image, size, cache):
+    """A size x size copy of image (made once per image and size), or None when there is no image."""
+    if image is None:
+        return None
+    key = (image.name, size)
+    if key not in cache:
+        scaled = image.copy()
+        scaled.scale(size, size)
+        pixels = np.empty(size * size * 4, dtype=np.float32)
+        scaled.pixels.foreach_get(pixels)
+        bpy.data.images.remove(scaled)
+        small = bpy.data.images.new(f"{image.name} {size}", size, size, alpha=False)
+        small.colorspace_settings.name = image.colorspace_settings.name
+        small.pixels.foreach_set(pixels)
+        cache[key] = small
+    return cache[key]
+
+
+def tissue_material(name, source, cache, images):
+    """One material per tissue (the viewer picks each part's finish by part and material name), carrying the source
+    material's colour and normal textures scaled down to TEXTURE_PX."""
     if name not in cache:
+        principled = next(n for n in source.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+        colour_px, normal_px = TEXTURE_PX.get(source.name, DEFAULT_PX)
+        colour = web_image(upstream_image(principled.inputs["Base Color"]), colour_px, images)
+        normal = web_image(upstream_image(principled.inputs["Normal"]), normal_px, images)
         material = bpy.data.materials.new(name)
-        material.diffuse_color = (0.8, 0.55, 0.5, 1)
+        material.use_nodes = True
+        nodes, links = material.node_tree.nodes, material.node_tree.links
+        nodes.clear()
+        shader = nodes.new("ShaderNodeBsdfPrincipled")
+        links.new(shader.outputs["BSDF"], nodes.new("ShaderNodeOutputMaterial").inputs["Surface"])
+        shader.inputs["Roughness"].default_value = 0.45
+        if colour is not None:
+            texture = nodes.new("ShaderNodeTexImage")
+            texture.image = colour
+            links.new(texture.outputs["Color"], shader.inputs["Base Color"])
+        if normal is not None:
+            texture, bump = nodes.new("ShaderNodeTexImage"), nodes.new("ShaderNodeNormalMap")
+            texture.image = normal
+            links.new(texture.outputs["Color"], bump.inputs["Color"])
+            links.new(bump.outputs["Normal"], shader.inputs["Normal"])
         cache[name] = material
     return cache[name]
 
@@ -312,14 +371,14 @@ def export(out_dir):
         for o in meshes:
             o.data.transform(fit)
 
-        materials, temps = {}, []
+        materials, images, temps = {}, {}, []
         side_of = lambda group: "left" if group_centre(group).x > 0 else "right"
         for prefix, (name, text, material, paired) in PARTS.items():
             src = by_prefix(prefix)
             sides = ("left", "right") if paired else (None,)
             for side in sides:
                 part = new_part(src, f"{name} ({side})" if side else name, (lambda g, s=side: side_of(g) == s) if side else (lambda g: True), temp_col)
-                part.data.materials.append(plain_material(material, materials))
+                part.data.materials.append(tissue_material(material, src.data.materials[0], materials, images))
                 pid = "fem_" + "_".join(name.lower().split()) + (f"_{side[0]}" if side else "")
                 tools["tag_part"](part, pid, CODE, part.name, tools["definition"](text) if text else "", [src.name])
                 temps.append(part)
@@ -327,7 +386,7 @@ def export(out_dir):
         plane = (fit @ Vector(UTERUS_CUT[0]), (fit.to_3x3() @ Vector(UTERUS_CUT[1])).normalized())
         for name, above in (("Uterus", True), ("Vagina", False)):
             part = cut_part(uterus_vagina, name, plane, above, temp_col)
-            part.data.materials.append(plain_material(name, materials))
+            part.data.materials.append(tissue_material(name, uterus_vagina.data.materials[0], materials, images))
             tools["tag_part"](part, f"fem_{name.lower()}", CODE, name, tools["definition"](name), [uterus_vagina.name])
             temps.append(part)
 
@@ -348,7 +407,10 @@ def export(out_dir):
             o.data.vertices.foreach_set("co", part.ravel())
             o.data.update()
 
-        source_tris = tools["export_temps"](temps, path, window, view_layer, reduce=True)
+        for o in temps:  # the textures use the first set of texture coordinates only
+            while len(o.data.uv_layers) > 1:
+                o.data.uv_layers.remove(o.data.uv_layers[-1])
+        source_tris = tools["export_temps"](temps, path, window, view_layer, reduce=True, textured=True)
         described = sum(1 for o in temps if o["description"])
         parts = sorted(o.name for o in temps)
     finally:

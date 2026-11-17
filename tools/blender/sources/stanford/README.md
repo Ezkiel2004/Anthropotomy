@@ -22,5 +22,7 @@ pelvic floor muscles (the skeletal, urinary, digestive and muscular layers have 
 arch of levator ani and the cut-away copy of the uterus.
 
 Changes made by the export: the organs are fitted into the Z-Anatomy pelvis and pushed clear of its bones
-(Z-Anatomy's pelvis is male and narrower), reduced to about 30% of their triangles, and drawn in the
-explorer's tissue colours instead of the original textures.
+(Z-Anatomy's pelvis is male and narrower) and reduced to about 30% of their triangles. They keep the
+model's colour and normal textures, scaled down from 4096 px to 2048 and 1024 px (uterus, vagina, tubes
+and ovaries) or 1024 and 512 px (the rest) and saved as JPEG; the metallic-roughness textures are left out
+and the explorer sets each part's finish.

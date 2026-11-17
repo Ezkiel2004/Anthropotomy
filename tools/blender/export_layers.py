@@ -48,6 +48,7 @@ MIN_RATIO = 0.15
 RATIO_STEP = 0.02  # the search stops when the passing and failing ratios are this close
 RATIO = 0.30  # flat ratio, used only by export_female_reproductive.py
 WELD_DISTANCE = 1e-6
+TEXTURE_QUALITY = 82  # JPEG quality of the textures a textured layer carries
 # Deviation allowed between a part and its full-resolution mesh, in mm: (95th percentile, maximum). Bones, joints
 # and organs keep the fine one; muscles, vessels and nerves the coarse one.
 FINE, COARSE = (0.3, 1.0), (0.5, 1.5)
@@ -402,9 +403,10 @@ def tag_part(obj, pid, code, name, description, sources):
     obj["source_objects"] = list(sources)
 
 
-def export_temps(temps, path, window, view_layer, reduce=True):
+def export_temps(temps, path, window, view_layer, reduce=True, textured=False):
     """Export only the temporary part objects and return their source triangles. Parts fit_ratios has not prepared
-    (the female layer) are welded and, with reduce, keep a flat RATIO of their triangles.
+    (the female layer) are welded and, with reduce, keep a flat RATIO of their triangles. With textured, the parts'
+    texture coordinates and their materials' images (as JPEG) are exported too.
 
     The caller restores the selection and deletes the temporary objects. window may be None when Blender runs
     in the background (blender -b), which has no windows."""
@@ -423,7 +425,9 @@ def export_temps(temps, path, window, view_layer, reduce=True):
         bpy.ops.export_scene.gltf(
             filepath=path, export_format='GLB', use_selection=True, use_visible=False,
             export_apply=True, export_extras=True, export_yup=True,
-            export_texcoords=False, export_normals=True, export_tangents=False,
+            export_texcoords=textured, export_normals=True, export_tangents=False,
+            export_image_format='JPEG' if textured else 'AUTO', export_image_quality=TEXTURE_QUALITY,
+            export_draco_texcoord_quantization=12,
             export_vertex_color='NONE', export_attributes=False, export_materials='EXPORT',
             export_animations=False, export_skins=False, export_morph=False,
             export_cameras=False, export_lights=False,
