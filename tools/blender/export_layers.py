@@ -436,6 +436,15 @@ def export_temps(temps, path, window, view_layer, reduce=True, textured=False):
     return source_tris
 
 
+def texture_tools():
+    """texture_temps and discard from texture_parts.py, which paints parts from reference models."""
+    path = os.path.join(os.path.dirname(globals().get("__file__") or ""), "texture_parts.py")
+    tools = {"__name__": "texture_parts", "__file__": path}
+    with open(path, encoding="utf-8") as fh:
+        exec(compile(fh.read(), path, "exec"), tools)
+    return tools
+
+
 def export_system(code, out_dir):
     wm = bpy.context.window_manager
     window = wm.windows[0] if wm.windows else None  # None in the background (blender -b)
@@ -448,7 +457,8 @@ def export_system(code, out_dir):
     previous_active = view_layer.objects.active
     temp_col = bpy.data.collections.new(TEMP_COLLECTION)
     scene.collection.children.link(temp_col)
-    temps, source_tris, used = [], 0, set()
+    temps, source_tris, used, painted = [], 0, set(), None
+    painter = texture_tools()
     path = os.path.join(out_dir, f"{code}.glb")
     try:
         restore = reveal(parts, view_layer, SYSTEMS[code][1])
@@ -473,14 +483,15 @@ def export_system(code, out_dir):
                 temps.append(temp)
         finally:
             restore()
+        painted = painter["texture_temps"](code, temps, window, view_layer, globals().get("TEXTURE_SOURCES"))
         relax = 1.0
         fits = fit_ratios(temps, TOLERANCE[code])
-        source_tris = export_temps(temps, path, window, view_layer)
+        source_tris = export_temps(temps, path, window, view_layer, textured=bool(painted))
         reducible = [t.name for t in temps if tri_count(t.data) > MIN_TRIS]  # smaller parts always stay at ratio 1
         while os.path.getsize(path) > BUDGET_BYTES and any(fits[n][0] > MIN_RATIO for n in reducible):
             relax *= RELAX
             fits = fit_ratios(temps, TOLERANCE[code], relax)
-            export_temps(temps, path, window, view_layer)
+            export_temps(temps, path, window, view_layer, textured=bool(painted))
         checks = verify(path, temps, window, view_layer)
         described = sum(1 for t in temps if t["description"])
     finally:
@@ -489,6 +500,7 @@ def export_system(code, out_dir):
             bpy.data.objects.remove(temp)
             bpy.data.meshes.remove(mesh)
         bpy.data.collections.remove(temp_col)
+        painter["discard"](painted)
         for o in scene.objects:
             o.select_set(o.name in previous_selected, view_layer=view_layer)
         view_layer.objects.active = previous_active
@@ -500,6 +512,8 @@ def export_system(code, out_dir):
               "deviation_p95_mm": round(max(p for _, p, _ in fits.values()), 3),
               "deviation_max_mm": round(max(w for _, _, w in fits.values()), 3)}
     report.update({k: v for k, v in checks.items() if v or not isinstance(v, list)})
+    if painted:
+        report["texture"] = {k: v for k, v in painted.items() if k != "created"}
     return report
 
 
