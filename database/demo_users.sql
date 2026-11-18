@@ -1,13 +1,13 @@
 -- Demo accounts for local testing only. Do not load on a production database.
 -- Logins (username / password):
---   demostudent / demo1234   (student, section "Demo Section")
---   demoteacher / demo1234   (admin: the teacher account also has admin rights)
+--   demostudent / demostudent123   (student, section "Demo Section")
+--   demoteacher / demoteacher123   (admin: the teacher account also has admin rights)
 -- Safe to re-run: existing demo accounts are updated, not duplicated.
 
 INSERT INTO users (username, password_hash, role, full_name, is_active)
 VALUES
-  ('demostudent', '$2y$12$wG1adY2udF6zeQ2toRfWbuJK7slFF1noq6cZpWiZjWjQreiyVdyS.', 'student', 'Demo Student', 1),
-  ('demoteacher', '$2y$12$wG1adY2udF6zeQ2toRfWbuJK7slFF1noq6cZpWiZjWjQreiyVdyS.', 'admin',   'Demo Teacher', 1)
+  ('demostudent', '$2y$10$u/RBc4/v592X4v2zOUar/eGGpt/M8fiQEfW7gtRGnFT9HjNlB0Kia', 'student', 'Demo Student', 1),
+  ('demoteacher', '$2y$10$POhufVrjzlkD7TW0OQ/uyemCR/uBSggu/iqCW/7YsCSSnxDXXxGSi', 'admin',   'Demo Teacher', 1)
 ON DUPLICATE KEY UPDATE
   password_hash = VALUES(password_hash),
   role          = VALUES(role),

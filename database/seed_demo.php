@@ -1,7 +1,7 @@
 <?php
 /**
  * Demo content for design reviews: four modules with every lesson type, module materials, and
- * five assessments covering every question type, plus one graded attempt by student01.
+ * five assessments covering every question type, plus one graded attempt by demostudent.
  *
  *   php database/seed_demo.php           add the demo (removes an earlier demo first)
  *   php database/seed_demo.php --remove  remove the demo and its files
@@ -44,7 +44,7 @@ function removeDemo(Database $db, string $root): void {
 if (in_array('--remove', $argv, true)) { removeDemo($db, $root); exit(0); }
 if ($db->fetchOne('SELECT 1 FROM app_settings WHERE setting_key = ?', [DEMO_KEY])) removeDemo($db, $root);
 
-$teacher = $db->fetchOne("SELECT user_id FROM users WHERE username = 'admin'")
+$teacher = $db->fetchOne("SELECT user_id FROM users WHERE username = 'demoteacher'")
     ?? $db->fetchOne("SELECT user_id FROM users WHERE role IN ('admin','teacher') ORDER BY user_id LIMIT 1");
 if (!$teacher) { fwrite(STDERR, "No teacher account to own the demo.\n"); exit(1); }
 $tid = (int)$teacher['user_id'];
@@ -158,8 +158,8 @@ try {
         }
     }
 
-    // One graded attempt by student01 on the first quiz: five of six right, so the teacher list shows results.
-    $student = $db->fetchOne("SELECT user_id FROM users WHERE username = 'student01'");
+    // One graded attempt by demostudent on the first quiz: five of six right, so the teacher list shows results.
+    $student = $db->fetchOne("SELECT user_id FROM users WHERE username = 'demostudent'");
     if ($student) {
         $sid = $db->insert('assessment_submissions', ['student_id' => $student['user_id'], 'assessment_id' => $seed['assessments'][0], 'attempt_number' => 1,
             'score' => 83.33, 'raw_score' => 5, 'max_score' => 6, 'time_taken_secs' => 412, 'status' => 'graded',
