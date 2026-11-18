@@ -4,7 +4,7 @@
     const host=document.currentScript.parentElement;
     const templates={
         teacher: `<div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png?v=20261118-logo" alt="" width="36" height="36"/></div>
+      <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png?v=20261118-logo2" alt="" width="36" height="36"/></div>
       <div class="sidebar-logo-text">
         <div class="sidebar-logo-name">Anthropotomy</div>
         <div class="sidebar-logo-sub">Teacher Portal</div>
@@ -62,7 +62,7 @@
 <a class="nav-item" href="anatomy.html" data-tooltip="3D Anatomy Explorer"><span class="nav-icon"><svg class="ui-icon" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="../assets/icons/interface.svg?v=20261112-icons5#cube"/></svg></span><span class="nav-label">3D Anatomy Explorer</span></a></nav>
 `,
         student: `<div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png?v=20261118-logo" alt="" width="36" height="36"/></div>
+      <div class="sidebar-logo-icon"><img src="../assets/brand/mark-96.png?v=20261118-logo2" alt="" width="36" height="36"/></div>
       <div class="sidebar-logo-text">
         <div class="sidebar-logo-name">Anthropotomy</div>
         <div class="sidebar-logo-sub">Student Portal</div>

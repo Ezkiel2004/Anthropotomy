@@ -168,7 +168,7 @@ npm install
 npm run build:css        # Tailwind CLI: src/public.css -> assets/css/public.css (minified)
 npm run watch:css        # rebuild on save while editing index.html or login.html
 npm run check:contrast   # checks every colour pair in the design tokens
-npm run build:assets     # hero poster (AVIF/WebP/PNG), brand mark and favicons from uploads/images/
+npm run build:assets     # hero poster (AVIF/WebP/PNG, from uploads/images/sidebar_bg.png when present); brand marks, app icons, favicon and full logo from assets/brand/logo.jpg
 npm run build:og         # assets/brand/og-image.jpg, rendered in Chromium
 npm run build:hero       # hero stills in assets/img/hero/ from the layer models, rendered in Chromium
 ~~~
