@@ -209,7 +209,7 @@ const ModuleWorkspace = (() => {
     if (['slides', 'document'].includes(ContentFormat.lessonKind(lesson))) {
       if (!full.view_url) { download(lesson, full.download_url); return; }
       if (opener?.isConnected) opener.focus({ preventScroll: true });
-      PdfViewer.open({ url: full.view_url, title: full.title, context, note: full.content_text || '', downloadUrl: full.download_url });
+      PdfViewer.open({ url: full.view_url, title: full.title, context, note: full.content_text || '', slides: ContentFormat.lessonKind(lesson) === 'slides', downloadUrl: full.download_url });
       return;
     }
     if (ContentFormat.opensInViewer(ContentFormat.lessonKind(full))) {

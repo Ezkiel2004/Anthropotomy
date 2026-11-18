@@ -2,6 +2,8 @@
    PdfViewer.mount(container, {url, title, downloadUrl, note}) → Promise<{destroy()}>   inline viewer
    PdfViewer.open({url, title, downloadUrl, context, note}) → {close()}                 full-screen viewer with a thumbnail rail; context labels where it came from
    note (optional): the teacher's note, shown as plain text in a strip under the toolbar that the reader can hide.
+   slides: true (PowerPoint files, read from their PDF copy) shows one slide at a time, fitted to the window, with a Present button
+   (browser full screen), instead of a scrolling page list and zoom. Keys: arrows, Page Up/Down, Space, Home, End, F.
    PdfViewer.thumbnail(canvas, url) → Promise<number>                             draws page 1 into a canvas, resolves to the page count
    PdfViewer.pageCount(url) → Promise<number>                                     reads the page count without drawing
    Pages are empty placeholders; only the ones near the viewport are drawn, and they are released again when they scroll far away.
@@ -74,27 +76,33 @@ const PdfViewer = (() => {
 
     /* Builds the viewer into root and returns {destroy()}. full: draw the thumbnail rail and answer keys anywhere (Escape included). */
     // downloadUrl: left out it is the PDF's own address; null (or '') makes the viewer view-only, with no Download button or link anywhere.
-    function build(root, {url, title = 'Document', downloadUrl = url, note = ''}, {full, onClose, onFullScreen}) {
+    function build(root, {url, title = 'Document', downloadUrl = url, note = '', slides = false}, {full, onClose, onFullScreen}) {
         const name = esc(title), cleanups = [];
-        let pdf = null, task = null, dead = false, zoom = 'fit', current = 1, natural = null, stageWidth = 0;
+        let pdf = null, task = null, dead = false, zoom = 'fit', current = 1, natural = null, stageKey = '';
+        // slides: a PowerPoint file read from its PDF copy. One slide at a time, fitted to the window, with a Present button;
+        // no zoom and no scrolling. Everything else about loading and drawing is shared with the PDF reader.
+        const unit = slides ? 'slide' : 'page';
+        const canPresent = slides && full && Boolean(document.fullscreenEnabled);
+        root.classList.toggle('pv--slides', slides);
         root.innerHTML = `
           <div class="pv-bar">
-            <span class="pv-name">${icon('file-pdf')}<b>${name}</b><span class="pv-meta">PDF</span></span>
-            ${button('arrow-left', 'Previous page', 'data-prev')}
-            <span class="pv-pages" aria-live="polite"><input type="text" inputmode="numeric" aria-label="Page number" value="1" size="3" disabled/><span class="pv-of"></span></span>
-            ${button('arrow-right', 'Next page', 'data-next')}
-            <span class="pv-sep"></span>
+            <span class="pv-name">${icon(slides ? 'file-ppt' : 'file-pdf')}<b>${name}</b><span class="pv-meta">${slides ? 'PowerPoint' : 'PDF'}</span></span>
+            ${button('arrow-left', `Previous ${unit}`, 'data-prev')}
+            <span class="pv-pages" aria-live="polite">${slides ? '<span class="pv-of">Slide</span>' : ''}<input type="text" inputmode="numeric" aria-label="${slides ? 'Slide' : 'Page'} number" value="1" size="3" disabled/><span class="pv-of pv-total"></span></span>
+            ${button('arrow-right', `Next ${unit}`, 'data-next')}
+            ${slides ? '' : `<span class="pv-sep"></span>
             ${button('magnifying-glass-minus', 'Zoom out', 'data-zoom-out')}
             <span class="pv-zoom">Fit width</span>
-            ${button('magnifying-glass-plus', 'Zoom in', 'data-zoom-in')}
-            ${downloadUrl || !full ? '<span class="pv-sep"></span>' : ''}
+            ${button('magnifying-glass-plus', 'Zoom in', 'data-zoom-in')}`}
+            ${downloadUrl || !full || canPresent ? '<span class="pv-sep"></span>' : ''}
+            ${canPresent ? `<button type="button" class="pv-present" data-present>${icon('corners-out')}Present</button>` : ''}
             ${downloadUrl ? `<a class="pv-btn" href="${esc(downloadUrl)}" download aria-label="Download">${icon('download-simple')}</a>` : ''}
             ${full ? '' : button('corners-out', 'Full screen', 'data-full')}
           </div>
           ${noteStrip(note)}
           <div class="pv-body">
             ${full ? '<div class="pv-rail" aria-hidden="true"></div>' : ''}
-            <div class="pv-stage" tabindex="0" role="document" aria-label="${name} pages"><p class="pv-loading">Loading document…</p></div>
+            <div class="pv-stage" tabindex="0" role="document" aria-label="${name} ${unit}s"><p class="pv-loading">Loading ${slides ? 'slides' : 'document'}…</p></div>
           </div>`;
         const $ = selector => root.querySelector(selector);
         const stage = $('.pv-stage'), rail = $('.pv-rail'), input = $('.pv-pages input');
@@ -117,7 +125,28 @@ const PdfViewer = (() => {
             s.render?.cancel();
             s.render = null;
             el.querySelector('canvas')?.remove();
+            el.querySelectorAll('.pv-link').forEach(a => a.remove());
             delete el.dataset.rendered;
+        }
+        // Web links in the document (a PowerPoint slide's hyperlinks, a PDF's links) are drawn as clickable boxes over the page,
+        // in percentages of the page so they follow every zoom. Only http(s) addresses; they open in a new tab.
+        async function addLinks(page, el) {
+            let notes = [];
+            try { notes = await page.getAnnotations({intent: 'display'}); } catch { return; }
+            const view = page.getViewport({scale: 1});
+            for (const note of notes) {
+                if (note.subtype !== 'Link' || !/^https?:\/\//i.test(note.url || '') || !note.rect) continue;
+                const [x1, y1, x2, y2] = view.convertToViewportRectangle(note.rect);
+                const link = document.createElement('a');
+                link.className = 'pv-link';
+                link.href = note.url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.title = note.url;
+                link.setAttribute('aria-label', 'Open link: ' + note.url);
+                link.style.cssText = `left:${Math.min(x1, x2) / view.width * 100}%;top:${Math.min(y1, y2) / view.height * 100}%;width:${Math.abs(x2 - x1) / view.width * 100}%;height:${Math.abs(y2 - y1) / view.height * 100}%`;
+                el.append(link);
+            }
         }
         async function draw(el, host) {
             const s = state.get(el) || {token: 0, render: null};
@@ -137,6 +166,8 @@ const PdfViewer = (() => {
                 el.append(canvas);
                 canvas.dataset.rendered = '1';
                 el.dataset.rendered = '1';
+                if (host !== 'rail') await addLinks(page, el);
+                if (dead || token !== s.token) el.querySelectorAll('.pv-link').forEach(a => a.remove());
             } catch (error) {
                 if (error?.name !== 'RenderingCancelledException') s.render = null;
             }
@@ -151,6 +182,7 @@ const PdfViewer = (() => {
         }
         let stageObserver = null;
         function redrawAll() {
+            if (slides) { showSlide(current); return; }
             // Re-observing makes the observer report every placeholder again, so the visible ones draw at the new size.
             pages().forEach(release);
             stageObserver.disconnect();
@@ -169,17 +201,39 @@ const PdfViewer = (() => {
         }
         function goTo(n) {
             n = Math.max(1, Math.min(count(), Number(n) || 1));
+            if (slides) { showSlide(n); return; }
             setCurrent(n);
             const el = stage.querySelector(`[data-page="${n}"]`);
             if (el) stage.scrollTo({top: el.offsetTop - padding()});
         }
+        // Slides: the one slide on the stage is redrawn for the chosen number.
+        function showSlide(n) {
+            setCurrent(n);
+            const el = stage.querySelector('.pv-page');
+            if (!el) return;
+            release(el);
+            el.dataset.page = String(current);
+            draw(el, 'stage');
+        }
+        // A slide is as large as fits the stage both ways, so the whole slide is always in view.
+        function fitSlide() {
+            const pad = padding();
+            const width = Math.max(160, Math.min(stage.clientWidth - 2 * pad, (stage.clientHeight - 2 * pad) / natural.ratio));
+            stage.style.setProperty('--pv-w', width + 'px');
+            stageKey = stage.clientWidth + 'x' + stage.clientHeight;
+        }
         function applyZoom() {
+            if (slides) { fitSlide(); return; }
             stage.style.setProperty('--pv-w', widthFor() + 'px');
             $('.pv-zoom').textContent = zoom === 'fit' ? 'Fit width' : zoom + '%';
-            stageWidth = stage.clientWidth;
+            stageKey = stage.clientWidth + 'x' + stage.clientHeight;
+        }
+        function present() {
+            if (document.fullscreenElement) document.exitFullscreen?.();
+            else root.requestFullscreen?.().catch(() => {});
         }
         function stepZoom(direction) {
-            if (!pdf) return;
+            if (!pdf || slides) return;
             const list = steps(), index = list.findIndex(s => s.key === zoom);
             const chosen = list[Math.max(0, Math.min(list.length - 1, index + direction))];
             if (chosen.key === zoom) return;
@@ -204,9 +258,12 @@ const PdfViewer = (() => {
 
         // ── Controls ────────────────────────────────────────────
         listen(root, 'click', e => {
+            if (e.target.closest('.pv-link')) return;   // a link on the page: let the browser open it, do not turn the slide
             const control = e.target.closest('button, .pv-rail figure');
+            if (!control && slides && pdf && e.target.closest('.pv-page')) { goTo(current + 1); return; }   // click the slide: next slide
             if (!control || !root.contains(control)) return;
-            if (control.dataset.prev !== undefined) goTo(current - 1);
+            if (control.dataset.present !== undefined) present();
+            else if (control.dataset.prev !== undefined) goTo(current - 1);
             else if (control.dataset.next !== undefined) goTo(current + 1);
             else if (control.dataset.zoomIn !== undefined) stepZoom(1);
             else if (control.dataset.zoomOut !== undefined) stepZoom(-1);
@@ -227,8 +284,15 @@ const PdfViewer = (() => {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             if (e.key === 'Escape') { if (full) { e.preventDefault(); e.stopPropagation(); onClose?.(); } return; }
             if (e.target.closest?.('input, textarea, select')) return;
-            const handled = {ArrowRight: () => goTo(current + 1), ArrowLeft: () => goTo(current - 1), '+': () => stepZoom(1), '=': () => stepZoom(1), '-': () => stepZoom(-1), '_': () => stepZoom(-1)}[e.key];
+            const onControl = Boolean(e.target.closest?.('button, a[href]'));
+            const slideKeys = !slides ? {} : {
+                PageDown: () => goTo(current + 1), PageUp: () => goTo(current - 1), ArrowDown: () => goTo(current + 1), ArrowUp: () => goTo(current - 1),
+                Home: () => goTo(1), End: () => goTo(count()), ' ': () => { if (!onControl) goTo(current + 1); },
+                f: () => canPresent && present(), F: () => canPresent && present(),
+            };
+            const handled = {ArrowRight: () => goTo(current + 1), ArrowLeft: () => goTo(current - 1), '+': () => stepZoom(1), '=': () => stepZoom(1), '-': () => stepZoom(-1), '_': () => stepZoom(-1), ...slideKeys}[e.key];
             if (!handled) return;
+            if (e.key === ' ' && onControl) return;   // Space presses a focused button
             e.preventDefault();
             e.stopPropagation();
             handled();
@@ -251,17 +315,19 @@ const PdfViewer = (() => {
             if (dead) return;
             const view = first.getViewport({scale: 1});
             natural = {width: view.width * PX_PER_PT, ratio: view.height / view.width};
-            $('.pv-meta').textContent = `PDF · ${count()} page${count() === 1 ? '' : 's'}`;
-            $('.pv-of').textContent = `of ${count()}`;
+            $('.pv-meta').textContent = `${slides ? 'PowerPoint' : 'PDF'} · ${count()} ${unit}${count() === 1 ? '' : 's'}`;
+            $('.pv-total').textContent = `of ${count()}`;
             input.disabled = false;
-            stage.innerHTML = Array.from({length: count()}, (_, i) => `<div class="pv-page" data-page="${i + 1}" style="aspect-ratio:1 / ${natural.ratio}"></div>`).join('');
+            stage.innerHTML = slides
+                ? `<div class="pv-page" data-page="1" style="aspect-ratio:1 / ${natural.ratio}"></div>`
+                : Array.from({length: count()}, (_, i) => `<div class="pv-page" data-page="${i + 1}" style="aspect-ratio:1 / ${natural.ratio}"></div>`).join('');
             if (rail) rail.innerHTML = Array.from({length: count()}, (_, i) => `<figure data-rail="${i + 1}" role="presentation"><div class="pv-thumb" data-page="${i + 1}" style="aspect-ratio:1 / ${natural.ratio}"></div><figcaption>${i + 1}</figcaption></figure>`).join('');
             applyZoom();
-            stageObserver = watch(stage, 'stage');
+            if (!slides) stageObserver = watch(stage, 'stage');
             if (rail) watch(rail, 'rail');
             if (typeof ResizeObserver === 'function') {
                 const resize = new ResizeObserver(() => {
-                    if (stage.clientWidth === stageWidth) return;
+                    if (stage.clientWidth + 'x' + stage.clientHeight === stageKey) return;
                     applyZoom();
                     if (zoom === 'fit') redrawAll();
                 });
@@ -269,6 +335,7 @@ const PdfViewer = (() => {
                 cleanups.push(() => resize.disconnect());
             }
             setCurrent(1);
+            if (slides) showSlide(1);
             if (full) stage.focus({preventScroll: true});
         }).catch(failed);
 

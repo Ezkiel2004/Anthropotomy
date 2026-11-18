@@ -18,7 +18,7 @@ const TeacherFiles = (() => {
     const isOffice = name => ['ppt', 'pptx', 'doc', 'docx'].includes(extOf(name));
     const canView = f => f.original_name.toLowerCase().endsWith('.pdf') || Boolean(f.has_preview);
     const view = (file, context) => file.has_preview
-        ? PdfViewer.open({url: previewUrl(file.file_id), title: file.title, context, downloadUrl: fileUrl(file.file_id)})
+        ? PdfViewer.open({url: previewUrl(file.file_id), title: file.title, context, slides: /^pptx?$/.test(extOf(file.original_name)), downloadUrl: fileUrl(file.file_id)})
         : PdfViewer.open({url: fileUrl(file.file_id), title: file.title, context});
     const progressText = name => extOf(name).startsWith('p') ? 'Preparing slides for viewing…' : 'Preparing document for viewing…';
     const SAVED = 'Saved. Students can view it in the app.';

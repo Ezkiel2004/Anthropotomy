@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../assets/css/student-portal.css?v=20261019-acct1"/>
   <link rel="stylesheet" href="../assets/css/stage-portal.css?v=20261112-title1"/>
   <link rel="stylesheet" href="../assets/css/minimal-portal.css?v=20261112-expl1"/>
-  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261112-files1"/>
+  <link rel="stylesheet" href="../assets/css/pdf-viewer.css?v=20261118-slides4"/>
   <script type="module" src="../assets/js/portal-motion.js?v=20261026-layer6"></script>
 </head>
 <body class="student-dashboard stage-portal">
@@ -93,7 +93,7 @@
 
 <script src="../assets/js/app.js?v=20261112-greet1"></script>
 <script src="../assets/js/content-format.js?v=20261112-files1"></script>
-<script src="../assets/js/pdf-viewer.js?v=20261112-view1"></script>
+<script src="../assets/js/pdf-viewer.js?v=20261118-slides4"></script>
 <script src="../assets/js/lesson-reader.js?v=20261112-view1"></script>
 <script src="../assets/js/student-portal.js?v=20261112-files1"></script>
 <script>
@@ -230,7 +230,7 @@ async function viewModule(moduleId) {
         const isPdf = f.original_name.toLowerCase().endsWith('.pdf');
         const viewable = isPdf || f.has_preview;
         const ext = escHtml(f.original_name.split('.').pop().toUpperCase());
-        return `<${viewable ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}" data-context="${escHtml(module.title)} · Materials"${f.has_preview ? ` data-preview="1" data-download="${f.can_download ? 1 : 0}"` : ''}` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
+        return `<${viewable ? `button type="button" data-material="${Number(f.file_id)}" data-title="${escHtml(f.title)}" data-context="${escHtml(module.title)} · Materials"${f.has_preview ? ` data-preview="1" data-download="${f.can_download ? 1 : 0}"${/\.pptx?$/i.test(f.original_name) ? ' data-slides="1"' : ''}` : ''}` : `a href="${API_BASE}/files.php?id=${Number(f.file_id)}" onclick="StudyClock.reading()" download`} class="sd-lesson">
           <span class="sd-lesson-num">${icon(isPdf ? 'file-pdf' : 'file-text')}</span>
           <span class="sd-lesson-copy"><span class="sd-lesson-title">${escHtml(f.title)}</span><span class="sd-lesson-meta">${isPdf ? 'PDF' : f.has_preview ? ext + (f.can_download ? '' : ' · view only') : 'Download · ' + ext}</span></span>
           <span class="sd-lesson-go">${viewable ? 'Open' : 'Download'}${icon(viewable ? 'arrow-right' : 'download-simple')}</span>
@@ -329,7 +329,7 @@ async function readLesson(card) {
     const url = office ? result.data?.view_url : result.data?.media_url;
     if (!result.success || !url) { showToast('This lesson isn’t available right now.', 'warning'); return; }
     if (go.isConnected) go.focus({ preventScroll: true });   // the viewer gives focus back here when it closes
-    PdfViewer.open({ url, title: result.data.title, context: `${module.title} · Lesson ${position}`, note: result.data.content_text || '',
+    PdfViewer.open({ url, title: result.data.title, context: `${module.title} · Lesson ${position}`, note: result.data.content_text || '', slides: card.dataset.kind === 'slides',
       ...(office ? { downloadUrl: result.data.can_download ? result.data.download_url : null } : {}) });
   } catch (e) {
     showToast('We couldn’t open the lesson. Check your connection and try again.', 'error');
@@ -365,7 +365,7 @@ document.getElementById('lessonModalBody').addEventListener('click', e => {
   if (item) {
     // A PowerPoint or Word material with a preview opens its PDF copy; the Download button is there only when allowed.
     const original = `${API_BASE}/files.php?id=${item.dataset.material}`;
-    if (item.dataset.preview) PdfViewer.open({ url: `${original}&preview=1`, title: item.dataset.title, context: item.dataset.context, downloadUrl: item.dataset.download === '1' ? original : null });
+    if (item.dataset.preview) PdfViewer.open({ url: `${original}&preview=1`, title: item.dataset.title, context: item.dataset.context, slides: item.dataset.slides === '1', downloadUrl: item.dataset.download === '1' ? original : null });
     else PdfViewer.open({ url: original, title: item.dataset.title, context: item.dataset.context });
     return;
   }

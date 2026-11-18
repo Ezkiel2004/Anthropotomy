@@ -41,6 +41,26 @@
 .pv:not(.pv--full) .pv-stage { height: min(70vh, 46rem); }
 .pv-page { position: relative; flex: none; width: var(--pv-w, 100%); max-width: none; border-radius: .25rem; background: #1c1c1c; box-shadow: 0 24px 60px -20px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04); }
 .pv-page canvas { display: block; width: 100%; height: 100%; border-radius: .25rem; background: #fff; }
+/* PowerPoint mode (pdf-viewer.js, slides: true): one slide at a time, centred and sized to fit the stage, click for the next slide. */
+.pv--slides .pv-name .ui-icon { color: #ff8a65; }
+.pv--slides .pv-stage { overflow: hidden; align-items: center; justify-content: center; }
+.pv--slides .pv-page { cursor: pointer; border-radius: .375rem; }
+.pv--slides .pv-page canvas { border-radius: .375rem; }
+.pv-present { display: inline-flex; align-items: center; gap: .5rem; height: 2.25rem; padding: 0 .875rem; border: 0; border-radius: 999px; background: var(--pv-mint); color: #07110f; font: inherit; font-size: .8125rem; font-weight: 700; cursor: pointer; }
+.pv-present:hover { filter: brightness(1.08); }
+.pv-present:focus-visible { outline: 2px solid var(--pv-ink); outline-offset: 2px; }
+/* Presenting (browser full screen): the slide fills the screen, the toolbar stays out of the way until the pointer or focus is on it. */
+.pv:fullscreen { height: 100vh; border-radius: 0; background: #000; }
+.pv:fullscreen .pv-stage { height: auto; flex: 1; padding: 1rem; background: #000; }
+.pv:fullscreen .pv-rail, .pv:fullscreen .pv-note { display: none; }
+.pv:fullscreen .pv-body { grid-template-columns: minmax(0, 1fr); }
+.pv:fullscreen .pv-bar { position: absolute; left: 0; right: 0; top: 0; z-index: 2; opacity: 0; transition: opacity .25s; }
+.pv:fullscreen:hover .pv-bar, .pv:fullscreen .pv-bar:focus-within { opacity: 1; }
+/* Clickable links over the drawn page (pdf-viewer.js addLinks): invisible until hovered or focused. */
+.pv-link { position: absolute; z-index: 1; display: block; border-radius: .125rem; cursor: pointer; }
+.pv-link::after { content: ""; position: absolute; inset: -4px -3px; }   /* a larger target than the line of text */
+.pv-link:hover { background: rgba(26,107,74,.14); box-shadow: 0 0 0 1px rgba(26,107,74,.5); }
+.pv-link:focus-visible { outline: 2px solid var(--pv-mint); outline-offset: 1px; }
 .pv-loading { margin: auto; color: var(--pv-muted); font-size: .875rem; }
 .pv-fallback { display: grid; justify-items: center; gap: 1rem; padding: 3rem 1.5rem; text-align: center; color: var(--pv-soft); }
 .pv-fallback p { margin: 0; }
