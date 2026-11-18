@@ -622,10 +622,14 @@ a.sd-lesson{text-decoration:none}
 .sd-next-lineup img{flex:0 0 auto;width:auto;height:92%;margin-left:-5rem;filter:drop-shadow(-.5rem 0 .75rem rgba(0,0,0,.25));transition:transform .7s var(--st-ease)}
 .sd-next-lineup img:first-child{margin-left:0}
 .sd-next:hover .sd-next-lineup img{transform:translateY(-.5rem)}
-.sd-next[data-kind="explore"] .sd-next-kicker,.sd-next[data-kind="explore"] .sd-next-title{font-family:var(--st-display);font-weight:400;text-transform:uppercase;font-variant-ligatures:none}
-.sd-next[data-kind="explore"] .sd-next-kicker{font-size:.75rem;letter-spacing:.04em}
-.sd-next[data-kind="explore"] .sd-next-title{font-size:clamp(1.5rem,2.6vw,2.125rem);line-height:1.05}
-@media (max-width:47.99rem){.sd-next-lineup{left:30%;opacity:.4}}
+/* Next-step panel type, one scale for every kind (quiz, lesson, explore): a small tracked label, a display-face title that
+   leads, and a regular-weight detail line. Bungee has no lowercase, so the title is uppercase like the other panel headings. */
+.sd-next[data-kind] .sd-next-copy{max-width:min(64%,34rem)}
+.sd-next[data-kind] .sd-next-kicker{font-size:.75rem;font-weight:700;letter-spacing:.08em;line-height:1.2;text-transform:uppercase;opacity:.8}
+.sd-next[data-kind] .sd-next-title{margin-top:.625rem;font-family:var(--st-display);font-size:clamp(1.375rem,2.6vw,2.125rem);font-weight:400;line-height:1.1;letter-spacing:0;text-transform:uppercase;font-variant-ligatures:none;text-wrap:balance}
+.sd-next[data-kind] .sd-next-detail{margin-top:.75rem;font-size:1rem;font-weight:500;line-height:1.45;opacity:.85}
+.sd-next[data-kind] .sd-next-alt{font-weight:600;opacity:.9}
+@media (max-width:47.99rem){.sd-next-lineup{left:30%;opacity:.4}.sd-next[data-kind] .sd-next-copy{max-width:64%}.sd-next[data-kind] .sd-next-title{font-size:1.25rem}.sd-next[data-kind] .sd-next-detail{font-size:.9375rem}}
 
 /* In-app dialogs (confirmToast / promptToast in app.js) on portal pages: the dark Studio card
    instead of the landing page's cream cartoon card. One mint confirm button, a neutral cancel. */
