@@ -3,13 +3,18 @@
 // A layer loads the first time it is switched on; any combination of layers can be shown.
 const AnatomyViewer = {
     dracoPath: '../assets/vendor/three/draco/',
-    layers: new Map(), materialCache: new Map(),
+    awakeUntil: 0, layers: new Map(), materialCache: new Map(),
     focusedPart: null, focusedParts: new Set(), hoveredPart: null, savedView: null, tween: null, pendingHover: null, lastHover: 0,
     onPartClick: null, labelFor: null,
     init(canvas) {
         this.canvas = canvas;
+        // Render only while something moves: input, an animation, or a call below that changes the scene.
+        for (const name of ['resize', 'applyViewInset', 'setLayerVisible', 'adoptLayer', 'disposeLayer', 'applyMaterials', 'setHover', 'focusPart', 'clearFocus', 'openTray', 'closeTray', 'spinTray', 'moveCamera', 'resetView', 'zoom']) {
+            const method = this[name]; this[name] = (...args) => { this.awakeUntil = performance.now() + 1000; return method.apply(this, args); };
+        }
         this.renderer = new THREE.WebGLRenderer({canvas, antialias: true, preserveDrawingBuffer: true});
-        this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        // Phones and tablets are fill-rate bound: 1.5 keeps the model sharp at about half the pixels of 2.
+        this.renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
         // Realistic colour: sRGB output with filmic tone mapping, lit mainly by a soft studio environment.
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -69,7 +74,9 @@ const AnatomyViewer = {
                 const {x, y} = this.pendingHover; this.pendingHover = null; this.lastHover = now;
                 this.setHover(this.partAt(x, y), x, y);
             }
-            this.controls.update(); this.renderer.render(this.scene, this.camera);
+            const moved = this.controls.update(); // true while the camera moves, damping and auto-rotate included
+            if (!moved && !this.tray && !this.tween && now > this.awakeUntil) return;
+            this.renderer.render(this.scene, this.camera);
             if (this.tray) this.placeTrayLabels();
         };
         // Stop the render loop while the tab is hidden and start a single new one when it returns.
