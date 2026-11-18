@@ -43,11 +43,14 @@ async function poster() {
 const GROUND = [252, 241, 235];
 const RED = [199, 56, 48], NAVY = [35, 56, 75];
 const DARK_RED = [228, 76, 64], DARK_NAVY = [236, 243, 247];
+// Icons with no background sit on the browser's own chrome, which may be light or dark, so their navy becomes a
+// mid blue that stays readable on both (about 3.9:1 on white, 4.1:1 on #202124).
+const MID_RED = [222, 68, 56], MID_NAVY = [91, 132, 166];
 
 async function inks() {
   const { data, info } = await sharp(path.join(root, 'assets/brand/logo.jpg')).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width, height } = info;
-  const light = Buffer.alloc(width * height * 4), dark = Buffer.alloc(width * height * 4);
+  const light = Buffer.alloc(width * height * 4), dark = Buffer.alloc(width * height * 4), mid = Buffer.alloc(width * height * 4);
   const smooth = t => { const x = Math.min(Math.max(t, 0), 1); return x * x * (3 - 2 * x); };
   const project = (p, ink) => {
     let num = 0, den = 0;
@@ -63,6 +66,8 @@ async function inks() {
     const [lr, lg, lb] = red ? RED : NAVY, [dr, dg, db] = red ? DARK_RED : DARK_NAVY, o = n * 4;
     light[o] = lr; light[o + 1] = lg; light[o + 2] = lb; light[o + 3] = Math.round(a * 255);
     dark[o] = dr; dark[o + 1] = dg; dark[o + 2] = db; dark[o + 3] = Math.round(a * 255);
+    const [mr, mg, mb] = red ? MID_RED : MID_NAVY;
+    mid[o] = mr; mid[o + 1] = mg; mid[o + 2] = mb; mid[o + 3] = Math.round(a * 255);
   }
   // Boxes: everything, and the lungs alone (above the empty band between the mark and the wordmark).
   let x0 = width, x1 = 0, y0 = height, y1 = 0;
@@ -78,7 +83,7 @@ async function inks() {
   for (let y = rows[0]; y <= split; y++) for (let x = 0; x < width; x++) if (alpha[y * width + x] > 0.3) { markX0 = Math.min(markX0, x); markX1 = Math.max(markX1, x + 1); }
   const raw = buf => sharp(buf, { raw: { width, height, channels: 4 } });
   return {
-    light: raw(light), dark: raw(dark),
+    light: raw(light), dark: raw(dark), mid: raw(mid),
     full: { left: x0, top: y0, width: x1 - x0, height: y1 - y0 },
     mark: { left: markX0, top: y0, width: markX1 - markX0, height: split + 1 - y0 },
   };
@@ -96,7 +101,7 @@ async function inSquare(image, box, size, fill) {
 
 async function brand() {
   await fs.mkdir(out('brand'), { recursive: true });
-  const { light, dark, full, mark } = await inks();
+  const { light, dark, mid, full, mark } = await inks();
   const write = async (name, buffer) => { const file = path.join(out('brand'), name); await fs.writeFile(file, buffer); await report(file); };
   const cream = { r: GROUND[0], g: GROUND[1], b: GROUND[2], alpha: 1 };
 
@@ -112,8 +117,10 @@ async function brand() {
     const mask = Buffer.from(`<svg width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="${Math.round(size * radius)}" fill="#fff"/></svg>`);
     return sharp(flat).composite([{ input: mask, blend: 'dest-in' }]).png({ compressionLevel: 9 }).toBuffer();
   };
-  await write('icon-192.png', await tile(192, 0.62, 0.22));
-  await write('icon-512.png', await tile(512, 0.62, 0.22));
+  // No background: the tab icon and the "any" app icons are the mark alone. The maskable icon and the iOS icon
+  // must be opaque (the system masks or fills them), so those two keep the cream ground.
+  await write('icon-192.png', await sharp(await inSquare(mid, mark, 192, 0.92)).png({ compressionLevel: 9 }).toBuffer());
+  await write('icon-512.png', await sharp(await inSquare(mid, mark, 512, 0.92)).png({ compressionLevel: 9 }).toBuffer());
   await write('icon-maskable-512.png', await tile(512, 0.5));                    // full bleed; the mark stays inside the safe zone
   await write('apple-touch-icon.png', await sharp(await tile(180, 0.62)).flatten({ background: cream }).png().toBuffer());   // iOS rounds it itself
 
@@ -126,7 +133,7 @@ async function brand() {
 
   // favicon.ico with embedded PNG images (supported by every current browser).
   const sizes = [16, 32, 48];
-  const images = await Promise.all(sizes.map(size => tile(size, 0.84, 0.18)));
+  const images = await Promise.all(sizes.map(async size => sharp(await inSquare(mid, mark, size, 0.96)).png({ compressionLevel: 9 }).toBuffer()));
   const header = Buffer.alloc(6 + sizes.length * 16);
   header.writeUInt16LE(0, 0); header.writeUInt16LE(1, 2); header.writeUInt16LE(sizes.length, 4);
   let offset = header.length;

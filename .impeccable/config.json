@@ -158,6 +158,15 @@
         ],
         "createdAt": "2026-10-25T02:59:46.247Z",
         "reason": "Claude: games.css L266 is a disclosure chevron (rotated two-border caret on .tg-paste summary::after), not a side accent border on a card"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "landing-src/og/og-image.html"
+        ],
+        "createdAt": "2026-11-18T02:29:03.322Z",
+        "reason": "Ground colour #FCF1EB is taken from the user-supplied logo.jpg so the social preview matches the logo; evidence: the pixel colour of assets/brand/logo.jpg, not a reflex default"
       }
     ]
   }
