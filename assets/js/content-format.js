@@ -8,7 +8,7 @@ const ContentFormat = (() => {
     skeletal: ['sky', 'skeletal'], muscular: ['purple', 'muscular'], circulatory: ['coral', 'circulatory'],
     nervous: ['violet', 'nervous'], lymphatic: ['coral', 'lymphatic'], respiratory: ['teal', 'respiratory'],
     digestive: ['violet', 'digestive'], urinary: ['sky', 'urinary'], endocrine: ['teal', 'endocrine'],
-    reproductive: ['coral', null], 'reproductive-female': ['purple', null],
+    reproductive: ['coral', 'reproductive'], 'reproductive-female': ['purple', 'reproductive-female'],
   };
   function systemLook(code) {
     const [tone, art] = SYSTEM_LOOKS[code] || ['sky', null];
