@@ -39,3 +39,6 @@ uploads/avatars/
 
 # Lesson attachments teachers upload (and test runs leave behind)
 uploads/lessons/
+
+# Downloaded source models (glTF archives, tens of MB each; credits in tools/blender/sources/<name>/README.md).
+system_model/sources/
