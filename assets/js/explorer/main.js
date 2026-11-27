@@ -7,7 +7,7 @@ import * as viewer from './viewer.js?v=20261102-tray1';
 import {initPanel, setOpen, isOpen, togglePanel, renderHeader, renderPanel, renderSelection, renderClusters} from './panel.js?v=20261102-tray2';
 import {icon} from './icons.js';
 import {mergeSystem} from './data.js';
-import {factsFor} from './part-facts.js?v=20261027-card1';
+import {factsFor} from './part-facts.js?v=20261127-rectum1';
 import {shortcutAction, stageState, panelDefault, inCluster} from './format.js?v=20261102-cluster1';
 
 const $ = id => document.getElementById(id);

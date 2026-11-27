@@ -19,23 +19,23 @@
     "triangles": 614877
   },
   "digestive": {
-    "bytes": 315328,
-    "described": 46,
+    "bytes": 324720,
+    "described": 48,
     "deviation_max_mm": 0.984,
     "deviation_p95_mm": 0.292,
     "draco_deviation_max_mm": 0.983,
     "draco_deviation_p95_mm": 0.293,
     "file": "digestive.glb",
-    "parts": 47,
+    "parts": 49,
     "placement_max_mm": 0.482,
-    "source_triangles": 329784,
+    "source_triangles": 331224,
     "tolerance_max_mm": 1.0,
     "tolerance_p95_mm": 0.3,
     "tolerance_size_share": [
       0.001,
       0.004
     ],
-    "triangles": 72584
+    "triangles": 74552
   },
   "endocrine": {
     "bytes": 44164,

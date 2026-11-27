@@ -7,7 +7,7 @@
     {"name":"Mouth and salivary glands","parts":["Tongue","Gingiva","Soft palate","Uvula of palate","Parotid gland","Parotid duct","Submandibular gland","Submandibular duct","Sublingual gland"]},
     {"name":"Pharynx and oesophagus","parts":["Nasopharynx","Oropharynx","Laryngopharynx","Oesophagus"]},
     {"name":"Stomach and small intestine","parts":["Stomach","Duodenum","Jejunum"]},
-    {"name":"Large intestine","parts":["Vermiform appendix","Meso-appendix","Ascending colon","Transverse colon","Descending colon","Sigmoid colon","Mesocolon","Free taenia","Mesocolic taenia","Omental taenia"]},
+    {"name":"Large intestine","parts":["Vermiform appendix","Meso-appendix","Ascending colon","Transverse colon","Descending colon","Sigmoid colon","Rectum","Anal canal","Mesocolon","Free taenia","Mesocolic taenia","Omental taenia"]},
     {"name":"Liver, gallbladder and pancreas","parts":["Liver","Gallbladder","Bile duct","Lesser omentum","Pancreas","Pancreatic duct","Accessory pancreatic duct"]},
     {"name":"Segments of the liver (I to VIII)","parts":["Anterior lateral segment of liver (VI)","Anterior medial segment of liver (V)","Left anterior lateral segment of liver (III)","Left medial segment of liver (IV)","Left posterior lateral segment of liver (II)","Posterior lateral segment of liver (VII)","Posterior medial segment of liver (VIII)","Posterior segment of liver (I)"]}
   ],

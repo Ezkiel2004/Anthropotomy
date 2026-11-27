@@ -19,7 +19,8 @@ For each system the script:
    (.ol .or .el .er), anatomical variants named "(...)" or "[...]" and the structures in LEFT_OUT (the
    greater omentum);
 2. briefly makes them visible, copies their evaluated geometry (modifiers applied, curves turned
-   into meshes) into temporary objects, then restores every visibility setting;
+   into meshes) into temporary objects, then restores every visibility setting. A structure in SPLITS is cut
+   into the parts anatomy books name (the rectum and anal canal Z-Anatomy draws as one tube);
 3. welds the copies and decimates each part over MIN_TRIS triangles to the lowest ratio (MIN_RATIO to 1)
    that keeps it within the system's TOLERANCE of its full-resolution mesh, and within SIZE_SHARE of its own
    size: distances are measured both ways (each mesh's vertices to the other's surface), and the bounding box
@@ -39,8 +40,10 @@ import os
 import re
 import struct
 
+import bmesh
 import bpy
 import numpy as np
+from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 MIN_TRIS = 500
@@ -81,6 +84,19 @@ SYSTEMS = {
 HELPER_SUFFIX = re.compile(r"\.(g|j|i|t|ol|or|el|er)(\.\d{3})?$")
 # Structures left out of the web layers (lower-case names): the greater omentum hides the intestines.
 LEFT_OUT = {"greater omentum"}
+# Structures cut in two by a plane (point, normal; Z-Anatomy world coordinates in metres) into (the part on the side
+# the normal points away from, the part on the side it points to). Each part gets its own name and definition.
+# Z-Anatomy draws the rectum and anal canal as one tube it names "Sigmoid colon" (it runs from the third sacral
+# vertebra along the sacrum, through the pelvic floor, to the anus), and its "Descending colon" carries on across
+# the pelvic brim as the sigmoid loop down to that tube.
+SPLITS = {
+    # Anorectal junction: 34 mm up the tube from the anus (an anal canal is 2.5 to 4 cm), where the tube leaves the
+    # external anal sphincter and meets the levator ani; the normal follows the tube there.
+    "Sigmoid colon": (((0.0, 0.049, 0.831), (0.0, 0.259, 0.966)), ("Anal canal", "Rectum")),
+    # Pelvic brim (the superior aperture of the lesser pelvis, where the sigmoid colon begins): the plane through the
+    # sacral promontory and the top of the pubic symphysis, square to the body's left-right axis.
+    "Descending colon": (((-0.0066, 0.0048, 0.9486), (0.0, -0.888, 0.46)), ("Sigmoid colon", "Descending colon")),
+}
 SIDE = {"l": "left", "r": "right"}
 # Words a definition's title may write differently from the structure's name.
 ORDINALS = {"first": "1st", "second": "2nd", "third": "3rd", "fourth": "4th", "fifth": "5th", "sixth": "6th",
@@ -436,6 +452,54 @@ def export_temps(temps, path, window, view_layer, reduce=True, textured=False):
     return source_tris
 
 
+def copy_object_materials(source, temp):
+    """Carries source's object-linked material slots over to temp (mesh-linked ones come with the mesh)."""
+    for i, slot in enumerate(source.material_slots):
+        if slot.link == 'OBJECT' and i < len(temp.material_slots):
+            temp.material_slots[i].link = 'OBJECT'
+            temp.material_slots[i].material = slot.material
+
+
+def cut_mesh(mesh, plane, keep_above):
+    """A copy of mesh cut by plane (point, normal), keeping the side the normal points to (keep_above) or the other
+    one, with the cut closed. The closing faces meet the wall at a sharp edge; custom normals are dropped, as the
+    cut leaves none for the new faces, and every face is shaded smooth."""
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=WELD_DISTANCE)
+    point, normal = plane
+    cut = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-7, plane_co=point,
+                                 plane_no=normal, clear_inner=keep_above, clear_outer=not keep_above)
+    rim = [e for e in cut["geom_cut"] if isinstance(e, bmesh.types.BMEdge) and e.is_valid and e.is_boundary]
+    bmesh.ops.holes_fill(bm, edges=rim, sides=0)
+    for edge in rim:
+        edge.smooth = False
+    for face in bm.faces:
+        face.smooth = True
+    out = bpy.data.meshes.new(mesh.name)
+    bm.to_mesh(out)
+    bm.free()
+    if "custom_normal" in out.attributes:
+        out.attributes.remove(out.attributes["custom_normal"])
+    return out
+
+
+def split_structure(source, mesh, used, collection, code):
+    """The tagged temporary parts SPLITS cuts source's evaluated mesh into. Consumes mesh."""
+    (point, normal), names = SPLITS[base_name(source.name)]
+    mesh.transform(source.matrix_world)  # the planes are in world coordinates
+    parts = []
+    for name, keep_above in zip(names, (False, True)):
+        pid = part_id(name, used)
+        temp = bpy.data.objects.new(pid, cut_mesh(mesh, (Vector(point), Vector(normal)), keep_above))
+        collection.objects.link(temp)
+        copy_object_materials(source, temp)
+        tag_part(temp, pid, code, name, definition(name), [source.name])
+        parts.append(temp)
+    bpy.data.meshes.remove(mesh)
+    return parts
+
+
 def texture_tools():
     """texture_temps and discard from texture_parts.py, which paints parts from reference models."""
     path = os.path.join(os.path.dirname(globals().get("__file__") or ""), "texture_parts.py")
@@ -471,14 +535,14 @@ def export_system(code, out_dir):
                     bpy.data.meshes.remove(mesh)
                     continue
                 mesh.validate()  # the glTF exporter repairs invalid meshes before decimating; the fit must see the same mesh
+                if base_name(o.name) in SPLITS:
+                    temps += split_structure(o, mesh, used, temp_col, code)
+                    continue
                 pid = part_id(o.name, used)
                 temp = bpy.data.objects.new(pid, mesh)
                 temp_col.objects.link(temp)
                 temp.matrix_world = o.matrix_world.copy()
-                for i, slot in enumerate(o.material_slots):
-                    if slot.link == 'OBJECT' and i < len(temp.material_slots):
-                        temp.material_slots[i].link = 'OBJECT'
-                        temp.material_slots[i].material = slot.material
+                copy_object_materials(o, temp)
                 tag_part(temp, pid, code, display_name(o.name), definition(o.name), [o.name])
                 temps.append(temp)
         finally:

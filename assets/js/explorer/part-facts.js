@@ -134,6 +134,8 @@ const FACTS = {
     'vermiform appendix': ['Appendix', 'The appendix may store helpful gut bacteria to restock the intestine after an illness.'],
     'sigmoid colon': ['S-shaped colon', 'Sigmoid means "S-shaped", after the Greek letter sigma.'],
     'transverse colon': ['Middle colon', 'The transverse colon is the longest and most movable part of the large intestine.'],
+    'rectum': ['End of the large intestine', 'Rectum means "straight", although the human rectum curves along the front of the sacrum.'],
+    'anal canal': ['Back passage', 'The anal canal is only about 3 to 4 cm long and is kept shut by two rings of sphincter muscle.'],
     'parotid gland': ['Salivary gland (cheek)', 'Your salivary glands make about 1 to 1.5 litres of saliva every day.'],
     'uvula of palate': ['Uvula', 'The uvula helps close off the nose when you swallow, so food does not go up it.'],
     'soft palate': ['Roof of the mouth (back)', 'The soft palate rises when you swallow to block food from entering your nose.'],
